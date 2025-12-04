@@ -1,0 +1,58 @@
+const commonTranslations = [
+    { keys: ["Chest"], value: "보물상자" },
+    { keys: ["NPC"], value: "NPC" },
+    { keys: ["Teleport"], value: "순간이동" },
+    { keys: ["Shop"], value: "상점" },
+    { keys: ["Bounty"], value: "현상금" },
+    { keys: ["Quest"], value: "퀘스트" },
+    { keys: ["World Boss"], value: "필드 보스" },
+    { keys: ["Meditation", "Meditation Spot"], value: "명상" },
+    { keys: ["Viewpoint", "View point"], value: "뷰포인트" },
+    { keys: ["Archive"], value: "기록" },
+    { keys: ["Cave"], value: "동굴" },
+    { keys: ["Puzzle"], value: "퍼즐" },
+    { keys: ["Gathering"], value: "채집" },
+    { keys: ["Fishing"], value: "낚시" },
+    { keys: ["Cooking"], value: "요리" },
+    { keys: ["Crafting"], value: "제작" },
+    { keys: ["Book"], value: "서적" },
+    { keys: ["Song"], value: "노래" },
+    { keys: ["Boundary Stones", "BoundaryStones"], value: "경계석" },
+    { keys: ["Bathhouse"], value: "사우나" },
+    { keys: ["CampaignQuest", "Campaign Quest"], value: "메인 퀘스트" },
+    { keys: ["SideStory", "Side Story"], value: "서브 스토리" },
+    { keys: ["OddityCollection", "Oddity Collection"], value: "기물 수집" },
+    { keys: ["DivinecraftDungeon", "Divinecraft Dungeon"], value: "신기 던전" },
+    { keys: ["RestrictedZones", "Restricted Zones"], value: "출입 금지 구역" },
+    { keys: ["MarketOffice", "Market Office"], value: "관청" },
+    { keys: ["ShadowPuppetStall", "Shadow Puppet Stall"], value: "그림자 인형극" },
+    { keys: ["MusicalDance", "Musical Dance"], value: "가무" },
+    { keys: ["Pitch Pot"], value: "투호" },
+    { keys: ["Chess Match"], value: "상기" },
+    { keys: ["Bell of Demoncalm"], value: "퇴마의 종" },
+    { keys: ["Show All"], value: "모두 보기" },
+    { keys: ["Show Completed"], value: "완료된 항목 보기" },
+    { keys: ["Share"], value: "공유" },
+    { keys: ["Favorite"], value: "즐겨찾기" },
+    { keys: ["Wayfarer"], value: "여행자" },
+    { keys: ["Horse Merchant"], value: "마구간지기" },
+    { keys: ["Crafting Bench"], value: "제작대" },
+    { keys: ["Fishing Contest"], value: "낚시 대회" },
+    { keys: ["Archery Competition"], value: "궁술 대회" },
+    { keys: ["Exploration Challenge"], value: "탐험 도전" },
+    { keys: ["Meow Meow Temple"], value: "묘묘 사원" },
+    { keys: ["Meow Meow's Treasure"], value: "묘묘의 보물" },
+    { keys: ["Wrestling"], value: "씨름" }
+];
+
+const itemOverrides = {
+    /*
+    550: {
+        name: "금광각 깡패",
+        description: "이 녀석들은 금광각 소속의 악당들입니다. 조심하세요."
+    },
+    392: {
+        name: "풍지승의 활쏘기 시합",
+        description: "<h3>풍지승</h3><p>풍지승이 넓은 공터를 발견하고 당신을 활쏘기 시합에 초대했습니다.</p>"
+    }*/
+};

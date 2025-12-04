@@ -1,49 +1,57 @@
-const koDict = {
-    "Chest": "보물상자",
-    "NPC": "NPC",
-    "Teleport": "순간이동",
-    "Shop": "상점",
-    "Bounty": "현상금",
-    "Quest": "퀘스트",
-    "World Boss": "필드 보스",
-    "Meditation": "명상",
-    "Viewpoint": "뷰포인트",
-    "Archive": "기록",
-    "Cave": "동굴",
-    "Puzzle": "퍼즐",
-    "Gathering": "채집",
-    "Fishing": "낚시",
-    "Cooking": "요리",
-    "Crafting": "제작",
-    "Book": "서적",
-    "Song": "노래",
-    "Boundary Stones": "순간 이동",
-    "Bathhouse": "사우나",
-    "CampaignQuest": "메인 퀘스트",
-    "SideStory": "서브 스토리",
-    "OddityCollection": "기물 수집",
-    "DivinecraftDungeon": "신기 던전",
-    "RestrictedZones": "출입 금지 구역",
-    "MarketOffice": "관청",
-    "ShadowPuppetStall": "그림자 인형극",
-    "MusicalDance": "가무",
-    "Pitch Pot": "투호",
-    "Chess Match": "상기",
-    "Bell of Demoncalm": "퇴마의 종",
-    "Show All": "모두 보기",
-    "Show Completed": "완료된 항목 보기",
-    "Share": "공유",
-    "Favorite": "즐겨찾기",
-    "Wayfarer": "여행자",
-    "Horse Merchant": "마구간지기",
-    "Crafting Bench": "제작대",
-    "Fishing Contest": "낚시 대회",
-    "Archery Competition": "궁술 대회",
-    "Exploration Challenge": "탐험 도전",
-    "Meow Meow Temple": "묘묘 사원",
-    "Meow Meow's Treasure": "묘묘의 보물",
-    "Wrestling": "씨름"
-};
+const rawTranslations = [
+    { keys: ["Chest"], value: "보물상자" },
+    { keys: ["NPC"], value: "NPC" },
+    { keys: ["Teleport"], value: "순간이동" },
+    { keys: ["Shop"], value: "상점" },
+    { keys: ["Bounty"], value: "현상금" },
+    { keys: ["Quest"], value: "퀘스트" },
+    { keys: ["World Boss"], value: "필드 보스" },
+    { keys: ["Meditation", "Meditation Spot"], value: "명상" },
+    { keys: ["Viewpoint", "View point"], value: "뷰포인트" },
+    { keys: ["Archive"], value: "기록" },
+    { keys: ["Cave"], value: "동굴" },
+    { keys: ["Puzzle"], value: "퍼즐" },
+    { keys: ["Gathering"], value: "채집" },
+    { keys: ["Fishing"], value: "낚시" },
+    { keys: ["Cooking"], value: "요리" },
+    { keys: ["Crafting"], value: "제작" },
+    { keys: ["Book"], value: "서적" },
+    { keys: ["Song"], value: "노래" },
+    { keys: ["Boundary Stones", "BoundaryStones"], value: "경계석" },
+    { keys: ["Bathhouse"], value: "사우나" },
+    { keys: ["CampaignQuest", "Campaign Quest"], value: "메인 퀘스트" },
+    { keys: ["SideStory", "Side Story"], value: "서브 스토리" },
+    { keys: ["OddityCollection", "Oddity Collection"], value: "기물 수집" },
+    { keys: ["DivinecraftDungeon", "Divinecraft Dungeon"], value: "신기 던전" },
+    { keys: ["RestrictedZones", "Restricted Zones"], value: "출입 금지 구역" },
+    { keys: ["MarketOffice", "Market Office"], value: "관청" },
+    { keys: ["ShadowPuppetStall", "Shadow Puppet Stall"], value: "그림자 인형극" },
+    { keys: ["MusicalDance", "Musical Dance"], value: "가무" },
+    { keys: ["Pitch Pot"], value: "투호" },
+    { keys: ["Chess Match"], value: "상기" },
+    { keys: ["Bell of Demoncalm"], value: "퇴마의 종" },
+    { keys: ["Show All"], value: "모두 보기" },
+    { keys: ["Show Completed"], value: "완료된 항목 보기" },
+    { keys: ["Share"], value: "공유" },
+    { keys: ["Favorite"], value: "즐겨찾기" },
+    { keys: ["Wayfarer"], value: "여행자" },
+    { keys: ["Horse Merchant"], value: "마구간지기" },
+    { keys: ["Crafting Bench"], value: "제작대" },
+    { keys: ["Fishing Contest"], value: "낚시 대회" },
+    { keys: ["Archery Competition"], value: "궁술 대회" },
+    { keys: ["Exploration Challenge"], value: "탐험 도전" },
+    { keys: ["Meow Meow Temple"], value: "묘묘 사원" },
+    { keys: ["Meow Meow's Treasure"], value: "묘묘의 보물" },
+    { keys: ["Wrestling"], value: "씨름" }
+];
+
+const koDict = {};
+rawTranslations.forEach(item => {
+    item.keys.forEach(key => {
+        koDict[key] = item.value;
+        koDict[key.trim()] = item.value;
+    });
+});
 
 const usefulLinks = [
     { title: "공식 홈페이지", url: "https://www.wherewindsmeetgame.com/kr/index.html" },
@@ -53,7 +61,6 @@ const usefulLinks = [
     { title: "연운 한국 디스코드", url: "https://discord.gg/wherewindsmeetkr" },
     { title: "아카라이브 연운 채널", url: "https://arca.live/b/wherewindsmeet" },
     { title: "디씨 연운 갤러리", url: "https://gall.dcinside.com/mgallery/board/lists?id=dusdns" },
-    { title: "디씨 개봉(연운) 갤러리", url: "https://arca.live/b/wherewindsmeet" },
 ];
 
 const t = (key) => {
@@ -63,6 +70,7 @@ const t = (key) => {
 }
 
 let targetArrowMarker = null;
+let currentModalList = [];
 
 document.addEventListener('DOMContentLoaded', () => {
     if (typeof mapData === 'undefined' || !mapData.categories || !mapData.items) {
@@ -75,6 +83,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return cat.image && cat.image.trim() !== "";
     });
 
+    if (typeof itemOverrides !== 'undefined') {
+        mapData.items.forEach(item => {
+            if (itemOverrides[item.id]) {
+                if (itemOverrides[item.id].name) item.name = itemOverrides[item.id].name;
+                if (itemOverrides[item.id].description) item.description = itemOverrides[item.id].description;
+            }
+        });
+    }
+
     const itemsByCategory = {};
     mapData.items.forEach(item => {
         if (!itemsByCategory[item.category]) {
@@ -84,10 +101,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     for (const key in itemsByCategory) {
-        itemsByCategory[key].sort((a, b) => a.name.localeCompare(b.name));
+        itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
     }
 
-    console.log(`Loaded Categories: ${validCategories.length}`);
+    const boundaryStones = mapData.items.filter(item =>
+        item.category === "BoundaryStones" || item.category === "Boundary Stones"
+    );
+
+    function getNearestRegionName(targetX, targetY) {
+        if (boundaryStones.length === 0) return "";
+
+        let minDist = Infinity;
+        let nearestName = "";
+        const tx = parseFloat(targetX);
+        const ty = parseFloat(targetY);
+
+        boundaryStones.forEach(bs => {
+            const bx = parseFloat(bs.x);
+            const by = parseFloat(bs.y);
+            const dist = Math.sqrt(Math.pow(tx - bx, 2) + Math.pow(ty - by, 2));
+
+            if (dist < minDist) {
+                minDist = dist;
+                nearestName = bs.name;
+            }
+        });
+        return nearestName ? t(nearestName) : "";
+    }
 
     const map = L.map('map', {
         crs: L.CRS.Simple,
@@ -114,7 +154,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const layerGroups = {};
     const allMarkers = [];
+
     let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
+    let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
 
     const categoryListEl = document.getElementById('category-list');
 
@@ -148,12 +190,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const w = item.imageSizeW || 30;
             const h = item.imageSizeH || 30;
 
+            const isCompleted = completedList.includes(item.id);
+            const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
+
             const customIcon = L.icon({
                 iconUrl: iconUrl,
                 iconSize: [w, h],
                 iconAnchor: [w / 2, h / 2],
                 popupAnchor: [0, -h / 2],
-                className: 'game-marker-icon'
+                className: iconClass
             });
 
             const lat = parseFloat(item.x);
@@ -168,25 +213,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let relatedHtml = '';
             const relatedList = itemsByCategory[catId]
-                ? itemsByCategory[catId].filter(i => i.id !== item.id).slice(0, 3)
+                ? itemsByCategory[catId].filter(i => i.id !== item.id)
                 : [];
 
             if (relatedList.length > 0) {
+                const limit = 5;
+                let listItems = '';
+
+                relatedList.forEach((r, index) => {
+                    const hiddenClass = index >= limit ? 'hidden' : '';
+                    const regionName = getNearestRegionName(r.x, r.y);
+                    const regionHtml = regionName ? `<span class="related-region">(${regionName})</span>` : '';
+
+                    listItems += `
+                        <li class="related-item ${hiddenClass}" onclick="jumpToId(${r.id})">
+                            ${t(r.name)} ${regionHtml}
+                        </li>`;
+                });
+
+                let expandBtn = '';
+                if (relatedList.length > limit) {
+                    const remainCount = relatedList.length - limit;
+                    expandBtn = `<button class="btn-expand" onclick="expandRelated(this)">▼ 더보기 (${remainCount}+)</button>`;
+                }
+
                 relatedHtml = `
                     <div class="popup-related">
-                        <h5>관련 ${t(catId)}</h5>
+                        <div class="popup-related-header">
+                            <h5>
+                                관련 ${t(catId)} (${relatedList.length})
+                                <button class="btn-search-modal" onclick="openRelatedModal('${catId}')" title="전체 목록 검색">🔍</button>
+                            </h5>
+                        </div>
                         <ul class="related-list">
-                            ${relatedList.map(r =>
-                    `<li class="related-item" onclick="jumpToId(${r.id})">${t(r.name)}</li>`
-                ).join('')}
+                            ${listItems}
                         </ul>
+                        ${expandBtn}
                     </div>
                 `;
             }
 
             const isFav = favorites.includes(item.id);
             const favClass = isFav ? 'active' : '';
-            const favText = isFav ? '★ 즐겨찾기 됨' : '☆ 즐겨찾기';
+            const favText = isFav ? '★' : '☆';
+
+            const compClass = isCompleted ? 'active' : '';
+            const compText = isCompleted ? '✔️ 완료됨' : '완료 체크';
 
             const popupContent = `
                 <div class="popup-container" data-id="${item.id}">
@@ -197,9 +269,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div class="popup-body">
                         ${item.description ? `<p>${item.description}</p>` : '<p class="no-desc">설명 없음</p>'}
                     </div>
-                    ${relatedHtml} <div class="popup-actions">
-                        <button class="action-btn btn-fav ${favClass}" onclick="toggleFavorite(${item.id})">${favText}</button>
-                        <button class="action-btn btn-share" onclick="shareLocation(${item.id}, ${lat}, ${lng})">📤 ${t('Share')}</button>
+                    ${relatedHtml}
+                    <div class="popup-actions">
+                        <button class="action-btn btn-fav ${favClass}" onclick="toggleFavorite(${item.id})" title="즐겨찾기">${favText}</button>
+                        <button class="action-btn btn-complete ${compClass}" onclick="toggleCompleted(${item.id})" title="완료 상태로 표시">${compText}</button>
+                        <button class="action-btn btn-share" onclick="shareLocation(${item.id}, ${lat}, ${lng})">📤</button>
                     </div>
                     <div class="popup-footer">
                         <span class="badge">${t(item.category)}</span>
@@ -215,16 +289,36 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: item.name.toLowerCase(),
                 desc: (item.description || '').toLowerCase(),
                 category: catId,
-                pageLink: item.pageLink || item.hasPageLink ? (item.pageLink || '#') : null
+                pageLink: item.pageLink
             });
         }
     });
 
-    window.jumpToId = (id) => {
-        const target = allMarkers.find(m => m.id === id);
-        if (target) {
-            moveToLocation(target.marker.getLatLng(), target.marker);
+    window.toggleCompleted = (id) => {
+        const index = completedList.indexOf(id);
+        const btn = document.querySelector(`.popup-container[data-id="${id}"] .btn-complete`);
+        const targetItem = allMarkers.find(m => m.id === id);
+
+        if (index === -1) {
+            completedList.push(id);
+            if (btn) {
+                btn.classList.add('active');
+                btn.innerText = '✔️ 완료됨';
+            }
+            if (targetItem) {
+                targetItem.marker._icon.classList.add('completed-marker');
+            }
+        } else {
+            completedList.splice(index, 1);
+            if (btn) {
+                btn.classList.remove('active');
+                btn.innerText = '완료 체크';
+            }
+            if (targetItem) {
+                targetItem.marker._icon.classList.remove('completed-marker');
+            }
         }
+        localStorage.setItem('wwm_completed', JSON.stringify(completedList));
     };
 
     window.toggleFavorite = (id) => {
@@ -235,13 +329,13 @@ document.addEventListener('DOMContentLoaded', () => {
             favorites.push(id);
             if (btn) {
                 btn.classList.add('active');
-                btn.innerText = '★ 즐겨찾기 됨';
+                btn.innerText = '★';
             }
         } else {
             favorites.splice(index, 1);
             if (btn) {
                 btn.classList.remove('active');
-                btn.innerText = '☆ 즐겨찾기';
+                btn.innerText = '☆';
             }
         }
         localStorage.setItem('wwm_favorites', JSON.stringify(favorites));
@@ -259,6 +353,79 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
+    window.jumpToId = (id) => {
+        const target = allMarkers.find(m => m.id === id);
+        if (target) {
+            moveToLocation(target.marker.getLatLng(), target.marker);
+        }
+    };
+
+    window.expandRelated = (btn) => {
+        const list = btn.previousElementSibling;
+        if (list) {
+            const hiddenItems = list.querySelectorAll('.related-item.hidden');
+            hiddenItems.forEach(item => item.classList.remove('hidden'));
+        }
+        btn.remove();
+    };
+
+    window.openRelatedModal = (catId) => {
+        const modal = document.getElementById('related-modal');
+        const title = document.getElementById('modal-title');
+        const listEl = document.getElementById('modal-list');
+        const input = document.getElementById('modal-search-input');
+
+        title.innerText = `${t(catId)} 전체 목록`;
+        input.value = '';
+        listEl.innerHTML = '';
+
+        currentModalList = allMarkers.filter(m => m.category === catId);
+
+        renderModalList(currentModalList);
+        modal.classList.remove('hidden');
+        input.focus();
+    };
+
+    window.closeModal = () => {
+        document.getElementById('related-modal').classList.add('hidden');
+    };
+
+    window.renderModalList = (items) => {
+        const listEl = document.getElementById('modal-list');
+        listEl.innerHTML = '';
+
+        if (items.length === 0) {
+            listEl.innerHTML = '<li style="padding:15px; text-align:center; color:#666;">결과가 없습니다.</li>';
+            return;
+        }
+
+        const currentCompleted = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+
+        items.forEach(m => {
+            const isDone = currentCompleted.includes(m.id);
+            const statusHtml = isDone ? '<span class="modal-item-status">✔️ 완료</span>' : '';
+
+            const lat = m.marker.getLatLng().lat;
+            const lng = m.marker.getLatLng().lng;
+            const regionName = getNearestRegionName(lat, lng);
+
+            const li = document.createElement('li');
+            li.className = 'modal-item';
+            li.innerHTML = `
+                <div style="display:flex; flex-direction:column;">
+                    <span class="modal-item-name">${t(m.name)}</span>
+                    <span style="font-size:0.8rem; color:#888;">${regionName}</span>
+                </div>
+                ${statusHtml}
+            `;
+            li.onclick = () => {
+                moveToLocation(m.marker.getLatLng(), m.marker);
+                closeModal();
+            };
+            listEl.appendChild(li);
+        });
+    }
+
     function renderFavorites() {
         const favListEl = document.getElementById('favorite-list');
         favListEl.innerHTML = '';
@@ -273,7 +440,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (item) {
                 const div = document.createElement('div');
                 div.className = 'fav-item';
-                div.innerHTML = `<b>${t(item.name)}</b><br><small>${t(item.category)}</small>`;
+                const regionName = getNearestRegionName(item.x, item.y);
+                const regionHtml = regionName ? `<span style="font-size:0.8rem; color:#aaa;">(${regionName})</span>` : '';
+
+                div.innerHTML = `<b>${t(item.name)}</b> ${regionHtml}<br><small>${t(item.category)}</small>`;
                 div.addEventListener('click', () => {
                     const target = allMarkers.find(m => m.id === item.id);
                     if (target) {
@@ -323,6 +493,16 @@ document.addEventListener('DOMContentLoaded', () => {
             const isMatch = m.name.includes(term) || m.desc.includes(term);
             m.marker.setOpacity(isMatch ? 1 : 0.1);
         });
+    });
+
+    document.getElementById('modal-search-input').addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        const filtered = currentModalList.filter(m => m.name.includes(term));
+        renderModalList(filtered);
+    });
+
+    document.getElementById('related-modal').addEventListener('click', (e) => {
+        if (e.target.id === 'related-modal') closeModal();
     });
 
     const tabs = document.querySelectorAll('.tab-btn');

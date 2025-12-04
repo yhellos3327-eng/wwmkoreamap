@@ -66,9 +66,26 @@
         </main>
     </div>
 
+    <div id="related-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modal-title">관련 항목</h3>
+                <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-search">
+                <input type="text" id="modal-search-input" placeholder="리스트 내 검색...">
+            </div>
+            <div class="modal-body">
+                <ul id="modal-list" class="modal-list-items">
+                </ul>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 
     <script src="data.js"></script>
+    <script src="translation.js"></script>
     <script src="script.js"></script>
 </body>
 
