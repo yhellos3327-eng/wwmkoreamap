@@ -26,7 +26,8 @@ const usefulLinks = [
     { title: "연운 공식 디스코드", url: "https://discord.gg/wherewindsmeet" },
     { title: "연운 한국 디스코드", url: "https://discord.gg/wherewindsmeetkr" },
     { title: "아카라이브 연운 채널", url: "https://arca.live/b/wherewindsmeet" },
-    { title: "디씨 연운 갤러리", url: "https://gall.dcinside.com/mgallery/board/lists?id=dusdns" },
+    { title: "디씨 연운 갤러리", url: "https://gall.dcinside.com/wherewindsmeets" },
+    { title: "디씨 개봉(연운) 갤러리", url: "https://gall.dcinside.com/dusdns" },
 ];
 
 let map;
