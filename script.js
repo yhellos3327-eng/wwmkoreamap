@@ -1,5 +1,12 @@
 const updateHistory = [
     {
+        version: "v1.0.5",
+        date: "2025-12-06",
+        content: [
+            "청하 지역 상기, 제작대, 천공 동굴 한글화.",
+        ]
+    },
+    {
         version: "v1.0.4",
         date: "2025-12-05",
         content: [
