@@ -1,5 +1,13 @@
 const updateHistory = [
     {
+        version: "v1.0.3",
+        date: "2025-12-05",
+        content: [
+            "카테고리 한글화 (인게임 용어로)",
+            "청하 지역 경계석, 천애객 한글화 (인게임 용어로)",
+        ]
+    },
+    {
         version: "v1.0.2",
         date: "2025-12-05",
         content: [
@@ -42,6 +50,24 @@ const t = (key) => {
     return koDict[trimmedKey] || key;
 }
 
+/**
+ * 한국어 조사 처리 도우미 함수. (으)로/로 조사 처리를 위해 사용됨.
+ * @param {string} word - 조사 적용 대상 단어
+ * @param {string} type - 사용할 조사 ("으로/로", "을/를" 등)
+ * @returns {string} 받침 유무에 따라 적절한 조사를 반환
+ */
+const getJosa = (word, type) => {
+    if (!word || typeof word !== 'string') return type.split('/')[0];
+
+    const lastChar = word.charCodeAt(word.length - 1);
+    if (lastChar < 0xAC00 || lastChar > 0xD7A3) return type.split('/')[0];
+
+    const hasJongsung = (lastChar - 0xAC00) % 28 !== 0;
+    const [josa1, josa2] = type.split('/');
+
+    return hasJongsung ? josa1 : josa2;
+};
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -57,14 +83,42 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (transJson.common) {
             transJson.common.forEach(item => {
+                if (!Array.isArray(item.keys) || item.keys.length === 0) return;
+
                 item.keys.forEach(key => {
-                    koDict[key] = item.value;
-                    koDict[key.trim()] = item.value;
+                    if (typeof key === 'string' && key.trim() !== '') {
+                        koDict[key] = item.value;
+                        koDict[key.trim()] = item.value;
+                    }
                 });
             });
         }
+
         if (transJson.overrides) {
-            categoryItemTranslations = transJson.overrides;
+            const flattenedOverrides = {};
+            for (const categoryId in transJson.overrides) {
+                const categoryData = transJson.overrides[categoryId];
+
+                if (typeof categoryData !== 'object' || categoryData === null) continue;
+
+                flattenedOverrides[categoryId] = {};
+
+                if (categoryData._common_description) {
+                    flattenedOverrides[categoryId]._common_description = categoryData._common_description;
+                }
+
+                let itemArray = Array.isArray(categoryData.items) ? categoryData.items : [];
+
+                itemArray.forEach(itemObj => {
+                    for (const key in itemObj) {
+                        const value = itemObj[key];
+                        if (key && value) {
+                            flattenedOverrides[categoryId][key] = value;
+                        }
+                    }
+                });
+            }
+            categoryItemTranslations = flattenedOverrides;
         }
 
         mapData = dataJson;
@@ -80,10 +134,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     mapData.items.forEach(item => {
-        if (categoryItemTranslations[item.category] && categoryItemTranslations[item.category][item.id]) {
-            const transData = categoryItemTranslations[item.category][item.id];
-            if (transData.name) item.name = transData.name;
-            if (transData.description) item.description = transData.description;
+        const catTrans = categoryItemTranslations[item.category];
+
+        let commonDesc = null;
+        if (catTrans && catTrans._common_description) {
+            commonDesc = catTrans._common_description;
+        }
+
+        if (catTrans) {
+            let transData = catTrans[item.id];
+
+            if (!transData && item.name) {
+                transData = catTrans[item.name];
+            }
+
+            if (transData) {
+                if (transData.name) item.name = transData.name;
+                if (transData.description) {
+                    item.description = transData.description;
+                } else if (commonDesc) {
+                    item.description = commonDesc;
+                }
+            } else if (commonDesc) {
+                item.description = commonDesc;
+            }
         }
     });
 
@@ -93,6 +167,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         itemsByCategory[item.category].push(item);
     });
+
     for (const key in itemsByCategory) {
         itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
     }
@@ -180,6 +255,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             itemId: item.id
         });
 
+        marker.on('contextmenu', (e) => {
+            e.originalEvent.preventDefault();
+            if (marker.isPopupOpen()) marker.closePopup();
+
+            window.toggleCompleted(item.id);
+        });
+
         marker.bindPopup(() => createPopupHtml(item, lat, lng, regionName));
 
         allMarkers.push({
@@ -220,12 +302,21 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const regionListEl = document.getElementById('region-list');
     const sortedRegions = Array.from(uniqueRegions).sort();
+    const boundaryStoneCategory = validCategories.find(cat =>
+        cat.id === 'BoundaryStones' || cat.id === 'Boundary Stones'
+    );
+
+    const boundaryStoneIconUrl = boundaryStoneCategory
+        ? boundaryStoneCategory.image
+        : './icons/marker.png';
+
+    const iconHtml = `<img src="${boundaryStoneIconUrl}" alt="BS" style="width: 20px; height: 20px; margin-right: 8px;">`;
 
     sortedRegions.forEach(region => {
         const btn = document.createElement('button');
         btn.className = 'cat-btn active';
         btn.dataset.region = region;
-        btn.innerHTML = `📍 ${region}`;
+        btn.innerHTML = `${iconHtml} ${region}`;
 
         btn.addEventListener('click', () => {
             if (activeRegionNames.has(region)) {
@@ -276,7 +367,31 @@ document.addEventListener('DOMContentLoaded', async () => {
         const favClass = isFav ? 'active' : '';
         const favText = isFav ? '★' : '☆';
         const compClass = isCompleted ? 'active' : '';
-        const compText = isCompleted ? '✔️ 완료됨' : '완료 체크';
+        const compText = isCompleted ? '완료됨' : '완료 체크';
+
+        const translatedName = t(item.name);
+        let itemDescription = item.description || '';
+
+        if (item.category === "BoundaryStones" || item.category === "Boundary Stones") {
+            const getJosaForTo = (word) => {
+                if (!word) return '로';
+                const lastChar = word.charCodeAt(word.length - 1);
+                if (lastChar < 0xAC00 || lastChar > 0xD7A3) return '로';
+
+                const jongsungCode = (lastChar - 0xAC00) % 28;
+
+                if (jongsungCode !== 0 && jongsungCode !== 8) {
+                    return '으로';
+                }
+                return '로';
+            }
+
+            const josaAppliedName = translatedName + getJosaForTo(translatedName);
+
+            itemDescription = itemDescription.replace(/{name}/g, josaAppliedName);
+        } else {
+            itemDescription = itemDescription.replace(/{name}/g, translatedName);
+        }
 
         let relatedHtml = '';
         const relatedList = itemsByCategory[item.category]
@@ -315,10 +430,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             <div class="popup-container" data-id="${item.id}">
                 <div class="popup-header">
                     ${item.image ? `<img src="${item.image}" class="popup-icon">` : ''}
-                    <h4>${t(item.name)}</h4>
+                    <h4>${translatedName}</h4>
                 </div>
                 <div class="popup-body">
-                    ${item.description ? `<p>${item.description}</p>` : '<p class="no-desc">설명 없음</p>'}
+                    ${itemDescription ? `<p>${itemDescription}</p>` : '<p class="no-desc">설명 없음</p>'}
                 </div>
                 ${relatedHtml}
                 <div class="popup-actions">
@@ -408,7 +523,10 @@ document.addEventListener('DOMContentLoaded', async () => {
             const item = mapData.items.find(i => i.id === id);
             const lat = target.marker.getLatLng().lat;
             const lng = target.marker.getLatLng().lng;
-            target.marker.setPopupContent(createPopupHtml(item, lat, lng, target.region));
+
+            if (target.marker.isPopupOpen()) {
+                target.marker.setPopupContent(createPopupHtml(item, lat, lng, target.region));
+            }
         }
     };
 

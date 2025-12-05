@@ -2,27 +2,40 @@
     "common": [
         {
             "keys": [
-                "Chest"
+                "Archive"
             ],
-            "value": "보물상자"
+            "value": "기록"
         },
         {
             "keys": [
-                "NPC"
+                "Archery Competition"
             ],
-            "value": "NPC"
+            "value": "궁술 대결"
         },
         {
             "keys": [
-                "Teleport"
+                "Bathhouse"
             ],
-            "value": "순간이동"
+            "value": "향수행"
         },
         {
             "keys": [
-                "Shop"
+                "Bell of Demoncalm"
             ],
-            "value": "상점"
+            "value": "퇴마의 종"
+        },
+        {
+            "keys": [
+                "Book"
+            ],
+            "value": "서적"
+        },
+        {
+            "keys": [
+                "Boundary Stones",
+                "BoundaryStones"
+            ],
+            "value": "경계석"
         },
         {
             "keys": [
@@ -32,35 +45,10 @@
         },
         {
             "keys": [
-                "Quest"
+                "CampaignQuest",
+                "Campaign Quest"
             ],
-            "value": "퀘스트"
-        },
-        {
-            "keys": [
-                "World Boss"
-            ],
-            "value": "필드 보스"
-        },
-        {
-            "keys": [
-                "Meditation",
-                "Meditation Spot"
-            ],
-            "value": "명상"
-        },
-        {
-            "keys": [
-                "Viewpoint",
-                "View point"
-            ],
-            "value": "뷰포인트"
-        },
-        {
-            "keys": [
-                "Archive"
-            ],
-            "value": "기록"
+            "value": "메인 퀘스트"
         },
         {
             "keys": [
@@ -70,21 +58,15 @@
         },
         {
             "keys": [
-                "Puzzle"
+                "Chess Match"
             ],
-            "value": "퍼즐"
+            "value": "상기"
         },
         {
             "keys": [
-                "Gathering"
+                "Chest"
             ],
-            "value": "채집"
-        },
-        {
-            "keys": [
-                "Fishing"
-            ],
-            "value": "낚시"
+            "value": "보물상자"
         },
         {
             "keys": [
@@ -100,63 +82,114 @@
         },
         {
             "keys": [
-                "Book"
+                "Crafting Bench"
             ],
-            "value": "서적"
-        },
-        {
-            "keys": [
-                "Song"
-            ],
-            "value": "노래"
-        },
-        {
-            "keys": [
-                "Boundary Stones",
-                "BoundaryStones"
-            ],
-            "value": "경계석"
-        },
-        {
-            "keys": [
-                "Bathhouse"
-            ],
-            "value": "사우나"
-        },
-        {
-            "keys": [
-                "CampaignQuest",
-                "Campaign Quest"
-            ],
-            "value": "메인 퀘스트"
-        },
-        {
-            "keys": [
-                "SideStory",
-                "Side Story"
-            ],
-            "value": "서브 스토리"
-        },
-        {
-            "keys": [
-                "OddityCollection",
-                "Oddity Collection"
-            ],
-            "value": "기물 수집"
+            "value": "제작대"
         },
         {
             "keys": [
                 "DivinecraftDungeon",
                 "Divinecraft Dungeon"
             ],
-            "value": "신기 던전"
+            "value": "천공 동굴"
         },
         {
             "keys": [
-                "RestrictedZones",
-                "Restricted Zones"
+                "Disguise"
             ],
-            "value": "출입 금지 구역"
+            "value": "변장 (상점)"
+        },
+        {
+            "keys": [
+                "Disguised Solicitation",
+                "DisguisedSolicitation"
+            ],
+            "value": "변장"
+        },
+        {
+            "keys": [
+                "Exploration Challenge"
+            ],
+            "value": "투호 대결"
+        },
+        {
+            "keys": [
+                "Favorite"
+            ],
+            "value": "즐겨찾기"
+        },
+        {
+            "keys": [
+                "Fishing"
+            ],
+            "value": "낚시"
+        },
+        {
+            "keys": [
+                "Fishing Contest"
+            ],
+            "value": "낚시 대결"
+        },
+        {
+            "keys": [
+                "Fireworks Show",
+                "FireworksShow"
+            ],
+            "value": "불꽃놀이 연회"
+        },
+        {
+            "keys": [
+                "Gathering"
+            ],
+            "value": "채집"
+        },
+        {
+            "keys": [
+                "Gift of Gab",
+                "GiftofGab"
+            ],
+            "value": "화술 논쟁"
+        },
+        {
+            "keys": [
+                "Guide Quest",
+                "GuideQuest"
+            ],
+            "value": "가이드 퀘스트"
+        },
+        {
+            "keys": [
+                "Heal the Disease",
+                "HealtheDisease"
+            ],
+            "value": "질병 치료"
+        },
+        {
+            "keys": [
+                "Horse Merchant"
+            ],
+            "value": "마필 상인"
+        },
+        {
+            "keys": [
+                "Horse Ranch",
+                "HorseRanch"
+            ],
+            "value": "난마장"
+        },
+        {
+            "keys": [
+                "Journey Quest",
+                "JourneyQuest"
+            ],
+            "value": "탐험 임무"
+        },
+        {
+            "keys": [
+                "Madiao Cards",
+                "MadiaoCards"
+            ],
+            "value": "엽자희"
         },
         {
             "keys": [
@@ -167,17 +200,57 @@
         },
         {
             "keys": [
-                "ShadowPuppetStall",
-                "Shadow Puppet Stall"
+                "Martial Arts",
+                "MartialArts"
             ],
-            "value": "그림자 인형극"
+            "value": "무술"
+        },
+        {
+            "keys": [
+                "Martial Tomb",
+                "MartialTomb"
+            ],
+            "value": "태평무묘"
+        },
+        {
+            "keys": [
+                "Meditation",
+                "Meditation Spot"
+            ],
+            "value": "명상"
+        },
+        {
+            "keys": [
+                "Meow Meow Temple"
+            ],
+            "value": "묘묘 사원"
+        },
+        {
+            "keys": [
+                "Meow Meow's Treasure",
+                "MeowMeowsTreasure"
+            ],
+            "value": "묘묘냥의 보물"
         },
         {
             "keys": [
                 "MusicalDance",
                 "Musical Dance"
             ],
-            "value": "가무"
+            "value": "풍류의 선율"
+        },
+        {
+            "keys": [
+                "OddityCollection",
+                "Oddity Collection"
+            ],
+            "value": "묘물 수집"
+        },
+        {
+            "keys": [
+                "Outpost"
+            ],
+            "value": "전투 거점"
         },
         {
             "keys": [
@@ -187,15 +260,55 @@
         },
         {
             "keys": [
-                "Chess Match"
+                "Prison"
             ],
-            "value": "상기"
+            "value": "감옥"
         },
         {
             "keys": [
-                "Bell of Demoncalm"
+                "Puzzle"
             ],
-            "value": "퇴마의 종"
+            "value": "퍼즐"
+        },
+        {
+            "keys": [
+                "Quest Encounter",
+                "QuestEncounter"
+            ],
+            "value": "기연"
+        },
+        {
+            "keys": [
+                "RestrictedZones",
+                "Restricted Zones"
+            ],
+            "value": "요지"
+        },
+        {
+            "keys": [
+                "River Lantern Messages",
+                "RiverLanternMessages"
+            ],
+            "value": "하등 기원"
+        },
+        {
+            "keys": [
+                "ShadowPuppetStall",
+                "Shadow Puppet Stall"
+            ],
+            "value": "그림자 인형극"
+        },
+        {
+            "keys": [
+                "Share"
+            ],
+            "value": "공유"
+        },
+        {
+            "keys": [
+                "Shop"
+            ],
+            "value": "상점"
         },
         {
             "keys": [
@@ -211,63 +324,56 @@
         },
         {
             "keys": [
-                "Share"
+                "SideStory",
+                "Side Story"
             ],
-            "value": "공유"
+            "value": "서브 스토리"
         },
         {
             "keys": [
-                "Favorite"
+                "Skyward Dance",
+                "SkywardDance"
             ],
-            "value": "즐겨찾기"
+            "value": "비천무악"
+        },
+        {
+            "keys": [
+                "Song"
+            ],
+            "value": "노래"
+        },
+        {
+            "keys": [
+                "SparringMatch",
+                "Sparring Match"
+            ],
+            "value": "무술로 맺는 인연"
+        },
+        {
+            "keys": [
+                "Teleport"
+            ],
+            "value": "순간이동"
         },
         {
             "keys": [
                 "Wayfarer"
             ],
-            "value": "여행자"
+            "value": "천애객"
         },
         {
             "keys": [
-                "Horse Merchant"
+                "World Boss",
+                "WorldBoss"
             ],
-            "value": "마구간지기"
+            "value": "월드 보스"
         },
         {
             "keys": [
-                "Crafting Bench"
+                "Worldly Affairs Quest",
+                "WorldlyAffairsQuest"
             ],
-            "value": "제작대"
-        },
-        {
-            "keys": [
-                "Fishing Contest"
-            ],
-            "value": "낚시 대회"
-        },
-        {
-            "keys": [
-                "Archery Competition"
-            ],
-            "value": "궁술 대회"
-        },
-        {
-            "keys": [
-                "Exploration Challenge"
-            ],
-            "value": "탐험 도전"
-        },
-        {
-            "keys": [
-                "Meow Meow Temple"
-            ],
-            "value": "묘묘 사원"
-        },
-        {
-            "keys": [
-                "Meow Meow's Treasure"
-            ],
-            "value": "묘묘의 보물"
+            "value": "세상사 퀘스트"
         },
         {
             "keys": [
@@ -277,11 +383,282 @@
         }
     ],
     "overrides": {
-        "NPC": {
-            "0": {
-                "name": "TEST",
-                "description": "test"
-            }
+        "BoundaryStones": {
+            "_common_description": "{name} 빠르게 이동할 수 있게 해금하는 경계석.",
+            "items": [
+                {
+                    "3": {
+                        "name": "불야채"
+                    }
+                },
+                {
+                    "4": {
+                        "name": "순마장"
+                    }
+                },
+                {
+                    "5": {
+                        "name": "난마장"
+                    }
+                },
+                {
+                    "6": {
+                        "name": "연화선원"
+                    }
+                },
+                {
+                    "7": {
+                        "name": "장군 사당 지하"
+                    }
+                },
+                {
+                    "8": {
+                        "name": "장군 사당"
+                    }
+                },
+                {
+                    "9": {
+                        "name": "북맹 유적"
+                    }
+                },
+                {
+                    "11": {
+                        "name": "북쪽 대나무 숲"
+                    }
+                },
+                {
+                    "12": {
+                        "name": "대나무 숲 은거지"
+                    }
+                },
+                {
+                    "13": {
+                        "name": "완석포"
+                    }
+                },
+                {
+                    "15": {
+                        "name": "적색 절벽"
+                    }
+                },
+                {
+                    "16": {
+                        "name": "월호 통로"
+                    }
+                },
+                {
+                    "17": {
+                        "name": "낙성천"
+                    }
+                },
+                {
+                    "19": {
+                        "name": "곡방 후원"
+                    }
+                },
+                {
+                    "20": {
+                        "name": "신선 나루"
+                    }
+                },
+                {
+                    "21": {
+                        "name": "신선 나루 서쪽"
+                    }
+                },
+                {
+                    "22": {
+                        "name": "주육산림"
+                    }
+                },
+                {
+                    "23": {
+                        "name": "인연의 길"
+                    }
+                },
+                {
+                    "26": {
+                        "name": "내세의 언덕"
+                    }
+                },
+                {
+                    "27": {
+                        "name": "불광정"
+                    }
+                },
+                {
+                    "29": {
+                        "name": "이별의 길"
+                    }
+                },
+                {
+                    "30": {
+                        "name": "천불곡"
+                    }
+                },
+                {
+                    "31": {
+                        "name": "자심 산원"
+                    }
+                },
+                {
+                    "33": {
+                        "name": "자심촌"
+                    }
+                },
+                {
+                    "38": {
+                        "name": "불선선"
+                    }
+                },
+                {
+                    "39": {
+                        "name": "약수의 근원"
+                    }
+                },
+                {
+                    "46": {
+                        "name": "청풍 언덕"
+                    }
+                },
+                {
+                    "47": {
+                        "name": "별관 앞산"
+                    }
+                },
+                {
+                    "49": {
+                        "name": "별관 뒷산"
+                    }
+                },
+                {
+                    "50": {
+                        "name": "사슴 연못"
+                    }
+                },
+                {
+                    "51": {
+                        "name": "사슴 숲"
+                    }
+                },
+                {
+                    "52": {
+                        "name": "용호채"
+                    }
+                },
+                {
+                    "53": {
+                        "name": "망천 평원"
+                    }
+                },
+                {
+                    "55": {
+                        "name": "강변역참"
+                    }
+                },
+                {
+                    "58": {
+                        "name": "황혼촌"
+                    }
+                },
+                {
+                    "60": {
+                        "name": "도자기 가마"
+                    }
+                },
+                {
+                    "62": {
+                        "name": "은월산 정상"
+                    }
+                },
+                {
+                    "64": {
+                        "name": "은월산 계곡"
+                    }
+                },
+                {
+                    "65": {
+                        "name": "시왕묘"
+                    }
+                },
+                {
+                    "66": {
+                        "name": "활명의 관"
+                    }
+                },
+                {
+                    "72": {
+                        "name": "풍화촌"
+                    }
+                },
+                {
+                    "292": {
+                        "name": "포산호수"
+                    }
+                },
+                {
+                    "1004": {
+                        "name": "장경각"
+                    }
+                },
+                {
+                    "1005": {
+                        "name": "형연-아래"
+                    }
+                },
+                {
+                    "1006": {
+                        "name": "춘추당"
+                    }
+                },
+                {
+                    "1007": {
+                        "name": "은룡 연못 아래"
+                    }
+                }
+            ]
+        },
+        "OddityCollection": {
+            "_common_description": "강호 사람들 모두가 찾고자 하는 물건",
+            "items": [
+                {
+                    "Enchanting Lotus": {
+                        "name": "노래하는 백목련"
+                    }
+                },
+                {
+                    "Redmist Beetle": {
+                        "name": "붉은 탐욕"
+                    }
+                },
+                {
+                    "Whisper Hive": {
+                        "name": "속삭이는 벌집"
+                    }
+                }
+            ]
+        },
+        "Wayfarer": {
+            "items": [
+                {
+                    "10": {
+                        "name": "천애객 (백초야)",
+                        "description": "백초야는 원래 청하 동쪽 끝에 자리한 이름없는 황야였다. 패주 전쟁 시기 연북맹의 병사들이 뿌린 백초 씨앗으로 생명이 깃들었다. 십수 년이 지난 지금, 이곳을 지키던 장병들은 영령이 되었고, 오직 우거진 풀들만 바람에 살랑거리며 영웅의 이름을 읊조리는 듯하다."
+                    }
+                },
+                {
+                    "14": {
+                        "name": "천애객 (은월산)",
+                        "description": "신선 나루 남쪽에는 거대한 산이 길게 뻗어 있다. 청하 주민들은 이 산이 구름과 안개로 가득하고 달과 별을 가린다 하여 '은월산'이라 이름을 붙였다. 은월산은 남쪽으로 용호령, 북쪽으로 불선선, 서쪽으로 중원과 마주하고, 동쪽으로 백초야와 접하며 각지로 통하는 교차로이다."
+                    }
+                },
+                {
+                    "25": {
+                        "name": "천애객 (선묘주)",
+                        "description": "이곳은 한때 융성한 불법의 땅이어서 선묘주라 불렸다. 선묘주 중에는 불광정이 있고, 정상에는 보탑이 하나 있다. 전해지는 바에 의하면 묘선 선사가 이곳에서 법석을 열고 경을 설파할 때 불광이 나타났다고 한다. 아쉽게도 선사가 떠난 지 오래되어 불광이 비추는 광경은 오래전부터 보이지 않는다."
+                    }
+                }
+            ]
         }
     }
 }

@@ -716,7 +716,7 @@ body {
 }
 
 .leaflet-marker-icon.completed-marker {
-    opacity: 0.4 !important;
+    opacity: 0.2 !important;
     filter: grayscale(100%);
 }
 
