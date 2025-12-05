@@ -61,8 +61,26 @@
 
         <main id="map-container">
             <button id="open-sidebar" class="menu-btn">☰ 메뉴</button>
+            <button id="open-github-modal" class="github-btn" title="기여하기">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub"
+                    style="width: 24px; height: 24px;">
+            </button>
             <div id="map"></div>
         </main>
+    </div>
+
+    <div id="github-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="github-modal-title"></h3> <button class="close-modal-btn"
+                    onclick="document.getElementById('github-modal').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <p id="github-modal-desc" style="margin-bottom: 15px; color: #ccc; line-height: 1.5;"></p>
+                <ul id="github-modal-links" style="list-style: none; padding: 0;">
+                </ul>
+            </div>
+        </div>
     </div>
 
     <div id="related-modal" class="modal-overlay hidden">

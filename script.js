@@ -30,6 +30,11 @@ const usefulLinks = [
     { title: "디씨 개봉(연운) 갤러리", url: "https://gall.dcinside.com/dusdns" },
 ];
 
+const contributionLinks = [
+    { titleKey: "github_repository", url: "https://github.com/yhellos3327-eng/wwmkoreamap", icon: "code" },
+    { titleKey: "data_submission", url: "https://github.com/yhellos3327-eng/wwmkoreamap/issues", icon: "bug" },
+];
+
 let map;
 let mapData = { categories: [], items: [] };
 let koDict = {};
@@ -79,6 +84,55 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!transRes.ok || !dataRes.ok) throw new Error("파일을 찾을 수 없습니다.");
 
+        const githubModal = document.getElementById('github-modal');
+        const openGithubModalBtn = document.getElementById('open-github-modal');
+        const githubModalTitle = document.getElementById('github-modal-title');
+        const githubModalDesc = document.getElementById('github-modal-desc');
+        const githubModalLinks = document.getElementById('github-modal-links');
+
+        function renderContributionModal() {
+            if (!githubModalTitle || !githubModalDesc || !githubModalLinks) return;
+            githubModalTitle.textContent = t("contribute_title");
+            githubModalDesc.innerHTML = t("contribute_description").replace(/\n/g, '<br>');
+            githubModalLinks.innerHTML = contributionLinks.map(link => `
+        <li style="margin-bottom: 10px;">
+            <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">
+                ${t(link.titleKey)}
+                <span class="link-url" style="float:right; opacity:0.6;">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
+            </a>
+        </li>
+    `).join('');
+
+            const guideContainerId = 'contribution-guide-container';
+            let guideContainer = document.getElementById(guideContainerId);
+
+            if (!guideContainer) {
+                guideContainer = document.createElement('div');
+                guideContainer.id = guideContainerId;
+
+                guideContainer.style.marginTop = '25px';
+                guideContainer.style.paddingTop = '20px';
+                guideContainer.style.borderTop = '1px solid var(--border)';
+
+                githubModalDesc.parentNode.appendChild(guideContainer);
+            }
+            guideContainer.innerHTML = `
+
+        <div>
+            <h4 style="color: var(--accent); margin-bottom: 10px; font-size: 1rem;">
+                ${t("guide_trans_title")}
+            </h4>
+            <div style="font-size: 0.9rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">${t("guide_trans_steps")}</div>
+        </div>
+    `;
+        }
+
+        if (openGithubModalBtn && githubModal) {
+            openGithubModalBtn.addEventListener('click', () => {
+                renderContributionModal();
+                githubModal.classList.remove('hidden');
+            });
+        }
         const transJson = await transRes.json();
         const dataJson = await dataRes.json();
 
@@ -672,7 +726,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderLinks() {
-        const linkListEl = document.getElementById('link-list');
+        const linkListEl = document.getElementById('link-tab').querySelector('.link-list');
         linkListEl.innerHTML = '';
         usefulLinks.forEach(link => {
             const a = document.createElement('a');

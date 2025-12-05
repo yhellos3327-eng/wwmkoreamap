@@ -737,6 +737,52 @@ body {
     will-change: opacity;
 }
 
+.github-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 50px;
+    z-index: 1000;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--accent);
+    color: var(--bg-dark);
+    cursor: pointer;
+    font-size: 20px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: 0.2s;
+}
+
+.github-btn:hover {
+    background-color: var(--accent-hover);
+    transform: scale(1.05);
+}
+
+.github-btn .icon {
+    line-height: 1;
+}
+
+.menu-btn {
+    top: 20px;
+    left: 20px;
+}
+
+#github-modal .modal-content {
+    max-width: 500px;
+}
+
+#github-modal-desc {
+    margin-bottom: 20px;
+    line-height: 1.5;
+    font-size: 14px;
+    color: #555;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         position: absolute;
