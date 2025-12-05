@@ -1,30 +1,15 @@
 const updateHistory = [
     {
-        version: "v0.9.2",
+        version: "v1.0.2",
         date: "2025-12-05",
         content: [
-            "카테고리별 필터링 및 검색 기능 추가",
-            "위치 공유 및 즐겨찾기, 완료 기능 구현",
+            "지도 렌더링 최적화",
+            "데이터 로딩 구조 개선",
         ]
     },
-    {
-        version: "v0.9.0",
-        date: "2025-12-05",
-        content: [
-            "기본 맵 타일 및 마커 데이터 연동"
-        ]
-    }
+    { version: "v1.0.1", date: "2025-12-05", content: ["지역별 필터링 추가", "일괄 토글 버튼 추가"] },
+    { version: "v1.0.0", date: "2025-12-05", content: ["한국어 지도 정식 오픈"] }
 ];
-
-const koDict = {};
-if (typeof rawTranslations !== 'undefined') {
-    rawTranslations.forEach(item => {
-        item.keys.forEach(key => {
-            koDict[key] = item.value;
-            koDict[key.trim()] = item.value;
-        });
-    });
-}
 
 const usefulLinks = [
     { title: "공식 홈페이지", url: "https://www.wherewindsmeetgame.com/kr/index.html" },
@@ -33,23 +18,60 @@ const usefulLinks = [
     { title: "연운 공식 디스코드", url: "https://discord.gg/wherewindsmeet" },
     { title: "연운 한국 디스코드", url: "https://discord.gg/wherewindsmeetkr" },
     { title: "아카라이브 연운 채널", url: "https://arca.live/b/wherewindsmeet" },
-    { title: "디씨 연운 갤러리", url: "https://gall.dcinside.com/wherewindsmeets" },
-    { title: "디씨 개봉(연운) 갤러리", url: "https://gall.dcinside.com/dusdns" },
+    { title: "디씨 연운 갤러리", url: "https://gall.dcinside.com/mgallery/board/lists?id=dusdns" },
 ];
+
+let map;
+let mapData = { categories: [], items: [] };
+let koDict = {};
+let categoryItemTranslations = {};
+let currentModalList = [];
+let layerGroups = {};
+let allMarkers = [];
+let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
+let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+let activeCategoryIds = new Set();
+let activeRegionNames = new Set();
+let uniqueRegions = new Set();
+let itemsByCategory = {};
+let boundaryStones = [];
 
 const t = (key) => {
     if (!key) return "";
-    const trimmedKey = key.trim();
+    const trimmedKey = key.toString().trim();
     return koDict[trimmedKey] || key;
 }
 
-let targetArrowMarker = null;
-let currentModalList = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-    if (typeof mapData === 'undefined' || !mapData.categories || !mapData.items) {
-        console.error("data.js 파일 오류");
-        alert("데이터 로드 실패. data.js를 확인하세요.");
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        const [transRes, dataRes] = await Promise.all([
+            fetch('./translation.json'),
+            fetch('./data.json')
+        ]);
+
+        if (!transRes.ok || !dataRes.ok) throw new Error("파일을 찾을 수 없습니다.");
+
+        const transJson = await transRes.json();
+        const dataJson = await dataRes.json();
+
+        if (transJson.common) {
+            transJson.common.forEach(item => {
+                item.keys.forEach(key => {
+                    koDict[key] = item.value;
+                    koDict[key.trim()] = item.value;
+                });
+            });
+        }
+        if (transJson.overrides) {
+            categoryItemTranslations = transJson.overrides;
+        }
+
+        mapData = dataJson;
+
+    } catch (error) {
+        console.error("데이터 로드 실패:", error);
+        alert("맵 데이터를 불러오는데 실패했습니다. (JSON 로드 오류)\n" + error.message);
         return;
     }
 
@@ -57,28 +79,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return cat.image && cat.image.trim() !== "";
     });
 
-    if (typeof itemOverrides !== 'undefined') {
-        mapData.items.forEach(item => {
-            if (itemOverrides[item.id]) {
-                if (itemOverrides[item.id].name) item.name = itemOverrides[item.id].name;
-                if (itemOverrides[item.id].description) item.description = itemOverrides[item.id].description;
-            }
-        });
-    }
+    mapData.items.forEach(item => {
+        if (categoryItemTranslations[item.category] && categoryItemTranslations[item.category][item.id]) {
+            const transData = categoryItemTranslations[item.category][item.id];
+            if (transData.name) item.name = transData.name;
+            if (transData.description) item.description = transData.description;
+        }
+    });
 
-    if (typeof categoryItemTranslations !== 'undefined') {
-        mapData.items.forEach(item => {
-            if (categoryItemTranslations[item.category]) {
-                const transData = categoryItemTranslations[item.category][item.id];
-                if (transData) {
-                    if (transData.name) item.name = transData.name;
-                    if (transData.description) item.description = transData.description;
-                }
-            }
-        });
-    }
-
-    const itemsByCategory = {};
     mapData.items.forEach(item => {
         if (!itemsByCategory[item.category]) {
             itemsByCategory[item.category] = [];
@@ -86,10 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsByCategory[item.category].push(item);
     });
     for (const key in itemsByCategory) {
-        itemsByCategory[key].sort((a, b) => a.name.localeCompare(b.name));
+        itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
     }
 
-    const boundaryStones = mapData.items.filter(item =>
+    boundaryStones = mapData.items.filter(item =>
         item.category === "BoundaryStones" || item.category === "Boundary Stones"
     );
 
@@ -112,12 +120,21 @@ document.addEventListener('DOMContentLoaded', () => {
         return nearestName ? t(nearestName) : "알 수 없음";
     }
 
-    const map = L.map('map', {
+    activeCategoryIds.clear();
+
+    validCategories.forEach(cat => {
+        if (cat.id === 'BoundaryStones' || cat.id === 'Boundary Stones') {
+            activeCategoryIds.add(cat.id);
+        }
+    });
+
+    map = L.map('map', {
         crs: L.CRS.Simple,
         minZoom: 3,
         maxZoom: 7,
         zoomControl: false,
-        attributionControl: false
+        attributionControl: false,
+        preferCanvas: true
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
@@ -135,20 +152,6 @@ document.addEventListener('DOMContentLoaded', () => {
     map.setMaxBounds(mapBounds);
     map.fitBounds(mapBounds);
 
-    const layerGroups = {};
-    const allMarkers = [];
-
-    const activeCategoryIds = new Set();
-    const activeRegionNames = new Set();
-    const uniqueRegions = new Set();
-
-    let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
-    let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
-
-    validCategories.forEach(cat => {
-        if (cat.loadDefault) activeCategoryIds.add(cat.id);
-    });
-
     mapData.items.forEach(item => {
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
@@ -160,7 +163,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const w = item.imageSizeW || 30;
         const h = item.imageSizeH || 30;
         const isCompleted = completedList.includes(item.id);
-        const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
+        const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon marker-anim';
 
         const customIcon = L.icon({
             iconUrl: iconUrl,
@@ -191,36 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     uniqueRegions.forEach(r => activeRegionNames.add(r));
 
-    function setAllCategories(isActive) {
-        const catBtns = document.querySelectorAll('#category-list .cat-btn');
-        activeCategoryIds.clear();
-
-        if (isActive) {
-            validCategories.forEach(c => activeCategoryIds.add(c.id));
-            catBtns.forEach(btn => btn.classList.add('active'));
-        } else {
-            catBtns.forEach(btn => btn.classList.remove('active'));
-        }
-        updateToggleButtonsState();
-        updateMapVisibility();
-    }
-
-    function setAllRegions(isActive) {
-        const regBtns = document.querySelectorAll('#region-list .cat-btn');
-        activeRegionNames.clear();
-
-        if (isActive) {
-            uniqueRegions.forEach(r => activeRegionNames.add(r));
-            regBtns.forEach(btn => btn.classList.add('active'));
-        } else {
-            regBtns.forEach(btn => btn.classList.remove('active'));
-        }
-        updateToggleButtonsState();
-        updateMapVisibility();
-    }
-
     const categoryListEl = document.getElementById('category-list');
     validCategories.forEach(cat => {
+        layerGroups[cat.id] = L.layerGroup();
+
         const btn = document.createElement('button');
         btn.className = activeCategoryIds.has(cat.id) ? 'cat-btn active' : 'cat-btn';
         btn.dataset.id = cat.id;
@@ -233,9 +210,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 activeCategoryIds.add(cat.id);
                 btn.classList.add('active');
-                if (activeRegionNames.size === 0) {
-                    setAllRegions(true);
-                }
+                if (activeRegionNames.size === 0) setAllRegions(true);
             }
             updateMapVisibility();
             updateToggleButtonsState();
@@ -259,10 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 activeRegionNames.add(region);
                 btn.classList.add('active');
-
-                if (activeCategoryIds.size === 0) {
-                    setAllCategories(true);
-                }
+                if (activeCategoryIds.size === 0) setAllCategories(true);
             }
             updateMapVisibility();
             updateToggleButtonsState();
@@ -271,30 +243,40 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     function updateMapVisibility() {
+        if (!map) return;
+
+        const bounds = map.getBounds().pad(0.2);
+
         allMarkers.forEach(m => {
             const isCatActive = activeCategoryIds.has(m.category);
             const isRegActive = activeRegionNames.has(m.region);
 
             if (isCatActive && isRegActive) {
-                if (!map.hasLayer(m.marker)) {
-                    map.addLayer(m.marker);
+                const isVisible = bounds.contains(m.marker.getLatLng());
+                const isOnMap = map.hasLayer(m.marker);
+
+                if (isVisible) {
+                    if (!isOnMap) map.addLayer(m.marker);
+                } else {
+                    if (isOnMap) map.removeLayer(m.marker);
                 }
             } else {
-                if (map.hasLayer(m.marker)) {
-                    map.removeLayer(m.marker);
-                }
+                if (map.hasLayer(m.marker)) map.removeLayer(m.marker);
             }
         });
     }
 
-    const createPopupHtml = (item, lat, lng, regionName) => {
+    map.on('moveend', updateMapVisibility);
+    map.on('zoomend', updateMapVisibility);
+
+    function createPopupHtml(item, lat, lng, regionName) {
         const isFav = favorites.includes(item.id);
         const isCompleted = completedList.includes(item.id);
 
         const favClass = isFav ? 'active' : '';
         const favText = isFav ? '★' : '☆';
         const compClass = isCompleted ? 'active' : '';
-        const compText = isCompleted ? '완료됨' : '완료 체크';
+        const compText = isCompleted ? '✔️ 완료됨' : '완료 체크';
 
         let relatedHtml = '';
         const relatedList = itemsByCategory[item.category]
@@ -350,26 +332,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
-    };
-
-    const btnToggleCat = document.getElementById('btn-toggle-cat');
-    const btnToggleReg = document.getElementById('btn-toggle-reg');
-
-    if (btnToggleCat) {
-        btnToggleCat.addEventListener('click', () => {
-            const allActive = activeCategoryIds.size === validCategories.length;
-            setAllCategories(!allActive);
-        });
     }
 
-    if (btnToggleReg) {
-        btnToggleReg.addEventListener('click', () => {
-            const allActive = activeRegionNames.size === uniqueRegions.size;
-            setAllRegions(!allActive);
-        });
+    function setAllCategories(isActive) {
+        const catBtns = document.querySelectorAll('#category-list .cat-btn');
+        activeCategoryIds.clear();
+        if (isActive) {
+            validCategories.forEach(c => activeCategoryIds.add(c.id));
+            catBtns.forEach(btn => btn.classList.add('active'));
+        } else {
+            catBtns.forEach(btn => btn.classList.remove('active'));
+        }
+        updateToggleButtonsState();
+        updateMapVisibility();
+    }
+
+    function setAllRegions(isActive) {
+        const regBtns = document.querySelectorAll('#region-list .cat-btn');
+        activeRegionNames.clear();
+        if (isActive) {
+            uniqueRegions.forEach(r => activeRegionNames.add(r));
+            regBtns.forEach(btn => btn.classList.add('active'));
+        } else {
+            regBtns.forEach(btn => btn.classList.remove('active'));
+        }
+        updateToggleButtonsState();
+        updateMapVisibility();
     }
 
     function updateToggleButtonsState() {
+        const btnToggleCat = document.getElementById('btn-toggle-cat');
+        const btnToggleReg = document.getElementById('btn-toggle-reg');
+
         if (btnToggleCat) {
             const allCatActive = activeCategoryIds.size === validCategories.length;
             btnToggleCat.innerHTML = allCatActive ? '👁️ 모두 끄기' : '👁️‍🗨️ 모두 켜기';
@@ -381,6 +375,22 @@ document.addEventListener('DOMContentLoaded', () => {
             btnToggleReg.classList.toggle('off', !allRegActive);
         }
     }
+
+    const btnToggleCat = document.getElementById('btn-toggle-cat');
+    const btnToggleReg = document.getElementById('btn-toggle-reg');
+    if (btnToggleCat) {
+        btnToggleCat.addEventListener('click', () => {
+            const allActive = activeCategoryIds.size === validCategories.length;
+            setAllCategories(!allActive);
+        });
+    }
+    if (btnToggleReg) {
+        btnToggleReg.addEventListener('click', () => {
+            const allActive = activeRegionNames.size === uniqueRegions.size;
+            setAllRegions(!allActive);
+        });
+    }
+
     window.toggleCompleted = (id) => {
         const index = completedList.indexOf(id);
         const target = allMarkers.find(m => m.id === id);
@@ -405,12 +415,8 @@ document.addEventListener('DOMContentLoaded', () => {
     window.toggleFavorite = (id) => {
         const index = favorites.indexOf(id);
         const target = allMarkers.find(m => m.id === id);
-
-        if (index === -1) {
-            favorites.push(id);
-        } else {
-            favorites.splice(index, 1);
-        }
+        if (index === -1) favorites.push(id);
+        else favorites.splice(index, 1);
         localStorage.setItem('wwm_favorites', JSON.stringify(favorites));
         renderFavorites();
 
@@ -430,25 +436,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }).catch(err => prompt("링크 복사:", shareUrl));
     };
 
+    window.moveToLocation = (latlng, marker = null) => {
+        if (!map) return;
+
+        const currentZoom = map.getZoom();
+        const targetZoom = currentZoom > 6 ? currentZoom : 6;
+
+        map.flyTo(latlng, targetZoom, {
+            animate: true,
+            duration: 0.8,
+            easeLinearity: 0.25
+        });
+
+        if (marker) {
+            const catId = marker.options.alt;
+            if (!activeCategoryIds.has(catId)) {
+                activeCategoryIds.add(catId);
+                const btn = document.querySelector(`.cat-btn[data-id="${catId}"]`);
+                if (btn) btn.classList.add('active');
+            }
+            if (!map.hasLayer(marker)) {
+                map.addLayer(marker);
+            }
+
+            setTimeout(() => {
+                marker.openPopup();
+            }, 300);
+        }
+    }
+
     window.jumpToId = (id) => {
         const target = allMarkers.find(m => m.id === id);
         if (target) {
-            if (!activeCategoryIds.has(target.category)) {
-                activeCategoryIds.add(target.category);
-                document.querySelector(`#category-list .cat-btn[data-id="${target.category}"]`)?.classList.add('active');
-            }
-            if (!activeRegionNames.has(target.region)) {
-                activeRegionNames.add(target.region);
-
-                const regBtns = document.querySelectorAll('#region-list .cat-btn');
-                regBtns.forEach(btn => {
-                    if (btn.dataset.region === target.region) btn.classList.add('active');
-                });
-            }
-            updateMapVisibility();
-            updateToggleButtonsState();
-
-            moveToLocation(target.marker.getLatLng(), target.marker);
+            window.moveToLocation(target.marker.getLatLng(), target.marker);
         }
     };
 
@@ -483,15 +503,14 @@ document.addEventListener('DOMContentLoaded', () => {
     window.renderModalList = (items) => {
         const listEl = document.getElementById('modal-list');
         listEl.innerHTML = '';
-
         if (items.length === 0) {
             listEl.innerHTML = '<li style="padding:15px; text-align:center; color:#666;">결과가 없습니다.</li>';
             return;
         }
-        const currentCompleted = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+        const currComp = JSON.parse(localStorage.getItem('wwm_completed')) || [];
 
         items.forEach(m => {
-            const isDone = currentCompleted.includes(m.id);
+            const isDone = currComp.includes(m.id);
             const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
             const li = document.createElement('li');
             li.className = 'modal-item';
@@ -508,7 +527,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             listEl.appendChild(li);
         });
-    }
+    };
 
     function renderFavorites() {
         const favListEl = document.getElementById('favorite-list');
@@ -564,11 +583,6 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             updateListEl.appendChild(div);
         });
-    }
-
-    function moveToLocation(latlng, marker = null) {
-        map.setView(latlng, 6, { animate: true });
-        if (marker) marker.openPopup();
     }
 
     const searchInput = document.getElementById('search-input');
@@ -627,12 +641,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
+
     if (openBtn) openBtn.addEventListener('click', (e) => { e.stopPropagation(); toggleSidebar('open'); });
     if (closeBtn) closeBtn.addEventListener('click', () => toggleSidebar('close'));
     map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });
     window.addEventListener('resize', () => { map.invalidateSize(); });
 
     updateMapVisibility();
+    updateToggleButtonsState();
     renderFavorites();
     renderLinks();
     renderUpdates();

@@ -720,6 +720,23 @@ body {
     filter: grayscale(100%);
 }
 
+@keyframes markerFadeIn {
+    0% {
+        opacity: 0;
+        filter: blur(2px);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+.marker-anim {
+    animation: markerFadeIn 0.2s ease-out forwards;
+    will-change: opacity;
+}
+
 @media (max-width: 768px) {
     .sidebar {
         position: absolute;
