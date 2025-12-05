@@ -221,8 +221,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 } else if (commonDesc) {
                     item.description = commonDesc;
                 }
-            } else if (commonDesc) {
-                item.description = commonDesc;
+                if (transData.region) item.forceRegion = transData.region;
             }
         }
     });
@@ -334,9 +333,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             id: item.id,
             marker: marker,
             name: item.name.toLowerCase(),
+            originalName: item.name,
             desc: (item.description || '').toLowerCase(),
             category: item.category,
-            region: regionName
+            region: regionName,
+            forceRegion: item.forceRegion
         });
     });
 
@@ -430,7 +431,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const isFav = favorites.includes(item.id);
         const isCompleted = completedList.includes(item.id);
 
-        const translatedName = t(item.name);
+        const displayRegion = item.forceRegion || regionName;
+
+        let translatedName = t(item.name);
+        if (translatedName) {
+            translatedName = translatedName.replace(/{region}/g, displayRegion);
+        }
+
         const categoryName = t(item.category);
         let itemDescription = item.description || '';
 
@@ -442,6 +449,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (itemDescription) {
             itemDescription = itemDescription.replace(/{name}/g, replaceName);
+            itemDescription = itemDescription.replace(/{region}/g, displayRegion);
         } else {
             itemDescription = '<p class="no-desc">설명 없음</p>';
         }
@@ -456,10 +464,17 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const listItemsHtml = filteredList.map((r, index) => {
                 const hiddenClass = index >= limit ? 'hidden' : '';
-                const rReg = getNearestRegionName(r.x, r.y);
+
+                const rReg = r.forceRegion || getNearestRegionName(r.x, r.y);
+
+                let rName = t(r.name);
+                if (rName) {
+                    rName = rName.replace(/{region}/g, rReg);
+                }
+
                 const rRegHtml = rReg ? `<span class="related-region">(${rReg})</span>` : '';
 
-                return `<li class="related-item ${hiddenClass}" onclick="jumpToId(${r.id})">${t(r.name)} ${rRegHtml}</li>`;
+                return `<li class="related-item ${hiddenClass}" onclick="jumpToId(${r.id})">${rName} ${rRegHtml}</li>`;
             }).join('');
 
             const expandBtn = hiddenCount > 0
@@ -495,7 +510,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             <div class="popup-footer">
                 <span class="badge">${categoryName}</span>
-                <span class="badge" style="margin-left:5px;">${regionName}</span>
+                <span class="badge" style="margin-left:5px;">${displayRegion}</span>
             </div>
         </div>
     `;
@@ -680,17 +695,26 @@ document.addEventListener('DOMContentLoaded', async () => {
         const currComp = JSON.parse(localStorage.getItem('wwm_completed')) || [];
 
         items.forEach(m => {
+            const displayRegion = m.forceRegion || m.region;
+
+            let displayName = t(m.originalName || m.name);
+
+            if (displayName) {
+                displayName = displayName.replace(/{region}/g, displayRegion);
+            }
+
             const isDone = currComp.includes(m.id);
             const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
+
             const li = document.createElement('li');
             li.className = 'modal-item';
             li.innerHTML = `
-                <div style="display:flex; flex-direction:column;">
-                    <span class="modal-item-name">${t(m.name)}</span>
-                    <span style="font-size:0.8rem; color:#888;">${m.region}</span>
-                </div>
-                ${statusHtml}
-            `;
+            <div style="display:flex; flex-direction:column;">
+                <span class="modal-item-name">${displayName}</span>
+                <span style="font-size:0.8rem; color:#888;">${displayRegion}</span>
+            </div>
+            ${statusHtml}
+        `;
             li.onclick = () => {
                 jumpToId(m.id);
                 closeModal();

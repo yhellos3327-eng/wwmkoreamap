@@ -6899,7 +6899,7 @@
             "hasPageLink": false,
             "hasCoordsLink": true,
             "clickable": false,
-            "description": "\u003ch3\u003eRewards\u003c/h3\u003e\u003cbr /\u003e\n\u003cdiv class\u003d\"row\"\u003e\n\u003cdiv class\u003d\"col-sm-6\"\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/charater-exp-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Character EXP\"\u003e X 12000\n\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/enlightenment-point-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Enlightment Point\"\u003e X 90\n\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/oscillating-jade-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Oscillating Jade\"\u003e X 3\n\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/echo-jade-map-marker-where-winds-meet-wiki-guide.png\" alt\u003d\"Echo Jade\"\u003e X 40\n\u003c/div\u003e\n\u003cdiv class\u003d\"col-sm-6\"\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/qinghe-exploration-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Qinghe Exploration\"\u003e X 40\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/silkcloud-leg-wraps-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Silkcloud Leg Wraps\"\u003e X 1\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/tales-of-medicine-map-marker-where-winds-meet-wiki-guide.png\" alt\u003d\"Tales of Medicine\"\u003e X 2\n\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/zhou-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"Zhou Coin\"\u003e X 12000\n\u003c/div\u003e\n\u003c/div\u003e"
+            "description": "<h3>보상</h3><br />\n<div class=\"row\">\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/charater-exp-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"캐릭터 경험치\"> X 12000\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/enlightenment-point-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"깨달음 포인트\"> X 90\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/oscillating-jade-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"진동하는 옥\"> X 3\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/echo-jade-map-marker-where-winds-meet-wiki-guide.png\" alt=\"메아리 옥\"> X 40\n</div>\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/qinghe-exploration-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"청하 탐사\"> X 40<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/silkcloud-leg-wraps-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"비단구름 다리 싸개\"> X 1<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/tales-of-medicine-map-marker-where-winds-meet-wiki-guide.png\" alt=\"의약 이야기\"> X 2\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/zhou-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"주화\"> X 12000\n</div>\n</div>"
         },
         {
             "id": 121,
@@ -13400,8 +13400,8 @@
         },
         {
             "id": 662,
-            "category": "ExplorationChallenge",
-            "name": "Madiao",
+            "category": "MadiaoCards",
+            "name": "Madiao - Wang Chengsheng",
             "image": "./icons/madiao-cards.png",
             "imageSizeW": 40,
             "imageSizeH": 40,
@@ -13415,8 +13415,8 @@
         },
         {
             "id": 664,
-            "category": "ExplorationChallenge",
-            "name": "Madiao",
+            "category": "MadiaoCards",
+            "name": "Madiao - Lü Le",
             "image": "./icons/madiao-cards.png",
             "imageSize": 0,
             "imageSizeW": 40,
@@ -13483,36 +13483,6 @@
             "imageSizeH": 40,
             "x": "-33.17789135873318",
             "y": "77.44398071128848",
-            "hasLabel": false,
-            "hasPageLink": true,
-            "hasCoordsLink": true,
-            "clickable": false,
-            "description": ""
-        },
-        {
-            "id": 1077,
-            "category": "MadiaoCards",
-            "name": "Madiao -  Lü Le",
-            "image": "./icons/madiao-cards.png",
-            "imageSizeW": 40,
-            "imageSizeH": 40,
-            "x": "-73.62653196855364",
-            "y": "34.40683519678158",
-            "hasLabel": false,
-            "hasPageLink": true,
-            "hasCoordsLink": true,
-            "clickable": false,
-            "description": ""
-        },
-        {
-            "id": 1076,
-            "category": "MadiaoCards",
-            "name": "Madiao - Wang Chengsheng",
-            "image": "./icons/madiao-cards.png",
-            "imageSizeW": 40,
-            "imageSizeH": 40,
-            "x": "-68.76421122540049",
-            "y": "39.62237113095177",
             "hasLabel": false,
             "hasPageLink": true,
             "hasCoordsLink": true,
@@ -16441,7 +16411,7 @@
         },
         {
             "id": 717,
-            "category": "ExplorationChallenge",
+            "category": "ChessMatch",
             "name": "Qi Sheng’s Chess Match",
             "image": "./icons/chess-match.png",
             "imageSizeW": 40,

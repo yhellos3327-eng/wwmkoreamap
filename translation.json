@@ -95,7 +95,8 @@
         },
         {
             "keys": [
-                "Chess Match"
+                "Chess Match",
+                "ChessMatch"
             ],
             "value": "상기"
         },
@@ -119,7 +120,8 @@
         },
         {
             "keys": [
-                "Crafting Bench"
+                "Crafting Bench",
+                "CraftingBench"
             ],
             "value": "제작대"
         },
@@ -798,7 +800,8 @@
             "items": [
                 {
                     "keys": [
-                        "Enchanting Lotus"
+                        "Enchanting Lotus",
+                        "1358"
                     ],
                     "value": {
                         "name": "노래하는 백목련"
@@ -818,6 +821,30 @@
                     ],
                     "value": {
                         "name": "속삭이는 벌집"
+                    }
+                },
+                {
+                    "keys": [
+                        "Ironwing Mantis"
+                    ],
+                    "value": {
+                        "name": "금강 사마귀"
+                    }
+                },
+                {
+                    "keys": [
+                        "Dagger General"
+                    ],
+                    "value": {
+                        "name": "비견 장군"
+                    }
+                },
+                {
+                    "keys": [
+                        "1290"
+                    ],
+                    "value": {
+                        "name": "비견 장군 3마리"
                     }
                 }
             ]
@@ -853,6 +880,43 @@
                 }
             ]
         },
+        "DivinecraftDungeon": {
+            "items": [
+                {
+                    "keys": [
+                        "1014"
+                    ],
+                    "value": {
+                        "name": "제비의 비행"
+                    }
+                },
+                {
+                    "keys": [
+                        "434"
+                    ],
+                    "value": {
+                        "name": "명경지수",
+                        "description": "<h3>보상</h3><br />\n<div class=\"row\">\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/charater-exp-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"캐릭터 경험치\"> X 10900\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/enlightenment-point-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"깨달음 포인트\"> X 130\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/oscillating-jade-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"진동하는 옥\"> X 5\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/echo-jade-map-marker-where-winds-meet-wiki-guide.png\" alt=\"메아리 옥\"> X 39\n</div>\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/qinghe-exploration-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"청하 탐사\"> X 41<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/ten-directions-pendant-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"십방 펜던트\"> X 1<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/tales-of-medicine-map-marker-where-winds-meet-wiki-guide.png\" alt=\"의약 이야기\"> X 2\n<br />\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/zhou-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"주화\"> X 10900\n</div>\n</div>"
+                    }
+                },
+                {
+                    "keys": [
+                        "1013"
+                    ],
+                    "value": {
+                        "name": "밝혀진 화살불"
+                    }
+                },
+                {
+                    "keys": [
+                        "394"
+                    ],
+                    "value": {
+                        "name": "동산 금혈"
+                    }
+                }
+            ]
+        },
         "BellofDemoncalm": {
             "items": [
                 {
@@ -873,6 +937,69 @@
                     ],
                     "value": {
                         "description": "강호 각지에 발표된 현상 수배를 수락하고 완료하면 풍부한 보상을 얻을 수 있습니다!"
+                    }
+                }
+            ]
+        },
+        "CraftingBench": {
+            "items": [
+                {
+                    "keys": [
+                        "43"
+                    ],
+                    "value": {
+                        "region": "신선 나루",
+                        "name": "{region} 제작 구역",
+                        "description": "{region} 거주민의 제작 구역으로, 목공 장인이 지어 간단한 제작을 할 수 있다. <br><br><h3>사용 가능한 기능</h3>\n<ul style=\"list-style-type: disc; padding-left: 20px; margin-left: 0;\">\n<li>단로</li>\n<li>부뚜막</li>\n<li>연약대</li>\n<li>목공대</li>\n</ul>"
+                    }
+                },
+                {
+                    "keys": [
+                        "71"
+                    ],
+                    "value": {
+                        "name": "{region} 제작 구역",
+                        "description": "{region} 제작구역은, 이씨 대장장이가 지은것으로, 마을 주민이 물건을 제작하기 편리하게 만들어졌다. <br><br><h3>사용 가능한 기능</h3>\n<ul style=\"list-style-type: disc; padding-left: 20px; margin-left: 0;\">\n<li>단로</li>\n<li>부뚜막</li>\n<li>연약대</li>\n<li>목공대</li>\n</ul>"
+                    }
+                }
+            ]
+        },
+        "ChessMatch": {
+            "items": [
+                {
+                    "keys": [
+                        "420"
+                    ],
+                    "value": {
+                        "name": "왕대연",
+                        "description": "<h3>{name}</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-dayan-where-winds-meet-wiki-guide.jpg\" alt=\"{name}\"><br />\n{name}은 상기를 무척 좋아하지만, 실력은 평범하다. 그래도 초보자들을 입문시키는 선생으로는 충분하다. 그는 낮에는 신선 나루의 마당에서 식량이 마르는 것을 살펴야 하기에, 밤이 되어서야 귀가해 상기를 익힌다. 그와 상기를 두려면 반드시 시간을 잘 살펴야 한다!<hr class=\"deco\" />\n<h3 class=\"bonfire\">참가 비용</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"단맥전\"> X 10\n<hr class=\"deco\" />\n<h3 class=\"bonfire\">보상</h3>\n<div class=\"row\">\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"단맥전\"> X 20\n"
+                    }
+                },
+                {
+                    "keys": [
+                        "718"
+                    ],
+                    "value": {
+                        "name": "연형",
+                        "description": "{name}은 한때 세종 황제 휘하의 지략가로 상기에 매우 능했다. 그의 상기 실력은 수많은 전쟁 속에서 깨우치고 단련된 것으로, 상기를 통해 전장을 모의하고 국면을 밀어낼 수 있었다. 그러나 부인 기성과 즐겁게 상기를 두는 경우를 제외하면, 요즘은 마을에서 좀처럼 기량을 드러내지 않았다. 그런데 최근 기성이 화가 나 친정으로 돌아갔는데, 늘 아내를 사랑하던 {name}은 조급해 하기는 커녕 오히려 상기판을 두고 전세를 풀어내는 데 몰두하니, 참으로 기이하고도 이상한 일이다!"
+                    }
+                },
+                {
+                    "keys": [
+                        "388"
+                    ],
+                    "value": {
+                        "name": "엽비휴",
+                        "description": "<h3>{name}</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/ye-buxiu-where-winds-meet-wiki-guide.png\" alt=\"{name}\"><br />\n{name}의 상기 실력은 매우 뛰어나 젊었을 때는 당 명종의 궁정 기수로 일하기도 했다고 전해진다. 그는 도박 상기를 생계의 기술로 삼았으나, 탐욕을 부리지 않고 오히려 하루에 한 사람당 최대 세 판까지만 두도록 규칙을 정했다. 도박 상기에 빠져 세 판을 넘어 집요하게 달려드는 자가 있어도, 엽비휴는 늘 웃으며 교묘하게 돌려보냈다. 왕대연은 그가 상기를 가볍게 대하는 태도를 못마땅히 여겨 공공연히 또 은밀히 수없이 그를 ‘늙은 여우’라 욕하였다.<hr class=\"deco\" />\n<h3 class=\"bonfire\">참가 비용</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"단맥전\"> X 50\n<hr class=\"deco\" />\n<h3 class=\"bonfire\">보상</h3>\n<div class=\"row\">\n<div class=\"col-sm-6\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png\" alt=\"단맥전\"> X 100\n"
+                    }
+                },
+                {
+                    "keys": [
+                        "1010"
+                    ],
+                    "value": {
+                        "name": "기성",
+                        "description": "<h3>{name}</h3>\n{name}은 순마장의 큰고모이자 현 장주 기비준의 고모였다. 어릴 적부터 상기에 매료되었고, 시집간 뒤에도 초심을 바꾸지 않아 세속적인 일에는 신경 쓰지 않았다. 남편 연형은 이를 이해하고 너그럽게 받아들여 자주 맞춰 주었다. 부부는 평소 화목했으나 최근에는 알 수 없는 이유로 틈이 생겼고, 기성은 화가 나 친정인 순마장으로 돌아와 매일 상기판을 연구하며, 겸사겸사 누군가가 찾아와 고개 숙여 사과하기를 기다리고 있었다."
                     }
                 }
             ]
