@@ -15,17 +15,20 @@
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <h1>Interactive Map</h1>
-                <button id="toggle-sidebar" class="close-btn">&times;</button>
+                <div style="display:flex; gap:5px;">
+                    <button id="open-settings" class="close-btn" title="설정">⚙️</button>
+                    <button id="toggle-sidebar" class="close-btn">&times;</button>
+                </div>
             </div>
 
             <div class="search-container">
-                <input type="text" id="search-input" placeholder="이름 또는 설명 검색...">
+                <input type="text" id="search-input" placeholder="이름, 지역, 카테고리 검색...">
             </div>
 
             <div class="tabs">
                 <button class="tab-btn active" data-tab="category-tab">카테고리</button>
-                <button class="tab-btn" data-tab="region-tab">지역</button> <button class="tab-btn"
-                    data-tab="favorite-tab">즐겨찾기</button>
+                <button class="tab-btn" data-tab="region-tab">지역</button>
+                <button class="tab-btn" data-tab="favorite-tab">즐겨찾기</button>
                 <button class="tab-btn" data-tab="link-tab">링크</button>
                 <button class="tab-btn" data-tab="update-tab">업데이트</button>
             </div>
@@ -38,7 +41,7 @@
 
                 <div id="region-tab" class="tab-content">
                     <button id="btn-toggle-reg" class="btn-toggle-all">👁️ 모두 끄기</button>
-                    <div id="region-list" class="category-list">
+                    <div id="region-list" class="category-list region-grid">
                     </div>
                 </div>
 
@@ -68,6 +71,28 @@
         </main>
     </div>
 
+    <div id="settings-modal" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content" style="height: auto;">
+            <div class="modal-header">
+                <h3>설정</h3>
+                <button class="close-modal-btn"
+                    onclick="document.getElementById('settings-modal').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <label style="color:#ccc; display:block; margin-bottom:10px; font-weight:bold;">Google Gemini API
+                    Key</label>
+                <input type="password" id="api-key-input" placeholder="AI 번역을 위한 키 입력"
+                    style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; border-radius:4px; margin-bottom:10px;">
+                <button id="save-api-key" class="action-btn"
+                    style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
+                <p style="color:#888; font-size:0.8rem; margin-top:15px; line-height:1.4;">
+                    * API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.<br>
+                    * 미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.
+                </p>
+            </div>
+        </div>
+    </div>
+
     <div id="github-modal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
@@ -78,6 +103,7 @@
                 <p id="github-modal-desc" style="margin-bottom: 15px; color: #ccc; line-height: 1.5;"></p>
                 <ul id="github-modal-links" style="list-style: none; padding: 0;">
                 </ul>
+                <div id="contribution-guide-container"></div>
             </div>
         </div>
     </div>
@@ -97,6 +123,7 @@
             </div>
         </div>
     </div>
+
     <div id="dev-modal" class="modal-overlay hidden" style="z-index: 9999;">
         <div class="modal-content">
             <div class="modal-header" style="border-bottom: 1px solid var(--accent);">
@@ -153,6 +180,14 @@
             </div>
         </div>
     </div>
+
+    <div id="lightbox-modal" class="modal-overlay hidden" onclick="closeLightbox()">
+        <span class="lightbox-close">&times;</span>
+        <button class="lightbox-nav prev" onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
+        <button class="lightbox-nav next" onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
+        <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>

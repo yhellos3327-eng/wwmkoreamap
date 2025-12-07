@@ -1,7 +1,15 @@
 const updateHistory = [
     {
+        version: "v1.1",
+        date: "2025-12-08",
+        content: [
+            "AI 번역 기능: 설명이 없는 항목은 번역 버튼 제외",
+            "초기 로딩 시 경계석만 활성화"
+        ]
+    },
+    {
         version: "v1.0.6",
-        date: "2025-12-06",
+        date: "2025-12-08",
         content: [
             "중국 지도 기반으로 업데이트, 데이터가 변경된 부분들이 매우 많아 다시 번역중입니다. 많이 더뎌질수 있습니다. 그래도 기존 번역 데이터가 있기에 조금 수월할것 같습니다. 여러분들 미안합니다.. 빠르게 번역해보도록 하겠습니다.",
         ]
@@ -63,10 +71,11 @@ const MAP_CONFIG = {
     maxZoom: 13,
     tileSize: 256,
     zoomOffset: 0,
-    center: [0, 0],
-    zoom: 10
+    center: [0.6768, -0.6841],
+    zoom: 11
 };
 
+// Global Variables
 let map;
 let allMarkers = [];
 let markersData = [];
@@ -79,25 +88,22 @@ let activeCategoryIds = new Set();
 let activeRegionNames = new Set();
 let uniqueRegions = new Set();
 let itemsByCategory = {};
-let layerGroups = {};
 let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
 let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
-let boundaryStones = [];
 let categoryItemTranslations = {};
 let currentModalList = [];
+let currentLightboxImages = [];
+let currentLightboxIndex = 0;
+let regionMetaInfo = {};
+let savedApiKey = localStorage.getItem('wwm_api_key') || "";
 
+// Helper Functions
 const t = (key) => {
     if (!key) return "";
     const trimmedKey = key.toString().trim();
     return koDict[trimmedKey] || key;
 }
 
-/**
- * 한국어 조사 처리 도우미 함수. (으)로/로 조사 처리를 위해 사용됨.
- * @param {string} word - 조사 적용 대상 단어
- * @param {string} type - 사용할 조사 ("으로/로", "을/를" 등)
- * @returns {string} 받침 유무에 따라 적절한 조사를 반환
- */
 const getJosa = (word, type) => {
     if (!word || typeof word !== 'string') return type.split('/')[0];
     const lastChar = word.charCodeAt(word.length - 1);
@@ -106,6 +112,116 @@ const getJosa = (word, type) => {
     const [josa1, josa2] = type.split('/');
     return hasJongsung ? josa1 : josa2;
 };
+
+// [중요] createPopupHtml을 전역 스코프로 이동
+function createPopupHtml(item, lat, lng, regionName) {
+    const isFav = favorites.includes(item.id);
+    const isCompleted = completedList.includes(item.id);
+    const displayRegion = item.forceRegion || regionName;
+    let translatedName = t(item.name);
+    if (translatedName) {
+        translatedName = translatedName.replace(/{region}/g, displayRegion);
+    }
+    const categoryName = t(item.category);
+    let itemDescription = item.description || '';
+    let replaceName = translatedName;
+    const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
+    replaceName = translatedName + josa;
+
+    if (itemDescription) {
+        itemDescription = itemDescription.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>');
+        itemDescription = itemDescription.replace(/\n/g, '<br>');
+        itemDescription = itemDescription.replace(/{name}/g, replaceName);
+        itemDescription = itemDescription.replace(/{region}/g, displayRegion);
+    } else {
+        itemDescription = '<p class="no-desc">설명 없음</p>';
+    }
+
+    let imageSliderHtml = '';
+    const imgs = item.images || [];
+    if (imgs.length > 0) {
+        const slides = imgs.map((src, index) => {
+            const activeClass = index === 0 ? 'active' : '';
+            const imgSrc = src.startsWith('http') ? src : src;
+            return `<img src="${imgSrc}" class="popup-image ${activeClass}" onclick="openLightbox(${item.id}, ${index})" alt="${translatedName}">`;
+        }).join('');
+        const navBtns = imgs.length > 1 ? `
+            <button class="img-nav-btn prev" onclick="event.stopPropagation(); switchImage(this, -1)" style="display:block">❮</button>
+            <button class="img-nav-btn next" onclick="event.stopPropagation(); switchImage(this, 1)" style="display:block">❯</button>
+            <span class="img-counter">1 / ${imgs.length}</span>
+        ` : '';
+        imageSliderHtml = `
+            <div class="popup-image-container" data-idx="0" data-total="${imgs.length}">
+                ${slides}
+                ${navBtns}
+            </div>
+        `;
+    }
+
+    let translateBtnHtml = '';
+    // 번역되지 않았고, 설명이 존재하며, 설명이 빈 문자열이 아닐 때만 버튼 표시
+    if (!item.isTranslated && item.description && item.description.trim() !== "") {
+        translateBtnHtml = `
+            <button class="btn-translate" onclick="translateItem(${item.id})" style="width:100%; margin-top:10px; padding:6px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">
+                ✨ AI 번역 (Chinese -> Korean)
+            </button>
+        `;
+    }
+
+    let relatedHtml = '';
+    const relatedItems = itemsByCategory[item.category] || [];
+    const filteredList = relatedItems.filter(i => i.id !== item.id);
+    if (filteredList.length > 0) {
+        const limit = 3;
+        const hiddenCount = filteredList.length - limit;
+        const listItemsHtml = filteredList.map((r, index) => {
+            const hiddenClass = index >= limit ? 'hidden' : '';
+            const rReg = r.forceRegion || r.region;
+            let rName = t(r.name);
+            if (rName) rName = rName.replace(/{region}/g, rReg);
+            const rRegHtml = rReg ? `<span class="related-region">(${rReg})</span>` : '';
+            return `<li class="related-item ${hiddenClass}" onclick="jumpToId(${r.id})">${rName} ${rRegHtml}</li>`;
+        }).join('');
+        const expandBtn = hiddenCount > 0
+            ? `<button class="btn-expand" onclick="expandRelated(this)">▼ 더보기 (${hiddenCount}+)</button>`
+            : '';
+        relatedHtml = `
+        <div class="popup-related">
+            <div class="popup-related-header">
+                <h5>관련 ${categoryName} (${filteredList.length})
+                <button class="btn-search-modal" onclick="openRelatedModal('${item.category}')" title="전체 목록 검색">🔍</button></h5>
+            </div>
+            <ul class="related-list">${listItemsHtml}</ul>
+            ${expandBtn}
+        </div>
+    `;
+    }
+
+    return `
+    <div class="popup-container" data-id="${item.id}">
+        <div class="popup-header">
+            <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
+            <h4>${translatedName}</h4>
+        </div>
+        <div class="popup-body">
+            ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
+            ${imageSliderHtml}
+            ${translateBtnHtml}
+        </div>
+        ${relatedHtml}
+        <div class="popup-actions">
+            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" onclick="toggleFavorite(${item.id})" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
+            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" onclick="toggleCompleted(${item.id})" title="완료 상태로 표시">${isCompleted ? '완료됨' : '완료 체크'}</button>
+            <button class="action-btn btn-share" onclick="shareLocation(${item.id}, ${lat}, ${lng})" title="위치 공유">📤</button>
+        </div>
+        <div class="popup-footer">
+            <span class="badge">${categoryName}</span>
+            <span class="badge" style="margin-left:5px;">${t(displayRegion)}</span>
+        </div>
+    </div>
+`;
+}
+
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
@@ -128,13 +244,13 @@ document.addEventListener('DOMContentLoaded', async () => {
             githubModalTitle.textContent = t("contribute_title");
             githubModalDesc.innerHTML = t("contribute_description").replace(/\n/g, '<br>');
             githubModalLinks.innerHTML = contributionLinks.map(link => `
-        <li style="margin-bottom: 10px;">
-            <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">
-                ${t(link.titleKey)}
-                <span class="link-url" style="float:right; opacity:0.6;">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
-            </a>
-        </li>
-    `).join('');
+                <li style="margin-bottom: 10px;">
+                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">
+                        ${t(link.titleKey)}
+                        <span class="link-url" style="float:right; opacity:0.6;">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
+                    </a>
+                </li>
+            `).join('');
 
             const guideContainerId = 'contribution-guide-container';
             let guideContainer = document.getElementById(guideContainerId);
@@ -142,28 +258,46 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!guideContainer) {
                 guideContainer = document.createElement('div');
                 guideContainer.id = guideContainerId;
-
                 guideContainer.style.marginTop = '25px';
                 guideContainer.style.paddingTop = '20px';
                 guideContainer.style.borderTop = '1px solid var(--border)';
-
                 githubModalDesc.parentNode.appendChild(guideContainer);
             }
             guideContainer.innerHTML = `
-
-        <div>
-            <h4 style="color: var(--accent); margin-bottom: 10px; font-size: 1rem;">
-                ${t("guide_trans_title")}
-            </h4>
-            <div style="font-size: 0.9rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">${t("guide_trans_steps")}</div>
-        </div>
-    `;
+                <div>
+                    <h4 style="color: var(--accent); margin-bottom: 10px; font-size: 1rem;">
+                        ${t("guide_trans_title")}
+                    </h4>
+                    <div style="font-size: 0.9rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">${t("guide_trans_steps")}</div>
+                </div>
+            `;
         }
 
         if (openGithubModalBtn && githubModal) {
             openGithubModalBtn.addEventListener('click', () => {
                 renderContributionModal();
                 githubModal.classList.remove('hidden');
+            });
+        }
+
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsBtn = document.getElementById('open-settings');
+        const saveApiKeyBtn = document.getElementById('save-api-key');
+        const apiKeyInput = document.getElementById('api-key-input');
+
+        if (openSettingsBtn) {
+            openSettingsBtn.addEventListener('click', () => {
+                apiKeyInput.value = savedApiKey;
+                settingsModal.classList.remove('hidden');
+            });
+        }
+
+        if (saveApiKeyBtn) {
+            saveApiKeyBtn.addEventListener('click', () => {
+                savedApiKey = apiKeyInput.value.trim();
+                localStorage.setItem('wwm_api_key', savedApiKey);
+                alert("API Key가 저장되었습니다.");
+                settingsModal.classList.add('hidden');
             });
         }
 
@@ -174,7 +308,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (transJson.common) {
             transJson.common.forEach(item => {
                 if (!Array.isArray(item.keys) || item.keys.length === 0) return;
-
                 item.keys.forEach(key => {
                     if (typeof key === 'string' && key.trim() !== '') {
                         koDict[key] = item.value;
@@ -185,39 +318,36 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         if (transJson.overrides) {
-            const flattenedOverrides = {};
             for (const categoryId in transJson.overrides) {
                 const categoryData = transJson.overrides[categoryId];
                 if (typeof categoryData !== 'object' || categoryData === null) continue;
-                flattenedOverrides[categoryId] = {};
+
+                if (!categoryItemTranslations[categoryId]) categoryItemTranslations[categoryId] = {};
+
                 if (categoryData._common_description) {
-                    flattenedOverrides[categoryId]._common_description = categoryData._common_description;
+                    categoryItemTranslations[categoryId]._common_description = categoryData._common_description;
                 }
                 let itemArray = Array.isArray(categoryData.items) ? categoryData.items : [];
                 itemArray.forEach(entry => {
                     if (Array.isArray(entry.keys) && entry.value) {
                         entry.keys.forEach(k => {
                             const keyStr = String(k).trim();
-                            flattenedOverrides[categoryId][keyStr] = entry.value;
+                            categoryItemTranslations[categoryId][keyStr] = entry.value;
                         });
-                    }
-                    else {
-                        for (const key in entry) {
-                            const value = entry[key];
-                            if (key && value && key !== 'keys' && key !== 'value') {
-                                flattenedOverrides[categoryId][key] = value;
-                            }
-                        }
                     }
                 });
             }
-            categoryItemTranslations = flattenedOverrides;
         }
 
         const regionIdMap = {};
         if (regionsJson.data && Array.isArray(regionsJson.data)) {
             regionsJson.data.forEach(region => {
                 regionIdMap[region.id] = region.title;
+                regionMetaInfo[region.title] = {
+                    lat: parseFloat(region.latitude),
+                    lng: parseFloat(region.longitude),
+                    zoom: region.zoom || 12
+                };
             });
         }
 
@@ -227,8 +357,15 @@ document.addEventListener('DOMContentLoaded', async () => {
         mapData.items = rawItems.map(item => {
             const catId = String(item.category_id);
             uniqueCategoryIds.add(catId);
-
             const regionName = regionIdMap[item.regionId] || "알 수 없음";
+
+            let imgList = [];
+            if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                imgList = item.images;
+            } else if (item.image) {
+                imgList = [item.image];
+            }
+
             return {
                 ...item,
                 id: item.id,
@@ -238,9 +375,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 x: item.latitude,
                 y: item.longitude,
                 region: regionName,
-                image: item.image,
+                images: imgList,
                 imageSizeW: 44,
-                imageSizeH: 44
+                imageSizeH: 44,
+                isTranslated: false
             };
         });
 
@@ -264,7 +402,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     mapData.items.forEach(item => {
         const catTrans = categoryItemTranslations[item.category];
-
         let commonDesc = null;
         if (catTrans && catTrans._common_description) {
             commonDesc = catTrans._common_description;
@@ -272,13 +409,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (catTrans) {
             let transData = catTrans[item.id];
-
             if (!transData && item.name) {
                 transData = catTrans[item.name];
             }
-
             if (transData) {
-                if (transData.name) item.name = transData.name;
+                if (transData.name) {
+                    item.name = transData.name;
+                    item.isTranslated = true;
+                }
                 if (transData.description) {
                     item.description = transData.description;
                 } else if (commonDesc) {
@@ -300,21 +438,41 @@ document.addEventListener('DOMContentLoaded', async () => {
         itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
     }
 
-    boundaryStones = mapData.items;
-
-    function getNearestRegionName(targetX, targetY) {
-        return "알 수 없음";
-    }
+    const savedCats = JSON.parse(localStorage.getItem('wwm_active_cats'));
+    const savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs'));
+    const DEFAULT_CAT_ID = "17310010083";
 
     activeCategoryIds.clear();
+    activeRegionNames.clear();
 
-    validCategories.forEach(cat => {
-        activeCategoryIds.add(cat.id);
-    });
+    if (savedCats && Array.isArray(savedCats) && savedCats.length > 0) {
+        savedCats.forEach(id => {
+            if (validCategories.find(c => c.id === id)) activeCategoryIds.add(id);
+        });
+    } else {
+        if (validCategories.find(c => c.id === DEFAULT_CAT_ID)) {
+            activeCategoryIds.add(DEFAULT_CAT_ID);
+        } else if (validCategories.length > 0) {
+            activeCategoryIds.add(validCategories[0].id);
+        }
+    }
+
+    if (savedRegs && Array.isArray(savedRegs) && savedRegs.length > 0) {
+        savedRegs.forEach(r => {
+            if (uniqueRegions.has(r)) activeRegionNames.add(r);
+        });
+    } else {
+        uniqueRegions.forEach(r => activeRegionNames.add(r));
+    }
+
+    function saveFilterState() {
+        localStorage.setItem('wwm_active_cats', JSON.stringify([...activeCategoryIds]));
+        localStorage.setItem('wwm_active_regs', JSON.stringify([...activeRegionNames]));
+    }
 
     const map = L.map('map', {
-        center: [0, 0],
-        zoom: 11,
+        center: MAP_CONFIG.center,
+        zoom: MAP_CONFIG.zoom,
         minZoom: 9,
         maxZoom: 13,
         zoomControl: false,
@@ -334,7 +492,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     mapData.items.forEach(item => {
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
-
         const regionName = item.region || "알 수 없음";
 
         if (regionName) uniqueRegions.add(regionName);
@@ -342,8 +499,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const categoryObj = mapData.categories.find(c => c.id === item.category);
         const iconUrl = categoryObj ? categoryObj.image : './icons/marker.png';
 
-        const w = item.imageSizeW || 30;
-        const h = item.imageSizeH || 30;
+        const w = item.imageSizeW || 44;
+        const h = item.imageSizeH || 44;
         const isCompleted = completedList.includes(item.id);
         const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon marker-anim';
 
@@ -365,15 +522,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         marker.on('contextmenu', (e) => {
             e.originalEvent.preventDefault();
             if (marker.isPopupOpen()) marker.closePopup();
-
             window.toggleCompleted(item.id);
         });
 
         marker.bindPopup(() => createPopupHtml(item, lat, lng, regionName));
-        marker.on('click', () => {
-            console.log(`클릭한 아이템: ${item.name} (ID: ${item.id})`);
-            console.log(item);
-        });
         allMarkers.push({
             id: item.id,
             marker: marker,
@@ -386,46 +538,101 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     });
 
-    uniqueRegions.forEach(r => activeRegionNames.add(r));
+    if (activeRegionNames.size === 0) {
+        uniqueRegions.forEach(r => activeRegionNames.add(r));
+    }
+
+    const categoryGroups = {
+        "locations": {
+            title: "지점",
+            ids: ["17310010083", "17310010084", "17310010019", "17310010085", "17310010086", "17310010087", "17310010088"]
+        },
+        "exploration": {
+            title: "탐색 & 중생",
+            ids: ["17310010001", "17310010002", "17310010006", "17310010007", "17310010004", "17310010008", "17310010012", "17310010015", "17310010090", "17310010092", "17310010009", "17310010010", "17310010081", "17310010005", "17310010003", "17310010011", "17310010013", "17310010014", "17310010016", "17310010017", "17310010018", "17310010079", "17310010080", "17310010089", "17310010082"]
+        },
+        "collections": {
+            title: "박물지",
+            ids: ["17310010020", "17310010021", "17310010022", "17310010023", "17310010024", "17310010025", "17310010026", "17310010027", "17310010028", "17310010029", "17310010030", "17310010031", "17310010032", "17310010033", "17310010034", "17310010035"]
+        }
+    };
 
     const categoryListEl = document.getElementById('category-list');
+    categoryListEl.innerHTML = '';
 
-    validCategories.forEach(cat => {
-        layerGroups[cat.id] = L.layerGroup();
+    for (const [groupKey, groupInfo] of Object.entries(categoryGroups)) {
+        const groupDiv = document.createElement('div');
+        groupDiv.className = 'category-group';
 
-        const btn = document.createElement('button');
-        btn.className = activeCategoryIds.has(cat.id) ? 'cat-btn active' : 'cat-btn';
-        btn.dataset.id = cat.id;
-        btn.innerHTML = `<img src="${cat.image}" alt=""> ${t(cat.name)}`;
+        const groupTitle = document.createElement('h3');
+        groupTitle.className = 'group-name';
+        groupTitle.textContent = groupInfo.title;
+        groupDiv.appendChild(groupTitle);
 
-        btn.addEventListener('click', () => {
-            if (activeCategoryIds.has(cat.id)) {
-                activeCategoryIds.delete(cat.id);
-                btn.classList.remove('active');
-            } else {
-                activeCategoryIds.add(cat.id);
-                btn.classList.add('active');
-                if (activeRegionNames.size === 0) setAllRegions(true);
-            }
-            updateMapVisibility();
-            updateToggleButtonsState();
+        const cateListDiv = document.createElement('div');
+        cateListDiv.className = 'cate-list';
+
+        const groupCategories = validCategories.filter(cat => groupInfo.ids.includes(cat.id));
+
+        groupCategories.sort((a, b) => t(a.name).localeCompare(t(b.name), 'ko'));
+
+        groupCategories.forEach(cat => {
+            const btn = document.createElement('div');
+            btn.className = activeCategoryIds.has(cat.id) ? 'cate-item active' : 'cate-item';
+            btn.dataset.id = cat.id;
+
+            const count = itemsByCategory[cat.id] ? itemsByCategory[cat.id].length : 0;
+
+            btn.innerHTML = `
+                <span class="cate-icon"><img src="${cat.image}" alt=""></span>
+                <span class="cate-name">${t(cat.name)}</span>
+                <span class="cate-count">${count}</span>
+            `;
+
+            btn.addEventListener('click', () => {
+                if (activeCategoryIds.has(cat.id)) {
+                    activeCategoryIds.delete(cat.id);
+                    btn.classList.remove('active');
+                } else {
+                    activeCategoryIds.add(cat.id);
+                    btn.classList.add('active');
+                    if (activeRegionNames.size === 0) setAllRegions(true);
+                }
+                updateMapVisibility();
+                updateToggleButtonsState();
+                saveFilterState();
+            });
+            cateListDiv.appendChild(btn);
         });
-        categoryListEl.appendChild(btn);
-    });
+
+        if (groupCategories.length > 0) {
+            groupDiv.appendChild(cateListDiv);
+            categoryListEl.appendChild(groupDiv);
+        }
+    }
 
     const regionListEl = document.getElementById('region-list');
-    const sortedRegions = Array.from(uniqueRegions).sort();
+    regionListEl.innerHTML = '';
 
-    const defaultIconUrl = './icons/marker.png';
-    const iconHtml = `<img src="${defaultIconUrl}" alt="Region" style="width: 20px; height: 20px; margin-right: 8px;">`;
+    const sortedRegions = Array.from(uniqueRegions).sort((a, b) => t(a).localeCompare(t(b), 'ko'));
+    const regionIconUrl = './icons/17310010083.png';
+    regionListEl.className = 'cate-list';
 
     sortedRegions.forEach(region => {
-        const btn = document.createElement('button');
-        btn.className = 'cat-btn active';
+        const btn = document.createElement('div');
+        btn.className = activeRegionNames.has(region) ? 'cate-item active' : 'cate-item';
         btn.dataset.region = region;
-        btn.innerHTML = `${iconHtml} ${t(region)}`;
 
-        btn.addEventListener('click', () => {
+        const count = allMarkers.filter(m => m.region === region).length;
+        const translatedName = t(region);
+
+        btn.innerHTML = `
+            <span class="cate-icon"><img src="${regionIconUrl}" alt="Region"></span>
+            <span class="cate-name">${translatedName}</span>
+            <span class="cate-count">${count}</span>
+        `;
+
+        btn.addEventListener('click', (e) => {
             if (activeRegionNames.has(region)) {
                 activeRegionNames.delete(region);
                 btn.classList.remove('active');
@@ -434,25 +641,30 @@ document.addEventListener('DOMContentLoaded', async () => {
                 btn.classList.add('active');
                 if (activeCategoryIds.size === 0) setAllCategories(true);
             }
-            updateMapVisibility();
             updateToggleButtonsState();
+            updateMapVisibility();
+            saveFilterState();
+
+            const meta = regionMetaInfo[region];
+            if (meta) {
+                map.flyTo([meta.lat, meta.lng], meta.zoom, {
+                    animate: true,
+                    duration: 1.0
+                });
+            }
         });
         regionListEl.appendChild(btn);
     });
 
     function updateMapVisibility() {
         if (!map) return;
-
         const bounds = map.getBounds().pad(0.2);
-
         allMarkers.forEach(m => {
             const isCatActive = activeCategoryIds.has(m.category);
             const isRegActive = activeRegionNames.has(m.region);
-
             if (isCatActive && isRegActive) {
                 const isVisible = bounds.contains(m.marker.getLatLng());
                 const isOnMap = map.hasLayer(m.marker);
-
                 if (isVisible) {
                     if (!isOnMap) map.addLayer(m.marker);
                 } else {
@@ -467,101 +679,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     map.on('moveend', updateMapVisibility);
     map.on('zoomend', updateMapVisibility);
 
-    function createPopupHtml(item, lat, lng, regionName) {
-        const isFav = favorites.includes(item.id);
-        const isCompleted = completedList.includes(item.id);
-
-        const displayRegion = item.forceRegion || regionName;
-
-        let translatedName = t(item.name);
-        if (translatedName) {
-            translatedName = translatedName.replace(/{region}/g, displayRegion);
-        }
-
-        const categoryName = t(item.category);
-        let itemDescription = item.description || '';
-
-        let replaceName = translatedName;
-        const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
-        replaceName = translatedName + josa;
-
-        if (itemDescription) {
-            itemDescription = itemDescription.replace(/{name}/g, replaceName);
-            itemDescription = itemDescription.replace(/{region}/g, displayRegion);
-        } else {
-            itemDescription = '<p class="no-desc">설명 없음</p>';
-        }
-
-        let imageHtml = '';
-        if (item.image && item.image.startsWith('http')) {
-            imageHtml = `<img src="${item.image}" alt="${translatedName}" style="max-width:100%; border-radius:4px; margin-top:8px;">`;
-        }
-
-        let relatedHtml = '';
-        const relatedItems = itemsByCategory[item.category] || [];
-        const filteredList = relatedItems.filter(i => i.id !== item.id);
-
-        if (filteredList.length > 0) {
-            const limit = 5;
-            const hiddenCount = filteredList.length - limit;
-
-            const listItemsHtml = filteredList.map((r, index) => {
-                const hiddenClass = index >= limit ? 'hidden' : '';
-
-                const rReg = r.forceRegion || r.region;
-
-                let rName = t(r.name);
-                if (rName) {
-                    rName = rName.replace(/{region}/g, rReg);
-                }
-
-                const rRegHtml = rReg ? `<span class="related-region">(${rReg})</span>` : '';
-
-                return `<li class="related-item ${hiddenClass}" onclick="jumpToId(${r.id})">${rName} ${rRegHtml}</li>`;
-            }).join('');
-
-            const expandBtn = hiddenCount > 0
-                ? `<button class="btn-expand" onclick="expandRelated(this)">▼ 더보기 (${hiddenCount}+)</button>`
-                : '';
-
-            relatedHtml = `
-            <div class="popup-related">
-                <div class="popup-related-header">
-                    <h5>관련 ${categoryName} (${filteredList.length})
-                    <button class="btn-search-modal" onclick="openRelatedModal('${item.category}')" title="전체 목록 검색">🔍</button></h5>
-                </div>
-                <ul class="related-list">${listItemsHtml}</ul>
-                ${expandBtn}
-            </div>
-        `;
-        }
-
-        return `
-        <div class="popup-container" data-id="${item.id}">
-            <div class="popup-header">
-                <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
-                <h4>${translatedName}</h4>
-            </div>
-            <div class="popup-body">
-                ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
-                ${imageHtml}
-            </div>
-            ${relatedHtml}
-            <div class="popup-actions">
-                <button class="action-btn btn-fav ${isFav ? 'active' : ''}" onclick="toggleFavorite(${item.id})" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
-                <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" onclick="toggleCompleted(${item.id})" title="완료 상태로 표시">${isCompleted ? '완료됨' : '완료 체크'}</button>
-                <button class="action-btn btn-share" onclick="shareLocation(${item.id}, ${lat}, ${lng})" title="위치 공유">📤</button>
-            </div>
-            <div class="popup-footer">
-                <span class="badge">${categoryName}</span>
-                <span class="badge" style="margin-left:5px;">${displayRegion}</span>
-            </div>
-        </div>
-    `;
-    }
-
     function setAllCategories(isActive) {
-        const catBtns = document.querySelectorAll('#category-list .cat-btn');
+        const catBtns = document.querySelectorAll('#category-list .cate-item');
         activeCategoryIds.clear();
         if (isActive) {
             validCategories.forEach(c => activeCategoryIds.add(c.id));
@@ -571,10 +690,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         updateToggleButtonsState();
         updateMapVisibility();
+        saveFilterState();
     }
 
     function setAllRegions(isActive) {
-        const regBtns = document.querySelectorAll('#region-list .cat-btn');
+        const regBtns = document.querySelectorAll('#region-list .cate-item');
         activeRegionNames.clear();
         if (isActive) {
             uniqueRegions.forEach(r => activeRegionNames.add(r));
@@ -584,6 +704,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
         updateToggleButtonsState();
         updateMapVisibility();
+        saveFilterState();
     }
 
     function updateToggleButtonsState() {
@@ -620,7 +741,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.toggleCompleted = (id) => {
         const index = completedList.indexOf(id);
         const target = allMarkers.find(m => m.id === id);
-
         if (index === -1) {
             completedList.push(id);
             if (target) target.marker._icon.classList.add('completed-marker');
@@ -629,15 +749,9 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (target) target.marker._icon.classList.remove('completed-marker');
         }
         localStorage.setItem('wwm_completed', JSON.stringify(completedList));
-
-        if (target) {
+        if (target && target.marker.isPopupOpen()) {
             const item = mapData.items.find(i => i.id === id);
-            const lat = target.marker.getLatLng().lat;
-            const lng = target.marker.getLatLng().lng;
-
-            if (target.marker.isPopupOpen()) {
-                target.marker.setPopupContent(createPopupHtml(item, lat, lng, target.region));
-            }
+            target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
         }
     };
 
@@ -648,12 +762,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         else favorites.splice(index, 1);
         localStorage.setItem('wwm_favorites', JSON.stringify(favorites));
         renderFavorites();
-
-        if (target) {
+        if (target && target.marker.isPopupOpen()) {
             const item = mapData.items.find(i => i.id === id);
-            const lat = target.marker.getLatLng().lat;
-            const lng = target.marker.getLatLng().lng;
-            target.marker.setPopupContent(createPopupHtml(item, lat, lng, target.region));
+            target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
         }
     };
 
@@ -667,45 +778,29 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     window.moveToLocation = (latlng, marker = null) => {
         if (!map) return;
-
         const currentZoom = map.getZoom();
-        const targetZoom = currentZoom > 6 ? currentZoom : 6;
-
-        map.flyTo(latlng, targetZoom, {
-            animate: true,
-            duration: 0.8,
-            easeLinearity: 0.25
-        });
-
+        const targetZoom = currentZoom > 12 ? currentZoom : 12;
+        map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
         if (marker) {
             const catId = marker.options.alt;
             if (!activeCategoryIds.has(catId)) {
                 activeCategoryIds.add(catId);
-                const btn = document.querySelector(`.cat-btn[data-id="${catId}"]`);
+                const btn = document.querySelector(`.cate-item[data-id="${catId}"]`);
                 if (btn) btn.classList.add('active');
             }
-            if (!map.hasLayer(marker)) {
-                map.addLayer(marker);
-            }
-
-            setTimeout(() => {
-                marker.openPopup();
-            }, 300);
+            if (!map.hasLayer(marker)) map.addLayer(marker);
+            setTimeout(() => marker.openPopup(), 300);
         }
     }
 
     window.jumpToId = (id) => {
         const target = allMarkers.find(m => m.id === id);
-        if (target) {
-            window.moveToLocation(target.marker.getLatLng(), target.marker);
-        }
+        if (target) window.moveToLocation(target.marker.getLatLng(), target.marker);
     };
 
     window.expandRelated = (btn) => {
         const list = btn.previousElementSibling;
-        if (list) {
-            list.querySelectorAll('.related-item.hidden').forEach(item => item.classList.remove('hidden'));
-        }
+        if (list) list.querySelectorAll('.related-item.hidden').forEach(item => item.classList.remove('hidden'));
         btn.remove();
     };
 
@@ -714,20 +809,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         const title = document.getElementById('modal-title');
         const listEl = document.getElementById('modal-list');
         const input = document.getElementById('modal-search-input');
-
         title.innerText = `${t(catId)} 전체 목록`;
         input.value = '';
         listEl.innerHTML = '';
-
         currentModalList = allMarkers.filter(m => m.category === catId);
         renderModalList(currentModalList);
         modal.classList.remove('hidden');
         input.focus();
     };
 
-    window.closeModal = () => {
-        document.getElementById('related-modal').classList.add('hidden');
-    };
+    window.closeModal = () => document.getElementById('related-modal').classList.add('hidden');
 
     window.renderModalList = (items) => {
         const listEl = document.getElementById('modal-list');
@@ -737,19 +828,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             return;
         }
         const currComp = JSON.parse(localStorage.getItem('wwm_completed')) || [];
-
         items.forEach(m => {
             const displayRegion = m.forceRegion || m.region;
-
             let displayName = t(m.originalName || m.name);
-
-            if (displayName) {
-                displayName = displayName.replace(/{region}/g, displayRegion);
-            }
-
+            if (displayName) displayName = displayName.replace(/{region}/g, displayRegion);
             const isDone = currComp.includes(m.id);
             const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
-
             const li = document.createElement('li');
             li.className = 'modal-item';
             li.innerHTML = `
@@ -759,10 +843,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             </div>
             ${statusHtml}
         `;
-            li.onclick = () => {
-                jumpToId(m.id);
-                closeModal();
-            };
+            li.onclick = () => { jumpToId(m.id); closeModal(); };
             listEl.appendChild(li);
         });
     };
@@ -826,12 +907,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     const searchInput = document.getElementById('search-input');
     searchInput.addEventListener('input', (e) => {
         const term = e.target.value.trim().toLowerCase();
+
         if (term === '') {
             allMarkers.forEach(m => m.marker.setOpacity(1));
             return;
         }
+
         allMarkers.forEach(m => {
-            const isMatch = m.name.includes(term) || m.desc.includes(term);
+            const regionName = t(m.region).toLowerCase();
+            const categoryName = t(m.category).toLowerCase();
+
+            const isMatch =
+                m.name.includes(term) ||
+                m.desc.includes(term) ||
+                regionName.includes(term) ||
+                categoryName.includes(term);
+
             m.marker.setOpacity(isMatch ? 1 : 0.1);
         });
     });
@@ -897,15 +988,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sharedLng = parseFloat(urlParams.get('lng'));
 
     if (sharedId && !isNaN(sharedLat) && !isNaN(sharedLng)) {
-        setTimeout(() => {
-            jumpToId(sharedId);
-        }, 500);
+        setTimeout(() => jumpToId(sharedId), 500);
     }
 
     window.enableDevMode = () => {
         console.log("%c🔧 개발자 모드가 활성화되었습니다.", "color: #daac71; font-size: 16px; font-weight: bold;");
-        console.log("지도에서 원하는 위치를 클릭하여 데이터를 생성하세요.");
-
         const devModal = document.getElementById('dev-modal');
         const categorySelect = document.getElementById('dev-category');
         let tempMarker = null;
@@ -917,7 +1004,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             defaultOption.disabled = true;
             defaultOption.selected = true;
             categorySelect.appendChild(defaultOption);
-
             mapData.categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat.id;
@@ -925,41 +1011,28 @@ document.addEventListener('DOMContentLoaded', async () => {
                 categorySelect.appendChild(option);
             });
         }
-
         map.on('click', (e) => {
             const lat = e.latlng.lat.toFixed(6);
             const lng = e.latlng.lng.toFixed(6);
-
             if (tempMarker) map.removeLayer(tempMarker);
-
             const emojiIcon = L.divIcon({
                 className: '',
                 html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">📍</div>',
                 iconSize: [36, 36],
                 iconAnchor: [18, 36]
             });
-
-            tempMarker = L.marker([lat, lng], {
-                icon: emojiIcon,
-                zIndexOffset: 1000
-            }).addTo(map);
-
+            tempMarker = L.marker([lat, lng], { icon: emojiIcon, zIndexOffset: 1000 }).addTo(map);
             document.getElementById('dev-x').value = lat;
             document.getElementById('dev-y').value = lng;
             document.getElementById('dev-output').value = '';
-
             if (categorySelect) categorySelect.value = "";
-
             devModal.classList.remove('hidden');
         });
-
         if (categorySelect) {
             categorySelect.addEventListener('change', (e) => {
                 if (!tempMarker) return;
-
                 const selectedCatId = e.target.value;
                 const selectedCat = mapData.categories.find(c => c.id === selectedCatId);
-
                 if (selectedCat && selectedCat.image) {
                     const newIcon = L.icon({
                         iconUrl: selectedCat.image,
@@ -979,24 +1052,16 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
             });
         }
-
         const genBtn = document.getElementById('btn-gen-json');
         if (genBtn) {
             genBtn.onclick = () => {
                 const catId = document.getElementById('dev-category').value;
-                if (!catId) {
-                    alert("카테고리를 선택해주세요!");
-                    return;
-                }
-
+                if (!catId) { alert("카테고리를 선택해주세요!"); return; }
                 const name = document.getElementById('dev-name').value || "New Item";
                 const desc = document.getElementById('dev-desc').value || "";
                 const x = document.getElementById('dev-x').value;
                 const y = document.getElementById('dev-y').value;
                 const tempId = Date.now();
-
-                const selectedCat = mapData.categories.find(c => c.id === catId);
-
                 const newItem = {
                     id: tempId,
                     category_id: catId,
@@ -1006,7 +1071,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     longitude: y,
                     regionId: 0
                 };
-
                 const jsonString = JSON.stringify(newItem, null, 4);
                 const outputArea = document.getElementById('dev-output');
                 outputArea.value = jsonString + ",";
@@ -1017,3 +1081,162 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     };
 });
+
+window.switchImage = (btn, direction) => {
+    const container = btn.parentElement;
+    const images = container.querySelectorAll('.popup-image');
+    const counter = container.querySelector('.img-counter');
+
+    let currentIdx = parseInt(container.dataset.idx);
+    const total = parseInt(container.dataset.total);
+
+    images[currentIdx].classList.remove('active');
+    currentIdx += direction;
+    if (currentIdx >= total) currentIdx = 0;
+    if (currentIdx < 0) currentIdx = total - 1;
+
+    images[currentIdx].classList.add('active');
+    container.dataset.idx = currentIdx;
+    if (counter) counter.innerText = `${currentIdx + 1} / ${total}`;
+};
+
+window.openLightbox = (itemId, index) => {
+    const item = mapData.items.find(i => i.id === itemId);
+    if (!item || !item.images || item.images.length === 0) return;
+
+    currentLightboxImages = item.images;
+    currentLightboxIndex = index;
+
+    updateLightboxImage();
+
+    const modal = document.getElementById('lightbox-modal');
+    modal.classList.remove('hidden');
+
+    const navBtns = modal.querySelectorAll('.lightbox-nav');
+    navBtns.forEach(btn => {
+        btn.style.display = currentLightboxImages.length > 1 ? 'block' : 'none';
+    });
+};
+
+function updateLightboxImage() {
+    const imgElement = document.getElementById('lightbox-img');
+    let src = currentLightboxImages[currentLightboxIndex];
+    src = src.startsWith('http') ? src : src;
+    imgElement.src = src;
+}
+
+window.switchLightbox = (direction) => {
+    const total = currentLightboxImages.length;
+    if (total <= 1) return;
+
+    currentLightboxIndex += direction;
+
+    if (currentLightboxIndex >= total) currentLightboxIndex = 0;
+    if (currentLightboxIndex < 0) currentLightboxIndex = total - 1;
+
+    updateLightboxImage();
+};
+
+window.viewFullImage = (src) => {
+    const modal = document.getElementById('lightbox-modal');
+    const img = document.getElementById('lightbox-img');
+    img.src = src;
+    modal.classList.remove('hidden');
+};
+
+window.closeLightbox = () => {
+    document.getElementById('lightbox-modal').classList.add('hidden');
+};
+
+document.addEventListener('keydown', (e) => {
+    const lightbox = document.getElementById('lightbox-modal');
+    if (!lightbox.classList.contains('hidden')) {
+        if (e.key === "Escape") {
+            window.closeLightbox();
+        } else if (e.key === "ArrowLeft") {
+            window.switchLightbox(-1);
+        } else if (e.key === "ArrowRight") {
+            window.switchLightbox(1);
+        }
+    }
+});
+
+async function translateItem(itemId) {
+    if (!savedApiKey) {
+        alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
+        return;
+    }
+
+    const item = mapData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const btn = document.querySelector(`.popup-container[data-id="${itemId}"] .btn-translate`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "번역 중...";
+    }
+
+    const categoryTrans = categoryItemTranslations[item.category] || {};
+
+    const prompt = `
+    You are translating game data for "Where Winds Meet" (연운) from Chinese/English to Korean.
+    
+    [Context Info]
+    1. The source data was migrated from an English map to a Chinese map, so some records might be in English or contain English references.
+    2. Reference the provided "Translation Dictionary" (translation.json data) below.
+    3. **Important**: When translating the Name, look for the most relevant or identical term in the dictionary. If found, use that specific Korean translation to maintain consistency.
+    4. **Requirement**: Translate the ENTIRE Chinese content in the Name and Description fields. Do not leave any Chinese text untranslated.
+    
+    [Translation Dictionary - Category Specific]
+    ${JSON.stringify(categoryTrans)}
+    
+    [Translation Dictionary - Common Terms (Partial)]
+    ${JSON.stringify(koDict).substring(0, 1000)} ... (truncated for brevity, prioritize Category Specific)
+
+    [Target Item]
+    Name: ${item.name}
+    Description: ${item.description}
+    
+    [Output Format]
+    Provide the response in JSON format only: {"name": "Korean Name", "description": "Korean Description"}
+    `;
+
+    try {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${savedApiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            throw new Error(data.error.message);
+        }
+
+        const text = data.candidates[0].content.parts[0].text;
+        const jsonStr = text.replace(/```json|```/g, '').trim();
+        const result = JSON.parse(jsonStr);
+
+        item.name = result.name;
+        item.description = result.description;
+        item.isTranslated = true;
+
+        const markerObj = allMarkers.find(m => m.id === itemId);
+        if (markerObj) {
+            markerObj.marker.closePopup();
+            markerObj.marker.bindPopup(() => createPopupHtml(item, markerObj.marker.getLatLng().lat, markerObj.marker.getLatLng().lng, item.region));
+            markerObj.marker.openPopup();
+        }
+
+    } catch (error) {
+        console.error("Translation failed:", error);
+        alert("번역 실패: " + error.message);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "✨ AI 번역 재시도";
+        }
+    }
+}
