@@ -1,5 +1,12 @@
 const updateHistory = [
     {
+        version: "v1.0.6",
+        date: "2025-12-06",
+        content: [
+            "중국 지도 기반으로 업데이트, 데이터가 변경된 부분들이 매우 많아 다시 번역중입니다. 많이 더뎌질수 있습니다. 그래도 기존 번역 데이터가 있기에 조금 수월할것 같습니다. 여러분들 미안합니다.. 빠르게 번역해보도록 하겠습니다.",
+        ]
+    },
+    {
         version: "v1.0.5",
         date: "2025-12-06",
         content: [
@@ -49,20 +56,35 @@ const contributionLinks = [
     { titleKey: "data_submission", url: "https://github.com/yhellos3327-eng/wwmkoreamap/issues", icon: "bug" },
 ];
 
+const TILE_URL = 'https://ue.17173cdn.com/a/terra/tiles/yysls/3000_v4_uN4cS8/{z}/{y}_{x}.png';
+
+const MAP_CONFIG = {
+    minZoom: 9,
+    maxZoom: 13,
+    tileSize: 256,
+    zoomOffset: 0,
+    center: [0, 0],
+    zoom: 10
+};
+
 let map;
-let mapData = { categories: [], items: [] };
-let koDict = {};
-let categoryItemTranslations = {};
-let currentModalList = [];
-let layerGroups = {};
 let allMarkers = [];
-let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
-let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+let markersData = [];
+let categoriesData = [];
+let regionData = [];
+let koDict = {};
+let mapData = { categories: [], items: [] };
+
 let activeCategoryIds = new Set();
 let activeRegionNames = new Set();
 let uniqueRegions = new Set();
 let itemsByCategory = {};
+let layerGroups = {};
+let completedList = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+let favorites = JSON.parse(localStorage.getItem('wwm_favorites')) || [];
 let boundaryStones = [];
+let categoryItemTranslations = {};
+let currentModalList = [];
 
 const t = (key) => {
     if (!key) return "";
@@ -87,12 +109,13 @@ const getJosa = (word, type) => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const [transRes, dataRes] = await Promise.all([
+        const [transRes, dataRes, regionsRes] = await Promise.all([
             fetch('./translation.json'),
-            fetch('./data.json')
+            fetch('./data.json'),
+            fetch('./regions.json')
         ]);
 
-        if (!transRes.ok || !dataRes.ok) throw new Error("파일을 찾을 수 없습니다.");
+        if (!transRes.ok || !dataRes.ok || !regionsRes.ok) throw new Error("파일을 찾을 수 없습니다.");
 
         const githubModal = document.getElementById('github-modal');
         const openGithubModalBtn = document.getElementById('open-github-modal');
@@ -143,8 +166,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                 githubModal.classList.remove('hidden');
             });
         }
+
         const transJson = await transRes.json();
         const dataJson = await dataRes.json();
+        const regionsJson = await regionsRes.json();
 
         if (transJson.common) {
             transJson.common.forEach(item => {
@@ -163,17 +188,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             const flattenedOverrides = {};
             for (const categoryId in transJson.overrides) {
                 const categoryData = transJson.overrides[categoryId];
-
                 if (typeof categoryData !== 'object' || categoryData === null) continue;
-
                 flattenedOverrides[categoryId] = {};
-
                 if (categoryData._common_description) {
                     flattenedOverrides[categoryId]._common_description = categoryData._common_description;
                 }
-
                 let itemArray = Array.isArray(categoryData.items) ? categoryData.items : [];
-
                 itemArray.forEach(entry => {
                     if (Array.isArray(entry.keys) && entry.value) {
                         entry.keys.forEach(k => {
@@ -194,7 +214,43 @@ document.addEventListener('DOMContentLoaded', async () => {
             categoryItemTranslations = flattenedOverrides;
         }
 
-        mapData = dataJson;
+        const regionIdMap = {};
+        if (regionsJson.data && Array.isArray(regionsJson.data)) {
+            regionsJson.data.forEach(region => {
+                regionIdMap[region.id] = region.title;
+            });
+        }
+
+        const rawItems = dataJson.data || [];
+        const uniqueCategoryIds = new Set();
+
+        mapData.items = rawItems.map(item => {
+            const catId = String(item.category_id);
+            uniqueCategoryIds.add(catId);
+
+            const regionName = regionIdMap[item.regionId] || "알 수 없음";
+            return {
+                ...item,
+                id: item.id,
+                category: catId,
+                name: item.title || "Unknown",
+                description: item.description || "",
+                x: item.latitude,
+                y: item.longitude,
+                region: regionName,
+                image: item.image,
+                imageSizeW: 44,
+                imageSizeH: 44
+            };
+        });
+
+        mapData.categories = Array.from(uniqueCategoryIds).map(catId => {
+            return {
+                id: catId,
+                name: catId,
+                image: `./icons/${catId}.png`
+            };
+        });
 
     } catch (error) {
         console.error("데이터 로드 실패:", error);
@@ -244,69 +300,48 @@ document.addEventListener('DOMContentLoaded', async () => {
         itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
     }
 
-    boundaryStones = mapData.items.filter(item =>
-        item.category === "BoundaryStones" || item.category === "Boundary Stones"
-    );
+    boundaryStones = mapData.items;
 
     function getNearestRegionName(targetX, targetY) {
-        if (boundaryStones.length === 0) return "알 수 없음";
-        let minDist = Infinity;
-        let nearestName = "";
-        const tx = parseFloat(targetX);
-        const ty = parseFloat(targetY);
-
-        boundaryStones.forEach(bs => {
-            const bx = parseFloat(bs.x);
-            const by = parseFloat(bs.y);
-            const dist = Math.sqrt(Math.pow(tx - bx, 2) + Math.pow(ty - by, 2));
-            if (dist < minDist) {
-                minDist = dist;
-                nearestName = bs.name;
-            }
-        });
-        return nearestName ? t(nearestName) : "알 수 없음";
+        return "알 수 없음";
     }
 
     activeCategoryIds.clear();
 
     validCategories.forEach(cat => {
-        if (cat.id === 'BoundaryStones' || cat.id === 'Boundary Stones') {
-            activeCategoryIds.add(cat.id);
-        }
+        activeCategoryIds.add(cat.id);
     });
 
-    map = L.map('map', {
-        crs: L.CRS.Simple,
-        minZoom: 3,
-        maxZoom: 7,
+    const map = L.map('map', {
+        center: [0, 0],
+        zoom: 11,
+        minZoom: 9,
+        maxZoom: 13,
         zoomControl: false,
-        attributionControl: false,
-        preferCanvas: true
+        attributionControl: false
     });
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('./tiles/{z}/{x}/{y}.jpg', {
-        minZoom: 3,
-        maxZoom: 7,
-        tileSize: 256,
-        noWrap: true,
+    L.tileLayer('https://ue.17173cdn.com/a/terra/tiles/yysls/3000_v4_uN4cS8/{z}/{y}_{x}.png', {
         tms: false,
-        errorTileUrl: './tiles/empty.jpg',
+        noWrap: true,
+        tileSize: 256,
+        minZoom: 9,
+        maxZoom: 13
     }).addTo(map);
-
-    const mapBounds = [[30, 0], [-160, 140]];
-    map.setMaxBounds(mapBounds);
-    map.fitBounds(mapBounds);
 
     mapData.items.forEach(item => {
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
-        const regionName = getNearestRegionName(lat, lng);
+
+        const regionName = item.region || "알 수 없음";
 
         if (regionName) uniqueRegions.add(regionName);
 
-        const iconUrl = item.image ? item.image : './icons/marker.png';
+        const categoryObj = mapData.categories.find(c => c.id === item.category);
+        const iconUrl = categoryObj ? categoryObj.image : './icons/marker.png';
+
         const w = item.imageSizeW || 30;
         const h = item.imageSizeH || 30;
         const isCompleted = completedList.includes(item.id);
@@ -335,7 +370,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
 
         marker.bindPopup(() => createPopupHtml(item, lat, lng, regionName));
-
+        marker.on('click', () => {
+            console.log(`클릭한 아이템: ${item.name} (ID: ${item.id})`);
+            console.log(item);
+        });
         allMarkers.push({
             id: item.id,
             marker: marker,
@@ -351,6 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     uniqueRegions.forEach(r => activeRegionNames.add(r));
 
     const categoryListEl = document.getElementById('category-list');
+
     validCategories.forEach(cat => {
         layerGroups[cat.id] = L.layerGroup();
 
@@ -376,21 +415,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const regionListEl = document.getElementById('region-list');
     const sortedRegions = Array.from(uniqueRegions).sort();
-    const boundaryStoneCategory = validCategories.find(cat =>
-        cat.id === 'BoundaryStones' || cat.id === 'Boundary Stones'
-    );
 
-    const boundaryStoneIconUrl = boundaryStoneCategory
-        ? boundaryStoneCategory.image
-        : './icons/marker.png';
-
-    const iconHtml = `<img src="${boundaryStoneIconUrl}" alt="BS" style="width: 20px; height: 20px; margin-right: 8px;">`;
+    const defaultIconUrl = './icons/marker.png';
+    const iconHtml = `<img src="${defaultIconUrl}" alt="Region" style="width: 20px; height: 20px; margin-right: 8px;">`;
 
     sortedRegions.forEach(region => {
         const btn = document.createElement('button');
         btn.className = 'cat-btn active';
         btn.dataset.region = region;
-        btn.innerHTML = `${iconHtml} ${region}`;
+        btn.innerHTML = `${iconHtml} ${t(region)}`;
 
         btn.addEventListener('click', () => {
             if (activeRegionNames.has(region)) {
@@ -449,16 +482,19 @@ document.addEventListener('DOMContentLoaded', async () => {
         let itemDescription = item.description || '';
 
         let replaceName = translatedName;
-        if (item.category === "BoundaryStones" || item.category === "Boundary Stones") {
-            const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
-            replaceName = translatedName + josa;
-        }
+        const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
+        replaceName = translatedName + josa;
 
         if (itemDescription) {
             itemDescription = itemDescription.replace(/{name}/g, replaceName);
             itemDescription = itemDescription.replace(/{region}/g, displayRegion);
         } else {
             itemDescription = '<p class="no-desc">설명 없음</p>';
+        }
+
+        let imageHtml = '';
+        if (item.image && item.image.startsWith('http')) {
+            imageHtml = `<img src="${item.image}" alt="${translatedName}" style="max-width:100%; border-radius:4px; margin-top:8px;">`;
         }
 
         let relatedHtml = '';
@@ -472,7 +508,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             const listItemsHtml = filteredList.map((r, index) => {
                 const hiddenClass = index >= limit ? 'hidden' : '';
 
-                const rReg = r.forceRegion || getNearestRegionName(r.x, r.y);
+                const rReg = r.forceRegion || r.region;
 
                 let rName = t(r.name);
                 if (rName) {
@@ -503,11 +539,12 @@ document.addEventListener('DOMContentLoaded', async () => {
         return `
         <div class="popup-container" data-id="${item.id}">
             <div class="popup-header">
-                ${item.image ? `<img src="${item.image}" class="popup-icon" alt="${categoryName}">` : ''}
+                <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
                 <h4>${translatedName}</h4>
             </div>
             <div class="popup-body">
                 ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
+                ${imageHtml}
             </div>
             ${relatedHtml}
             <div class="popup-actions">
@@ -742,7 +779,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (item) {
                 const div = document.createElement('div');
                 div.className = 'fav-item';
-                const rReg = getNearestRegionName(item.x, item.y);
+                const rReg = item.region || "알 수 없음";
                 div.innerHTML = `<b>${t(item.name)}</b> <span style="font-size:0.8rem; color:#aaa;">(${rReg})</span><br><small>${t(item.category)}</small>`;
                 div.addEventListener('click', () => {
                     jumpToId(item.id);
@@ -864,4 +901,119 @@ document.addEventListener('DOMContentLoaded', async () => {
             jumpToId(sharedId);
         }, 500);
     }
+
+    window.enableDevMode = () => {
+        console.log("%c🔧 개발자 모드가 활성화되었습니다.", "color: #daac71; font-size: 16px; font-weight: bold;");
+        console.log("지도에서 원하는 위치를 클릭하여 데이터를 생성하세요.");
+
+        const devModal = document.getElementById('dev-modal');
+        const categorySelect = document.getElementById('dev-category');
+        let tempMarker = null;
+        if (categorySelect && mapData.categories) {
+            categorySelect.innerHTML = '';
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "카테고리 선택...";
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            categorySelect.appendChild(defaultOption);
+
+            mapData.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${t(cat.name)} (${cat.id})`;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        map.on('click', (e) => {
+            const lat = e.latlng.lat.toFixed(6);
+            const lng = e.latlng.lng.toFixed(6);
+
+            if (tempMarker) map.removeLayer(tempMarker);
+
+            const emojiIcon = L.divIcon({
+                className: '',
+                html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">📍</div>',
+                iconSize: [36, 36],
+                iconAnchor: [18, 36]
+            });
+
+            tempMarker = L.marker([lat, lng], {
+                icon: emojiIcon,
+                zIndexOffset: 1000
+            }).addTo(map);
+
+            document.getElementById('dev-x').value = lat;
+            document.getElementById('dev-y').value = lng;
+            document.getElementById('dev-output').value = '';
+
+            if (categorySelect) categorySelect.value = "";
+
+            devModal.classList.remove('hidden');
+        });
+
+        if (categorySelect) {
+            categorySelect.addEventListener('change', (e) => {
+                if (!tempMarker) return;
+
+                const selectedCatId = e.target.value;
+                const selectedCat = mapData.categories.find(c => c.id === selectedCatId);
+
+                if (selectedCat && selectedCat.image) {
+                    const newIcon = L.icon({
+                        iconUrl: selectedCat.image,
+                        iconSize: [30, 30],
+                        iconAnchor: [15, 15],
+                        className: 'marker-anim'
+                    });
+                    tempMarker.setIcon(newIcon);
+                } else {
+                    const emojiIcon = L.divIcon({
+                        className: '',
+                        html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));">📍</div>',
+                        iconSize: [36, 36],
+                        iconAnchor: [18, 36]
+                    });
+                    tempMarker.setIcon(emojiIcon);
+                }
+            });
+        }
+
+        const genBtn = document.getElementById('btn-gen-json');
+        if (genBtn) {
+            genBtn.onclick = () => {
+                const catId = document.getElementById('dev-category').value;
+                if (!catId) {
+                    alert("카테고리를 선택해주세요!");
+                    return;
+                }
+
+                const name = document.getElementById('dev-name').value || "New Item";
+                const desc = document.getElementById('dev-desc').value || "";
+                const x = document.getElementById('dev-x').value;
+                const y = document.getElementById('dev-y').value;
+                const tempId = Date.now();
+
+                const selectedCat = mapData.categories.find(c => c.id === catId);
+
+                const newItem = {
+                    id: tempId,
+                    category_id: catId,
+                    title: name,
+                    description: desc,
+                    latitude: x,
+                    longitude: y,
+                    regionId: 0
+                };
+
+                const jsonString = JSON.stringify(newItem, null, 4);
+                const outputArea = document.getElementById('dev-output');
+                outputArea.value = jsonString + ",";
+                outputArea.select();
+                document.execCommand('copy');
+                alert("JSON이 복사되었습니다!");
+            };
+        }
+    };
 });

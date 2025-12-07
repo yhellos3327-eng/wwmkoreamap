@@ -11,7 +11,6 @@
 </head>
 
 <body>
-
     <div class="app-container">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
@@ -98,7 +97,62 @@
             </div>
         </div>
     </div>
+    <div id="dev-modal" class="modal-overlay hidden" style="z-index: 9999;">
+        <div class="modal-content">
+            <div class="modal-header" style="border-bottom: 1px solid var(--accent);">
+                <h3 style="color: var(--accent);">🛠️ 데이터 추가 도구</h3>
+                <button class="close-modal-btn"
+                    onclick="document.getElementById('dev-modal').classList.add('hidden')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 20px;">
+                <form id="dev-form" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex:1;">
+                            <label style="font-size: 0.8rem; color: #888;">X 좌표</label>
+                            <input type="text" id="dev-x" readonly
+                                style="width: 100%; background: #222; border: 1px solid #444; color: #aaa;">
+                        </div>
+                        <div style="flex:1;">
+                            <label style="font-size: 0.8rem; color: #888;">Y 좌표</label>
+                            <input type="text" id="dev-y" readonly
+                                style="width: 100%; background: #222; border: 1px solid #444; color: #aaa;">
+                        </div>
+                    </div>
 
+                    <div>
+                        <label style="font-size: 0.8rem; color: #ccc;">카테고리</label>
+                        <select id="dev-category"
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                        </select>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.8rem; color: #ccc;">이름 (English Key)</label>
+                        <input type="text" id="dev-name" placeholder="예: Chest, NPC Name..."
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.8rem; color: #ccc;">설명 (선택)</label>
+                        <textarea id="dev-desc" rows="3" placeholder="HTML 태그 사용 가능"
+                            style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; resize: vertical;"></textarea>
+                    </div>
+
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--accent);">생성된 JSON (복사해서 data.json에 추가)</label>
+                        <textarea id="dev-output" rows="5" readonly
+                            style="width: 100%; padding: 8px; background: #111; color: #daac71; border: 1px solid var(--accent); border-radius: 4px; font-family: monospace; font-size: 0.8rem;"></textarea>
+                    </div>
+
+                    <div style="display: flex; gap: 10px; margin-top: 10px;">
+                        <button type="button" id="btn-gen-json" class="action-btn active">JSON 생성 & 복사</button>
+                        <button type="button" onclick="document.getElementById('dev-form').reset()"
+                            class="action-btn">초기화</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>

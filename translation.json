@@ -28,401 +28,724 @@
             "keys": [
                 "guide_trans_title"
             ],
-            "value": "📝 번역 데이터 추가 가이드 (JSON 구조 이해)"
+            "value": "📝 번역 데이터 추가 가이드"
         },
         {
             "keys": [
                 "guide_trans_steps"
             ],
-            "value": "<b>1. 원본 데이터 확인 (data.json)</b><ul style='margin:5px 0 15px 0; padding-left:20px; list-style-type:disc;'><li>번역할 아이템의 <span style='background:#444; padding:2px 5px; border-radius:3px;'>id</span> (숫자)와 <span style='background:#444; padding:2px 5px; border-radius:3px;'>category</span> (카테고리 ID)를 찾습니다.</li><li>예시: <span style='color:#aaa;'>{\"id\": 1, \"category\": \"NPC\", ...}</span></li></ul><b>2. 번역 데이터 수정 (translation.json)</b><ul style='margin:5px 0 15px 0; padding-left:20px; list-style-type:disc;'><li><span style='color:#daac71;'>overrides</span> 섹션에서 해당 '카테고리 ID'를 찾습니다.</li><li><span style='color:#daac71;'>items</span> 배열 안에 <span style='color:#daac71;'>keys</span>(배열)와 <span style='color:#daac71;'>value</span>(객체)를 갖는 새 항목을 추가합니다.</li><li>💡 <b>팁:</b> 설명(<span style='color:#daac71;'>description</span>) 내용에 <span style='color:#ce9178;'>{name}</span>을 적으면, 상위의 <b>번역된 이름</b> 값이 자동으로 대입됩니다.</li></ul><b>3. 작성 예시</b><div style='background:#111; border:1px solid #444; padding:10px; border-radius:5px; margin-top:5px; font-family:monospace; color:#ce9178; line-height:1.4;'>\"NPC\": {<br>&nbsp;&nbsp;\"items\": [<br>&nbsp;&nbsp;&nbsp;&nbsp;{<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\"keys\": [\"1\", \"English Name\"],<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\"value\": {<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\"name\": \"홍길동\",<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\"description\": \"이곳은 {name}의 집입니다.\"<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;&nbsp;&nbsp;}<br>&nbsp;&nbsp;]<br>}</div>"
+            "value": "번역 파일(translation.json)의 common 항목에 키와 값을 추가하여 번역을 적용할 수 있습니다."
         },
         {
             "keys": [
-                "Archive"
+                "17310010006",
+                "宝箱（地上）",
+                "宝箱"
             ],
-            "value": "기록"
+            "value": "상자 (지상)"
         },
         {
             "keys": [
-                "Archery Competition",
-                "ArcheryCompetition"
+                "17310010007",
+                "宝箱（地下）"
             ],
-            "value": "궁술 대결"
+            "value": "상자 (지하)"
         },
         {
             "keys": [
-                "Bathhouse"
+                "17310010001",
+                "前尘旧物"
             ],
-            "value": "향수행"
+            "value": "유물"
         },
         {
             "keys": [
-                "Bell of Demoncalm"
-            ],
-            "value": "퇴마의 종"
-        },
-        {
-            "keys": [
-                "Book"
-            ],
-            "value": "서적"
-        },
-        {
-            "keys": [
-                "Boundary Stones",
+                "界碑",
                 "BoundaryStones"
             ],
             "value": "경계석"
         },
         {
             "keys": [
-                "Bounty"
+                "17310010015",
+                "探游指引",
+                "风水宝地"
             ],
-            "value": "현상금"
+            "value": "탐방"
         },
         {
             "keys": [
-                "CampaignQuest",
-                "Campaign Quest"
+                "17310010017",
+                "天地万籁",
+                "丝竹雅韵"
             ],
-            "value": "메인 퀘스트"
+            "value": "만물울림"
         },
         {
             "keys": [
-                "Cave"
+                "17310010012",
+                "曲径寻幽"
             ],
-            "value": "동굴"
+            "value": "파란나비"
         },
         {
             "keys": [
-                "Chess Match",
-                "ChessMatch"
+                "17310010009",
+                "不平事"
             ],
-            "value": "상기"
+            "value": "사건"
         },
         {
             "keys": [
-                "Chest"
+                "17310010003",
+                "妙妙喵"
             ],
-            "value": "보물상자"
+            "value": "묘묘냥"
         },
         {
             "keys": [
-                "Cooking"
+                "17310010004",
+                "猫戏"
             ],
-            "value": "요리"
+            "value": "고양이"
         },
         {
             "keys": [
-                "Crafting"
+                "17310010090",
+                "野祀游火"
             ],
-            "value": "제작"
+            "value": "불놀이"
         },
         {
             "keys": [
-                "Crafting Bench",
-                "CraftingBench"
+                "17310010008",
+                "蹊跷",
+                "奇珍采集"
             ],
-            "value": "제작대"
+            "value": "묘물"
         },
         {
             "keys": [
-                "DivinecraftDungeon",
-                "Divinecraft Dungeon"
+                "17310010010",
+                "营地"
             ],
-            "value": "천공 동굴"
+            "value": "영지"
         },
         {
             "keys": [
-                "Disguise"
+                "17310010016",
+                "悬壶治疗"
             ],
-            "value": "변장 (상점)"
+            "value": "의술치료"
         },
         {
             "keys": [
-                "Disguised Solicitation",
-                "DisguisedSolicitation"
+                "17310010013",
+                "话术论道"
             ],
-            "value": "변장"
+            "value": "말싸움"
         },
         {
             "keys": [
-                "Exploration Challenge"
-            ],
-            "value": "투호 대결"
-        },
-        {
-            "keys": [
-                "Favorite"
-            ],
-            "value": "즐겨찾기"
-        },
-        {
-            "keys": [
-                "Fishing"
+                "17310010011",
+                "渔获之竞"
             ],
             "value": "낚시"
         },
         {
             "keys": [
-                "Fishing Contest"
-            ],
-            "value": "낚시 대결"
-        },
-        {
-            "keys": [
-                "Fireworks Show",
-                "FireworksShow"
-            ],
-            "value": "불꽃놀이 연회"
-        },
-        {
-            "keys": [
-                "Gathering"
-            ],
-            "value": "채집"
-        },
-        {
-            "keys": [
-                "Gift of Gab",
-                "GiftofGab"
-            ],
-            "value": "화술 논쟁"
-        },
-        {
-            "keys": [
-                "Guide Quest",
-                "GuideQuest"
-            ],
-            "value": "가이드 퀘스트"
-        },
-        {
-            "keys": [
-                "Heal the Disease",
-                "HealtheDisease"
-            ],
-            "value": "질병 치료"
-        },
-        {
-            "keys": [
-                "Horse Merchant"
-            ],
-            "value": "마필 상인"
-        },
-        {
-            "keys": [
-                "Horse Ranch",
-                "HorseRanch"
-            ],
-            "value": "난마장"
-        },
-        {
-            "keys": [
-                "Journey Quest",
-                "JourneyQuest"
-            ],
-            "value": "탐험 임무"
-        },
-        {
-            "keys": [
-                "Madiao Cards",
-                "MadiaoCards"
-            ],
-            "value": "엽자희"
-        },
-        {
-            "keys": [
-                "MarketOffice",
-                "Market Office"
-            ],
-            "value": "관청"
-        },
-        {
-            "keys": [
-                "Martial Arts",
-                "MartialArts"
-            ],
-            "value": "무술"
-        },
-        {
-            "keys": [
-                "Martial Tomb",
-                "MartialTomb"
-            ],
-            "value": "태평무묘"
-        },
-        {
-            "keys": [
-                "Meditation",
-                "Meditation Spot"
-            ],
-            "value": "명상"
-        },
-        {
-            "keys": [
-                "Meow Meow Temple"
-            ],
-            "value": "묘묘 사원"
-        },
-        {
-            "keys": [
-                "Meow Meow's Treasure",
-                "MeowMeowsTreasure"
-            ],
-            "value": "묘묘냥의 보물"
-        },
-        {
-            "keys": [
-                "MusicalDance",
-                "Musical Dance"
-            ],
-            "value": "풍류의 선율"
-        },
-        {
-            "keys": [
-                "OddityCollection",
-                "Oddity Collection"
-            ],
-            "value": "묘물 수집"
-        },
-        {
-            "keys": [
-                "Outpost"
-            ],
-            "value": "전투 거점"
-        },
-        {
-            "keys": [
-                "Pitch Pot"
+                "17310010005",
+                "投壶雅戏"
             ],
             "value": "투호"
         },
         {
             "keys": [
-                "Prison"
+                "17310010014",
+                "射术比赛",
+                "射术比试"
             ],
-            "value": "감옥"
+            "value": "궁술"
         },
         {
             "keys": [
-                "Puzzle"
+                "17310010081",
+                "江湖故人"
             ],
-            "value": "퍼즐"
+            "value": "오랜벗"
         },
         {
             "keys": [
-                "Quest Encounter",
-                "QuestEncounter"
+                "17310010092",
+                "见闻"
+            ],
+            "value": "견문"
+        },
+        {
+            "keys": [
+                "万事",
+                "萬事"
+            ],
+            "value": "만사"
+        },
+        {
+            "keys": [
+                "17310010018",
+                "以武会友"
+            ],
+            "value": "비무"
+        },
+        {
+            "keys": [
+                "17310010002",
+                "奇遇"
             ],
             "value": "기연"
         },
         {
             "keys": [
-                "RestrictedZones",
-                "Restricted Zones"
+                "17310010079",
+                "象棋"
             ],
-            "value": "요지"
+            "value": "상기"
         },
         {
             "keys": [
-                "River Lantern Messages",
-                "RiverLanternMessages"
+                "17310010019",
+                "首领"
             ],
-            "value": "하등 기원"
+            "value": "필드 보스"
         },
         {
             "keys": [
-                "ShadowPuppetStall",
-                "Shadow Puppet Stall"
+                "17310010020"
             ],
-            "value": "그림자 인형극"
+            "value": "NPC"
         },
         {
             "keys": [
-                "Share"
+                "17310010021",
+                "绘画"
             ],
-            "value": "공유"
+            "value": "회화"
         },
         {
             "keys": [
-                "Shop"
+                "17310010022",
+                "花钱",
+                "工具",
+                "手艺"
             ],
-            "value": "상점"
+            "value": "수집품 (화전/도구)"
         },
         {
             "keys": [
-                "Show All"
+                "17310010023",
+                "铸造"
             ],
-            "value": "모두 보기"
+            "value": "주조"
         },
         {
             "keys": [
-                "Show Completed"
+                "17310010024",
+                "乐曲"
             ],
-            "value": "완료된 항목 보기"
+            "value": "악곡"
         },
         {
             "keys": [
-                "SideStory",
-                "Side Story"
+                "17310010025",
+                "别录",
+                "书籍"
             ],
-            "value": "서브 스토리"
+            "value": "서적"
         },
         {
             "keys": [
-                "Skyward Dance",
-                "SkywardDance"
+                "17310010026",
+                "杂戏"
             ],
-            "value": "비천무악"
+            "value": "잡극"
         },
         {
             "keys": [
-                "Song"
+                "17310010027",
+                "奇术"
             ],
-            "value": "노래"
+            "value": "기술"
         },
         {
             "keys": [
-                "SparringMatch",
-                "Sparring Match"
+                "17310010030",
+                "佛教",
+                "道教"
             ],
-            "value": "무술로 맺는 인연"
+            "value": "종교 수집"
         },
         {
             "keys": [
-                "Teleport"
+                "17310010031",
+                "营造"
             ],
-            "value": "순간이동"
+            "value": "영조"
         },
         {
             "keys": [
-                "Wayfarer"
+                "17310010032",
+                "商货"
             ],
-            "value": "천애객"
+            "value": "상인"
         },
         {
             "keys": [
-                "World Boss",
-                "WorldBoss"
+                "17310010033",
+                "星君"
             ],
-            "value": "월드 보스"
+            "value": "성군"
         },
         {
             "keys": [
-                "Worldly Affairs Quest",
-                "WorldlyAffairsQuest"
+                "17310010034",
+                "风物"
             ],
-            "value": "세상사 퀘스트"
+            "value": "풍물"
         },
         {
             "keys": [
-                "Wrestling"
+                "17310010035",
+                "圣言"
             ],
-            "value": "씨름"
+            "value": "성언"
+        },
+        {
+            "keys": [
+                "17310010083",
+                "地名"
+            ],
+            "value": "지명"
+        },
+        {
+            "keys": [
+                "17310010084",
+                "任务"
+            ],
+            "value": "임무"
+        },
+        {
+            "keys": [
+                "17310010085",
+                "武学"
+            ],
+            "value": "무학"
+        },
+        {
+            "keys": [
+                "17310010086",
+                "心法"
+            ],
+            "value": "심법"
+        },
+        {
+            "keys": [
+                "17310010087"
+            ],
+            "value": "기술 습득"
+        },
+        {
+            "keys": [
+                "17310010088"
+            ],
+            "value": "기타 수집"
+        },
+        {
+            "keys": [
+                "燕雲",
+                "燕雲十六声",
+                "Where Winds Meet"
+            ],
+            "value": "연운"
+        },
+        {
+            "keys": [
+                "开封"
+            ],
+            "value": "개봉"
+        },
+        {
+            "keys": [
+                "南门大街"
+            ],
+            "value": "남문대로"
+        },
+        {
+            "keys": [
+                "角门里"
+            ],
+            "value": "각문리"
+        },
+        {
+            "keys": [
+                "百工坊"
+            ],
+            "value": "백공방"
+        },
+        {
+            "keys": [
+                "勾栏瓦肆"
+            ],
+            "value": "연희거리"
+        },
+        {
+            "keys": [
+                "开封府"
+            ],
+            "value": "개봉부"
+        },
+        {
+            "keys": [
+                "熔炉区"
+            ],
+            "value": "용광로"
+        },
+        {
+            "keys": [
+                "寿昌坊"
+            ],
+            "value": "수창방"
+        },
+        {
+            "keys": [
+                "醉花阴"
+            ],
+            "value": "춘화음"
+        },
+        {
+            "keys": [
+                "清心圃"
+            ],
+            "value": "청심원"
+        },
+        {
+            "keys": [
+                "六疾馆遗址"
+            ],
+            "value": "육병관 유적"
+        },
+        {
+            "keys": [
+                "开封南郊"
+            ],
+            "value": "개봉 남쪽 외곽"
+        },
+        {
+            "keys": [
+                "开封东郊"
+            ],
+            "value": "개봉 동쪽 외곽"
+        },
+        {
+            "keys": [
+                "达安村"
+            ],
+            "value": "달안촌"
+        },
+        {
+            "keys": [
+                "常平仓"
+            ],
+            "value": "상평창"
+        },
+        {
+            "keys": [
+                "平野原"
+            ],
+            "value": "평야원"
+        },
+        {
+            "keys": [
+                "造像处"
+            ],
+            "value": "조각소"
+        },
+        {
+            "keys": [
+                "金明池"
+            ],
+            "value": "금명지"
+        },
+        {
+            "keys": [
+                "御苑北"
+            ],
+            "value": "황궁 후원 북쪽"
+        },
+        {
+            "keys": [
+                "御苑南"
+            ],
+            "value": "황궁 후원 남쪽"
+        },
+        {
+            "keys": [
+                "梓匠居"
+            ],
+            "value": "목판소"
+        },
+        {
+            "keys": [
+                "鸿沟古渠"
+            ],
+            "value": "홍구 운하"
+        },
+        {
+            "keys": [
+                "望淮南崖"
+            ],
+            "value": "회남 절벽"
+        },
+        {
+            "keys": [
+                "飞花渡"
+            ],
+            "value": "비화나루"
+        },
+        {
+            "keys": [
+                "武成王庙"
+            ],
+            "value": "무성왕묘"
+        },
+        {
+            "keys": [
+                "琵琶沟"
+            ],
+            "value": "비파 계곡"
+        },
+        {
+            "keys": [
+                "承恩镇"
+            ],
+            "value": "승은촌"
+        },
+        {
+            "keys": [
+                "七阀坡"
+            ],
+            "value": "칠벌파"
+        },
+        {
+            "keys": [
+                "不伏马场"
+            ],
+            "value": "불복마장"
+        },
+        {
+            "keys": [
+                "不羡仙"
+            ],
+            "value": "불선선"
+        },
+        {
+            "keys": [
+                "丰禾村"
+            ],
+            "value": "풍화촌"
+        },
+        {
+            "keys": [
+                "临江驿"
+            ],
+            "value": "강변역참"
+        },
+        {
+            "keys": [
+                "丹崖"
+            ],
+            "value": "단애"
+        },
+        {
+            "keys": [
+                "丹崖地下"
+            ],
+            "value": "단애 지하"
+        },
+        {
+            "keys": [
+                "伏马庄"
+            ],
+            "value": "순마장"
+        },
+        {
+            "keys": [
+                "佛光顶"
+            ],
+            "value": "불광정"
+        },
+        {
+            "keys": [
+                "佛光顶地下"
+            ],
+            "value": "불광정 지하"
+        },
+        {
+            "keys": [
+                "佛爷寨"
+            ],
+            "value": "불야채"
+        },
+        {
+            "keys": [
+                "千佛村"
+            ],
+            "value": "천불곡"
+        },
+        {
+            "keys": [
+                "太平钟楼"
+            ],
+            "value": "태평종루"
+        },
+        {
+            "keys": [
+                "将军祠"
+            ],
+            "value": "장군 사당"
+        },
+        {
+            "keys": [
+                "将军祠地下"
+            ],
+            "value": "장군 사당 지하"
+        },
+        {
+            "keys": [
+                "弱水岸地下"
+            ],
+            "value": "약수의 근원 지하"
+        },
+        {
+            "keys": [
+                "慈心山院"
+            ],
+            "value": "자심 산원"
+        },
+        {
+            "keys": [
+                "慈心镇"
+            ],
+            "value": "자심촌"
+        },
+        {
+            "keys": [
+                "抱山湖"
+            ],
+            "value": "포산호수"
+        },
+        {
+            "keys": [
+                "春秋别馆"
+            ],
+            "value": "춘추별관"
+        },
+        {
+            "keys": [
+                "春秋别馆地下"
+            ],
+            "value": "춘추별관 지하"
+        },
+        {
+            "keys": [
+                "望川坪"
+            ],
+            "value": "망천 평원"
+        },
+        {
+            "keys": [
+                "来生岸"
+            ],
+            "value": "내세의 언덕"
+        },
+        {
+            "keys": [
+                "浣石浦"
+            ],
+            "value": "완석포"
+        },
+        {
+            "keys": [
+                "烧瓷岭"
+            ],
+            "value": "도자기 가마"
+        },
+        {
+            "keys": [
+                "璧泉山"
+            ],
+            "value": "벽천산"
+        },
+        {
+            "keys": [
+                "神仙渡"
+            ],
+            "value": "신선 나루"
+        },
+        {
+            "keys": [
+                "竹林旧居"
+            ],
+            "value": "대나무 숲 은거지"
+        },
+        {
+            "keys": [
+                "花海"
+            ],
+            "value": "화해"
+        },
+        {
+            "keys": [
+                "荒蚀林"
+            ],
+            "value": "황혼촌"
+        },
+        {
+            "keys": [
+                "菩提苦海"
+            ],
+            "value": "보제고해"
+        },
+        {
+            "keys": [
+                "萤渊"
+            ],
+            "value": "형연"
+        },
+        {
+            "keys": [
+                "藏贤岗"
+            ],
+            "value": "장현강"
+        },
+        {
+            "keys": [
+                "龙虎岭"
+            ],
+            "value": "용호채"
+        },
+        {
+            "keys": [
+                "알 수 없음"
+            ],
+            "value": "지하"
+        },
+        {
+            "keys": [
+                "曲坊后院"
+            ],
+            "value": "곡방 후원"
         }
     ],
     "overrides": {
-        "BoundaryStones": {
+        "17310010083": {
             "_common_description": "{name} 빠르게 이동할 수 있게 해금하는 경계석.",
             "items": [
                 {
@@ -459,7 +782,7 @@
                 },
                 {
                     "keys": [
-                        "7"
+                        "818619920384"
                     ],
                     "value": {
                         "name": "장군 사당 지하"
@@ -475,7 +798,7 @@
                 },
                 {
                     "keys": [
-                        "9"
+                        "542072680448"
                     ],
                     "value": {
                         "name": "북맹 유적"
@@ -483,7 +806,16 @@
                 },
                 {
                     "keys": [
-                        "11"
+                        "134470770688"
+                    ],
+                    "value": {
+                        "name": "천애객 (백초야)",
+                        "description": "백초야는 원래 청하 동쪽 끝에 자리한 이름없는 황야였다. 패주 전쟁 시기 연북맹의 병사들이 뿌린 백초 씨앗으로 생명이 깃들었다. 십수 년이 지난 지금, 이곳을 지키던 장병들은 영령이 되었고, 오직 우거진 풀들만 바람에 살랑거리며 영웅의 이름을 읊조리는 듯하다."
+                    }
+                },
+                {
+                    "keys": [
+                        "957946310656"
                     ],
                     "value": {
                         "name": "북쪽 대나무 숲"
@@ -491,7 +823,7 @@
                 },
                 {
                     "keys": [
-                        "12"
+                        "竹隐居"
                     ],
                     "value": {
                         "name": "대나무 숲 은거지"
@@ -503,6 +835,15 @@
                     ],
                     "value": {
                         "name": "완석포"
+                    }
+                },
+                {
+                    "keys": [
+                        "14"
+                    ],
+                    "value": {
+                        "name": "천애객 (은월산)",
+                        "description": "신선 나루 남쪽에는 거대한 산이 길게 뻗어 있다. 청하 주민들은 이 산이 구름과 안개로 가득하고 달과 별을 가린다 하여 '은월산'이라 이름을 붙였다. 은월산은 남쪽으로 용호령, 북쪽으로 불선선, 서쪽으로 중원과 마주하고, 동쪽으로 백초야와 접하며 각지로 통하는 교차로이다."
                     }
                 },
                 {
@@ -531,7 +872,8 @@
                 },
                 {
                     "keys": [
-                        "19"
+                        "232604348416",
+                        "曲坊后院"
                     ],
                     "value": {
                         "name": "곡방 후원"
@@ -567,6 +909,15 @@
                     ],
                     "value": {
                         "name": "인연의 길"
+                    }
+                },
+                {
+                    "keys": [
+                        "25"
+                    ],
+                    "value": {
+                        "name": "천애객 (선묘주)",
+                        "description": "이곳은 한때 융성한 불법의 땅이어서 선묘주라 불렸다. 선묘주 중에는 불광정이 있고, 정상에는 보탑이 하나 있다. 전해지는 바에 의하면 묘선 선사가 이곳에서 법석을 열고 경을 설파할 때 불광이 나타났다고 한다. 아쉽게도 선사가 떠난 지 오래되어 불광이 비추는 광경은 오래전부터 보이지 않는다."
                     }
                 },
                 {
@@ -795,7 +1146,7 @@
                 }
             ]
         },
-        "OddityCollection": {
+        "17310010008": {
             "_common_description": "강호 사람들 모두가 찾고자 하는 물건",
             "items": [
                 {
@@ -849,36 +1200,8 @@
                 }
             ]
         },
-        "Wayfarer": {
-            "items": [
-                {
-                    "keys": [
-                        "10"
-                    ],
-                    "value": {
-                        "name": "천애객 (백초야)",
-                        "description": "백초야는 원래 청하 동쪽 끝에 자리한 이름없는 황야였다. 패주 전쟁 시기 연북맹의 병사들이 뿌린 백초 씨앗으로 생명이 깃들었다. 십수 년이 지난 지금, 이곳을 지키던 장병들은 영령이 되었고, 오직 우거진 풀들만 바람에 살랑거리며 영웅의 이름을 읊조리는 듯하다."
-                    }
-                },
-                {
-                    "keys": [
-                        "14"
-                    ],
-                    "value": {
-                        "name": "천애객 (은월산)",
-                        "description": "신선 나루 남쪽에는 거대한 산이 길게 뻗어 있다. 청하 주민들은 이 산이 구름과 안개로 가득하고 달과 별을 가린다 하여 '은월산'이라 이름을 붙였다. 은월산은 남쪽으로 용호령, 북쪽으로 불선선, 서쪽으로 중원과 마주하고, 동쪽으로 백초야와 접하며 각지로 통하는 교차로이다."
-                    }
-                },
-                {
-                    "keys": [
-                        "25"
-                    ],
-                    "value": {
-                        "name": "천애객 (선묘주)",
-                        "description": "이곳은 한때 융성한 불법의 땅이어서 선묘주라 불렸다. 선묘주 중에는 불광정이 있고, 정상에는 보탑이 하나 있다. 전해지는 바에 의하면 묘선 선사가 이곳에서 법석을 열고 경을 설파할 때 불광이 나타났다고 한다. 아쉽게도 선사가 떠난 지 오래되어 불광이 비추는 광경은 오래전부터 보이지 않는다."
-                    }
-                }
-            ]
+        "17310010081": {
+            "items": []
         },
         "DivinecraftDungeon": {
             "items": [
@@ -941,7 +1264,41 @@
                 }
             ]
         },
-        "CraftingBench": {
+        "17310010014": {
+            "items": [
+                {
+                    "keys": [
+                        "Yao Yuan",
+                        "399"
+                    ],
+                    "value": {
+                        "name": "요원",
+                        "description": "<h3>{name}</h3>\n<div class=\"row\">\n<div class=\"col-sm-4\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/yao-yuan-where-winds-meet-wiki-guide.png\" alt=\"요원\">\n</div>\n<div class=\"col-sm-8\">\n<p>{name}은 트인 공간을 발견하고 당신을 궁술 대결에 초대했습니다.</p>\n</div>\n</div>\n<hr class=\"deco\" />\n<h3>필요 조건</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt=\"화살\">\n<h3>추천 무기</h3><br />\n롱 보우<br />\n<h3>보상</h3><br />\nC등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"C등급 보상\"\n/><br />\nB등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"B등급 보상\"\n/><br />\nA등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"A등급 보상\"\n/>"
+                    }
+                },
+                {
+                    "keys": [
+                        "Feng Jisheng",
+                        "392"
+                    ],
+                    "value": {
+                        "name": "풍계승",
+                        "description": "\u003ch3\u003e{name}\u003c/h3\u003e\n\u003cdiv class\u003d\"row\"\u003e\n\u003cdiv class\u003d\"col-sm-4\"\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/feng-jisheng-where-winds-meet-wiki-guide.png\" alt\u003d\"Yao Yuan\"\u003e\n\u003c/div\u003e\n\u003cdiv class\u003d\"col-sm-8\"\u003e\n\u003cp\u003e{name}이 탁 트인 공간을 찾아 당신을 궁술 시합에 초대합니다.\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003chr class\u003d\"deco\" /\u003e\n\u003ch3\u003e요구 사항\u003c/h3\u003e\n체력(Constitution) - 13\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"화살\"\u003e\n\u003ch3\u003e추천 무기\u003c/h3\u003e\u003cbr /\u003e\n장궁(Long Bow)\u003cbr /\u003e\n\u003ch3\u003e보상\u003c/h3\u003e\u003cbr /\u003e\nC 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"C 등급 보상\"\n/\u003e\u003cbr /\u003e\nB 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"B 등급 보상\"\n/\u003e\u003cbr /\u003e\nA 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"A 등급 보상\"\n/\u003e"
+                    }
+                },
+                {
+                    "keys": [
+                        "Wang Xiangpier",
+                        "Wang Xiangpi"
+                    ],
+                    "value": {
+                        "name": "왕향피",
+                        "description": "\u003ch3\u003e{name}\u003c/h3\u003e\u003cbr /\u003e\n\u003cdiv class\u003d\"row\"\u003e\n\u003cdiv class\u003d\"col-sm-4\"\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-xiangpier-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"Description of the image\"\n/\u003e\u003c/div\u003e\u003cbr /\u003e\n\u003cdiv class\u003d\"col-sm-8\"\u003e\n{name}가 넓은 공간을 찾아 당신에게 궁술 대결을 제안합니다.\u003c/div\u003e\u003c/div\u003e\u003cbr /\u003e\n\u003ch3\u003e필요 조건\u003c/h3\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"화살\"\u003e\n\u003ch3\u003e권장 무기\u003c/h3\u003e\u003cbr /\u003e\n장궁\u003cbr /\u003e\n\u003ch3\u003e보상\u003c/h3\u003e\u003cbr /\u003e\nC 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"C 등급 보상\"\n/\u003e\u003cbr /\u003e\nB 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"B 등급 보상\"\n/\u003e\u003cbr /\u003e\nA 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"A 등급 보상\"\n/\u003e"
+                    }
+                }
+            ]
+        },
+        "17310010031": {
             "items": [
                 {
                     "keys": [
@@ -964,7 +1321,7 @@
                 }
             ]
         },
-        "ChessMatch": {
+        "17310010079": {
             "items": [
                 {
                     "keys": [
@@ -1000,40 +1357,6 @@
                     "value": {
                         "name": "기성",
                         "description": "<h3>{name}</h3>\n{name}은 순마장의 큰고모이자 현 장주 기비준의 고모였다. 어릴 적부터 상기에 매료되었고, 시집간 뒤에도 초심을 바꾸지 않아 세속적인 일에는 신경 쓰지 않았다. 남편 연형은 이를 이해하고 너그럽게 받아들여 자주 맞춰 주었다. 부부는 평소 화목했으나 최근에는 알 수 없는 이유로 틈이 생겼고, 기성은 화가 나 친정인 순마장으로 돌아와 매일 상기판을 연구하며, 겸사겸사 누군가가 찾아와 고개 숙여 사과하기를 기다리고 있었다."
-                    }
-                }
-            ]
-        },
-        "ArcheryCompetition": {
-            "items": [
-                {
-                    "keys": [
-                        "Yao Yuan",
-                        "399"
-                    ],
-                    "value": {
-                        "name": "요원",
-                        "description": "<h3>{name}</h3>\n<div class=\"row\">\n<div class=\"col-sm-4\">\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/yao-yuan-where-winds-meet-wiki-guide.png\" alt=\"요원\">\n</div>\n<div class=\"col-sm-8\">\n<p>{name}은 트인 공간을 발견하고 당신을 궁술 대결에 초대했습니다.</p>\n</div>\n</div>\n<hr class=\"deco\" />\n<h3>필요 조건</h3>\n<img src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt=\"화살\">\n<h3>추천 무기</h3><br />\n롱 보우<br />\n<h3>보상</h3><br />\nC등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"C등급 보상\"\n/><br />\nB등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"B등급 보상\"\n/><br />\nA등급 보상<br />\n<img\n  src=\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt=\"A등급 보상\"\n/>"
-                    }
-                },
-                {
-                    "keys": [
-                        "Feng Jisheng",
-                        "392"
-                    ],
-                    "value": {
-                        "name": "풍계승",
-                        "description": "\u003ch3\u003e{name}\u003c/h3\u003e\n\u003cdiv class\u003d\"row\"\u003e\n\u003cdiv class\u003d\"col-sm-4\"\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/feng-jisheng-where-winds-meet-wiki-guide.png\" alt\u003d\"Yao Yuan\"\u003e\n\u003c/div\u003e\n\u003cdiv class\u003d\"col-sm-8\"\u003e\n\u003cp\u003e{name}이 탁 트인 공간을 찾아 당신을 궁술 시합에 초대합니다.\u003c/p\u003e\n\u003c/div\u003e\n\u003c/div\u003e\n\u003chr class\u003d\"deco\" /\u003e\n\u003ch3\u003e요구 사항\u003c/h3\u003e\n체력(Constitution) - 13\u003cbr /\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"화살\"\u003e\n\u003ch3\u003e추천 무기\u003c/h3\u003e\u003cbr /\u003e\n장궁(Long Bow)\u003cbr /\u003e\n\u003ch3\u003e보상\u003c/h3\u003e\u003cbr /\u003e\nC 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"C 등급 보상\"\n/\u003e\u003cbr /\u003e\nB 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"B 등급 보상\"\n/\u003e\u003cbr /\u003e\nA 등급 보상\u003cbr /\u003e\n\u003cimg\n  src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n  alt\u003d\"A 등급 보상\"\n/\u003e"
-                    }
-                },
-                {
-                    "keys": [
-                        "Wang Xiangpier",
-                        "Wang Xiangpi"
-                    ],
-                    "value": {
-                        "name": "왕향피",
-                        "description": "\u003ch3\u003e{name}\u003c/h3\u003e\u003cbr /\u003e\n\u003cdiv class\u003d\"row\"\u003e\n\u003cdiv class\u003d\"col-sm-4\"\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-xiangpier-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"Description of the image\"\n/\u003e\u003c/div\u003e\u003cbr /\u003e\n\u003cdiv class\u003d\"col-sm-8\"\u003e\n{name}가 넓은 공간을 찾아 당신에게 궁술 대결을 제안합니다.\u003c/div\u003e\u003c/div\u003e\u003cbr /\u003e\n\u003ch3\u003e필요 조건\u003c/h3\u003e\n\u003cimg src\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png\" alt\u003d\"화살\"\u003e\n\u003ch3\u003e권장 무기\u003c/h3\u003e\u003cbr /\u003e\n장궁\u003cbr /\u003e\n\u003ch3\u003e보상\u003c/h3\u003e\u003cbr /\u003e\nC 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"C 등급 보상\"\n/\u003e\u003cbr /\u003e\nB 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"B 등급 보상\"\n/\u003e\u003cbr /\u003e\nA 등급 보상\u003cbr /\u003e\n\u003cimg\n \tsrc\u003d\"https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png\"\n \talt\u003d\"A 등급 보상\"\n/\u003e"
                     }
                 }
             ]
