@@ -459,7 +459,9 @@ body {
 
 .leaflet-popup-content {
     margin: 0;
-    width: 320px !important;
+    width: 360px !important;
+    /* 420px -> 360px로 축소 */
+    max-width: 80vw !important;
 }
 
 .leaflet-popup-tip {
@@ -508,9 +510,13 @@ body {
 }
 
 .popup-body {
-    max-height: 150px;
+    max-height: 300px;
+    /* 400px -> 300px로 축소 */
+    max-height: 50vh;
+    /* 모바일 높이 제한도 조금 더 타이트하게 */
     overflow-y: auto;
     margin-bottom: 12px;
+    scrollbar-width: thin;
 }
 
 .popup-body p {
@@ -1040,11 +1046,9 @@ body {
     color: #fff;
     border: none;
     font-size: 3rem;
-    /* 팝업보다 더 크게 */
     padding: 20px;
     cursor: pointer;
     z-index: 10001;
-    /* 이미지보다 위에 */
     transition: background 0.3s;
     user-select: none;
     border-radius: 8px;
@@ -1052,7 +1056,6 @@ body {
 
 .lightbox-nav:hover {
     background: rgba(218, 172, 113, 0.8);
-    /* 금색 포인트 */
 }
 
 .lightbox-nav.prev {
@@ -1063,7 +1066,97 @@ body {
     right: 20px;
 }
 
-/* 모바일 대응: 화면이 작을 때 버튼 크기 조정 */
+.popup-video-thumbnail {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    background-color: #000;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid #444;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-video-thumbnail:hover {
+    border-color: var(--accent);
+}
+
+.video-thumb-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.video-play-icon {
+    font-size: 40px;
+    opacity: 0.8;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.video-thumb-content:hover .video-play-icon {
+    opacity: 1;
+    transform: scale(1.1);
+    transition: all 0.2s;
+}
+
+.video-thumb-text {
+    font-size: 0.9rem;
+    color: #ccc;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+#video-lightbox-modal {
+    z-index: 10000;
+}
+
+.video-lightbox-content {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+#lightbox-video-frame {
+    width: 100%;
+    height: 100%;
+}
+
+.region-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 1rem;
+    font-weight: bold;
+    text-shadow: 0 0 4px #000;
+    pointer-events: none;
+    /* 클릭 방해 금지 */
+}
+
+.leaflet-interactive {
+    transition: stroke-width 0.2s, fill-opacity 0.2s;
+}
+
 @media (max-width: 768px) {
     .lightbox-nav {
         font-size: 2rem;

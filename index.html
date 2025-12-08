@@ -188,6 +188,13 @@
         <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
     </div>
 
+    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
+        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
+        <div class="video-lightbox-content" onclick="event.stopPropagation()">
+            <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script src="script.js"></script>
 </body>

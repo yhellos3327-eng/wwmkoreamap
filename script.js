@@ -1,10 +1,19 @@
 const updateHistory = [
     {
+        version: "v1.2",
+        date: "2025-12-08",
+        content: [
+            "지역 경계선 표시 및 동영상 재생 기능 추가.",
+            "청하 경계석 100% 한글화. (경계석 설명도 추가됨.)",
+            "기술 습득 카테고리 번역중."
+        ]
+    },
+    {
         version: "v1.1",
         date: "2025-12-08",
         content: [
             "AI 번역 기능: 설명이 없는 항목은 번역 버튼 제외",
-            "초기 로딩 시 경계석만 활성화"
+            "초기 로딩 시 경계석만 활성화",
         ]
     },
     {
@@ -75,7 +84,6 @@ const MAP_CONFIG = {
     zoom: 11
 };
 
-// Global Variables
 let map;
 let allMarkers = [];
 let markersData = [];
@@ -96,8 +104,8 @@ let currentLightboxImages = [];
 let currentLightboxIndex = 0;
 let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
+let regionLayerGroup;
 
-// Helper Functions
 const t = (key) => {
     if (!key) return "";
     const trimmedKey = key.toString().trim();
@@ -113,7 +121,6 @@ const getJosa = (word, type) => {
     return hasJongsung ? josa1 : josa2;
 };
 
-// [중요] createPopupHtml을 전역 스코프로 이동
 function createPopupHtml(item, lat, lng, regionName) {
     const isFav = favorites.includes(item.id);
     const isCompleted = completedList.includes(item.id);
@@ -123,6 +130,7 @@ function createPopupHtml(item, lat, lng, regionName) {
         translatedName = translatedName.replace(/{region}/g, displayRegion);
     }
     const categoryName = t(item.category);
+
     let itemDescription = item.description || '';
     let replaceName = translatedName;
     const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
@@ -158,8 +166,47 @@ function createPopupHtml(item, lat, lng, regionName) {
         `;
     }
 
+    let videoHtml = '';
+    if (item.video_url && item.video_url.trim() !== "") {
+        let rawUrl = item.video_url.trim();
+
+        let videoSrc = rawUrl.replace(/^http:/, 'https:');
+        if (videoSrc.startsWith('//')) {
+            videoSrc = 'https:' + videoSrc;
+        }
+
+        let lightboxSrc = videoSrc;
+        const separator = videoSrc.includes('?') ? '&' : '?';
+
+        if (lightboxSrc.includes('bilibili.com')) {
+            lightboxSrc = lightboxSrc.replace(/&?autoplay=\d/, '');
+            lightboxSrc += `${separator}autoplay=1&high_quality=1`;
+        }
+
+        let thumbSrc = videoSrc;
+        if (thumbSrc.includes('bilibili.com')) {
+            thumbSrc = thumbSrc.replace(/&?autoplay=\d/, '');
+            thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
+        }
+
+        videoHtml = `
+            <div class="popup-video-thumbnail" onclick="openVideoLightbox('${lightboxSrc}')" style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border:1px solid #444; border-radius:6px; cursor:pointer; background:#000;">
+                <iframe 
+                    src="${thumbSrc}" 
+                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" 
+                    frameborder="0" 
+                    scrolling="no"
+                    allowfullscreen>
+                </iframe>
+                
+                <div class="video-thumb-cover" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; z-index:2;">
+                    <div class="video-play-icon" style="font-size:40px; color:white; text-shadow:0 0 10px rgba(0,0,0,0.8); opacity:0.9;">▶</div>
+                </div>
+            </div>
+        `;
+    }
+
     let translateBtnHtml = '';
-    // 번역되지 않았고, 설명이 존재하며, 설명이 빈 문자열이 아닐 때만 버튼 표시
     if (!item.isTranslated && item.description && item.description.trim() !== "") {
         translateBtnHtml = `
             <button class="btn-translate" onclick="translateItem(${item.id})" style="width:100%; margin-top:10px; padding:6px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">
@@ -197,6 +244,7 @@ function createPopupHtml(item, lat, lng, regionName) {
     `;
     }
 
+    // 순서 변경: 이미지 -> 비디오 -> 설명 -> 번역버튼
     return `
     <div class="popup-container" data-id="${item.id}">
         <div class="popup-header">
@@ -204,8 +252,9 @@ function createPopupHtml(item, lat, lng, regionName) {
             <h4>${translatedName}</h4>
         </div>
         <div class="popup-body">
-            ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
             ${imageSliderHtml}
+            ${videoHtml}
+            ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
             ${translateBtnHtml}
         </div>
         ${relatedHtml}
@@ -305,6 +354,8 @@ document.addEventListener('DOMContentLoaded', async () => {
         const dataJson = await dataRes.json();
         const regionsJson = await regionsRes.json();
 
+        regionData = regionsJson.data || [];
+
         if (transJson.common) {
             transJson.common.forEach(item => {
                 if (!Array.isArray(item.keys) || item.keys.length === 0) return;
@@ -403,6 +454,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     mapData.items.forEach(item => {
         const catTrans = categoryItemTranslations[item.category];
         let commonDesc = null;
+
         if (catTrans && catTrans._common_description) {
             commonDesc = catTrans._common_description;
         }
@@ -412,6 +464,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!transData && item.name) {
                 transData = catTrans[item.name];
             }
+
             if (transData) {
                 if (transData.name) {
                     item.name = transData.name;
@@ -419,11 +472,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
                 if (transData.description) {
                     item.description = transData.description;
-                } else if (commonDesc) {
-                    item.description = commonDesc;
                 }
                 if (transData.region) item.forceRegion = transData.region;
             }
+        }
+
+        // [수정] 공통 설명 적용 로직 (번역 데이터 여부와 상관없이 비어있으면 적용)
+        if ((!item.description || item.description.trim() === "") && commonDesc) {
+            item.description = commonDesc;
         }
     });
 
@@ -489,6 +545,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         maxZoom: 13
     }).addTo(map);
 
+    regionLayerGroup = L.layerGroup().addTo(map);
+
+    if (regionData && Array.isArray(regionData)) {
+        regionData.forEach(region => {
+            if (!region.coordinates || region.coordinates.length === 0) return;
+
+            const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
+            const translatedRegionName = t(region.title);
+
+            const polygon = L.polygon(polygonCoords, {
+                color: '#daac71',
+                weight: 2,
+                opacity: 0.5,
+                fillColor: '#daac71',
+                fillOpacity: 0.05,
+                className: 'region-polygon'
+            });
+
+            polygon.bindTooltip(translatedRegionName, {
+                permanent: true,
+                direction: 'center',
+                className: 'region-label'
+            });
+
+            polygon.on('mouseover', function () {
+                this.setStyle({ weight: 3, fillOpacity: 0.15 });
+            });
+            polygon.on('mouseout', function () {
+                this.setStyle({ weight: 2, fillOpacity: 0.05 });
+            });
+
+            polygon.on('click', function (e) {
+                L.DomEvent.stopPropagation(e);
+                map.fitBounds(this.getBounds());
+            });
+
+            polygon.on('contextmenu', function (e) {
+                L.DomEvent.preventDefault(e);
+                L.DomEvent.stopPropagation(e);
+
+                activeRegionNames.clear();
+                activeRegionNames.add(region.title);
+
+                const regBtns = document.querySelectorAll('#region-list .cate-item');
+                regBtns.forEach(btn => {
+                    if (btn.dataset.region === region.title) {
+                        btn.classList.add('active');
+                        btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+
+                updateToggleButtonsState();
+                updateMapVisibility();
+                saveFilterState();
+            });
+
+            regionLayerGroup.addLayer(polygon);
+        });
+    }
+
     mapData.items.forEach(item => {
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
@@ -517,6 +635,20 @@ document.addEventListener('DOMContentLoaded', async () => {
             title: item.name,
             alt: item.category,
             itemId: item.id
+        });
+
+        marker.on('click', () => {
+            console.group(`📍 [${item.id}] ${item.name}`);
+            console.table({
+                "ID": item.id,
+                "한글 이름": item.name,
+                "카테고리 ID": item.category,
+                "지역 (Region)": regionName,
+                "좌표 (Lat, Lng)": `${parseFloat(item.x).toFixed(4)}, ${parseFloat(item.y).toFixed(4)}`,
+                "번역 여부": item.isTranslated ? "완료" : "미완료"
+            });
+            console.log("▼ 전체 데이터 객체 (클릭하여 펼치기)", item);
+            console.groupEnd();
         });
 
         marker.on('contextmenu', (e) => {
@@ -1137,6 +1269,24 @@ window.switchLightbox = (direction) => {
     updateLightboxImage();
 };
 
+window.openVideoLightbox = (src) => {
+    const modal = document.getElementById('video-lightbox-modal');
+    const iframe = document.getElementById('lightbox-video-frame');
+    if (modal && iframe) {
+        iframe.src = src;
+        modal.classList.remove('hidden');
+    }
+};
+
+window.closeVideoLightbox = () => {
+    const modal = document.getElementById('video-lightbox-modal');
+    const iframe = document.getElementById('lightbox-video-frame');
+    if (modal && iframe) {
+        modal.classList.add('hidden');
+        iframe.src = "";
+    }
+};
+
 window.viewFullImage = (src) => {
     const modal = document.getElementById('lightbox-modal');
     const img = document.getElementById('lightbox-img');
@@ -1184,8 +1334,8 @@ async function translateItem(itemId) {
     [Context Info]
     1. The source data was migrated from an English map to a Chinese map, so some records might be in English or contain English references.
     2. Reference the provided "Translation Dictionary" (translation.json data) below.
-    3. **Important**: When translating the Name, look for the most relevant or identical term in the dictionary. If found, use that specific Korean translation to maintain consistency.
-    4. **Requirement**: Translate the ENTIRE Chinese content in the Name and Description fields. Do not leave any Chinese text untranslated.
+    3. Important: When translating the Name, look for the most relevant or identical term in the dictionary. If found, use that specific Korean translation to maintain consistency.
+    4. Requirement: Translate the ENTIRE Chinese content in the Name and Description fields. Do not leave any Chinese text untranslated.
     
     [Translation Dictionary - Category Specific]
     ${JSON.stringify(categoryTrans)}
