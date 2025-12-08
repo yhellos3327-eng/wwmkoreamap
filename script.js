@@ -1,6 +1,13 @@
 const updateHistory = [
     {
-        version: "v1.3",
+        version: "v1.2.6",
+        date: "2025-12-09",
+        content: [
+            "버그 수정"
+        ]
+    },
+    {
+        version: "v1.2.5",
         date: "2025-12-09",
         content: [
             "지도 최적화.",
@@ -481,12 +488,10 @@ async function loadMapData(mapKey) {
         }
 
         const rawItems = dataJson.data || [];
-        const uniqueCategoryIds = new Set();
         itemsByCategory = {};
 
         mapData.items = rawItems.map(item => {
             const catId = String(item.category_id);
-            uniqueCategoryIds.add(catId);
             const regionName = regionIdMap[item.regionId] || "알 수 없음";
 
             let imgList = [];
@@ -511,6 +516,8 @@ async function loadMapData(mapKey) {
                 isTranslated: false
             };
         });
+
+        const uniqueCategoryIds = new Set(mapData.items.map(i => i.category));
 
         mapData.categories = Array.from(uniqueCategoryIds).map(catId => {
             return {
@@ -562,42 +569,46 @@ async function loadMapData(mapKey) {
             itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
         }
 
-        const savedCats = JSON.parse(localStorage.getItem('wwm_active_cats'));
         const DEFAULT_CAT_ID = "17310010083";
+        let savedCats = JSON.parse(localStorage.getItem('wwm_active_cats')) || [];
+        let savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs')) || [];
+
+        const validCategoryIds = new Set(mapData.categories.map(c => c.id));
+        const filteredSavedCats = savedCats.filter(id => validCategoryIds.has(id));
 
         activeCategoryIds.clear();
 
-        if (savedCats && Array.isArray(savedCats) && savedCats.length > 0) {
-            savedCats.forEach(id => {
-                if (mapData.categories.find(c => c.id === id)) {
-                    activeCategoryIds.add(id);
-                }
-            });
-        }
-
-        if (activeCategoryIds.size === 0) {
-            if (mapData.categories.find(c => c.id === DEFAULT_CAT_ID)) {
+        if (filteredSavedCats.length > 0) {
+            filteredSavedCats.forEach(id => activeCategoryIds.add(id));
+        } else {
+            if (validCategoryIds.has(DEFAULT_CAT_ID)) {
                 activeCategoryIds.add(DEFAULT_CAT_ID);
             } else if (mapData.categories.length > 0) {
                 activeCategoryIds.add(mapData.categories[0].id);
             }
         }
 
-        const savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs'));
-        activeRegionNames.clear();
+        const currentMapRegions = new Set();
 
-        const currentMapRegions = new Set(regionData.map(r => r.title));
+        regionData.forEach(r => currentMapRegions.add(r.title));
+
+        mapData.items.forEach(i => {
+            if (i.region) currentMapRegions.add(i.region);
+        });
+
         uniqueRegions = currentMapRegions;
 
-        if (savedRegs && Array.isArray(savedRegs) && savedRegs.length > 0) {
-            savedRegs.forEach(r => {
-                if (uniqueRegions.has(r)) activeRegionNames.add(r);
-            });
-        }
+        const filteredSavedRegs = savedRegs.filter(r => currentMapRegions.has(r));
 
-        if (activeRegionNames.size === 0) {
+        activeRegionNames.clear();
+
+        if (filteredSavedRegs.length > 0) {
+            filteredSavedRegs.forEach(r => activeRegionNames.add(r));
+        } else {
             uniqueRegions.forEach(r => activeRegionNames.add(r));
         }
+
+        saveFilterState();
 
         renderMapDataAndMarkers();
         refreshCategoryList();
@@ -608,7 +619,6 @@ async function loadMapData(mapKey) {
         alert(`${config.name} 데이터를 불러오는데 실패했습니다.\n` + error.message);
     }
 }
-
 function refreshCategoryList() {
     const categoryListEl = document.getElementById('category-list');
     categoryListEl.innerHTML = '';
