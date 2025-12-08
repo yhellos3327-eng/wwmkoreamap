@@ -200,7 +200,7 @@ function createPopupHtml(item, lat, lng, regionName) {
                 </iframe>
                 
                 <div class="video-thumb-cover" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; z-index:2;">
-                    <div class="video-play-icon" style="font-size:40px; color:white; text-shadow:0 0 10px rgba(0,0,0,0.8); opacity:0.9;">▶</div>
+                    <div class="video-play-icon" style="font-size:40px; color:white; text-shadow:0 0 10px rgba(0,0,0,0.8); opacity:0.9;"></div>
                 </div>
             </div>
         `;
