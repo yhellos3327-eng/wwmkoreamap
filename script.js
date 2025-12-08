@@ -1,5 +1,13 @@
 const updateHistory = [
     {
+        version: "v1.3",
+        date: "2025-12-09",
+        content: [
+            "지도 최적화.",
+            "개봉 추가"
+        ]
+    },
+    {
         version: "v1.2",
         date: "2025-12-08",
         content: [
@@ -76,7 +84,7 @@ const contributionLinks = [
 const MAP_CONFIGS = {
     qinghe: {
         id: 3000,
-        name: "청하 (Qinghe)",
+        name: "청하 (清河)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3000_v4_uN4cS8/{z}/{y}_{x}.png',
         dataFile: './data.json',
         regionFile: './regions.json',
@@ -88,7 +96,7 @@ const MAP_CONFIGS = {
     },
     kaifeng: {
         id: 4000,
-        name: "개봉 (Kaifeng)",
+        name: "개봉 (开封)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3003_v8_65jd2/{z}/{y}_{x}.png',
         dataFile: './data2.json',
         regionFile: './regions2.json',
