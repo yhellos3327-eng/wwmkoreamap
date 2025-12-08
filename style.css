@@ -29,6 +29,7 @@ body {
     font-size: 14px;
 }
 
+/* 스크롤바 커스텀 */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -54,6 +55,9 @@ body {
     width: 100vw;
 }
 
+/* =========================================
+   지도 및 상단 컨트롤 (Toolbar)
+   ========================================= */
 #map-container {
     flex: 1;
     position: relative;
@@ -66,27 +70,238 @@ body {
     background-color: #111;
 }
 
-.menu-btn {
+/* 상단 컨트롤 컨테이너 */
+.top-controls {
     position: absolute;
     top: 20px;
     left: 20px;
     z-index: 1000;
-    background: var(--bg-panel);
-    color: var(--text-main);
-    border: 1px solid var(--border);
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-
-    display: flex;
-
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-weight: 600;
-    align-items: center;
-    gap: 6px;
-    transition: opacity 0.3s;
 }
 
+/* 통합 툴바 (알약 모양) */
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+
+    /* ★ 핵심 수정: 드롭다운이 밖으로 나오도록 visible로 변경 */
+    overflow: visible;
+
+    height: 44px;
+    transition: all 0.3s ease;
+}
+
+.map-toolbar .icon {
+    margin-right: 6px;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+/* 메뉴 버튼 (왼쪽) */
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    opacity: 1;
+    max-width: 100px;
+
+    /* 왼쪽 둥근 모서리 유지 */
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.toolbar-btn:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}
+
+/* ★ 메뉴 버튼 숨김 상태 (사이드바 열릴 때 적용) */
+.toolbar-btn.hidden-btn {
+    opacity: 0;
+    pointer-events: none;
+    max-width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* 구분선 */
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border);
+    transition: opacity 0.3s ease;
+}
+
+/* 메뉴 버튼이 숨겨지면 구분선도 같이 숨김 */
+.toolbar-btn.hidden-btn+.toolbar-divider {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+}
+
+/* 지도 선택기 래퍼 (오른쪽) */
+.map-selector-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-left: 0;
+    /* 패딩 제거 */
+    background: transparent;
+    transition: background 0.2s;
+
+    /* 오른쪽 둥근 모서리 유지 */
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+/* 1. 커스텀 셀렉트 컨테이너 */
+.custom-select {
+    position: relative;
+    height: 100%;
+    min-width: 160px;
+    /* 너비 조금 늘림 */
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    user-select: none;
+}
+
+/* 2. 선택된 항목 표시 영역 (Trigger) */
+.select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 16px;
+    /* 좌우 패딩 통일 */
+    background: transparent;
+    transition: all 0.2s;
+
+    /* 래퍼와 동일하게 둥근 모서리 적용 */
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.select-trigger:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}
+
+.select-trigger .icon {
+    margin-right: 8px;
+}
+
+.select-trigger .arrow {
+    font-size: 0.7rem;
+    margin-left: 10px;
+    transition: transform 0.3s;
+    opacity: 0.7;
+}
+
+/* 드롭다운 열렸을 때 화살표 회전 */
+.custom-select.open .select-trigger .arrow {
+    transform: rotate(180deg);
+    color: var(--accent);
+}
+
+/* 3. 옵션 목록 (Dropdown Menu) */
+.select-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    /* 툴바 조금 아래 */
+    right: 0;
+    /* 오른쪽 정렬 */
+    width: 100%;
+    /* 부모 너비에 맞춤 */
+    min-width: 160px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 2000;
+    overflow: hidden;
+}
+
+/* 드롭다운 열림 상태 */
+.custom-select.open .select-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+/* 4. 개별 옵션 항목 */
+.custom-option {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    color: #ccc;
+}
+
+.custom-option:last-child {
+    border-bottom: none;
+}
+
+.custom-option:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--text-main);
+}
+
+.custom-option.selected {
+    background-color: var(--accent-bg);
+    color: var(--accent);
+    font-weight: 700;
+}
+
+/* GitHub 버튼 (우측 하단) */
+.github-btn {
+    position: absolute;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--bg-panel);
+    color: var(--text-main);
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s;
+    border: 1px solid var(--border);
+}
+
+.github-btn:hover {
+    background-color: var(--bg-item-hover);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+}
+
+/* =========================================
+   사이드바 (Sidebar)
+   ========================================= */
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--bg-panel);
@@ -100,6 +315,7 @@ body {
     flex-shrink: 0;
 }
 
+/* 데스크탑: 기본 보임, collapsed 클래스 추가 시 숨김 */
 .sidebar.collapsed {
     transform: translateX(-100%);
     margin-right: calc(var(--sidebar-width) * -1);
@@ -140,6 +356,7 @@ body {
     background: var(--bg-item);
 }
 
+/* 검색창 */
 .search-container {
     padding: 15px 20px 10px 20px;
     flex-shrink: 0;
@@ -161,6 +378,7 @@ body {
     border-color: var(--accent);
 }
 
+/* 탭 메뉴 */
 .tabs {
     display: flex;
     padding: 0 10px;
@@ -197,6 +415,7 @@ body {
     border-bottom-color: var(--accent);
 }
 
+/* 리스트 컨테이너 */
 .filter-container {
     flex: 1;
     overflow-y: auto;
@@ -225,10 +444,7 @@ body {
     }
 }
 
-.category-list {
-    display: block;
-}
-
+/* 카테고리/지역 리스트 스타일 */
 .category-group {
     margin-bottom: 24px;
 }
@@ -320,6 +536,7 @@ body {
     opacity: 0.7;
 }
 
+/* 모두 켜기/끄기 버튼 */
 .btn-toggle-all {
     width: 100%;
     background: var(--bg-item);
@@ -346,44 +563,7 @@ body {
     transform: scale(0.98);
 }
 
-#region-list .cat-btn {
-    width: 100%;
-    background: var(--bg-item);
-    border: 1px solid transparent;
-    color: #ccc;
-    padding: 10px 12px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    text-align: left;
-    font-size: 0.9rem;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    transition: 0.2s;
-}
-
-#region-list .cat-btn img {
-    width: 24px;
-    height: 24px;
-    margin-right: 10px;
-    opacity: 0.6;
-}
-
-#region-list .cat-btn:hover {
-    background: var(--bg-item-hover);
-    color: var(--text-main);
-}
-
-#region-list .cat-btn.active {
-    background: var(--accent-bg);
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
-#region-list .cat-btn.active img {
-    opacity: 1;
-}
-
+/* 즐겨찾기, 링크, 업데이트 목록 아이템 */
 .fav-item,
 .link-item,
 .update-item {
@@ -448,6 +628,9 @@ body {
     font-style: italic;
 }
 
+/* =========================================
+   Leaflet 팝업 커스텀
+   ========================================= */
 .leaflet-popup-content-wrapper {
     background: var(--bg-panel);
     color: var(--text-main);
@@ -460,7 +643,6 @@ body {
 .leaflet-popup-content {
     margin: 0;
     width: 360px !important;
-    /* 420px -> 360px로 축소 */
     max-width: 80vw !important;
 }
 
@@ -481,6 +663,7 @@ body {
     color: var(--text-main);
 }
 
+/* 팝업 내부 */
 .popup-container {
     padding: 16px;
 }
@@ -511,9 +694,7 @@ body {
 
 .popup-body {
     max-height: 300px;
-    /* 400px -> 300px로 축소 */
     max-height: 50vh;
-    /* 모바일 높이 제한도 조금 더 타이트하게 */
     overflow-y: auto;
     margin-bottom: 12px;
     scrollbar-width: thin;
@@ -526,6 +707,7 @@ body {
     margin: 0;
 }
 
+/* 팝업 관련 항목 (Related Items) */
 .popup-related {
     background: rgba(0, 0, 0, 0.2);
     padding: 0;
@@ -559,10 +741,6 @@ body {
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #555 transparent;
-}
-
-.related-list:not(:last-child) {
-    padding-bottom: 5px;
 }
 
 .related-item {
@@ -611,8 +789,6 @@ body {
     background: var(--accent-bg);
     color: var(--accent);
     border-color: var(--accent);
-    transform: scale(1.05);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .btn-expand {
@@ -637,13 +813,9 @@ body {
 .btn-expand:hover {
     color: var(--accent);
     background: rgba(218, 172, 113, 0.1);
-    border-color: rgba(218, 172, 113, 0.3);
 }
 
-.btn-expand:active {
-    background: rgba(218, 172, 113, 0.2);
-}
-
+/* 팝업 하단 버튼 */
 .popup-actions {
     display: flex;
     gap: 8px;
@@ -704,6 +876,7 @@ body {
     border: 1px solid #333;
 }
 
+/* 마커 스타일 */
 .leaflet-marker-icon.completed-marker {
     opacity: 0.3 !important;
     filter: grayscale(100%);
@@ -725,6 +898,7 @@ body {
     }
 }
 
+/* 이미지/비디오 썸네일 */
 .popup-image-container {
     position: relative;
     width: 100%;
@@ -803,52 +977,56 @@ body {
     z-index: 10;
 }
 
-#lightbox-modal {
-    background: rgba(0, 0, 0, 0.9);
-    z-index: 9999;
+.popup-video-thumbnail {
+    margin-top: 12px;
+    margin-bottom: 12px;
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+    background-color: #000;
+    border-radius: 6px;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid #444;
+    transition: border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.lightbox-content {
-    margin: auto;
-    display: block;
-    max-width: 90%;
-    max-height: 90vh;
-    border: 2px solid var(--accent);
-    border-radius: 4px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-    animation: zoomIn 0.3s;
+.popup-video-thumbnail:hover {
+    border-color: var(--accent);
 }
 
-@keyframes zoomIn {
-    from {
-        transform: scale(0.9);
-        opacity: 0;
-    }
-
-    to {
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.lightbox-close {
+.video-thumb-content {
     position: absolute;
-    top: 20px;
-    right: 35px;
-    color: #f1f1f1;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+}
+
+.video-play-icon {
     font-size: 40px;
-    font-weight: bold;
-    transition: 0.3s;
-    cursor: pointer;
+    opacity: 0.8;
+    margin-bottom: 5px;
+    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
 }
 
-.lightbox-close:hover,
-.lightbox-close:focus {
-    color: var(--accent);
-    text-decoration: none;
-    cursor: pointer;
+.video-thumb-content:hover .video-play-icon {
+    opacity: 1;
+    transform: scale(1.1);
+    transition: all 0.2s;
 }
 
+/* =========================================
+   모달 (Modal) 공통
+   ========================================= */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -974,68 +1152,48 @@ body {
     border-radius: 4px;
 }
 
-.github-btn {
+/* Lightbox (이미지 뷰어) */
+#lightbox-modal {
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 9999;
+}
+
+.lightbox-content {
+    margin: auto;
+    display: block;
+    max-width: 90%;
+    max-height: 90vh;
+    border: 2px solid var(--accent);
+    border-radius: 4px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+    animation: zoomIn 0.3s;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lightbox-close {
     position: absolute;
-    bottom: 24px;
-    right: 24px;
-    z-index: 1000;
-    width: 48px;
-    height: 48px;
-    border: none;
-    border-radius: 50%;
-    background-color: var(--bg-panel);
-    color: var(--text-main);
+    top: 20px;
+    right: 35px;
+    color: #f1f1f1;
+    font-size: 40px;
+    font-weight: bold;
+    transition: 0.3s;
     cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: all 0.2s;
-    border: 1px solid var(--border);
 }
 
-.github-btn:hover {
-    background-color: var(--bg-item-hover);
-    transform: translateY(-2px);
-    border-color: var(--accent);
-}
-
-@media (max-width: 768px) {
-    .sidebar {
-        position: absolute;
-        height: 100%;
-        transform: translateX(-100%);
-        margin-right: 0 !important;
-        width: 320px;
-        border-right: 1px solid var(--border);
-    }
-
-    .sidebar.open {
-        transform: translateX(0);
-    }
-
-    .menu-btn {
-        display: flex;
-    }
-
-    .cate-list {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.popup-link {
+.lightbox-close:hover {
     color: var(--accent);
-    text-decoration: none;
-    font-weight: 600;
-    border-bottom: 1px dashed var(--accent);
-    transition: all 0.2s;
-    margin: 0 2px;
-}
-
-.popup-link:hover {
-    color: #fff;
-    border-bottom-style: solid;
-    background-color: rgba(218, 172, 113, 0.2);
 }
 
 .lightbox-nav {
@@ -1066,61 +1224,7 @@ body {
     right: 20px;
 }
 
-.popup-video-thumbnail {
-    margin-top: 12px;
-    margin-bottom: 12px;
-    position: relative;
-    width: 100%;
-    padding-bottom: 56.25%;
-    background-color: #000;
-    border-radius: 6px;
-    cursor: pointer;
-    overflow: hidden;
-    border: 1px solid #444;
-    transition: border-color 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.popup-video-thumbnail:hover {
-    border-color: var(--accent);
-}
-
-.video-thumb-content {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-}
-
-.video-play-icon {
-    font-size: 40px;
-    opacity: 0.8;
-    margin-bottom: 5px;
-    text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
-}
-
-.video-thumb-content:hover .video-play-icon {
-    opacity: 1;
-    transform: scale(1.1);
-    transition: all 0.2s;
-}
-
-.video-thumb-text {
-    font-size: 0.9rem;
-    color: #ccc;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
+/* Video Lightbox */
 #video-lightbox-modal {
     z-index: 10000;
 }
@@ -1141,6 +1245,7 @@ body {
     height: 100%;
 }
 
+/* 지역 라벨 */
 .region-label {
     background: transparent;
     border: none;
@@ -1150,14 +1255,40 @@ body {
     font-weight: bold;
     text-shadow: 0 0 4px #000;
     pointer-events: none;
-    /* 클릭 방해 금지 */
 }
 
 .leaflet-interactive {
     transition: stroke-width 0.2s, fill-opacity 0.2s;
 }
 
+/* =========================================
+   반응형 (Mobile)
+   ========================================= */
 @media (max-width: 768px) {
+    .select-options {
+        left: 0;
+        /* 모바일에서 왼쪽 정렬 */
+        width: 100%;
+        min-width: 160px;
+    }
+
+    .sidebar {
+        position: absolute;
+        height: 100%;
+        transform: translateX(-100%);
+        margin-right: 0 !important;
+        width: 320px;
+        border-right: 1px solid var(--border);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .cate-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
     .lightbox-nav {
         font-size: 2rem;
         padding: 10px;
@@ -1169,5 +1300,25 @@ body {
 
     .lightbox-nav.next {
         right: 10px;
+    }
+
+    /* 모바일 툴바 조정 */
+    .map-toolbar {
+        height: 40px;
+    }
+
+    .toolbar-btn,
+    .toolbar-select {
+        font-size: 0.85rem;
+    }
+
+    .toolbar-btn .label {
+        display: none;
+        /* 텍스트 숨김 */
+    }
+
+    .toolbar-btn .icon {
+        margin-right: 0;
+        font-size: 1.2rem;
     }
 }

@@ -62,7 +62,29 @@
         </aside>
 
         <main id="map-container">
-            <button id="open-sidebar" class="menu-btn">☰ 메뉴</button>
+            <div class="top-controls">
+                <div class="map-toolbar">
+                    <button id="open-sidebar" class="toolbar-btn menu-trigger">
+                        <span class="icon">☰</span>
+                        <span class="label">메뉴</span>
+                    </button>
+
+                    <div class="toolbar-divider"></div>
+
+                    <div class="map-selector-wrapper">
+                        <div class="custom-select" id="custom-map-select">
+                            <div class="select-trigger">
+                                <span class="icon">🌍</span>
+                                <span class="selected-text">청하</span>
+                                <span class="arrow">▼</span>
+                            </div>
+                            <div class="select-options">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <button id="open-github-modal" class="github-btn" title="기여하기">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub"
                     style="width: 24px; height: 24px;">
