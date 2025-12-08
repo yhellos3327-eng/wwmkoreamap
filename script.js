@@ -197,7 +197,6 @@ function initCustomDropdown() {
     const selectedText = customSelect.querySelector('.selected-text');
 
     optionsContainer.innerHTML = '';
-
     Object.keys(MAP_CONFIGS).forEach(key => {
         const config = MAP_CONFIGS[key];
         const optionDiv = document.createElement('div');
@@ -212,6 +211,8 @@ function initCustomDropdown() {
                 customSelect.classList.remove('open');
                 return;
             }
+
+            localStorage.removeItem('wwm_active_regs');
 
             currentMapKey = key;
             if (selectedText) selectedText.textContent = config.name;
@@ -569,6 +570,17 @@ async function loadMapData(mapKey) {
             itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
         }
 
+        const favStorageKey = `wwm_favorites_${mapKey}`;
+        favorites = JSON.parse(localStorage.getItem(favStorageKey)) || [];
+
+        if (mapKey === 'qinghe' && favorites.length === 0) {
+            const oldFavs = JSON.parse(localStorage.getItem('wwm_favorites'));
+            if (oldFavs && oldFavs.length > 0) {
+                favorites = oldFavs;
+                localStorage.setItem(favStorageKey, JSON.stringify(favorites));
+            }
+        }
+
         const DEFAULT_CAT_ID = "17310010083";
         let savedCats = JSON.parse(localStorage.getItem('wwm_active_cats')) || [];
         let savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs')) || [];
@@ -589,9 +601,7 @@ async function loadMapData(mapKey) {
         }
 
         const currentMapRegions = new Set();
-
         regionData.forEach(r => currentMapRegions.add(r.title));
-
         mapData.items.forEach(i => {
             if (i.region) currentMapRegions.add(i.region);
         });
@@ -613,12 +623,14 @@ async function loadMapData(mapKey) {
         renderMapDataAndMarkers();
         refreshCategoryList();
         updateToggleButtonsState();
+        renderFavorites();
 
     } catch (error) {
         console.error("데이터 로드 실패:", error);
         alert(`${config.name} 데이터를 불러오는데 실패했습니다.\n` + error.message);
     }
 }
+
 function refreshCategoryList() {
     const categoryListEl = document.getElementById('category-list');
     categoryListEl.innerHTML = '';
@@ -703,11 +715,10 @@ function renderMapDataAndMarkers() {
     allMarkers = [];
 
     const currentConfig = MAP_CONFIGS[currentMapKey];
+
     const filteredItems = mapData.items;
 
-    const filteredRegions = regionData.filter(region => {
-        return region.mapId == currentConfig.id;
-    });
+    const filteredRegions = regionData;
 
     const regionPolygons = [];
 
@@ -718,6 +729,7 @@ function renderMapDataAndMarkers() {
     if (filteredRegions && Array.isArray(filteredRegions)) {
         filteredRegions.forEach(region => {
             if (!region.coordinates || region.coordinates.length === 0) return;
+
             const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
             const translatedRegionName = t(region.title);
 
@@ -782,6 +794,7 @@ function renderMapDataAndMarkers() {
 
     filteredItems.forEach(item => {
         let catId = item.category;
+
         if (typeof ICON_MAPPING !== 'undefined' && ICON_MAPPING.hasOwnProperty(catId)) {
             const mappedValue = ICON_MAPPING[catId];
             if (mappedValue === null) {
