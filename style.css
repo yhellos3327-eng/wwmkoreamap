@@ -29,7 +29,6 @@ body {
     font-size: 14px;
 }
 
-/* 스크롤바 커스텀 */
 ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -55,9 +54,6 @@ body {
     width: 100vw;
 }
 
-/* =========================================
-   지도 및 상단 컨트롤 (Toolbar)
-   ========================================= */
 #map-container {
     flex: 1;
     position: relative;
@@ -70,7 +66,6 @@ body {
     background-color: #111;
 }
 
-/* 상단 컨트롤 컨테이너 */
 .top-controls {
     position: absolute;
     top: 20px;
@@ -78,7 +73,6 @@ body {
     z-index: 1000;
 }
 
-/* 통합 툴바 (알약 모양) */
 .map-toolbar {
     display: flex;
     align-items: center;
@@ -86,10 +80,7 @@ body {
     border: 1px solid var(--border);
     border-radius: 8px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-
-    /* ★ 핵심 수정: 드롭다운이 밖으로 나오도록 visible로 변경 */
     overflow: visible;
-
     height: 44px;
     transition: all 0.3s ease;
 }
@@ -100,7 +91,6 @@ body {
     line-height: 1;
 }
 
-/* 메뉴 버튼 (왼쪽) */
 .toolbar-btn {
     display: flex;
     align-items: center;
@@ -116,8 +106,6 @@ body {
     transition: all 0.3s ease;
     opacity: 1;
     max-width: 100px;
-
-    /* 왼쪽 둥근 모서리 유지 */
     border-top-left-radius: 8px;
     border-bottom-left-radius: 8px;
 }
@@ -127,7 +115,6 @@ body {
     color: var(--accent);
 }
 
-/* ★ 메뉴 버튼 숨김 상태 (사이드바 열릴 때 적용) */
 .toolbar-btn.hidden-btn {
     opacity: 0;
     pointer-events: none;
@@ -136,7 +123,6 @@ body {
     overflow: hidden;
 }
 
-/* 구분선 */
 .toolbar-divider {
     width: 1px;
     height: 20px;
@@ -144,35 +130,28 @@ body {
     transition: opacity 0.3s ease;
 }
 
-/* 메뉴 버튼이 숨겨지면 구분선도 같이 숨김 */
 .toolbar-btn.hidden-btn+.toolbar-divider {
     opacity: 0;
     width: 0;
     margin: 0;
 }
 
-/* 지도 선택기 래퍼 (오른쪽) */
 .map-selector-wrapper {
     position: relative;
     display: flex;
     align-items: center;
     height: 100%;
     padding-left: 0;
-    /* 패딩 제거 */
     background: transparent;
     transition: background 0.2s;
-
-    /* 오른쪽 둥근 모서리 유지 */
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
 }
 
-/* 1. 커스텀 셀렉트 컨테이너 */
 .custom-select {
     position: relative;
     height: 100%;
     min-width: 160px;
-    /* 너비 조금 늘림 */
     cursor: pointer;
     font-size: 0.95rem;
     font-weight: 600;
@@ -180,18 +159,14 @@ body {
     user-select: none;
 }
 
-/* 2. 선택된 항목 표시 영역 (Trigger) */
 .select-trigger {
     display: flex;
     align-items: center;
     justify-content: space-between;
     height: 100%;
     padding: 0 16px;
-    /* 좌우 패딩 통일 */
     background: transparent;
     transition: all 0.2s;
-
-    /* 래퍼와 동일하게 둥근 모서리 적용 */
     border-top-right-radius: 8px;
     border-bottom-right-radius: 8px;
 }
@@ -212,21 +187,16 @@ body {
     opacity: 0.7;
 }
 
-/* 드롭다운 열렸을 때 화살표 회전 */
 .custom-select.open .select-trigger .arrow {
     transform: rotate(180deg);
     color: var(--accent);
 }
 
-/* 3. 옵션 목록 (Dropdown Menu) */
 .select-options {
     position: absolute;
     top: calc(100% + 8px);
-    /* 툴바 조금 아래 */
     right: 0;
-    /* 오른쪽 정렬 */
     width: 100%;
-    /* 부모 너비에 맞춤 */
     min-width: 160px;
     background-color: var(--bg-panel);
     border: 1px solid var(--border);
@@ -240,14 +210,12 @@ body {
     overflow: hidden;
 }
 
-/* 드롭다운 열림 상태 */
 .custom-select.open .select-options {
     opacity: 1;
     visibility: visible;
     transform: translateY(0);
 }
 
-/* 4. 개별 옵션 항목 */
 .custom-option {
     padding: 12px 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -272,7 +240,6 @@ body {
     font-weight: 700;
 }
 
-/* GitHub 버튼 (우측 하단) */
 .github-btn {
     position: absolute;
     bottom: 24px;
@@ -299,9 +266,6 @@ body {
     border-color: var(--accent);
 }
 
-/* =========================================
-   사이드바 (Sidebar)
-   ========================================= */
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--bg-panel);
@@ -315,7 +279,6 @@ body {
     flex-shrink: 0;
 }
 
-/* 데스크탑: 기본 보임, collapsed 클래스 추가 시 숨김 */
 .sidebar.collapsed {
     transform: translateX(-100%);
     margin-right: calc(var(--sidebar-width) * -1);
@@ -356,7 +319,6 @@ body {
     background: var(--bg-item);
 }
 
-/* 검색창 */
 .search-container {
     padding: 15px 20px 10px 20px;
     flex-shrink: 0;
@@ -378,7 +340,6 @@ body {
     border-color: var(--accent);
 }
 
-/* 탭 메뉴 */
 .tabs {
     display: flex;
     padding: 0 10px;
@@ -415,7 +376,6 @@ body {
     border-bottom-color: var(--accent);
 }
 
-/* 리스트 컨테이너 */
 .filter-container {
     flex: 1;
     overflow-y: auto;
@@ -444,7 +404,6 @@ body {
     }
 }
 
-/* 카테고리/지역 리스트 스타일 */
 .category-group {
     margin-bottom: 24px;
 }
@@ -536,7 +495,6 @@ body {
     opacity: 0.7;
 }
 
-/* 모두 켜기/끄기 버튼 */
 .btn-toggle-all {
     width: 100%;
     background: var(--bg-item);
@@ -563,7 +521,6 @@ body {
     transform: scale(0.98);
 }
 
-/* 즐겨찾기, 링크, 업데이트 목록 아이템 */
 .fav-item,
 .link-item,
 .update-item {
@@ -628,9 +585,6 @@ body {
     font-style: italic;
 }
 
-/* =========================================
-   Leaflet 팝업 커스텀
-   ========================================= */
 .leaflet-popup-content-wrapper {
     background: var(--bg-panel);
     color: var(--text-main);
@@ -663,7 +617,6 @@ body {
     color: var(--text-main);
 }
 
-/* 팝업 내부 */
 .popup-container {
     padding: 16px;
 }
@@ -707,7 +660,6 @@ body {
     margin: 0;
 }
 
-/* 팝업 관련 항목 (Related Items) */
 .popup-related {
     background: rgba(0, 0, 0, 0.2);
     padding: 0;
@@ -815,7 +767,6 @@ body {
     background: rgba(218, 172, 113, 0.1);
 }
 
-/* 팝업 하단 버튼 */
 .popup-actions {
     display: flex;
     gap: 8px;
@@ -876,7 +827,6 @@ body {
     border: 1px solid #333;
 }
 
-/* 마커 스타일 */
 .leaflet-marker-icon.completed-marker {
     opacity: 0.3 !important;
     filter: grayscale(100%);
@@ -898,7 +848,6 @@ body {
     }
 }
 
-/* 이미지/비디오 썸네일 */
 .popup-image-container {
     position: relative;
     width: 100%;
@@ -1024,9 +973,6 @@ body {
     transition: all 0.2s;
 }
 
-/* =========================================
-   모달 (Modal) 공통
-   ========================================= */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -1152,7 +1098,6 @@ body {
     border-radius: 4px;
 }
 
-/* Lightbox (이미지 뷰어) */
 #lightbox-modal {
     background: rgba(0, 0, 0, 0.9);
     z-index: 9999;
@@ -1224,7 +1169,6 @@ body {
     right: 20px;
 }
 
-/* Video Lightbox */
 #video-lightbox-modal {
     z-index: 10000;
 }
@@ -1245,7 +1189,6 @@ body {
     height: 100%;
 }
 
-/* 지역 라벨 */
 .region-label {
     background: transparent;
     border: none;
@@ -1261,13 +1204,9 @@ body {
     transition: stroke-width 0.2s, fill-opacity 0.2s;
 }
 
-/* =========================================
-   반응형 (Mobile)
-   ========================================= */
 @media (max-width: 768px) {
     .select-options {
         left: 0;
-        /* 모바일에서 왼쪽 정렬 */
         width: 100%;
         min-width: 160px;
     }
@@ -1302,7 +1241,6 @@ body {
         right: 10px;
     }
 
-    /* 모바일 툴바 조정 */
     .map-toolbar {
         height: 40px;
     }
@@ -1314,7 +1252,6 @@ body {
 
     .toolbar-btn .label {
         display: none;
-        /* 텍스트 숨김 */
     }
 
     .toolbar-btn .icon {

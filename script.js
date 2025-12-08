@@ -76,25 +76,27 @@ const contributionLinks = [
 const MAP_CONFIGS = {
     qinghe: {
         id: 3000,
-        name: "청하 (开封)",
+        name: "청하 (Qinghe)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3000_v4_uN4cS8/{z}/{y}_{x}.png',
         dataFile: './data.json',
         regionFile: './regions.json',
         minZoom: 9,
         maxZoom: 13,
         center: [0.6768, -0.6841],
-        zoom: 11
+        zoom: 11,
+        tilePadding: 0.02
     },
     kaifeng: {
         id: 4000,
-        name: "개봉 (开封)",
+        name: "개봉 (Kaifeng)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3003_v8_65jd2/{z}/{y}_{x}.png',
         dataFile: './data2.json',
         regionFile: './regions2.json',
         minZoom: 9,
         maxZoom: 13,
         center: [0.5, -0.5],
-        zoom: 11
+        zoom: 11,
+        tilePadding: 1.0
     }
 };
 
@@ -120,6 +122,12 @@ let currentLightboxImages = [];
 let currentLightboxIndex = 0;
 let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
+
+const ICON_MAPPING = {
+    "173100100592": null,
+    "17310013036": null,
+    "17310010091": null,
+};
 
 const t = (key) => {
     if (!key) return "";
@@ -174,6 +182,7 @@ function initCustomDropdown() {
     const selectedText = customSelect.querySelector('.selected-text');
 
     optionsContainer.innerHTML = '';
+
     Object.keys(MAP_CONFIGS).forEach(key => {
         const config = MAP_CONFIGS[key];
         const optionDiv = document.createElement('div');
@@ -368,6 +377,7 @@ function createPopupHtml(item, lat, lng, regionName) {
     </div>
 `;
 }
+
 function initMap(mapKey) {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
@@ -380,8 +390,8 @@ function initMap(mapKey) {
             maxZoom: config.maxZoom,
             zoomControl: false,
             attributionControl: false,
-            // ★ [추가] 1.0으로 설정하면 경계에서 튕기지(고무줄) 않고 즉시 멈춥니다.
-            maxBoundsViscosity: 1.0
+            maxBoundsViscosity: 1.0,
+            preferCanvas: true
         });
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -400,7 +410,7 @@ function initMap(mapKey) {
         noWrap: true,
         tileSize: 256,
         minZoom: config.minZoom,
-        maxZoom: config.maxZoom
+        maxZoom: config.maxZoom,
     }).addTo(map);
 
     if (regionLayerGroup) {
@@ -433,7 +443,6 @@ async function loadMapData(mapKey) {
         const regionIdMap = {};
         regionMetaInfo = {};
 
-        // 1. 전체 지역 좌표를 포함하는 범위(Bounds) 계산 시작
         const totalBounds = L.latLngBounds([]);
 
         if (regionData && Array.isArray(regionData)) {
@@ -447,21 +456,18 @@ async function loadMapData(mapKey) {
 
                 if (region.coordinates && region.coordinates.length > 0) {
                     const coords = region.coordinates.map(c => [parseFloat(c[1]), parseFloat(c[0])]);
-                    // 모든 지역의 좌표를 totalBounds에 합침 -> 전체 맵 크기 자동 계산
                     totalBounds.extend(coords);
                 }
             });
         }
 
-        // 2. 계산된 크기를 바탕으로 제한 설정 (작성하신 로직 적용)
         if (totalBounds.isValid()) {
-            // (1) 지도 이동 제한: 맵 크기의 85%만큼 상하좌우 여백을 줌 (사용자가 답답하지 않게)
             map.setMaxBounds(totalBounds.pad(0.85));
             map.options.minZoom = config.minZoom;
 
-            // (2) 타일 이미지 로딩 제한: 맵 크기의 30%만큼만 더 불러옴 (검은 영역 방지 + 과부하 방지)
             if (currentTileLayer) {
-                currentTileLayer.options.bounds = totalBounds.pad(0.3);
+                const padding = (config.tilePadding !== undefined) ? config.tilePadding : 0.1;
+                currentTileLayer.options.bounds = totalBounds.pad(padding);
                 currentTileLayer.redraw();
             }
         }
@@ -548,8 +554,46 @@ async function loadMapData(mapKey) {
             itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
         }
 
+        const savedCats = JSON.parse(localStorage.getItem('wwm_active_cats'));
+        const DEFAULT_CAT_ID = "17310010083";
+
+        activeCategoryIds.clear();
+
+        if (savedCats && Array.isArray(savedCats) && savedCats.length > 0) {
+            savedCats.forEach(id => {
+                if (mapData.categories.find(c => c.id === id)) {
+                    activeCategoryIds.add(id);
+                }
+            });
+        }
+
+        if (activeCategoryIds.size === 0) {
+            if (mapData.categories.find(c => c.id === DEFAULT_CAT_ID)) {
+                activeCategoryIds.add(DEFAULT_CAT_ID);
+            } else if (mapData.categories.length > 0) {
+                activeCategoryIds.add(mapData.categories[0].id);
+            }
+        }
+
+        const savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs'));
+        activeRegionNames.clear();
+
+        const currentMapRegions = new Set(regionData.map(r => r.title));
+        uniqueRegions = currentMapRegions;
+
+        if (savedRegs && Array.isArray(savedRegs) && savedRegs.length > 0) {
+            savedRegs.forEach(r => {
+                if (uniqueRegions.has(r)) activeRegionNames.add(r);
+            });
+        }
+
+        if (activeRegionNames.size === 0) {
+            uniqueRegions.forEach(r => activeRegionNames.add(r));
+        }
+
         renderMapDataAndMarkers();
         refreshCategoryList();
+        updateToggleButtonsState();
 
     } catch (error) {
         console.error("데이터 로드 실패:", error);
@@ -641,16 +685,21 @@ function renderMapDataAndMarkers() {
     allMarkers = [];
 
     const currentConfig = MAP_CONFIGS[currentMapKey];
-
     const filteredItems = mapData.items;
 
+    const filteredRegions = regionData.filter(region => {
+        return region.mapId == currentConfig.id;
+    });
+
     const regionPolygons = [];
-    regionLayerGroup.clearLayers();
 
-    if (regionData && Array.isArray(regionData)) {
-        regionData.forEach(region => {
+    if (regionLayerGroup) {
+        regionLayerGroup.clearLayers();
+    }
+
+    if (filteredRegions && Array.isArray(filteredRegions)) {
+        filteredRegions.forEach(region => {
             if (!region.coordinates || region.coordinates.length === 0) return;
-
             const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
             const translatedRegionName = t(region.title);
 
@@ -684,9 +733,11 @@ function renderMapDataAndMarkers() {
                 L.DomEvent.stopPropagation(e);
                 map.fitBounds(this.getBounds());
             });
+
             polygon.on('contextmenu', function (e) {
                 L.DomEvent.preventDefault(e);
                 L.DomEvent.stopPropagation(e);
+
                 activeRegionNames.clear();
                 activeRegionNames.add(region.title);
 
@@ -699,6 +750,7 @@ function renderMapDataAndMarkers() {
                         btn.classList.remove('active');
                     }
                 });
+
                 updateToggleButtonsState();
                 updateMapVisibility();
                 saveFilterState();
@@ -711,12 +763,21 @@ function renderMapDataAndMarkers() {
     uniqueRegions.clear();
 
     filteredItems.forEach(item => {
+        let catId = item.category;
+        if (typeof ICON_MAPPING !== 'undefined' && ICON_MAPPING.hasOwnProperty(catId)) {
+            const mappedValue = ICON_MAPPING[catId];
+            if (mappedValue === null) {
+                return;
+            }
+            catId = mappedValue;
+        }
+
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
 
         let finalRegionName = item.region || "알 수 없음";
-
         let physicallyInRegion = null;
+
         for (const polyObj of regionPolygons) {
             if (isPointInPolygon([lat, lng], polyObj.coords)) {
                 physicallyInRegion = polyObj.title;
@@ -732,8 +793,15 @@ function renderMapDataAndMarkers() {
 
         if (finalRegionName) uniqueRegions.add(finalRegionName);
 
-        const categoryObj = mapData.categories.find(c => c.id === item.category);
-        const iconUrl = categoryObj ? categoryObj.image : './icons/marker.png';
+        const categoryObj = mapData.categories.find(c => c.id === catId);
+
+        let iconUrl = './icons/marker.png';
+        if (categoryObj && categoryObj.image) {
+            iconUrl = categoryObj.image;
+        } else if (typeof DEFAULT_ICON_PATH !== 'undefined') {
+            iconUrl = DEFAULT_ICON_PATH;
+        }
+
         const w = item.imageSizeW || 44;
         const h = item.imageSizeH || 44;
         const isCompleted = completedList.includes(item.id);
@@ -750,14 +818,14 @@ function renderMapDataAndMarkers() {
         const marker = L.marker([lat, lng], {
             icon: customIcon,
             title: item.name,
-            alt: item.category,
+            alt: catId,
             itemId: item.id
         });
 
         marker.on('click', () => {
             console.group(`📍 [${item.id}] ${item.name}`);
-            console.log(`Originally mapped to: ${item.regionId}`);
-            console.log(`Strictly mapped to: ${finalRegionName}`);
+            console.log(`Category: ${catId} (Original: ${item.category})`);
+            console.log(`Region: ${finalRegionName}`);
             console.groupEnd();
         });
 
@@ -775,7 +843,7 @@ function renderMapDataAndMarkers() {
             name: item.name.toLowerCase(),
             originalName: item.name,
             desc: (item.description || '').toLowerCase(),
-            category: item.category,
+            category: catId,
             region: finalRegionName,
             forceRegion: item.forceRegion
         });
@@ -908,7 +976,6 @@ function saveFilterState() {
     localStorage.setItem('wwm_active_regs', JSON.stringify([...activeRegionNames]));
 }
 
-// [복구됨] 즐겨찾기 목록 렌더링
 function renderFavorites() {
     const favListEl = document.getElementById('favorite-list');
     favListEl.innerHTML = '';
@@ -932,7 +999,6 @@ function renderFavorites() {
     });
 }
 
-// [복구됨] 링크 목록 렌더링
 function renderLinks() {
     const linkTab = document.getElementById('link-tab');
     let linkListEl = linkTab ? linkTab.querySelector('.link-list') : null;
@@ -949,7 +1015,6 @@ function renderLinks() {
     });
 }
 
-// [복구됨] 업데이트 내역 렌더링
 function renderUpdates() {
     const updateListEl = document.getElementById('update-list');
     if (!updateListEl) return;
@@ -978,7 +1043,6 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         if (!transRes.ok) throw new Error("필수 파일을 찾을 수 없습니다.");
 
-        // [복구됨] 깃허브 모달 이벤트 연결
         const githubModal = document.getElementById('github-modal');
         const openGithubModalBtn = document.getElementById('open-github-modal');
         const githubModalTitle = document.getElementById('github-modal-title');
@@ -1026,7 +1090,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // [복구됨] 설정 모달 이벤트 연결
         const settingsModal = document.getElementById('settings-modal');
         const openSettingsBtn = document.getElementById('open-settings');
         const saveApiKeyBtn = document.getElementById('save-api-key');
@@ -1489,7 +1552,6 @@ function isPointInPolygon(point, vs) {
     return inside;
 }
 
-// [추가] 관련 항목 모달 창 열기/닫기/렌더링
 window.jumpToId = (id) => {
     const target = allMarkers.find(m => m.id === id);
     if (target) window.moveToLocation(target.marker.getLatLng(), target.marker);
