@@ -197,6 +197,7 @@ function initCustomDropdown() {
     const selectedText = customSelect.querySelector('.selected-text');
 
     optionsContainer.innerHTML = '';
+
     Object.keys(MAP_CONFIGS).forEach(key => {
         const config = MAP_CONFIGS[key];
         const optionDiv = document.createElement('div');
@@ -1079,6 +1080,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         const githubModalTitle = document.getElementById('github-modal-title');
         const githubModalDesc = document.getElementById('github-modal-desc');
         const githubModalLinks = document.getElementById('github-modal-links');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const mapParam = urlParams.get('map');
+
+        if (mapParam && MAP_CONFIGS[mapParam]) {
+            currentMapKey = mapParam;
+        }
 
         function renderContributionModal() {
             if (!githubModalTitle || !githubModalDesc || !githubModalLinks) return;
