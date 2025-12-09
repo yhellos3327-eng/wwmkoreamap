@@ -1,9 +1,9 @@
-const updateHistory = [
+﻿const updateHistory = [
     {
-        version: "v1.2.6",
+        version: "v1.2.7",
         date: "2025-12-09",
         content: [
-            "버그 수정"
+            "버그 수정: 마커가 외딴 좌표에서 날아오는 애니메이션 해결",
         ]
     },
     {
@@ -400,7 +400,8 @@ function initMap(mapKey) {
             zoomControl: false,
             attributionControl: false,
             maxBoundsViscosity: 1.0,
-            preferCanvas: true
+            preferCanvas: true,
+            markerZoomAnimation: false
         });
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -575,22 +576,16 @@ async function loadMapData(mapKey) {
         }
 
         const DEFAULT_CAT_ID = "17310010083";
-        let savedCats = JSON.parse(localStorage.getItem('wwm_active_cats')) || [];
         let savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs')) || [];
 
         const validCategoryIds = new Set(mapData.categories.map(c => c.id));
-        const filteredSavedCats = savedCats.filter(id => validCategoryIds.has(id));
 
         activeCategoryIds.clear();
 
-        if (filteredSavedCats.length > 0) {
-            filteredSavedCats.forEach(id => activeCategoryIds.add(id));
-        } else {
-            if (validCategoryIds.has(DEFAULT_CAT_ID)) {
-                activeCategoryIds.add(DEFAULT_CAT_ID);
-            } else if (mapData.categories.length > 0) {
-                activeCategoryIds.add(mapData.categories[0].id);
-            }
+        if (validCategoryIds.has(DEFAULT_CAT_ID)) {
+            activeCategoryIds.add(DEFAULT_CAT_ID);
+        } else if (mapData.categories.length > 0) {
+            activeCategoryIds.add(mapData.categories[0].id);
         }
 
         const currentMapRegions = new Set();
@@ -829,7 +824,9 @@ function renderMapDataAndMarkers() {
         const w = item.imageSizeW || 44;
         const h = item.imageSizeH || 44;
         const isCompleted = completedList.includes(item.id);
-        const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon marker-anim';
+
+        // [수정] marker-anim 클래스 제거: 마커가 날아오는 현상 방지
+        const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
 
         const customIcon = L.icon({
             iconUrl: iconUrl,
@@ -977,6 +974,7 @@ function setAllRegions(isActive) {
     updateMapVisibility();
     saveFilterState();
 }
+
 
 function updateToggleButtonsState() {
     const btnToggleCat = document.getElementById('btn-toggle-cat');
@@ -1203,37 +1201,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         initCustomDropdown();
 
         await loadMapData(currentMapKey);
-
-        const savedCats = JSON.parse(localStorage.getItem('wwm_active_cats'));
-        const savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs'));
-        const DEFAULT_CAT_ID = "17310010083";
-
-        const validCategories = mapData.categories.filter(cat => {
-            return cat.image && cat.image.trim() !== "";
-        });
-
-        activeCategoryIds.clear();
-        activeRegionNames.clear();
-
-        if (savedCats && Array.isArray(savedCats) && savedCats.length > 0) {
-            savedCats.forEach(id => {
-                if (validCategories.find(c => c.id === id)) activeCategoryIds.add(id);
-            });
-        } else {
-            if (validCategories.find(c => c.id === DEFAULT_CAT_ID)) {
-                activeCategoryIds.add(DEFAULT_CAT_ID);
-            } else if (validCategories.length > 0) {
-                activeCategoryIds.add(validCategories[0].id);
-            }
-        }
-
-        if (savedRegs && Array.isArray(savedRegs) && savedRegs.length > 0) {
-            savedRegs.forEach(r => {
-                if (uniqueRegions.has(r)) activeRegionNames.add(r);
-            });
-        } else {
-            uniqueRegions.forEach(r => activeRegionNames.add(r));
-        }
 
         const searchInput = document.getElementById('search-input');
         if (searchInput) {
