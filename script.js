@@ -162,30 +162,22 @@ const getJosa = (word, type) => {
 function toggleSidebar(action) {
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('open-sidebar');
-    const isMobile = window.innerWidth <= 768;
+
+    const isEmbed = document.body.classList.contains('embed-mode');
 
     if (action === 'open') {
-        if (isMobile) {
-            sidebar.classList.add('open');
-        } else {
-            sidebar.classList.remove('collapsed');
-        }
-
+        sidebar.classList.add('open');
+        sidebar.classList.remove('collapsed');
         if (openBtn) openBtn.classList.add('hidden-btn');
 
-        setTimeout(() => { if (map) map.invalidateSize(); }, 300);
-
     } else {
-        if (isMobile) {
-            sidebar.classList.remove('open');
-        } else {
-            sidebar.classList.add('collapsed');
-        }
+        sidebar.classList.remove('open');
+        sidebar.classList.add('collapsed');
 
         if (openBtn) openBtn.classList.remove('hidden-btn');
-
-        setTimeout(() => { if (map) map.invalidateSize(); }, 300);
     }
+
+    setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 }
 
 function initCustomDropdown() {
@@ -1083,9 +1075,31 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         const urlParams = new URLSearchParams(window.location.search);
         const mapParam = urlParams.get('map');
+        const isEmbed = urlParams.get('embed') === 'true';
 
         if (mapParam && MAP_CONFIGS[mapParam]) {
             currentMapKey = mapParam;
+        }
+        if (isEmbed) {
+            document.body.classList.add('embed-mode');
+            const sidebar = document.getElementById('sidebar');
+            const openBtn = document.getElementById('open-sidebar');
+
+            sidebar.classList.remove('open');
+            sidebar.classList.add('collapsed');
+            if (openBtn) openBtn.classList.remove('hidden-btn');
+        }
+
+        const originalBtn = document.getElementById('btn-open-original');
+        if (originalBtn) {
+            originalBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const targetUrl = new URL(window.location.href);
+                targetUrl.searchParams.delete('embed');
+                targetUrl.searchParams.set('map', currentMapKey);
+
+                window.open(targetUrl.toString(), '_blank');
+            });
         }
 
         function renderContributionModal() {
