@@ -148,7 +148,7 @@ let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
 let savedRegionColor = localStorage.getItem('wwm_region_color') || "#242424";
 let savedRegionFillColor = localStorage.getItem('wwm_region_fill_color') || "#ffbd53";
-let savedShowAd = localStorage.getItem('wwm_show_ad') === 'true'; // Default false
+let savedShowAd = localStorage.getItem('wwm_show_ad') === 'false'; // Default false
 
 const ICON_MAPPING = {
     "173100100592": null,
@@ -1733,7 +1733,7 @@ const initAdToggle = () => {
 
     if (!adContainer || !toggleAd) return;
 
-    const showAd = localStorage.getItem('wwm_show_ad') === 'true'; // Default false
+    const showAd = localStorage.getItem('wwm_show_ad') === 'false'; // Default false
     toggleAd.checked = showAd;
     adContainer.style.display = showAd ? 'block' : 'none';
 
