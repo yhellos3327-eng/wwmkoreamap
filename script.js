@@ -1635,7 +1635,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-const translateItem = async (itemId) => {
+window.translateItem = async (itemId) => {
     if (!savedApiKey) {
         alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
         return;
