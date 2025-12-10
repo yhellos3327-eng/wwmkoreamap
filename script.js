@@ -1,9 +1,18 @@
 ﻿const updateHistory = [
     {
+        version: "v1.2.8",
+        date: "2025-12-10",
+        content: [
+            "디자인 개선",
+            "광고 토글 추가 (광고 없음)",
+            "버그 수정"
+        ]
+    },
+    {
         version: "v1.2.7",
         date: "2025-12-09",
         content: [
-            "버그 수정: 마커가 외딴 좌표에서 날아오는 애니메이션 해결",
+            "버그 수정: 마커가 외딴 좌표에서 날아오는 애니메이션 글리치 해결",
         ]
     },
     {
@@ -137,6 +146,9 @@ let currentLightboxImages = [];
 let currentLightboxIndex = 0;
 let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
+let savedRegionColor = localStorage.getItem('wwm_region_color') || "#242424";
+let savedRegionFillColor = localStorage.getItem('wwm_region_fill_color') || "#ffbd53";
+let savedShowAd = localStorage.getItem('wwm_show_ad') === 'true'; // Default false
 
 const ICON_MAPPING = {
     "173100100592": null,
@@ -159,7 +171,7 @@ const getJosa = (word, type) => {
     return hasJongsung ? josa1 : josa2;
 };
 
-function toggleSidebar(action) {
+const toggleSidebar = (action) => {
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('open-sidebar');
 
@@ -180,7 +192,55 @@ function toggleSidebar(action) {
     setTimeout(() => { if (map) map.invalidateSize(); }, 300);
 }
 
-function initCustomDropdown() {
+const handleMapSelection = async (key, config, customSelect, optionsContainer, selectedText, optionDiv) => {
+    if (currentMapKey === key) {
+        customSelect.classList.remove('open');
+        return;
+    }
+
+    // localStorage.removeItem('wwm_active_regs');
+    // localStorage.removeItem('wwm_active_cats');
+
+    currentMapKey = key;
+    if (selectedText) selectedText.textContent = config.name;
+
+    const allOptions = optionsContainer.querySelectorAll('.custom-option');
+    allOptions.forEach(opt => opt.classList.remove('selected'));
+    optionDiv.classList.add('selected');
+
+    customSelect.classList.remove('open');
+
+    await loadMapData(currentMapKey);
+};
+
+const createDropdownOption = (key, config, customSelect, optionsContainer, selectedText) => {
+    const optionDiv = document.createElement('div');
+    optionDiv.className = `custom-option ${key === currentMapKey ? 'selected' : ''}`;
+    optionDiv.dataset.value = key;
+    optionDiv.textContent = config.name;
+
+    optionDiv.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleMapSelection(key, config, customSelect, optionsContainer, selectedText, optionDiv);
+    });
+
+    return optionDiv;
+};
+
+const setupDropdownEvents = (customSelect, trigger) => {
+    trigger.addEventListener('click', (e) => {
+        e.stopPropagation();
+        customSelect.classList.toggle('open');
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!customSelect.contains(e.target)) {
+            customSelect.classList.remove('open');
+        }
+    });
+};
+
+const initCustomDropdown = () => {
     const customSelect = document.getElementById('custom-map-select');
     if (!customSelect) return;
 
@@ -192,33 +252,7 @@ function initCustomDropdown() {
 
     Object.keys(MAP_CONFIGS).forEach(key => {
         const config = MAP_CONFIGS[key];
-        const optionDiv = document.createElement('div');
-        optionDiv.className = `custom-option ${key === currentMapKey ? 'selected' : ''}`;
-        optionDiv.dataset.value = key;
-        optionDiv.textContent = config.name;
-
-        optionDiv.addEventListener('click', async (e) => {
-            e.stopPropagation();
-
-            if (currentMapKey === key) {
-                customSelect.classList.remove('open');
-                return;
-            }
-
-            localStorage.removeItem('wwm_active_regs');
-
-            currentMapKey = key;
-            if (selectedText) selectedText.textContent = config.name;
-
-            const allOptions = optionsContainer.querySelectorAll('.custom-option');
-            allOptions.forEach(opt => opt.classList.remove('selected'));
-            optionDiv.classList.add('selected');
-
-            customSelect.classList.remove('open');
-
-            await loadMapData(currentMapKey);
-        });
-
+        const optionDiv = createDropdownOption(key, config, customSelect, optionsContainer, selectedText);
         optionsContainer.appendChild(optionDiv);
     });
 
@@ -226,19 +260,10 @@ function initCustomDropdown() {
         selectedText.textContent = MAP_CONFIGS[currentMapKey].name;
     }
 
-    trigger.addEventListener('click', (e) => {
-        e.stopPropagation();
-        customSelect.classList.toggle('open');
-    });
-
-    document.addEventListener('click', (e) => {
-        if (!customSelect.contains(e.target)) {
-            customSelect.classList.remove('open');
-        }
-    });
+    setupDropdownEvents(customSelect, trigger);
 }
 
-function createPopupHtml(item, lat, lng, regionName) {
+const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = favorites.includes(item.id);
     const isCompleted = completedList.includes(item.id);
     const displayRegion = item.forceRegion || regionName;
@@ -387,7 +412,7 @@ function createPopupHtml(item, lat, lng, regionName) {
 `;
 }
 
-function initMap(mapKey) {
+const initMap = (mapKey) => {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
 
@@ -430,7 +455,7 @@ function initMap(mapKey) {
     }
 }
 
-async function loadMapData(mapKey) {
+const loadMapData = async (mapKey) => {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
 
@@ -576,16 +601,30 @@ async function loadMapData(mapKey) {
         }
 
         const DEFAULT_CAT_ID = "17310010083";
-        let savedRegs = JSON.parse(localStorage.getItem('wwm_active_regs')) || [];
+        let savedRegs = JSON.parse(localStorage.getItem(`wwm_active_regs_${mapKey}`)) || [];
 
         const validCategoryIds = new Set(mapData.categories.map(c => c.id));
 
         activeCategoryIds.clear();
 
-        if (validCategoryIds.has(DEFAULT_CAT_ID)) {
-            activeCategoryIds.add(DEFAULT_CAT_ID);
-        } else if (mapData.categories.length > 0) {
-            activeCategoryIds.add(mapData.categories[0].id);
+        // [수정] 저장된 카테고리 필터 불러오기 (맵별 분리)
+        let savedCats = JSON.parse(localStorage.getItem(`wwm_active_cats_${mapKey}`)) || [];
+
+        if (savedCats.length > 0) {
+            savedCats.forEach(id => {
+                // [수정] 현재 맵에 없는 카테고리라도 유지 (다른 맵 갔다가 돌아올 때를 위해)
+                activeCategoryIds.add(id);
+            });
+        }
+
+        // 저장된 설정이 없거나 유효한 카테고리가 하나도 없는 경우 기본값 사용
+        // 단, activeCategoryIds에 뭔가 들어있다면(다른 맵 카테고리라도) 사용자가 설정을 건드린 것이므로 기본값 적용 안 함
+        if (savedCats.length === 0) {
+            if (validCategoryIds.has(DEFAULT_CAT_ID)) {
+                activeCategoryIds.add(DEFAULT_CAT_ID);
+            } else if (mapData.categories.length > 0) {
+                activeCategoryIds.add(mapData.categories[0].id);
+            }
         }
 
         const currentMapRegions = new Set();
@@ -609,23 +648,21 @@ async function loadMapData(mapKey) {
         saveFilterState();
 
         renderMapDataAndMarkers();
+        calculateTranslationProgress();
         refreshCategoryList();
         updateToggleButtonsState();
         renderFavorites();
-
     } catch (error) {
         console.error("데이터 로드 실패:", error);
         alert(`${config.name} 데이터를 불러오는데 실패했습니다.\n` + error.message);
     }
 }
 
-function refreshCategoryList() {
+const refreshCategoryList = () => {
     const categoryListEl = document.getElementById('category-list');
     categoryListEl.innerHTML = '';
 
-    const validCategories = mapData.categories.filter(cat => {
-        return cat.image && cat.image.trim() !== "";
-    });
+    const validCategories = mapData.categories;
 
     const categoryGroups = {
         "locations": {
@@ -663,12 +700,28 @@ function refreshCategoryList() {
             btn.className = activeCategoryIds.has(cat.id) ? 'cate-item active' : 'cate-item';
             btn.dataset.id = cat.id;
 
-            const count = itemsByCategory[cat.id] ? itemsByCategory[cat.id].length : 0;
+            const items = itemsByCategory[cat.id] || [];
+            const count = items.length;
+
+            let transCount = 0;
+            items.forEach(i => {
+                if (i.isTranslated || koDict[i.name] || koDict[i.name.trim()]) {
+                    transCount++;
+                }
+            });
+
+            const percent = count > 0 ? Math.round((transCount / count) * 100) : 0;
+            const progressClass = percent === 100 ? 'done' : (percent > 0 ? 'in-progress' : '');
 
             btn.innerHTML = `
                 <span class="cate-icon"><img src="${cat.image}" alt=""></span>
-                <span class="cate-name">${t(cat.name)}</span>
-                <span class="cate-count">${count}</span>
+                <div class="cate-info">
+                    <span class="cate-name">${t(cat.name)}</span>
+                    <div class="cate-meta">
+                        <span class="cate-count">${count}</span>
+                        <span class="cate-trans-stat ${progressClass}">${percent}% 한글화</span>
+                    </div>
+                </div>
             `;
 
             btn.addEventListener('click', () => {
@@ -696,7 +749,7 @@ function refreshCategoryList() {
     updateToggleButtonsState();
 }
 
-function renderMapDataAndMarkers() {
+const renderMapDataAndMarkers = () => {
     allMarkers.forEach(m => {
         if (map.hasLayer(m.marker)) map.removeLayer(m.marker);
     });
@@ -727,11 +780,11 @@ function renderMapDataAndMarkers() {
             });
 
             const polygon = L.polygon(polygonCoords, {
-                color: '#daac71',
-                weight: 2,
-                opacity: 0.5,
-                fillColor: '#daac71',
-                fillOpacity: 0.05,
+                color: savedRegionColor,
+                weight: 1,
+                opacity: 1,
+                fillColor: savedRegionFillColor,
+                fillOpacity: 0.1,
                 className: 'region-polygon'
             });
 
@@ -742,10 +795,10 @@ function renderMapDataAndMarkers() {
             });
 
             polygon.on('mouseover', function () {
-                this.setStyle({ weight: 3, fillOpacity: 0.15 });
+                this.setStyle({ weight: 2, fillOpacity: 0.4 });
             });
             polygon.on('mouseout', function () {
-                this.setStyle({ weight: 2, fillOpacity: 0.05 });
+                this.setStyle({ weight: 1, fillOpacity: 0.1 });
             });
             polygon.on('click', function (e) {
                 L.DomEvent.stopPropagation(e);
@@ -874,7 +927,7 @@ function renderMapDataAndMarkers() {
     updateMapVisibility();
 }
 
-function refreshSidebarLists() {
+const refreshSidebarLists = () => {
     const regionListEl = document.getElementById('region-list');
     regionListEl.innerHTML = '';
 
@@ -925,7 +978,7 @@ function refreshSidebarLists() {
     updateToggleButtonsState();
 }
 
-function updateMapVisibility() {
+const updateMapVisibility = () => {
     if (!map) return;
     const bounds = map.getBounds().pad(0.2);
     allMarkers.forEach(m => {
@@ -945,10 +998,10 @@ function updateMapVisibility() {
     });
 }
 
-function setAllCategories(isActive) {
+const setAllCategories = (isActive) => {
     const catBtns = document.querySelectorAll('#category-list .cate-item');
     activeCategoryIds.clear();
-    const validCategories = mapData.categories.filter(cat => cat.image && cat.image.trim() !== "");
+    const validCategories = mapData.categories;
 
     if (isActive) {
         validCategories.forEach(c => activeCategoryIds.add(c.id));
@@ -961,7 +1014,7 @@ function setAllCategories(isActive) {
     saveFilterState();
 }
 
-function setAllRegions(isActive) {
+const setAllRegions = (isActive) => {
     const regBtns = document.querySelectorAll('#region-list .cate-item');
     activeRegionNames.clear();
     if (isActive) {
@@ -976,13 +1029,13 @@ function setAllRegions(isActive) {
 }
 
 
-function updateToggleButtonsState() {
+const updateToggleButtonsState = () => {
     const btnToggleCat = document.getElementById('btn-toggle-cat');
     const btnToggleReg = document.getElementById('btn-toggle-reg');
-    const validCategories = mapData.categories.filter(cat => cat.image && cat.image.trim() !== "");
+    const validCategories = mapData.categories;
 
     if (btnToggleCat) {
-        const allCatActive = activeCategoryIds.size === validCategories.length;
+        const allCatActive = validCategories.length > 0 && validCategories.every(cat => activeCategoryIds.has(cat.id));
         btnToggleCat.innerHTML = allCatActive ? '👁️ 모두 끄기' : '👁️‍🗨️ 모두 켜기';
         btnToggleCat.classList.toggle('off', !allCatActive);
     }
@@ -993,12 +1046,12 @@ function updateToggleButtonsState() {
     }
 }
 
-function saveFilterState() {
-    localStorage.setItem('wwm_active_cats', JSON.stringify([...activeCategoryIds]));
-    localStorage.setItem('wwm_active_regs', JSON.stringify([...activeRegionNames]));
+const saveFilterState = () => {
+    localStorage.setItem(`wwm_active_cats_${currentMapKey}`, JSON.stringify([...activeCategoryIds]));
+    localStorage.setItem(`wwm_active_regs_${currentMapKey}`, JSON.stringify([...activeRegionNames]));
 }
 
-function renderFavorites() {
+const renderFavorites = () => {
     const favListEl = document.getElementById('favorite-list');
     favListEl.innerHTML = '';
     if (favorites.length === 0) {
@@ -1021,7 +1074,7 @@ function renderFavorites() {
     });
 }
 
-function renderLinks() {
+const renderLinks = () => {
     const linkTab = document.getElementById('link-tab');
     let linkListEl = linkTab ? linkTab.querySelector('.link-list') : null;
     if (!linkListEl) return;
@@ -1037,7 +1090,7 @@ function renderLinks() {
     });
 }
 
-function renderUpdates() {
+const renderUpdates = () => {
     const updateListEl = document.getElementById('update-list');
     if (!updateListEl) return;
     updateListEl.innerHTML = '';
@@ -1145,10 +1198,37 @@ document.addEventListener('DOMContentLoaded', async () => {
         const openSettingsBtn = document.getElementById('open-settings');
         const saveApiKeyBtn = document.getElementById('save-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
+        const regionColorInput = document.getElementById('region-line-color');
+        const regionFillColorInput = document.getElementById('region-fill-color');
+        const adToggleInput = document.getElementById('toggle-ad');
+
+        if (regionColorInput) {
+            regionColorInput.addEventListener('input', (e) => {
+                const valDisplay = document.getElementById('region-line-color-value');
+                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
+            });
+        }
+        if (regionFillColorInput) {
+            regionFillColorInput.addEventListener('input', (e) => {
+                const valDisplay = document.getElementById('region-fill-color-value');
+                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
+            });
+        }
 
         if (openSettingsBtn) {
             openSettingsBtn.addEventListener('click', () => {
                 apiKeyInput.value = savedApiKey;
+                if (adToggleInput) adToggleInput.checked = savedShowAd;
+                if (regionColorInput) {
+                    regionColorInput.value = savedRegionColor;
+                    const valDisplay = document.getElementById('region-line-color-value');
+                    if (valDisplay) valDisplay.textContent = savedRegionColor.toUpperCase();
+                }
+                if (regionFillColorInput) {
+                    regionFillColorInput.value = savedRegionFillColor;
+                    const valDisplay = document.getElementById('region-fill-color-value');
+                    if (valDisplay) valDisplay.textContent = savedRegionFillColor.toUpperCase();
+                }
                 settingsModal.classList.remove('hidden');
             });
         }
@@ -1157,8 +1237,24 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveApiKeyBtn.addEventListener('click', () => {
                 savedApiKey = apiKeyInput.value.trim();
                 localStorage.setItem('wwm_api_key', savedApiKey);
-                alert("API Key가 저장되었습니다.");
+
+                if (regionColorInput) {
+                    savedRegionColor = regionColorInput.value;
+                    localStorage.setItem('wwm_region_color', savedRegionColor);
+                }
+                if (regionFillColorInput) {
+                    savedRegionFillColor = regionFillColorInput.value;
+                    localStorage.setItem('wwm_region_fill_color', savedRegionFillColor);
+                }
+
+                if (adToggleInput) {
+                    savedShowAd = adToggleInput.checked;
+                    localStorage.setItem('wwm_show_ad', savedShowAd);
+                }
+
+                alert("옵션 저장되었습니다.");
                 settingsModal.classList.add('hidden');
+                renderMapDataAndMarkers();
             });
         }
 
@@ -1203,19 +1299,87 @@ document.addEventListener('DOMContentLoaded', async () => {
         await loadMapData(currentMapKey);
 
         const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+
         if (searchInput) {
             searchInput.addEventListener('input', (e) => {
                 const term = e.target.value.trim().toLowerCase();
+
                 if (term === '') {
                     allMarkers.forEach(m => m.marker.setOpacity(1));
+                    if (searchResults) searchResults.classList.add('hidden');
                     return;
                 }
+
                 allMarkers.forEach(m => {
                     const regionName = t(m.region).toLowerCase();
                     const categoryName = t(m.category).toLowerCase();
                     const isMatch = m.name.includes(term) || m.desc.includes(term) || regionName.includes(term) || categoryName.includes(term);
                     m.marker.setOpacity(isMatch ? 1 : 0.1);
                 });
+
+                if (searchResults) {
+                    searchResults.innerHTML = '';
+                    const matchedRegions = Array.from(uniqueRegions).filter(r => t(r).toLowerCase().includes(term));
+
+                    if (matchedRegions.length > 0) {
+                        matchedRegions.forEach(r => {
+                            const div = document.createElement('div');
+                            div.className = 'search-result-item';
+                            div.innerHTML = `<span>${t(r)}</span> <span class="search-result-type">지역</span>`;
+                            div.onclick = () => {
+                                searchInput.value = t(r);
+                                searchResults.classList.add('hidden');
+
+                                if (activeRegionNames.has(r)) {
+                                    activeRegionNames.clear();
+                                    activeRegionNames.add(r);
+                                } else {
+                                    activeRegionNames.clear();
+                                    activeRegionNames.add(r);
+                                }
+
+                                const regBtns = document.querySelectorAll('#region-list .cate-item');
+                                regBtns.forEach(btn => {
+                                    if (btn.dataset.region === r) {
+                                        btn.classList.add('active');
+                                        btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                    } else {
+                                        btn.classList.remove('active');
+                                    }
+                                });
+
+                                updateToggleButtonsState();
+                                updateMapVisibility();
+                                saveFilterState();
+
+                                const meta = regionMetaInfo[r];
+                                if (meta) {
+                                    map.flyTo([meta.lat, meta.lng], meta.zoom, {
+                                        animate: true,
+                                        duration: 1.0
+                                    });
+                                }
+                            };
+                            searchResults.appendChild(div);
+                        });
+                        searchResults.classList.remove('hidden');
+                    } else {
+                        searchResults.classList.add('hidden');
+                    }
+                }
+            });
+
+            searchInput.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (searchResults) searchResults.classList.add('hidden');
+                }, 200);
+            });
+
+            searchInput.addEventListener('focus', () => {
+                if (searchInput.value.trim() !== '' && searchResults && searchResults.children.length > 0) {
+                    searchResults.classList.remove('hidden');
+                }
             });
         }
 
@@ -1237,7 +1401,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         const btnToggleReg = document.getElementById('btn-toggle-reg');
         if (btnToggleCat) {
             btnToggleCat.addEventListener('click', () => {
-                const validCats = mapData.categories.filter(cat => cat.image && cat.image.trim() !== "");
+                const validCats = mapData.categories;
                 const allActive = activeCategoryIds.size === validCats.length;
                 setAllCategories(!allActive);
             });
@@ -1479,7 +1643,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-async function translateItem(itemId) {
+const translateItem = async (itemId) => {
     if (!savedApiKey) {
         alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
         return;
@@ -1539,8 +1703,6 @@ async function translateItem(itemId) {
         const result = JSON.parse(jsonStr);
 
         item.name = result.name;
-        item.description = result.description;
-        item.isTranslated = true;
 
         const markerObj = allMarkers.find(m => m.id === itemId);
         if (markerObj) {
@@ -1559,26 +1721,58 @@ async function translateItem(itemId) {
     }
 }
 
-function isPointInPolygon(point, vs) {
-    var x = point[0], y = point[1];
-    var inside = false;
-    for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-        var xi = vs[i][0], yi = vs[i][1];
-        var xj = vs[j][0], yj = vs[j][1];
-        var intersect = ((yi > y) != (yj > y))
+const isPointInPolygon = (point, vs) => {
+    let x = point[0], y = point[1];
+    let inside = false;
+    for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+        let xi = vs[i][0], yi = vs[i][1];
+        let xj = vs[j][0], yj = vs[j][1];
+        let intersect = ((yi > y) != (yj > y))
             && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
         if (intersect) inside = !inside;
     }
     return inside;
 }
 
+const initAdToggle = () => {
+    const adContainer = document.querySelector('.ad-container');
+    const toggleAd = document.getElementById('toggle-ad');
+
+    if (!adContainer || !toggleAd) return;
+
+    const showAd = localStorage.getItem('wwm_show_ad') === 'true'; // Default false
+    toggleAd.checked = showAd;
+    adContainer.style.display = showAd ? 'block' : 'none';
+
+    toggleAd.addEventListener('change', (e) => {
+        const isChecked = e.target.checked;
+        localStorage.setItem('wwm_show_ad', isChecked);
+        adContainer.style.display = isChecked ? 'block' : 'none';
+    });
+}
+
+document.addEventListener('DOMContentLoaded', initAdToggle);
+
 window.jumpToId = (id) => {
     const target = allMarkers.find(m => m.id === id);
-    if (target) window.moveToLocation(target.marker.getLatLng(), target.marker);
+    if (target) window.moveToLocation(target.marker.getLatLng(), target.marker, target.region);
 };
 
-window.moveToLocation = (latlng, marker = null) => {
+window.moveToLocation = (latlng, marker = null, regionName = null) => {
     if (!map) return;
+
+    if (regionName && !activeRegionNames.has(regionName)) {
+        activeRegionNames.add(regionName);
+        const regBtns = document.querySelectorAll('#region-list .cate-item');
+        regBtns.forEach(btn => {
+            if (btn.dataset.region === regionName) {
+                btn.classList.add('active');
+            }
+        });
+        updateToggleButtonsState();
+        saveFilterState();
+    }
+
     const currentZoom = map.getZoom();
     const targetZoom = currentZoom > 12 ? currentZoom : 12;
     map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
@@ -1647,12 +1841,23 @@ window.renderModalList = (items) => {
 window.toggleCompleted = (id) => {
     const index = completedList.indexOf(id);
     const target = allMarkers.find(m => m.id === id);
+
     if (index === -1) {
         completedList.push(id);
-        if (target) target.marker._icon.classList.add('completed-marker');
+        if (target) {
+            if (target.marker._icon) target.marker._icon.classList.add('completed-marker');
+            if (target.marker.options.icon && target.marker.options.icon.options) {
+                target.marker.options.icon.options.className += ' completed-marker';
+            }
+        }
     } else {
         completedList.splice(index, 1);
-        if (target) target.marker._icon.classList.remove('completed-marker');
+        if (target) {
+            if (target.marker._icon) target.marker._icon.classList.remove('completed-marker');
+            if (target.marker.options.icon && target.marker.options.icon.options) {
+                target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(' completed-marker', '');
+            }
+        }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(completedList));
     if (target && target.marker.isPopupOpen()) {
@@ -1681,3 +1886,25 @@ window.shareLocation = (id, lat, lng) => {
         alert('링크가 복사되었습니다!\n' + shareUrl);
     }).catch(err => prompt("링크 복사:", shareUrl));
 };
+
+const calculateTranslationProgress = () => {
+    const totalItems = mapData.items.length;
+    if (totalItems === 0) return;
+
+    let translatedCount = 0;
+    mapData.items.forEach(item => {
+        if (item.isTranslated || koDict[item.name] || koDict[item.name.trim()]) {
+            translatedCount++;
+        }
+    });
+
+    const percent = Math.round((translatedCount / totalItems) * 100);
+
+    const bar = document.getElementById('trans-bar');
+    const percentText = document.getElementById('trans-percent');
+    const statsText = document.getElementById('trans-stats');
+
+    if (bar) bar.style.width = `${percent}%`;
+    if (percentText) percentText.textContent = `${percent}%`;
+    if (statsText) statsText.textContent = `${translatedCount} / ${totalItems} 항목 번역됨`;
+}

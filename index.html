@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Where Winds Meet - Interactive Map</title>
+    <title>연운 - 한국어 지도 맵</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
     <link rel="stylesheet" href="style.css">
@@ -14,15 +14,22 @@
     <div class="app-container">
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <h1>Interactive Map</h1>
+                <h1>연운 한국어 맵</h1>
                 <div style="display:flex; gap:5px;">
                     <button id="open-settings" class="close-btn" title="설정">⚙️</button>
                     <button id="toggle-sidebar" class="close-btn">&times;</button>
                 </div>
             </div>
 
+            <div class="ad-container">
+                <div class="ad-placeholder">
+                    <span>광고 영역 (미구현)</span>
+                </div>
+            </div>
+
             <div class="search-container">
                 <input type="text" id="search-input" placeholder="이름, 지역, 카테고리 검색...">
+                <div id="search-results" class="search-results hidden"></div>
             </div>
 
             <div class="tabs">
@@ -35,6 +42,18 @@
 
             <div class="filter-container">
                 <div id="category-tab" class="tab-content active">
+                    <div class="translation-progress-container">
+                        <div class="progress-header">
+                            <span class="progress-title">한글화 진행도</span>
+                            <span class="progress-percent" id="trans-percent">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="trans-bar" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-stats" id="trans-stats">
+                            0 / 0 항목 번역됨
+                        </div>
+                    </div>
                     <button id="btn-toggle-cat" class="btn-toggle-all">👁️ 모두 끄기</button>
                     <div id="category-list" class="category-list"></div>
                 </div>
@@ -100,20 +119,51 @@
         <div class="modal-content" style="height: auto;">
             <div class="modal-header">
                 <h3>설정</h3>
-                <button class="close-modal-btn"
+                <button id="close-settings" class="close-modal-btn"
                     onclick="document.getElementById('settings-modal').classList.add('hidden')">&times;</button>
             </div>
-            <div class="modal-body" style="padding: 20px;">
-                <label style="color:#ccc; display:block; margin-bottom:10px; font-weight:bold;">Google Gemini API
-                    Key</label>
-                <input type="password" id="api-key-input" placeholder="AI 번역을 위한 키 입력"
-                    style="width:100%; padding:10px; background:#222; border:1px solid #444; color:white; border-radius:4px; margin-bottom:10px;">
+            <div class="modal-body settings-modal-body">
+                <div class="settings-group">
+                    <label class="settings-label">Google Gemini API Key</label>
+                    <input type="password" id="api-key-input" class="settings-input" placeholder="AI 번역을 위한 키 입력">
+                </div>
+
+                <div class="settings-group settings-toggle-wrapper">
+                    <span class="settings-toggle-label">광고 표시</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-ad" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">지역 경계선 색상</label>
+                    <div class="color-picker-wrapper">
+                        <div class="color-input-container">
+                            <input type="color" id="region-line-color" value="#242424" class="color-input">
+                            <span class="color-value" id="region-line-color-value">#242424</span>
+                        </div>
+                        <span class="color-label">기본값: #242424</span>
+                    </div>
+                </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">지역 채우기 색상</label>
+                    <div class="color-picker-wrapper">
+                        <div class="color-input-container">
+                            <input type="color" id="region-fill-color" value="#ffbd53" class="color-input">
+                            <span class="color-value" id="region-fill-color-value">#ffbd53</span>
+                        </div>
+                        <span class="color-label">기본값: #ffbd53</span>
+                    </div>
+                </div>
+
                 <button id="save-api-key" class="action-btn"
                     style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
-                <p style="color:#888; font-size:0.8rem; margin-top:15px; line-height:1.4;">
-                    * API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.<br>
-                    * 미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.
-                </p>
+                <ul class="settings-note">
+                    <li>API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.</li>
+                    <li>미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.</li>
+                </ul>
             </div>
         </div>
     </div>
@@ -221,7 +271,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 </body>
 
 </html>
