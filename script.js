@@ -1210,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (openSettingsBtn) {
             openSettingsBtn.addEventListener('click', () => {
                 apiKeyInput.value = savedApiKey;
-                if (adToggleInput) adToggleInput.checked = initAdToggle();
+                if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
                 if (regionColorInput) {
                     regionColorInput.value = savedRegionColor;
                     const valDisplay = document.getElementById('region-line-color-value');
@@ -1732,7 +1732,7 @@ const initAdToggle = () => {
 
     if (!adContainer || !toggleAd) return;
 
-    const showAd = localStorage.getItem('wwm_show_ad') === 'false'; // Default false
+    const showAd = localStorage.getItem('wwm_show_ad') === 'true';
     toggleAd.checked = showAd;
     adContainer.style.display = showAd ? 'block' : 'none';
 
