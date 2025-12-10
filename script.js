@@ -148,7 +148,6 @@ let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
 let savedRegionColor = localStorage.getItem('wwm_region_color') || "#242424";
 let savedRegionFillColor = localStorage.getItem('wwm_region_fill_color') || "#ffbd53";
-let savedShowAd = localStorage.getItem('wwm_show_ad') === 'false'; // Default false
 
 const ICON_MAPPING = {
     "173100100592": null,
@@ -1211,7 +1210,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (openSettingsBtn) {
             openSettingsBtn.addEventListener('click', () => {
                 apiKeyInput.value = savedApiKey;
-                if (adToggleInput) adToggleInput.checked = savedShowAd;
+                if (adToggleInput) adToggleInput.checked = initAdToggle();
                 if (regionColorInput) {
                     regionColorInput.value = savedRegionColor;
                     const valDisplay = document.getElementById('region-line-color-value');
