@@ -607,18 +607,13 @@ const loadMapData = async (mapKey) => {
 
         activeCategoryIds.clear();
 
-        // [수정] 저장된 카테고리 필터 불러오기 (맵별 분리)
         let savedCats = JSON.parse(localStorage.getItem(`wwm_active_cats_${mapKey}`)) || [];
 
         if (savedCats.length > 0) {
             savedCats.forEach(id => {
-                // [수정] 현재 맵에 없는 카테고리라도 유지 (다른 맵 갔다가 돌아올 때를 위해)
                 activeCategoryIds.add(id);
             });
         }
-
-        // 저장된 설정이 없거나 유효한 카테고리가 하나도 없는 경우 기본값 사용
-        // 단, activeCategoryIds에 뭔가 들어있다면(다른 맵 카테고리라도) 사용자가 설정을 건드린 것이므로 기본값 적용 안 함
         if (savedCats.length === 0) {
             if (validCategoryIds.has(DEFAULT_CAT_ID)) {
                 activeCategoryIds.add(DEFAULT_CAT_ID);
@@ -877,8 +872,6 @@ const renderMapDataAndMarkers = () => {
         const w = item.imageSizeW || 44;
         const h = item.imageSizeH || 44;
         const isCompleted = completedList.includes(item.id);
-
-        // [수정] marker-anim 클래스 제거: 마커가 날아오는 현상 방지
         const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
 
         const customIcon = L.icon({
