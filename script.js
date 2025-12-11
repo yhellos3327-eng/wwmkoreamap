@@ -148,6 +148,7 @@ let regionMetaInfo = {};
 let savedApiKey = localStorage.getItem('wwm_api_key') || "";
 let savedRegionColor = localStorage.getItem('wwm_region_color') || "#242424";
 let savedRegionFillColor = localStorage.getItem('wwm_region_fill_color') || "#ffbd53";
+let hideCompleted = localStorage.getItem('wwm_hide_completed') === 'true';
 
 const ICON_MAPPING = {
     "173100100592": null,
@@ -977,6 +978,12 @@ const updateMapVisibility = () => {
         const isCatActive = activeCategoryIds.has(m.category);
         const isRegActive = activeRegionNames.has(m.region);
         if (isCatActive && isRegActive) {
+            const isCompleted = completedList.includes(m.id);
+            if (hideCompleted && isCompleted) {
+                if (map.hasLayer(m.marker)) map.removeLayer(m.marker);
+                return;
+            }
+
             const isVisible = bounds.contains(m.marker.getLatLng());
             const isOnMap = map.hasLayer(m.marker);
             if (isVisible) {
@@ -1149,34 +1156,27 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (!githubModalTitle || !githubModalDesc || !githubModalLinks) return;
             githubModalTitle.textContent = t("contribute_title");
             githubModalDesc.innerHTML = t("contribute_description").replace(/\n/g, '<br>');
+
+            // Generate links with new grid structure
             githubModalLinks.innerHTML = contributionLinks.map(link => `
-                <li style="margin-bottom: 10px;">
-                    <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="link-item">
+                <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="contribution-link">
+                    <span>
+                        ${link.icon === 'code' ? '💻' : '🐛'}
                         ${t(link.titleKey)}
-                        <span class="link-url" style="float:right; opacity:0.6;">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
-                    </a>
-                </li>
+                    </span>
+                    <span class="link-type-badge">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
+                </a>
             `).join('');
 
             const guideContainerId = 'contribution-guide-container';
             let guideContainer = document.getElementById(guideContainerId);
 
-            if (!guideContainer) {
-                guideContainer = document.createElement('div');
-                guideContainer.id = guideContainerId;
-                guideContainer.style.marginTop = '25px';
-                guideContainer.style.paddingTop = '20px';
-                guideContainer.style.borderTop = '1px solid var(--border)';
-                githubModalDesc.parentNode.appendChild(guideContainer);
+            if (guideContainer) {
+                guideContainer.innerHTML = `
+                    <h4>${t("guide_trans_title")}</h4>
+                    <div class="guide-steps">${t("guide_trans_steps")}</div>
+                `;
             }
-            guideContainer.innerHTML = `
-                <div>
-                    <h4 style="color: var(--accent); margin-bottom: 10px; font-size: 1rem;">
-                        ${t("guide_trans_title")}
-                    </h4>
-                    <div style="font-size: 0.9rem; color: #ccc; line-height: 1.6; white-space: pre-wrap; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 4px;">${t("guide_trans_steps")}</div>
-                </div>
-            `;
         }
 
         if (openGithubModalBtn && githubModal) {
@@ -1207,10 +1207,21 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
+        const hideCompletedInput = document.getElementById('toggle-hide-completed');
+        if (hideCompletedInput) {
+            hideCompletedInput.checked = hideCompleted;
+            hideCompletedInput.addEventListener('change', (e) => {
+                hideCompleted = e.target.checked;
+                localStorage.setItem('wwm_hide_completed', hideCompleted);
+                updateMapVisibility();
+            });
+        }
+
         if (openSettingsBtn) {
             openSettingsBtn.addEventListener('click', () => {
                 apiKeyInput.value = savedApiKey;
                 if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
+                if (hideCompletedInput) hideCompletedInput.checked = hideCompleted;
                 if (regionColorInput) {
                     regionColorInput.value = savedRegionColor;
                     const valDisplay = document.getElementById('region-line-color-value');
@@ -1968,6 +1979,7 @@ window.toggleCompleted = (id) => {
         const item = mapData.items.find(i => i.id === id);
         target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
     }
+    if (hideCompleted) updateMapVisibility();
 };
 
 window.toggleFavorite = (id) => {

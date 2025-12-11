@@ -16,6 +16,10 @@
             <div class="sidebar-header">
                 <h1>연운 한국어 맵</h1>
                 <div style="display:flex; gap:5px;">
+                    <button id="open-github-modal" class="close-btn" title="기여하기">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
+                            alt="GitHub" style="width: 20px;height: 20px;filter: invert(100%);">
+                    </button>
                     <button id="open-settings" class="close-btn" title="설정">⚙️</button>
                     <button id="toggle-sidebar" class="close-btn">&times;</button>
                 </div>
@@ -106,10 +110,6 @@
                 </div>
             </div>
 
-            <button id="open-github-modal" class="github-btn" title="기여하기">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg" alt="GitHub"
-                    style="width: 24px; height: 24px;">
-            </button>
             <div id="map"></div>
         </main>
     </div>
@@ -131,6 +131,14 @@
                     <span class="settings-toggle-label">광고 표시</span>
                     <label class="switch">
                         <input type="checkbox" id="toggle-ad" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="settings-group settings-toggle-wrapper">
+                    <span class="settings-toggle-label">완료된 항목 숨기기</span>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-hide-completed">
                         <span class="slider round"></span>
                     </label>
                 </div>
