@@ -2024,3 +2024,52 @@ const calculateTranslationProgress = () => {
     if (percentText) percentText.textContent = `${percent}%`;
     if (statsText) statsText.textContent = `${translatedCount} / ${totalItems} 항목 번역됨`;
 }
+
+const renderContributionModal = () => {
+    const linksContainer = document.getElementById('github-modal-links');
+    const guideContainer = document.getElementById('contribution-guide-container');
+
+    if (!linksContainer || !guideContainer) return;
+
+    // Links
+    const links = [
+        { title: "GitHub 저장소", desc: "소스 코드 및 데이터 확인", url: "https://github.com/yhellos3327-eng/wwmkoreamap", icon: "📦", type: "Repository" },
+        { title: "이슈 제보", desc: "버그 신고 및 기능 요청", url: "https://github.com/yhellos3327-eng/wwmkoreamap/issues", icon: "🐛", type: "Issues" },
+        { title: "공식 디스코드", desc: "커뮤니티 및 토론", url: "https://discord.gg/wherewindsmeet", icon: "💬", type: "Discord" }
+    ];
+
+    linksContainer.innerHTML = links.map(link => `
+        <a href="${link.url}" target="_blank" class="contribution-link">
+            <span>
+                <span style="font-size: 1.5rem;">${link.icon}</span>
+                <div style="display:flex; flex-direction:column;">
+                    <span style="color:var(--text-main); font-size:0.95rem;">${link.title}</span>
+                    <span style="color:#888; font-size:0.8rem; font-weight:400;">${link.desc}</span>
+                </div>
+            </span>
+            <span class="link-type-badge">${link.type}</span>
+        </a>
+    `).join('');
+
+    // Guide
+    guideContainer.innerHTML = `
+        <h4>기여 가이드</h4>
+        <div class="guide-steps">
+1. <b>데이터 제보:</b> 지도의 잘못된 위치나 누락된 정보를 발견하시면 GitHub Issues나 디스코드를 통해 제보해주세요.
+2. <b>번역 기여:</b> <code>translation.json</code> 파일을 수정하여 번역을 개선할 수 있습니다.
+3. <b>개발 참여:</b> 기능 추가나 버그 수정은 Pull Request를 통해 환영합니다.
+        </div>
+    `;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const openGithubBtn = document.getElementById('open-github-modal');
+    const githubModal = document.getElementById('github-modal');
+
+    if (openGithubBtn && githubModal) {
+        openGithubBtn.addEventListener('click', () => {
+            renderContributionModal();
+            githubModal.classList.remove('hidden');
+        });
+    }
+});
