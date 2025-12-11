@@ -1224,30 +1224,45 @@ document.addEventListener('DOMContentLoaded', async () => {
                 settingsModal.classList.remove('hidden');
             });
         }
-
         if (saveApiKeyBtn) {
-            saveApiKeyBtn.addEventListener('click', () => {
-                savedApiKey = apiKeyInput.value.trim();
-                localStorage.setItem('wwm_api_key', savedApiKey);
+            saveApiKeyBtn.addEventListener('click', (event) => {
+                event.preventDefault();
 
-                if (regionColorInput) {
-                    savedRegionColor = regionColorInput.value;
-                    localStorage.setItem('wwm_region_color', savedRegionColor);
-                }
-                if (regionFillColorInput) {
-                    savedRegionFillColor = regionFillColorInput.value;
-                    localStorage.setItem('wwm_region_fill_color', savedRegionFillColor);
-                }
+                try {
+                    if (apiKeyInput) {
+                        savedApiKey = apiKeyInput.value.trim();
+                        localStorage.setItem('wwm_api_key', savedApiKey);
+                    } else {
+                        console.error("오류: apiKeyInput 요소를 찾을 수 없습니다.");
+                    }
 
-                if (adToggleInput) {
-                    savedShowAd = adToggleInput.checked;
-                    localStorage.setItem('wwm_show_ad', savedShowAd);
-                }
+                    if (regionColorInput) {
+                        savedRegionColor = regionColorInput.value;
+                        localStorage.setItem('wwm_region_color', savedRegionColor);
+                    }
 
-                alert("옵션 저장되었습니다.");
-                settingsModal.classList.add('hidden');
-                renderMapDataAndMarkers();
+                    if (regionFillColorInput) {
+                        savedRegionFillColor = regionFillColorInput.value;
+                        localStorage.setItem('wwm_region_fill_color', savedRegionFillColor);
+                    }
+
+                    if (adToggleInput) {
+                        let savedShowAd = adToggleInput.checked;
+                        localStorage.setItem('wwm_show_ad', savedShowAd);
+                    }
+                    alert("옵션 저장되었습니다.");
+                    if (settingsModal) settingsModal.classList.add('hidden');
+                    if (typeof renderMapDataAndMarkers === 'function') {
+                        renderMapDataAndMarkers();
+                    }
+
+                } catch (error) {
+                    console.error("저장 중 에러 발생:", error);
+                    alert("설정 저장 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
+                }
             });
+        } else {
+            console.error("오류: saveApiKeyBtn 버튼을 찾을 수 없습니다.");
         }
 
         const transJson = await transRes.json();
@@ -1745,6 +1760,103 @@ const initAdToggle = () => {
 
 document.addEventListener('DOMContentLoaded', initAdToggle);
 
+document.addEventListener('DOMContentLoaded', () => {
+    const saveBtn = document.getElementById('btn-backup-save');
+    const loadBtn = document.getElementById('btn-backup-load');
+    const fileInput = document.getElementById('inp-backup-file');
+    if (!saveBtn || !loadBtn || !fileInput) return;
+    saveBtn.addEventListener('click', () => {
+        try {
+            const data = { ...localStorage };
+            if (Object.keys(data).length === 0) {
+                alert('저장할 데이터가 없습니다.');
+                return;
+            }
+            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+            const fileName = `map_data_backup_${dateStr}.json`;
+            const jsonStr = JSON.stringify(data, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+        } catch (err) {
+            console.error('백업 실패:', err);
+            alert('데이터 저장 중 오류가 발생했습니다.');
+        }
+    });
+    loadBtn.addEventListener('click', () => {
+        if (confirm('⚠️ 주의!\n파일을 불러오면 현재 저장된 지도의 마커나 설정이 모두 사라지고 파일의 내용으로 교체됩니다.\n계속하시겠습니까?')) {
+            fileInput.click();
+        }
+    });
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+
+        reader.onload = (event) => {
+            try {
+                const fileContent = event.target.result;
+                const parsedData = JSON.parse(fileContent);
+                if (typeof parsedData !== 'object' || parsedData === null) {
+                    throw new Error('잘못된 JSON 형식');
+                }
+                localStorage.clear();
+                for (const key in parsedData) {
+                    if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
+                        localStorage.setItem(key, parsedData[key]);
+                    }
+                }
+
+                alert('✅ 데이터 복구가 완료되었습니다.\n적용을 위해 페이지를 새로고침합니다.');
+                location.reload();
+
+            } catch (err) {
+                console.error('복구 실패:', err);
+                alert('파일을 읽는 데 실패했습니다. 올바른 백업 파일인지 확인해 주세요.');
+            }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+    });
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. 요소 가져오기
+    const contributeBtn = document.getElementById('contribute-btn'); // 기여하기 버튼
+    const contributeModal = document.getElementById('contribute-modal'); // 모달 전체
+    const closeContributeBtn = document.getElementById('close-contribute-btn'); // 닫기(X) 버튼
+
+    // 2. 기여하기 버튼 클릭 시 -> 모달 열기
+    if (contributeBtn && contributeModal) {
+        contributeBtn.addEventListener('click', () => {
+            contributeModal.classList.remove('hidden'); // 'hidden' 클래스 제거하여 보이기
+        });
+    }
+
+    // 3. 닫기(X) 버튼 클릭 시 -> 모달 닫기
+    if (closeContributeBtn && contributeModal) {
+        closeContributeBtn.addEventListener('click', () => {
+            contributeModal.classList.add('hidden'); // 'hidden' 클래스 추가하여 숨기기
+        });
+    }
+
+    // 4. 모달 배경(어두운 부분) 클릭 시 -> 모달 닫기
+    // (window 객체에 이벤트를 걸어서, 클릭된 곳이 모달 배경인지 확인)
+    window.addEventListener('click', (event) => {
+        if (event.target === contributeModal) {
+            contributeModal.classList.add('hidden');
+        }
+    });
+});
 window.jumpToId = (id) => {
     const target = allMarkers.find(m => m.id === id);
     if (target) window.moveToLocation(target.marker.getLatLng(), target.marker, target.region);

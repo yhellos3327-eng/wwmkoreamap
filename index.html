@@ -20,7 +20,6 @@
                     <button id="toggle-sidebar" class="close-btn">&times;</button>
                 </div>
             </div>
-
             <div class="ad-container">
                 <div class="ad-placeholder">
                     <span>광고 영역 (미구현)</span>
@@ -157,7 +156,31 @@
                         <span class="color-label">기본값: #ffbd53</span>
                     </div>
                 </div>
+                <div class="settings-backup-section"
+                    style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 15px;     ">
 
+                    <h4 style="margin-bottom: 10px; font-size: 1.1em; font-weight: bold;">💾 데이터 백업 및 복구</h4>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                        현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
+                        <span style="color: #d9534f; font-size: 0.8em;">
+                            <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>
+                        </span>
+                    </p>
+
+                    <div class="backup-buttons" style="display: flex; gap: 10px;">
+                        <button id="btn-backup-save" class="modal-btn save-btn"
+                            style="flex: 1; padding: 8px; cursor: pointer;">
+                            파일로 저장
+                        </button>
+
+                        <button id="btn-backup-load" class="modal-btn load-btn"
+                            style="flex: 1; padding: 8px; cursor: pointer;">
+                            파일 불러오기
+                        </button>
+
+                        <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
+                    </div>
+                </div>
                 <button id="save-api-key" class="action-btn"
                     style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
                 <ul class="settings-note">
