@@ -16,19 +16,19 @@
             "keys": [
                 "github_repository"
             ],
-            "value": "GitHub 저장소 (소스 코드)"
+            "value": "GitHub 저장소"
         },
         {
             "keys": [
                 "data_submission"
             ],
-            "value": "새 데이터 제보/제안 (이슈 등록)"
+            "value": "제보/제안"
         },
         {
             "keys": [
                 "guide_trans_title"
             ],
-            "value": "📝 번역 데이터 추가 가이드"
+            "value": "번역 데이터 추가 가이드"
         },
         {
             "keys": [
