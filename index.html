@@ -310,6 +310,27 @@
         </div>
     </div>
 
+    <!-- Guide Overlay -->
+    <div id="guide-overlay" class="guide-overlay hidden">
+        <div id="guide-highlight-box" class="guide-highlight-box"></div>
+        <div id="guide-tooltip" class="guide-tooltip">
+            <div class="guide-header">
+                <h3 id="guide-title">가이드 제목</h3>
+                <button id="guide-close" class="guide-close-btn">&times;</button>
+            </div>
+            <div class="guide-body">
+                <p id="guide-content">가이드 내용이 여기에 표시됩니다.</p>
+            </div>
+            <div class="guide-footer">
+                <span id="guide-step-indicator">1 / 5</span>
+                <div class="guide-buttons">
+                    <button id="guide-prev" class="guide-btn secondary">이전</button>
+                    <button id="guide-next" class="guide-btn primary">다음</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
     <script type="module" src="script.js"></script>
 </body>

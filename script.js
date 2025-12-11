@@ -2074,3 +2074,207 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+/* Guide System Logic */
+const guideSteps = [
+    {
+        element: '#sidebar',
+        title: '사이드바 메뉴',
+        content: '여기서 카테고리, 지역, 즐겨찾기 등을 선택하여 지도에 표시할 항목을 필터링할 수 있습니다.',
+        position: 'right'
+    },
+    {
+        element: '.map-selector-wrapper',
+        title: '지도 변경',
+        content: '청하, 개봉 등 다른 지역의 지도로 변경할 수 있습니다.',
+        position: 'bottom'
+    },
+    {
+        element: '#search-input',
+        title: '검색',
+        content: '원하는 아이템이나 지역을 빠르게 검색하세요.',
+        position: 'bottom'
+    },
+    {
+        element: '#map',
+        title: '지도 이동 및 확대와 마커 시스템',
+        content: '지도를 드래그하여 이동하고, 마우스 휠로 확대/축소할 수 있습니다. 우클릭하면 해당 지역만 필터링할 수 있습니다. 또한 지도상의 아이콘(마커)을 클릭하면 상세 정보를 볼 수 있습니다. 마커를 우클릭하면 "완료" 상태로 표시하여 숨길 수 있습니다.',
+        position: 'center'
+    },
+    {
+        element: '.leaflet-control-zoom',
+        title: '줌 컨트롤',
+        content: '버튼을 클릭하여 지도를 확대하거나 축소할 수도 있습니다.',
+        position: 'left'
+    },
+    {
+        element: '#open-settings',
+        title: '설정',
+        content: 'API 키 설정, 데이터 백업/복구, 화면 설정을 할 수 있습니다.',
+        position: 'bottom'
+    },
+    {
+        element: '#open-github-modal',
+        title: '기여하기',
+        content: '오류 제보나 번역 데이터 수정에 참여할 수 있습니다.',
+        position: 'bottom'
+    },
+    {
+        element: '.translation-progress-container',
+        title: '한글화 진행도',
+        content: '현재 지도의 한글화 진행 상황을 확인할 수 있습니다.',
+        position: 'right'
+    }
+];
+
+let currentGuideStep = 0;
+
+const initGuide = () => {
+    const hasSeenGuide = localStorage.getItem('wwm_guide_seen');
+    if (!hasSeenGuide) {
+        setTimeout(() => {
+            startGuide();
+        }, 1000);
+    }
+};
+
+const startGuide = () => {
+    const overlay = document.getElementById('guide-overlay');
+    if (!overlay) return;
+    overlay.classList.remove('hidden');
+    currentGuideStep = 0;
+    showStep(currentGuideStep);
+
+    document.getElementById('guide-next').onclick = nextStep;
+    document.getElementById('guide-prev').onclick = prevStep;
+    document.getElementById('guide-close').onclick = closeGuide;
+};
+
+const closeGuide = () => {
+    const overlay = document.getElementById('guide-overlay');
+    if (overlay) overlay.classList.add('hidden');
+    localStorage.setItem('wwm_guide_seen', 'true');
+};
+
+const nextStep = () => {
+    if (currentGuideStep < guideSteps.length - 1) {
+        currentGuideStep++;
+        showStep(currentGuideStep);
+    } else {
+        closeGuide();
+    }
+};
+
+const prevStep = () => {
+    if (currentGuideStep > 0) {
+        currentGuideStep--;
+        showStep(currentGuideStep);
+    }
+};
+
+const showStep = (index) => {
+    const step = guideSteps[index];
+    const target = document.querySelector(step.element);
+
+    if (!target) return;
+
+    const sidebar = document.getElementById('sidebar');
+    const isInsideSidebar = sidebar.contains(target) || target === sidebar;
+    let delay = 0;
+
+    if (window.innerWidth <= 768) {
+        if (isInsideSidebar) {
+            if (sidebar.classList.contains('collapsed')) {
+                toggleSidebar('open');
+                delay = 350;
+            }
+        } else {
+            if (!sidebar.classList.contains('collapsed')) {
+                toggleSidebar('close');
+                delay = 350;
+            }
+        }
+    } else {
+        if (isInsideSidebar && sidebar.classList.contains('collapsed')) {
+            toggleSidebar('open');
+            delay = 350;
+        }
+    }
+
+    setTimeout(() => {
+        const target = document.querySelector(step.element);
+        const highlightBox = document.getElementById('guide-highlight-box');
+        const tooltip = document.getElementById('guide-tooltip');
+
+        if (!target || !highlightBox || !tooltip) return;
+
+        document.getElementById('guide-title').textContent = step.title;
+        document.getElementById('guide-content').textContent = step.content;
+        document.getElementById('guide-step-indicator').textContent = `${index + 1} / ${guideSteps.length}`;
+
+        const nextBtn = document.getElementById('guide-next');
+        nextBtn.textContent = index === guideSteps.length - 1 ? '완료' : '다음';
+
+        document.getElementById('guide-prev').style.display = index === 0 ? 'none' : 'block';
+
+        target.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+
+        const rect = target.getBoundingClientRect();
+        const padding = 5;
+
+        highlightBox.style.width = `${rect.width + (padding * 2)}px`;
+        highlightBox.style.height = `${rect.height + (padding * 2)}px`;
+        highlightBox.style.top = `${rect.top - padding}px`;
+        highlightBox.style.left = `${rect.left - padding}px`;
+
+        const tooltipRect = tooltip.getBoundingClientRect();
+        let top = 0;
+        let left = 0;
+
+        if (window.innerWidth <= 768) {
+            tooltip.style.position = 'fixed';
+            tooltip.style.top = 'auto';
+            tooltip.style.bottom = '20px';
+            tooltip.style.left = '50%';
+            tooltip.style.transform = 'translateX(-50%)';
+            tooltip.style.width = '90%';
+            tooltip.style.maxWidth = '400px';
+        } else {
+            tooltip.style.position = 'absolute';
+            tooltip.style.bottom = 'auto';
+            tooltip.style.transform = 'none';
+            tooltip.style.width = '320px';
+            tooltip.style.maxWidth = '90vw';
+
+            if (step.position === 'right') {
+                top = rect.top;
+                left = rect.right + 20;
+            } else if (step.position === 'bottom') {
+                top = rect.bottom + 20;
+                left = rect.left;
+            } else if (step.position === 'left') {
+                top = rect.top;
+                left = rect.left - tooltipRect.width - 20;
+            } else if (step.position === 'center') {
+                top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+            } else {
+                top = rect.bottom + 20;
+                left = rect.left;
+            }
+
+            if (left + tooltipRect.width > window.innerWidth) {
+                left = window.innerWidth - tooltipRect.width - 20;
+            }
+            if (left < 0) left = 20;
+            if (top + tooltipRect.height > window.innerHeight) {
+                top = rect.top - tooltipRect.height - 20;
+            }
+
+            tooltip.style.top = `${top}px`;
+            tooltip.style.left = `${left}px`;
+        }
+    }, delay);
+};
+
+document.addEventListener('DOMContentLoaded', initGuide);
