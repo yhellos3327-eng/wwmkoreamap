@@ -1721,6 +1721,8 @@ window.translateItem = async (itemId) => {
         const result = JSON.parse(jsonStr);
 
         item.name = result.name;
+        item.description = result.description;
+        item.isTranslated = true;
 
         const markerObj = allMarkers.find(m => m.id === itemId);
         if (markerObj) {
@@ -1841,27 +1843,21 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. 요소 가져오기
-    const contributeBtn = document.getElementById('contribute-btn'); // 기여하기 버튼
-    const contributeModal = document.getElementById('contribute-modal'); // 모달 전체
-    const closeContributeBtn = document.getElementById('close-contribute-btn'); // 닫기(X) 버튼
-
-    // 2. 기여하기 버튼 클릭 시 -> 모달 열기
+    const contributeBtn = document.getElementById('contribute-btn');
+    const contributeModal = document.getElementById('contribute-modal');
+    const closeContributeBtn = document.getElementById('close-contribute-btn');
     if (contributeBtn && contributeModal) {
         contributeBtn.addEventListener('click', () => {
-            contributeModal.classList.remove('hidden'); // 'hidden' 클래스 제거하여 보이기
+            contributeModal.classList.remove('hidden');
         });
     }
 
-    // 3. 닫기(X) 버튼 클릭 시 -> 모달 닫기
     if (closeContributeBtn && contributeModal) {
         closeContributeBtn.addEventListener('click', () => {
-            contributeModal.classList.add('hidden'); // 'hidden' 클래스 추가하여 숨기기
+            contributeModal.classList.add('hidden');
         });
     }
 
-    // 4. 모달 배경(어두운 부분) 클릭 시 -> 모달 닫기
-    // (window 객체에 이벤트를 걸어서, 클릭된 곳이 모달 배경인지 확인)
     window.addEventListener('click', (event) => {
         if (event.target === contributeModal) {
             contributeModal.classList.add('hidden');
@@ -1939,12 +1935,17 @@ window.renderModalList = (items) => {
         if (displayName) displayName = displayName.replace(/{region}/g, displayRegion);
         const isDone = currComp.includes(m.id);
         const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
+
+        const catObj = mapData.categories.find(c => c.id === m.category);
+        const iconUrl = catObj ? catObj.image : './icons/marker.png';
+
         const li = document.createElement('li');
-        li.className = 'modal-item';
+        li.className = 'modal-list-item';
         li.innerHTML = `
-        <div style="display:flex; flex-direction:column;">
-            <span class="modal-item-name">${displayName}</span>
-            <span style="font-size:0.8rem; color:#888;">${displayRegion}</span>
+        <img src="${iconUrl}" class="modal-item-icon" alt="icon">
+        <div class="modal-item-info">
+            <div class="modal-item-name">${displayName}</div>
+            <div class="modal-item-region">${displayRegion}</div>
         </div>
         ${statusHtml}
     `;
