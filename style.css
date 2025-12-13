@@ -1042,10 +1042,8 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    /* 버튼 사이 간격 */
 }
 
-/* 기여하기 모달 내부 링크 버튼 스타일 (선택사항) */
 .btn-link {
     display: block;
     padding: 10px;
@@ -1073,10 +1071,8 @@ body {
     background-color: #daac71;
 }
 
-/* 불러오기 버튼 (주황/빨강 계열 - 주의 필요) */
 .modal-btn.load-btn {
     background-color: #858585;
-    /* 또는 #dc3545 */
     color: white;
     border: none;
     border-radius: 4px;
@@ -1589,8 +1585,6 @@ input:checked+.slider:before {
     margin-left: 4px;
 }
 
-
-/* Route Tab Styles */
 .route-controls {
     padding: 10px;
 }
@@ -1742,7 +1736,6 @@ input:checked+.slider:before {
     cursor: not-allowed;
 }
 
-/* Revamped Contribute Modal Styles */
 .github-modal-content {
     max-width: 600px;
     width: 90%;
@@ -2044,8 +2037,6 @@ input:checked+.slider:before {
     background: rgba(0, 0, 0, 0.2);
 }
 
-
-/* Guide System Styles (Overlay & Highlight) */
 .guide-overlay {
     position: fixed;
     top: 0;
@@ -2060,7 +2051,6 @@ input:checked+.slider:before {
     display: none;
 }
 
-/* Dark background with a hole */
 .guide-overlay::before {
     content: '';
     position: absolute;
@@ -2190,4 +2180,97 @@ input:checked+.slider:before {
     .guide-highlight-box {
         box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
     }
+}
+
+.guide-content {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-top: 15px;
+}
+
+.guide-content h5 {
+    color: var(--accent);
+    font-size: 1rem;
+    margin: 20px 0 10px 0;
+    font-weight: 700;
+}
+
+.guide-content h5:first-child {
+    margin-top: 0;
+}
+
+.guide-content p {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.guide-list {
+    padding-left: 20px;
+    margin-bottom: 15px;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.guide-list li {
+    margin-bottom: 8px;
+}
+
+.guide-content code {
+    background: #222;
+    color: #ffbd53;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid #444;
+}
+
+.contribute-guide-content {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 20px;
+    border-radius: 8px;
+    border: 1px solid #333;
+    margin-top: 15px;
+    text-align: left;
+}
+
+.contribute-guide-content h5 {
+    color: var(--accent);
+    font-size: 1rem;
+    margin: 20px 0 10px 0;
+    font-weight: 700;
+}
+
+.contribute-guide-content h5:first-child {
+    margin-top: 0;
+}
+
+.contribute-guide-content p {
+    color: #ccc;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+.contribute-guide-list {
+    padding-left: 20px;
+    margin-bottom: 15px;
+    color: #ccc;
+    line-height: 1.6;
+}
+
+.contribute-guide-list li {
+    margin-bottom: 8px;
+}
+
+.contribute-guide-content code {
+    background: #222;
+    color: #ffbd53;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.9em;
+    border: 1px solid #444;
 }

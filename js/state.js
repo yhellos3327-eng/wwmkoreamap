@@ -22,7 +22,9 @@ export const state = {
     savedRegionColor: localStorage.getItem('wwm_region_color') || "#242424",
     savedRegionFillColor: localStorage.getItem('wwm_region_fill_color') || "#ffbd53",
     hideCompleted: localStorage.getItem('wwm_hide_completed') === 'true',
-    currentGuideStep: 0
+    currentGuideStep: 0,
+    rawCSV: null,
+    parsedCSV: null
 };
 
 // Getters and Setters for state management

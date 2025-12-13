@@ -339,9 +339,45 @@ export const renderMapDataAndMarkers = () => {
         });
 
         marker.on('click', () => {
-            console.group(`📍 [${item.id}] ${item.name}`);
-            console.log(`Category: ${catId} (Original: ${item.category})`);
-            console.log(`Region: ${finalRegionName}`);
+            const debugInfo = {
+                "ID": item.id,
+                "Name": item.name,
+                "Category (Mapped)": catId,
+                "Category (Original)": item.category,
+                "Region": finalRegionName,
+                "Coordinates": `${lat}, ${lng}`
+            };
+
+            console.groupCollapsed(`%c📍 [${item.id}] ${item.name}`, "font-size: 14px; font-weight: bold; color: #ffbd53; background: #222; padding: 4px 8px; border-radius: 4px;");
+            console.table(debugInfo);
+
+            if (state.rawCSV) {
+                console.log("%c📄 CSV Source Data Available", "font-weight: bold; color: #4CAF50;");
+                console.groupCollapsed("Show CSV Data");
+                console.log("%cRaw CSV (First 500 chars):", "color: #888;", state.rawCSV.substring(0, 500) + "...");
+
+                console.log("%cParsed CSV (Preview):", "color: #888;");
+                console.table(state.parsedCSV.slice(0, 10));
+
+                // Find specific row for this item if possible
+                const headers = state.parsedCSV[0];
+                const keyIdx = headers.indexOf('Key');
+                if (keyIdx !== -1) {
+                    const row = state.parsedCSV.find(r => r[keyIdx] == item.id);
+                    if (row) {
+                        console.log("%cFound Row in CSV:", "font-weight:bold; color: #2196F3;");
+                        // Create an object with headers as keys for better table display
+                        const rowObj = {};
+                        headers.forEach((h, i) => {
+                            rowObj[h] = row[i];
+                        });
+                        console.table([rowObj]);
+                    } else {
+                        console.log("%cItem ID not found directly in CSV (might be using Common or default)", "color: orange;");
+                    }
+                }
+                console.groupEnd();
+            }
             console.groupEnd();
         });
 

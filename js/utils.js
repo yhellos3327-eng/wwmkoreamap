@@ -27,3 +27,23 @@ export const isPointInPolygon = (point, vs) => {
     }
     return inside;
 };
+
+export const parseCSV = (str) => {
+    const arr = [];
+    let quote = false;
+    let col = 0, c = 0;
+
+    for (let row = 0; row < str.length; row++) {
+        let cc = str[row], nc = str[row + 1];
+        arr[col] = arr[col] || [];
+        arr[col][c] = arr[col][c] || "";
+
+        if (cc == '"' && quote && nc == '"') { arr[col][c] += cc; ++row; }
+        else if (cc == '"') { quote = !quote; }
+        else if (cc == ',' && !quote) { ++c; }
+        else if (cc == '\r' && nc == '\n' && !quote) { ++col; c = 0; ++row; }
+        else if ((cc == '\n' || cc == '\r') && !quote) { ++col; c = 0; }
+        else { arr[col][c] += cc; }
+    }
+    return arr;
+};

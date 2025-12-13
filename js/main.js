@@ -1,6 +1,6 @@
 import { state, setState } from './state.js';
 import { MAP_CONFIGS, contributionLinks } from './config.js';
-import { t } from './utils.js';
+import { t, parseCSV } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
 import { renderMapDataAndMarkers, createPopupHtml, moveToLocation } from './map.js';
 import {
@@ -12,7 +12,6 @@ import {
 } from './ui.js';
 import { translateItem } from './translation.js';
 
-// Expose functions to window for HTML event handlers
 window.toggleSidebar = toggleSidebar;
 window.openLightbox = openLightbox;
 window.switchImage = switchImage;
@@ -52,7 +51,7 @@ const initAdToggle = () => {
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const [transRes] = await Promise.all([
-            fetch('./translation.json')
+            fetch('./translation.csv')
         ]);
 
         if (!transRes.ok) throw new Error("필수 파일을 찾을 수 없습니다.");
@@ -126,15 +125,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             hideCompletedInput.addEventListener('change', (e) => {
                 setState('hideCompleted', e.target.checked);
                 localStorage.setItem('wwm_hide_completed', state.hideCompleted);
-                // We need to import updateMapVisibility from map.js but it's not exported to window.
-                // But we imported renderMapDataAndMarkers which calls it.
-                // Actually we imported updateMapVisibility in ui.js, but here we are in main.js.
-                // Let's import it here too.
-                // Wait, I didn't import updateMapVisibility in main.js imports above.
-                // I should add it.
-                // For now, let's just call renderMapDataAndMarkers() which is safer but heavier.
-                // Or better, import updateMapVisibility.
-                // I'll assume I can add it to imports.
                 renderMapDataAndMarkers();
             });
         }
@@ -199,39 +189,53 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.error("오류: saveApiKeyBtn 버튼을 찾을 수 없습니다.");
         }
 
-        const transJson = await transRes.json();
+        const transText = await transRes.text();
+        const csvData = parseCSV(transText);
 
-        if (transJson.common) {
-            transJson.common.forEach(item => {
-                if (!Array.isArray(item.keys) || item.keys.length === 0) return;
-                item.keys.forEach(key => {
-                    if (typeof key === 'string' && key.trim() !== '') {
-                        state.koDict[key] = item.value;
-                        state.koDict[key.trim()] = item.value;
+        setState('rawCSV', transText);
+        setState('parsedCSV', csvData);
+
+        if (csvData.length > 0) {
+            const headers = csvData[0].map(h => h.trim());
+            const typeIdx = headers.indexOf('Type');
+            const catIdx = headers.indexOf('Category');
+            const keyIdx = headers.indexOf('Key');
+            const valIdx = headers.indexOf('Korean');
+            const descIdx = headers.indexOf('Description');
+            const regIdx = headers.indexOf('Region');
+
+            for (let i = 1; i < csvData.length; i++) {
+                const row = csvData[i];
+                if (row.length < 3) continue;
+
+                const type = row[typeIdx]?.trim();
+                const key = row[keyIdx]?.trim();
+                if (!key) continue;
+
+                if (type === 'Common') {
+                    const val = row[valIdx];
+                    if (val) {
+                        state.koDict[key] = val;
+                        state.koDict[key.trim()] = val;
                     }
-                });
-            });
-        }
+                } else if (type === 'Override') {
+                    const catId = row[catIdx]?.trim();
+                    if (!catId) continue;
 
-        if (transJson.overrides) {
-            for (const categoryId in transJson.overrides) {
-                const categoryData = transJson.overrides[categoryId];
-                if (typeof categoryData !== 'object' || categoryData === null) continue;
+                    if (!state.categoryItemTranslations[catId]) {
+                        state.categoryItemTranslations[catId] = {};
+                    }
 
-                if (!state.categoryItemTranslations[categoryId]) state.categoryItemTranslations[categoryId] = {};
-
-                if (categoryData._common_description) {
-                    state.categoryItemTranslations[categoryId]._common_description = categoryData._common_description;
+                    if (key === '_common_description') {
+                        state.categoryItemTranslations[catId]._common_description = row[descIdx];
+                    } else {
+                        state.categoryItemTranslations[catId][key] = {
+                            name: row[valIdx],
+                            description: row[descIdx],
+                            region: row[regIdx]
+                        };
+                    }
                 }
-                let itemArray = Array.isArray(categoryData.items) ? categoryData.items : [];
-                itemArray.forEach(entry => {
-                    if (Array.isArray(entry.keys) && entry.value) {
-                        entry.keys.forEach(k => {
-                            const keyStr = String(k).trim();
-                            state.categoryItemTranslations[categoryId][keyStr] = entry.value;
-                        });
-                    }
-                });
             }
         }
 
@@ -291,8 +295,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                                 });
 
                                 updateToggleButtonsState();
-                                // Need updateMapVisibility
-                                renderMapDataAndMarkers(); // Using render as proxy for update visibility + refresh
+                                renderMapDataAndMarkers();
                                 saveFilterState();
 
                                 const meta = state.regionMetaInfo[r];
@@ -376,15 +379,12 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        // updateMapVisibility(); // Called inside loadMapData
-        // updateToggleButtonsState(); // Called inside loadMapData
         renderFavorites();
         renderLinks();
         renderUpdates();
 
         initAdToggle();
 
-        // Backup Logic
         const saveBtn = document.getElementById('btn-backup-save');
         const loadBtn = document.getElementById('btn-backup-load');
         const fileInput = document.getElementById('inp-backup-file');
