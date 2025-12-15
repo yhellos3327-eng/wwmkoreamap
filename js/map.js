@@ -3,7 +3,7 @@ import { state, setState } from './state.js';
 import { t, getJosa, isPointInPolygon } from './utils.js';
 import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState, openLightbox, openVideoLightbox, openRelatedModal, toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId } from './ui.js';
 import { saveFilterState } from './data.js';
-import { loadExternalContent } from './external-loader.js';
+// import { loadExternalContent } from './external-loader.js';
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
