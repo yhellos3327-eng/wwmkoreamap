@@ -671,7 +671,6 @@ body {
     max-height: 50vh;
     overflow-y: auto;
     margin-bottom: 12px;
-    scrollbar-width: thin;
 }
 
 .popup-body p {
@@ -1518,7 +1517,6 @@ input:checked+.slider:before {
     transform: translateX(18px);
 }
 
-/* Color Picker Styles */
 .color-picker-wrapper {
     display: flex;
     flex-direction: column;
@@ -1711,7 +1709,6 @@ input:checked+.slider:before {
     font-size: 1rem;
 }
 
-/* Add to Route Button in Popup */
 .btn-add-route {
     width: 100%;
     margin-top: 6px;
@@ -1824,7 +1821,7 @@ input:checked+.slider:before {
 }
 
 .contribution-guide h4::before {
-    content: '📝';
+    content: '??';
     font-size: 1.2rem;
 }
 
@@ -1835,7 +1832,6 @@ input:checked+.slider:before {
     white-space: pre-wrap;
 }
 
-/* Route Tab Styles */
 .route-controls {
     margin-bottom: 20px;
 }
@@ -1896,7 +1892,6 @@ input:checked+.slider:before {
     background: #d9534f;
 }
 
-/* Popup Image Slider Styles */
 .popup-image-container {
     position: relative;
     width: 100%;
@@ -1978,7 +1973,6 @@ input:checked+.slider:before {
     pointer-events: none;
 }
 
-/* Guide Modal Styles */
 .guide-content {
     max-width: 400px;
     text-align: center;
@@ -2165,7 +2159,6 @@ input:checked+.slider:before {
     color: var(--text-main);
 }
 
-/* Guide System Mobile Styles */
 @media (max-width: 768px) {
     .guide-tooltip {
         width: 90% !important;

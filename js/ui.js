@@ -419,6 +419,18 @@ export const renderModalList = (items) => {
 };
 
 export const openLightbox = (itemId, index) => {
+    // Handle direct URL passed as first argument
+    if (typeof itemId === 'string' && (itemId.startsWith('http') || itemId.startsWith('//') || itemId.startsWith('./'))) {
+        setState('currentLightboxImages', [itemId]);
+        setState('currentLightboxIndex', 0);
+        updateLightboxImage();
+        const modal = document.getElementById('lightbox-modal');
+        modal.classList.remove('hidden');
+        const navBtns = modal.querySelectorAll('.lightbox-nav');
+        navBtns.forEach(btn => btn.style.display = 'none');
+        return;
+    }
+
     const item = state.mapData.items.find(i => i.id === itemId);
     if (!item || !item.images || item.images.length === 0) return;
 

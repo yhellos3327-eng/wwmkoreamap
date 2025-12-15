@@ -3,6 +3,7 @@ import { state, setState } from './state.js';
 import { t, getJosa, isPointInPolygon } from './utils.js';
 import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState, openLightbox, openVideoLightbox, openRelatedModal, toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId } from './ui.js';
 import { saveFilterState } from './data.js';
+import { loadExternalContent } from './external-loader.js';
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
@@ -14,18 +15,25 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     }
     const categoryName = t(item.category);
 
-    let itemDescription = item.description || '';
+    let itemDescription = (item.description || '').trim()
     let replaceName = translatedName;
     const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
     replaceName = translatedName + josa;
 
-    if (itemDescription) {
-        itemDescription = itemDescription.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>');
-        itemDescription = itemDescription.replace(/\n/g, '<br>');
-        itemDescription = itemDescription.replace(/{name}/g, replaceName);
-        itemDescription = itemDescription.replace(/{region}/g, displayRegion);
-    } else {
-        itemDescription = '<p class="no-desc">설명 없음</p>';
+    let isExternalContent = false;
+    if (itemDescription && (itemDescription.startsWith('http://') || itemDescription.startsWith('https://') || itemDescription.startsWith('json:'))) {
+        isExternalContent = true;
+    }
+
+    if (!isExternalContent) {
+        if (itemDescription) {
+            itemDescription = itemDescription.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>');
+            itemDescription = itemDescription.replace(/\n/g, '<br>');
+            itemDescription = itemDescription.replace(/{name}/g, replaceName);
+            itemDescription = itemDescription.replace(/{region}/g, displayRegion);
+        } else {
+            itemDescription = '<p class="no-desc">설명 없음</p>';
+        }
     }
 
     let imageSliderHtml = '';
@@ -90,7 +98,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     }
 
     let translateBtnHtml = '';
-    if (!item.isTranslated && item.description && item.description.trim() !== "") {
+    if (!item.isTranslated && item.description && item.description.trim() !== "" && !isExternalContent) {
         translateBtnHtml = `
             <button class="btn-translate" onclick="window.translateItem(${item.id})" style="width:100%; margin-top:10px; padding:6px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">
                 ✨ AI 번역 (Chinese -> Korean)
@@ -127,6 +135,21 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     `;
     }
 
+    const contentId = `popup-content-${item.id}`;
+
+    if (isExternalContent) {
+        setTimeout(() => {
+            const container = document.getElementById(contentId);
+            if (container) {
+                loadExternalContent(itemDescription, container);
+            }
+        }, 100);
+    }
+
+    const bodyContent = isExternalContent
+        ? `<div id="${contentId}"></div>`
+        : (itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`);
+
     return `
     <div class="popup-container" data-id="${item.id}">
         <div class="popup-header">
@@ -136,7 +159,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         <div class="popup-body">
             ${imageSliderHtml}
             ${videoHtml}
-            ${itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`}
+            ${bodyContent}
             ${translateBtnHtml}
         </div>
         ${relatedHtml}
@@ -377,7 +400,9 @@ export const renderMapDataAndMarkers = () => {
                     console.log("%cParsed CSV Data", "font-weight:bold; color: #90CAF9; margin-bottom: 4px;");
 
                     headers.forEach((h, i) => {
-                        console.log(`%c${h.padEnd(12)}%c${row[i]}`,
+                        let val = row[i];
+                        if (h === 'Description' && val) val = val.trim();
+                        console.log(`%c${h.padEnd(12)}%c${val}`,
                             "color: #aaa; font-family: monospace; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 3px 0 0 3px;",
                             "color: #fff; font-family: monospace; background: #333; padding: 2px 8px; border-radius: 0 3px 3px 0;"
                         );
