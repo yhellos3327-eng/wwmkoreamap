@@ -49,11 +49,9 @@ export const loadExternalContent = async (url, container) => {
 
 const loadJsonContent = async (urlString, container) => {
     try {
-        // format: json:https://example.com/data.json?id=123
-        const actualUrl = urlString.substring(5); // remove 'json:'
+        const actualUrl = urlString.substring(5);
         const urlObj = new URL(actualUrl);
         const id = urlObj.searchParams.get('id');
-        // Remove query params to get the JSON file URL
         const jsonUrl = actualUrl.split('?')[0];
         const origin = urlObj.origin;
 
@@ -65,7 +63,6 @@ const loadJsonContent = async (urlString, container) => {
             response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(jsonUrl)}`);
             if (!response.ok) throw new Error('Proxy fetch failed');
             const proxyData = await response.json();
-            // Proxy returns data in 'contents' field, which is stringified JSON
             const data = JSON.parse(proxyData.contents);
             processJsonData(data, id, container, origin);
             return;
@@ -170,8 +167,6 @@ const resolveUrl = (path, origin) => {
     if (!path) return '';
     if (path.startsWith('http')) return path;
     if (path.startsWith('//')) return 'https:' + path;
-    // Remove leading slash if present to avoid double slashes with origin if origin has no trailing slash
-    // But URL constructor handles this better.
     try {
         return new URL(path, origin).href;
     } catch (e) {
