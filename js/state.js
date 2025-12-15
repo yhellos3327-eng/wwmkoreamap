@@ -24,7 +24,8 @@ export const state = {
     hideCompleted: localStorage.getItem('wwm_hide_completed') === 'true',
     currentGuideStep: 0,
     rawCSV: null,
-    parsedCSV: null
+    parsedCSV: null,
+    isDevMode: false
 };
 
 // Getters and Setters for state management

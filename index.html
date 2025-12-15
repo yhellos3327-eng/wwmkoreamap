@@ -281,6 +281,19 @@
                     </div>
 
                     <div>
+                        <label style="font-size: 0.8rem; color: #ccc;">이미지 (드래그 & 드롭 또는 붙여넣기)</label>
+                        <div id="dev-drop-zone"
+                            style="border: 2px dashed #555; padding: 20px; text-align: center; color: #888; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
+                            <p style="margin: 0; pointer-events: none;">이미지를 이곳에 드래그하거나 클릭하여 선택하세요.<br>(Ctrl+V로 붙여넣기 가능)
+                            </p>
+                            <input type="file" id="dev-image-input" accept="image/*" multiple style="display: none;">
+                        </div>
+                        <div id="dev-image-preview"
+                            style="display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px;">
+                        </div>
+                    </div>
+
+                    <div>
                         <label style="font-size: 0.8rem; color: var(--accent);">생성된 JSON (복사해서 data.json에 추가)</label>
                         <textarea id="dev-output" rows="5" readonly
                             style="width: 100%; padding: 8px; background: #111; color: #daac71; border: 1px solid var(--accent); border-radius: 4px; font-family: monospace; font-size: 0.8rem;"></textarea>

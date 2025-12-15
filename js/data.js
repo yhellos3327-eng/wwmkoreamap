@@ -124,6 +124,9 @@ export const loadMapData = async (mapKey) => {
                         item.description = transData.description;
                     }
                     if (transData.region) item.forceRegion = transData.region;
+                    if (transData.image) {
+                        item.images = [transData.image];
+                    }
                 }
             }
 

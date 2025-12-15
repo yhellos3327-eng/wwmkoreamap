@@ -270,6 +270,7 @@ export const renderMapDataAndMarkers = () => {
                 this.setStyle({ weight: 1, fillOpacity: 0.1 });
             });
             polygon.on('click', function (e) {
+                if (state.isDevMode) return;
                 L.DomEvent.stopPropagation(e);
                 state.map.fitBounds(this.getBounds());
             });

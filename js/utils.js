@@ -39,6 +39,7 @@ export const parseCSV = (str) => {
         arr[col][c] = arr[col][c] || "";
 
         if (cc == '"' && quote && nc == '"') { arr[col][c] += cc; ++row; }
+        else if (cc == '\\' && quote && nc == '"') { arr[col][c] += nc; ++row; }
         else if (cc == '"') { quote = !quote; }
         else if (cc == ',' && !quote) { ++c; }
         else if (cc == '\r' && nc == '\n' && !quote) { ++col; c = 0; ++row; }

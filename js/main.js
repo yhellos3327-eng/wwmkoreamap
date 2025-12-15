@@ -11,6 +11,7 @@ import {
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId
 } from './ui.js';
 import { translateItem } from './translation.js';
+import { enableDevMode } from './dev.js';
 
 window.toggleSidebar = toggleSidebar;
 window.openLightbox = openLightbox;
@@ -30,6 +31,7 @@ window.toggleCompleted = toggleCompleted;
 window.toggleFavorite = toggleFavorite;
 window.shareLocation = shareLocation;
 window.moveToLocation = moveToLocation;
+window.enableDevMode = enableDevMode;
 
 const initAdToggle = () => {
     const adContainer = document.querySelector('.ad-container');
@@ -229,10 +231,22 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (key === '_common_description') {
                         state.categoryItemTranslations[catId]._common_description = row[descIdx];
                     } else {
+                        const imgIdx = headers.indexOf('Image');
+                        let desc = row[descIdx];
+                        if (desc) {
+                            desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
+                        }
+
+                        let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
+                        if (imagePath && imagePath.includes('{id}')) {
+                            imagePath = imagePath.replace('{id}', key);
+                        }
+
                         state.categoryItemTranslations[catId][key] = {
                             name: row[valIdx],
-                            description: row[descIdx],
-                            region: row[regIdx]
+                            description: desc,
+                            region: row[regIdx],
+                            image: imagePath
                         };
                     }
                 }
@@ -470,95 +484,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => jumpToId(sharedId), 500);
     }
 
-    window.enableDevMode = () => {
-        console.log("%c🔧 개발자 모드가 활성화되었습니다.", "color: #daac71; font-size: 16px; font-weight: bold;");
-        const devModal = document.getElementById('dev-modal');
-        const categorySelect = document.getElementById('dev-category');
-        let tempMarker = null;
-        if (categorySelect && state.mapData.categories) {
-            categorySelect.innerHTML = '';
-            const defaultOption = document.createElement('option');
-            defaultOption.value = "";
-            defaultOption.textContent = "카테고리 선택...";
-            defaultOption.disabled = true;
-            defaultOption.selected = true;
-            categorySelect.appendChild(defaultOption);
-            state.mapData.categories.forEach(cat => {
-                const option = document.createElement('option');
-                option.value = cat.id;
-                option.textContent = `${t(cat.name)} (${cat.id})`;
-                categorySelect.appendChild(option);
-            });
-        }
-        state.map.on('click', (e) => {
-            const lat = e.latlng.lat.toFixed(6);
-            const lng = e.latlng.lng.toFixed(6);
-            if (tempMarker) state.map.removeLayer(tempMarker);
-            const emojiIcon = L.divIcon({
-                className: '',
-                html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">📍</div>',
-                iconSize: [36, 36],
-                iconAnchor: [18, 36]
-            });
-            tempMarker = L.marker([lat, lng], { icon: emojiIcon, zIndexOffset: 1000 }).addTo(state.map);
-            document.getElementById('dev-x').value = lat;
-            document.getElementById('dev-y').value = lng;
-            document.getElementById('dev-output').value = '';
-            if (categorySelect) categorySelect.value = "";
-            devModal.classList.remove('hidden');
-        });
-        if (categorySelect) {
-            categorySelect.addEventListener('change', (e) => {
-                if (!tempMarker) return;
-                const selectedCatId = e.target.value;
-                const selectedCat = state.mapData.categories.find(c => c.id === selectedCatId);
-                if (selectedCat && selectedCat.image) {
-                    const newIcon = L.icon({
-                        iconUrl: selectedCat.image,
-                        iconSize: [30, 30],
-                        iconAnchor: [15, 15],
-                        className: 'marker-anim'
-                    });
-                    tempMarker.setIcon(newIcon);
-                } else {
-                    const emojiIcon = L.divIcon({
-                        className: '',
-                        html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5));">📍</div>',
-                        iconSize: [36, 36],
-                        iconAnchor: [18, 36]
-                    });
-                    tempMarker.setIcon(emojiIcon);
-                }
-            });
-        }
-        const genBtn = document.getElementById('btn-gen-json');
-        if (genBtn) {
-            genBtn.onclick = () => {
-                const catId = document.getElementById('dev-category').value;
-                if (!catId) { alert("카테고리를 선택해주세요!"); return; }
-                const name = document.getElementById('dev-name').value || "New Item";
-                const desc = document.getElementById('dev-desc').value || "";
-                const x = document.getElementById('dev-x').value;
-                const y = document.getElementById('dev-y').value;
-                const tempId = Date.now();
-                const newItem = {
-                    id: tempId,
-                    category_id: catId,
-                    title: name,
-                    description: desc,
-                    latitude: x,
-                    longitude: y,
-                    regionId: 0
-                };
-                const jsonString = JSON.stringify(newItem, null, 4);
-                const outputArea = document.getElementById('dev-output');
-                outputArea.value = jsonString + ",";
-                outputArea.select();
-                document.execCommand('copy');
-                alert("JSON이 복사되었습니다!");
-            };
-        }
-    };
+
 });
 
 document.addEventListener('keydown', (e) => {
