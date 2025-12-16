@@ -141,7 +141,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         setTimeout(() => {
             const container = document.getElementById(contentId);
             if (container) {
-                loadExternalContent(itemDescription, container);
+                //loadExternalContent(itemDescription, container);
             }
         }, 100);
     }
@@ -286,7 +286,6 @@ export const renderMapDataAndMarkers = () => {
         state.markerClusterGroup.clearLayers();
     }
 
-    // Fix: Remove markers directly added to the map (when clustering is disabled)
     if (state.allMarkers) {
         state.allMarkers.forEach(item => {
             if (item.marker && state.map.hasLayer(item.marker)) {
@@ -434,7 +433,10 @@ export const renderMapDataAndMarkers = () => {
         marker.off('contextmenu');
         marker.unbindPopup();
 
-        marker.on('click', () => {
+        marker.on('click', (e) => {
+            if (e && e.originalEvent) {
+                e.originalEvent.stopPropagation();
+            }
             const debugInfo = {
                 "ID": item.id,
                 "Name": item.name,
@@ -488,6 +490,7 @@ export const renderMapDataAndMarkers = () => {
 };
 
 export const updateMapVisibility = () => {
+    if (document.querySelector('.leaflet-popup')) return;
     renderMapDataAndMarkers();
 };
 
