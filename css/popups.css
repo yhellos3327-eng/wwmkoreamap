@@ -338,3 +338,28 @@
     text-align: center;
     width: 100%;
 }
+
+.footer-badges {
+    display: flex;
+    gap: 5px;
+}
+
+.btn-report-styled {
+    background: #d9534f;
+    border: none;
+    color: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-report-styled:hover {
+    background: #c9302c;
+    color: white;
+    text-decoration: none;
+}

@@ -155,6 +155,17 @@ export const ICON_MAPPING = {
     "17310010091": null,
 };
 
+export const DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1450567346417827945/Cu3Ewq1dWrXyUPDtn6GFm_Qpz6FM93hqW1aHWIfG0QqWEHrbLhF343d7F5LAIgDDtnKz";
+export const DISCORD_SERVER_ID = "1450565273080954972";
+export const DISCORD_CHANNEL_ID = "1450565344946032732";
+
+export const DISCORD_TAGS = {
+    BUG: "1450575149190484139",        // 🐛 오류 제보
+    DATA: "1450575342954610699",       // ✨ 데이터 추가
+    TRANSLATION: "1450575407106490379", // 🔤 번역 수정
+    OTHER: "1450575468758827118"       // 💬 기타
+};
+
 export const guideSteps = [
     {
         element: '#sidebar',

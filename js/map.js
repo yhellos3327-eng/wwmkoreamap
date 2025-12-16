@@ -121,7 +121,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             return `<li class="related-item ${hiddenClass}" onclick="window.jumpToId(${r.id})">${rName} ${rRegHtml}</li>`;
         }).join('');
         const expandBtn = hiddenCount > 0
-            ? `<button class="btn-expand" onclick="window.expandRelated(this)">▼ 더보기 (${hiddenCount}+)</button>`
+            ? `<button class="btn-expand" onclick="event.stopPropagation(); window.expandRelated(this)">▼ 더보기 (${hiddenCount}+)</button>`
             : '';
         relatedHtml = `
         <div class="popup-related">
@@ -153,8 +153,10 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     return `
     <div class="popup-container" data-id="${item.id}">
         <div class="popup-header">
-            <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
-            <h4>${translatedName}</h4>
+            <div style="display: flex; align-items: center;">
+                <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
+                <h4>${translatedName}</h4>
+            </div>
         </div>
         <div class="popup-body">
             ${imageSliderHtml}
@@ -169,8 +171,14 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             <button class="action-btn btn-share" onclick="window.shareLocation(${item.id}, ${lat}, ${lng})" title="위치 공유">📤</button>
         </div>
         <div class="popup-footer">
-            <span class="badge">${categoryName}</span>
-            <span class="badge" style="margin-left:5px;">${t(displayRegion)}</span>
+            <div class="footer-badges">
+                <span class="badge">${categoryName}</span>
+                <span class="badge">${t(displayRegion)}</span>
+            </div>
+            <button class="btn-report-styled" onclick="window.openReportPage(${item.id})">
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                오류 제보
+            </button>
         </div>
     </div>
 `;
@@ -566,5 +574,20 @@ export const moveToLocation = (latlng, marker = null, regionName = null) => {
         }
         if (!state.map.hasLayer(marker)) state.map.addLayer(marker);
         setTimeout(() => marker.openPopup(), 300);
+    }
+};
+
+window.openReportPage = (itemId) => {
+    const item = state.allMarkers.find(m => m.id === itemId);
+    if (item) {
+        const reportData = {
+            id: item.id,
+            name: item.originalName,
+            category: item.category,
+            region: item.region,
+            description: item.desc
+        };
+        localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
+        window.open('report.html', '_blank');
     }
 };

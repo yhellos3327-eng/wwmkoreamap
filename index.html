@@ -314,59 +314,45 @@
                     </div>
 
                     <div>
-                        <label style="font-size: 0.8rem; color: var(--accent);">생성된 JSON (복사해서 data.json에 추가)</label>
-                        <textarea id="dev-output" rows="5" readonly
-                            style="width: 100%; padding: 8px; background: #111; color: #daac71; border: 1px solid var(--accent); border-radius: 4px; font-family: monospace; font-size: 0.8rem;"></textarea>
+                        <span class="lightbox-close">&times;</span>
+                        <button class="lightbox-nav prev"
+                            onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
+                        <button class="lightbox-nav next"
+                            onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
+                        <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
                     </div>
 
-                    <div style="display: flex; gap: 10px; margin-top: 10px;">
-                        <button type="button" id="btn-gen-json" class="action-btn active">JSON 생성 & 복사</button>
-                        <button type="button" onclick="document.getElementById('dev-form').reset()"
-                            class="action-btn">초기화</button>
+                    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
+                        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
+                        <div class="video-lightbox-content" onclick="event.stopPropagation()">
+                            <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+                        </div>
                     </div>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <div id="lightbox-modal" class="modal-overlay hidden" onclick="closeLightbox()">
-        <span class="lightbox-close">&times;</span>
-        <button class="lightbox-nav prev" onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
-        <button class="lightbox-nav next" onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
-        <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
-    </div>
+                    <!-- Guide Overlay -->
+                    <div id="guide-overlay" class="guide-overlay hidden">
+                        <div id="guide-highlight-box" class="guide-highlight-box"></div>
+                        <div id="guide-tooltip" class="guide-tooltip">
+                            <div class="guide-header">
+                                <h3 id="guide-title">가이드 제목</h3>
+                                <button id="guide-close" class="guide-close-btn">&times;</button>
+                            </div>
+                            <div class="guide-body">
+                                <p id="guide-content">가이드 내용이 여기에 표시됩니다.</p>
+                            </div>
+                            <div class="guide-footer">
+                                <span id="guide-step-indicator">1 / 5</span>
+                                <div class="guide-buttons">
+                                    <button id="guide-prev" class="guide-btn secondary">이전</button>
+                                    <button id="guide-next" class="guide-btn primary">다음</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
-        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
-        <div class="video-lightbox-content" onclick="event.stopPropagation()">
-            <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
-        </div>
-    </div>
-
-    <!-- Guide Overlay -->
-    <div id="guide-overlay" class="guide-overlay hidden">
-        <div id="guide-highlight-box" class="guide-highlight-box"></div>
-        <div id="guide-tooltip" class="guide-tooltip">
-            <div class="guide-header">
-                <h3 id="guide-title">가이드 제목</h3>
-                <button id="guide-close" class="guide-close-btn">&times;</button>
-            </div>
-            <div class="guide-body">
-                <p id="guide-content">가이드 내용이 여기에 표시됩니다.</p>
-            </div>
-            <div class="guide-footer">
-                <span id="guide-step-indicator">1 / 5</span>
-                <div class="guide-buttons">
-                    <button id="guide-prev" class="guide-btn secondary">이전</button>
-                    <button id="guide-next" class="guide-btn primary">다음</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-    <script type="module" src="js/main.js"></script>
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+                    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>

@@ -210,4 +210,18 @@ export const enableDevMode = () => {
             alert("JSON이 복사되었습니다!");
         };
     }
+
+    const reportBtn = document.getElementById('btn-report-data');
+    if (reportBtn) {
+        reportBtn.onclick = () => {
+            const outputArea = document.getElementById('dev-output');
+            const jsonString = outputArea.value;
+            if (!jsonString) {
+                alert("먼저 JSON을 생성해주세요.");
+                return;
+            }
+            localStorage.setItem('wwm_report_target', jsonString);
+            window.open('report.html', '_blank');
+        };
+    }
 };
