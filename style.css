@@ -1834,7 +1834,7 @@ input:checked+.slider:before {
 }
 
 .contribution-guide h4::before {
-    content: '??';
+    content: '📖';
     font-size: 1.2rem;
 }
 
