@@ -52,7 +52,6 @@ const initAdToggle = () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Debugging: Load raw CSV and store in state
         fetch('./translation.csv')
             .then(res => res.text())
             .then(text => {
@@ -470,8 +469,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (sharedId && !isNaN(sharedLat) && !isNaN(sharedLng)) {
         setTimeout(() => jumpToId(sharedId), 500);
     }
-
-
 });
 
 document.addEventListener('keydown', (e) => {
