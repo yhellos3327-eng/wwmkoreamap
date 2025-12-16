@@ -1,4 +1,4 @@
-export const state = {
+const state = {
     currentMapKey: 'qinghe',
     currentTileLayer: null,
     regionLayerGroup: null,
@@ -22,22 +22,52 @@ export const state = {
     savedRegionColor: localStorage.getItem('wwm_region_color') || "#242424",
     savedRegionFillColor: localStorage.getItem('wwm_region_fill_color') || "#ffbd53",
     hideCompleted: localStorage.getItem('wwm_hide_completed') === 'true',
+    enableClustering: localStorage.getItem('wwm_enable_clustering') !== 'false', // Default true
     currentGuideStep: 0,
     rawCSV: null,
     parsedCSV: null,
     isDevMode: false
 };
 
-// Getters and Setters for state management
+const listeners = {};
+
+export const subscribe = (key, callback) => {
+    if (!listeners[key]) {
+        listeners[key] = [];
+    }
+    listeners[key].push(callback);
+};
+
+export const notify = (key, value, oldValue) => {
+    console.groupCollapsed(`%c[Pub/Sub] 상태 변경: ${key}`, "font-size: 12px; font-weight: bold; color: #4CAF50; background: #222; padding: 3px 6px; border-radius: 3px;");
+    console.log(`이전 값:`, oldValue);
+    console.log(`새로운 값:`, value);
+    console.groupEnd();
+
+    if (listeners[key]) {
+        listeners[key].forEach(callback => callback(value));
+    }
+};
+
+const stateProxy = new Proxy(state, {
+    set(target, property, value) {
+        const oldValue = target[property];
+        target[property] = value;
+        notify(property, value, oldValue);
+        return true;
+    }
+});
+
 export const setState = (key, value) => {
-    state[key] = value;
+    stateProxy[key] = value;
 };
 
 export const getState = (key) => {
-    return state[key];
+    return stateProxy[key];
 };
 
-// Helper to update specific properties if needed
 export const updateState = (updates) => {
-    Object.assign(state, updates);
+    Object.assign(stateProxy, updates);
 };
+
+export { stateProxy as state };

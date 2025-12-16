@@ -1,7 +1,17 @@
 export const updateHistory = [
     {
-        version: "v1.2.9",
+        version: "v1.3.0",
         date: "2025-12-16",
+        content: [
+            "마커 클러스터 시스템 추가 (설정에서 ON/OFF 가능)",
+            "모바일 환경 최적화 (줌 레벨, 클러스터 범위 조정)",
+            "설정 메뉴 UI 개선 (부제목 추가, 버그 수정)",
+            "기타 안정성 개선 및 버그 수정"
+        ]
+    },
+    {
+        version: "v1.2.9",
+        date: "2025-12-15",
         content: [
             "첫 방문시 가이드 추가.",
             "옵션 모달 내 다양한 옵션 추가.",
@@ -118,7 +128,8 @@ export const MAP_CONFIGS = {
         dataFile: './data.json',
         regionFile: './regions.json',
         minZoom: 9,
-        maxZoom: 13,
+        maxZoom: 16,
+        maxNativeZoom: 13,
         center: [0.6768, -0.6841],
         zoom: 11,
         tilePadding: 0.02
@@ -130,7 +141,8 @@ export const MAP_CONFIGS = {
         dataFile: './data2.json',
         regionFile: './regions2.json',
         minZoom: 9,
-        maxZoom: 13,
+        maxZoom: 16,
+        maxNativeZoom: 13,
         center: [0.5, -0.5],
         zoom: 11,
         tilePadding: 1.0

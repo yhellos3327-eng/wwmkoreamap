@@ -48,3 +48,47 @@ export const parseCSV = (str) => {
     }
     return arr;
 };
+
+export const fetchAndParseCSVChunks = async (url, onChunk, onComplete) => {
+    const response = await fetch(url);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let isFirstChunk = true;
+    let headers = null;
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split(/\r?\n/);
+        buffer = lines.pop();
+
+        if (isFirstChunk) {
+            if (lines.length > 0) {
+                const headerLine = lines.shift();
+                headers = parseCSV(headerLine)[0];
+                isFirstChunk = false;
+            }
+        }
+
+        if (lines.length > 0) {
+            const chunkData = lines.map(line => {
+                const parsed = parseCSV(line)[0];
+                if (!parsed || parsed.length === 0 || (parsed.length === 1 && parsed[0] === "")) return null;
+                return parsed;
+            }).filter(item => item !== null);
+
+            if (chunkData.length > 0) {
+                onChunk(chunkData, headers);
+            }
+        }
+    }
+    if (buffer.trim()) {
+        const chunkData = [parseCSV(buffer)[0]];
+        onChunk(chunkData, headers);
+    }
+
+    if (onComplete) onComplete();
+};

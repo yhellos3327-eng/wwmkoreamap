@@ -7,6 +7,8 @@
     <title>연운 - 한국어 지도 맵</title>
     <link rel="icon" type="image/png" href="https://cdn.discordapp.com/emojis/1410879101194993744.webp?size=256" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
 </head>
 
@@ -112,23 +114,27 @@
 
             <div id="map"></div>
         </main>
+
     </div>
 
     <div id="settings-modal" class="modal-overlay hidden" style="z-index: 9999;">
         <div class="modal-content" style="height: auto;">
             <div class="modal-header">
                 <h3>설정</h3>
-                <button id="close-settings" class="close-modal-btn"
-                    onclick="document.getElementById('settings-modal').classList.add('hidden')">&times;</button>
+                <button id="close-settings" class="close-modal-btn">&times;</button>
             </div>
             <div class="modal-body settings-modal-body">
                 <div class="settings-group">
-                    <label class="settings-label">Google Gemini API Key</label>
+                    <label class="settings-label">Google Gemini API Key <span class="settings-subtitle">(AI 번역
+                            기능)</span></label>
                     <input type="password" id="api-key-input" class="settings-input" placeholder="AI 번역을 위한 키 입력">
                 </div>
 
                 <div class="settings-group settings-toggle-wrapper">
-                    <span class="settings-toggle-label">광고 표시</span>
+                    <div class="settings-label-container">
+                        <span class="settings-toggle-label">광고 표시</span>
+                        <span class="settings-subtitle">(화면 설정)</span>
+                    </div>
                     <label class="switch">
                         <input type="checkbox" id="toggle-ad" checked>
                         <span class="slider round"></span>
@@ -136,15 +142,29 @@
                 </div>
 
                 <div class="settings-group settings-toggle-wrapper">
-                    <span class="settings-toggle-label">완료된 항목 숨기기</span>
+                    <div class="settings-label-container">
+                        <span class="settings-toggle-label">완료된 항목 숨기기</span>
+                        <span class="settings-subtitle">(필터링 옵션)</span>
+                    </div>
                     <label class="switch">
                         <input type="checkbox" id="toggle-hide-completed">
                         <span class="slider round"></span>
                     </label>
                 </div>
 
+                <div class="settings-group settings-toggle-wrapper">
+                    <div class="settings-label-container">
+                        <span class="settings-toggle-label">마커 클러스터링</span>
+                        <span class="settings-subtitle">(최적화 옵션)</span>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-cluster">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
                 <div class="settings-group">
-                    <label class="settings-label">지역 경계선 색상</label>
+                    <label class="settings-label">지역 경계선 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
                     <div class="color-picker-wrapper">
                         <div class="color-input-container">
                             <input type="color" id="region-line-color" value="#242424" class="color-input">
@@ -155,7 +175,7 @@
                 </div>
 
                 <div class="settings-group">
-                    <label class="settings-label">지역 채우기 색상</label>
+                    <label class="settings-label">지역 채우기 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
                     <div class="color-picker-wrapper">
                         <div class="color-input-container">
                             <input type="color" id="region-fill-color" value="#ffbd53" class="color-input">
@@ -345,6 +365,7 @@
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
     <script type="module" src="js/main.js"></script>
 </body>
 

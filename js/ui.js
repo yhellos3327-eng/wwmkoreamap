@@ -160,8 +160,6 @@ export const refreshSidebarLists = () => {
         regionListEl.appendChild(btn);
     });
 
-    state.activeRegionNames.clear();
-    state.uniqueRegions.forEach(r => state.activeRegionNames.add(r));
     updateToggleButtonsState();
 };
 

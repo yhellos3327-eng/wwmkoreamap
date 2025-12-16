@@ -30,7 +30,6 @@ export const enableDevMode = () => {
         });
     }
 
-    // Map click handler for placing pins
     state.map.on('click', (e) => {
         if (!state.isDevMode) return;
 
@@ -82,7 +81,6 @@ export const enableDevMode = () => {
         });
     }
 
-    // Image handling
     const dropZone = document.getElementById('dev-drop-zone');
     const imageInput = document.getElementById('dev-image-input');
     const previewContainer = document.getElementById('dev-image-preview');
@@ -172,11 +170,10 @@ export const enableDevMode = () => {
     if (imageInput) {
         imageInput.onchange = (e) => {
             handleFiles(e.target.files);
-            imageInput.value = ''; // Reset to allow selecting same file again
+            imageInput.value = '';
         };
     }
 
-    // Paste handler
     document.addEventListener('paste', (e) => {
         if (document.getElementById('dev-modal').classList.contains('hidden')) return;
         handleFiles(e.clipboardData.files);

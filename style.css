@@ -1401,6 +1401,19 @@ body.embed-mode #btn-open-original:hover {
     font-size: 0.95rem;
 }
 
+.settings-label-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.settings-subtitle {
+    font-size: 0.75rem;
+    color: #888;
+    font-weight: normal;
+    display: block;
+}
+
 .settings-toggle-input {
     transform: scale(1.2);
     cursor: pointer;

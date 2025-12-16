@@ -181,9 +181,12 @@ export const initMap = (mapKey) => {
     if (!config) return;
 
     if (!state.map) {
+        const isMobile = window.innerWidth <= 768;
+        const initialZoom = isMobile ? config.zoom - 1 : config.zoom;
+
         const map = L.map('map', {
             center: config.center,
-            zoom: config.zoom,
+            zoom: initialZoom,
             minZoom: config.minZoom,
             maxZoom: config.maxZoom,
             zoomControl: false,
@@ -211,6 +214,7 @@ export const initMap = (mapKey) => {
         tileSize: 256,
         minZoom: config.minZoom,
         maxZoom: config.maxZoom,
+        maxNativeZoom: config.maxNativeZoom || config.maxZoom
     }).addTo(state.map);
     setState('currentTileLayer', tileLayer);
 
@@ -220,13 +224,80 @@ export const initMap = (mapKey) => {
         const regionLayerGroup = L.layerGroup().addTo(state.map);
         setState('regionLayerGroup', regionLayerGroup);
     }
+
+    if (!state.markerClusterGroup) {
+        const isMobile = window.innerWidth <= 768;
+        const markerClusterGroup = L.markerClusterGroup({
+            maxClusterRadius: isMobile ? 80 : 50,
+            spiderfyOnMaxZoom: true,
+            showCoverageOnHover: false,
+            zoomToBoundsOnClick: true,
+            disableClusteringAtZoom: 16
+        });
+        state.map.addLayer(markerClusterGroup);
+        setState('markerClusterGroup', markerClusterGroup);
+    }
 };
 
+class MarkerPool {
+    constructor() {
+        this.pool = [];
+        this.activeMarkers = new Map();
+    }
+
+    getMarker(lat, lng, options) {
+        let marker;
+        if (this.pool.length > 0) {
+            marker = this.pool.pop();
+            marker.setLatLng([lat, lng]);
+            marker.setIcon(options.icon);
+            marker.options.title = options.title;
+            marker.options.alt = options.alt;
+            marker.options.itemId = options.itemId;
+        } else {
+            marker = L.marker([lat, lng], options);
+        }
+        this.activeMarkers.set(options.itemId, marker);
+        return marker;
+    }
+
+    releaseMarker(itemId) {
+        const marker = this.activeMarkers.get(itemId);
+        if (marker) {
+            this.activeMarkers.delete(itemId);
+            this.pool.push(marker);
+            return marker;
+        }
+        return null;
+    }
+
+    clearAll() {
+        this.activeMarkers.forEach(marker => {
+            this.pool.push(marker);
+        });
+        this.activeMarkers.clear();
+    }
+}
+
+const markerPool = new MarkerPool();
+
 export const renderMapDataAndMarkers = () => {
-    state.allMarkers.forEach(m => {
-        if (state.map.hasLayer(m.marker)) state.map.removeLayer(m.marker);
-    });
-    setState('allMarkers', []);
+    if (state.markerClusterGroup) {
+        state.markerClusterGroup.clearLayers();
+    }
+
+    // Fix: Remove markers directly added to the map (when clustering is disabled)
+    if (state.allMarkers) {
+        state.allMarkers.forEach(item => {
+            if (item.marker && state.map.hasLayer(item.marker)) {
+                state.map.removeLayer(item.marker);
+            }
+        });
+    }
+
+    markerPool.clearAll();
+
+    state.allMarkers = [];
 
     const filteredItems = state.mapData.items;
     const filteredRegions = state.regionData;
@@ -282,17 +353,6 @@ export const renderMapDataAndMarkers = () => {
                 state.activeRegionNames.clear();
                 state.activeRegionNames.add(region.title);
 
-                const regBtns = document.querySelectorAll('#region-list .cate-item');
-                regBtns.forEach(btn => {
-                    if (btn.dataset.region === region.title) {
-                        btn.classList.add('active');
-                        btn.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    } else {
-                        btn.classList.remove('active');
-                    }
-                });
-
-                updateToggleButtonsState();
                 updateMapVisibility();
                 saveFilterState();
             });
@@ -302,6 +362,8 @@ export const renderMapDataAndMarkers = () => {
     }
 
     state.uniqueRegions.clear();
+
+    const markersToAdd = [];
 
     filteredItems.forEach(item => {
         let catId = item.category;
@@ -334,6 +396,13 @@ export const renderMapDataAndMarkers = () => {
         }
 
         if (finalRegionName) state.uniqueRegions.add(finalRegionName);
+        const isCatActive = state.activeCategoryIds.has(catId);
+        const isRegActive = state.activeRegionNames.has(finalRegionName);
+
+        if (!isCatActive || !isRegActive) return;
+
+        const isCompleted = state.completedList.includes(item.id);
+        if (state.hideCompleted && isCompleted) return;
 
         const categoryObj = state.mapData.categories.find(c => c.id === catId);
 
@@ -344,7 +413,6 @@ export const renderMapDataAndMarkers = () => {
 
         const w = item.imageSizeW || 44;
         const h = item.imageSizeH || 44;
-        const isCompleted = state.completedList.includes(item.id);
         const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
 
         const customIcon = L.icon({
@@ -355,12 +423,16 @@ export const renderMapDataAndMarkers = () => {
             className: iconClass
         });
 
-        const marker = L.marker([lat, lng], {
+        const marker = markerPool.getMarker(lat, lng, {
             icon: customIcon,
             title: item.name,
             alt: catId,
             itemId: item.id
         });
+
+        marker.off('click');
+        marker.off('contextmenu');
+        marker.unbindPopup();
 
         marker.on('click', () => {
             const debugInfo = {
@@ -374,51 +446,6 @@ export const renderMapDataAndMarkers = () => {
 
             console.groupCollapsed(`%c📍 [${item.id}] ${item.name}`, "font-size: 14px; font-weight: bold; color: #ffbd53; background: #222; padding: 4px 8px; border-radius: 4px;");
             console.table(debugInfo);
-
-            if (state.rawCSV) {
-                console.log("%c📄 CSV Source Data Available", "font-weight: bold; color: #4CAF50;");
-                const headers = state.parsedCSV[0].map(h => h.trim());
-                const keyIdx = headers.indexOf('Key');
-
-                let rowIndex = -1;
-
-                if (keyIdx !== -1) {
-                    rowIndex = state.parsedCSV.findIndex(r => r[keyIdx] == item.id);
-                }
-
-                if (rowIndex === -1 && keyIdx !== -1) {
-                    rowIndex = state.parsedCSV.findIndex(r => r[keyIdx] === item.name || r[keyIdx] === item.name?.trim());
-                }
-
-                if (rowIndex !== -1) {
-                    const row = state.parsedCSV[rowIndex];
-
-                    const rawLines = state.rawCSV.split(/\r?\n/);
-                    const rawLine = rawLines[rowIndex];
-
-                    console.log("%cFound Row in CSV", "font-size: 16px; font-weight: bold; color: #2196F3; border-bottom: 2px solid #2196F3; padding-bottom: 4px; margin-bottom: 8px; display: block;");
-
-                    console.log("%cParsed CSV Data", "font-weight:bold; color: #90CAF9; margin-bottom: 4px;");
-
-                    headers.forEach((h, i) => {
-                        let val = row[i];
-                        if (h === 'Description' && val) val = val.trim();
-                        console.log(`%c${h.padEnd(12)}%c${val}`,
-                            "color: #aaa; font-family: monospace; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 3px 0 0 3px;",
-                            "color: #fff; font-family: monospace; background: #333; padding: 2px 8px; border-radius: 0 3px 3px 0;"
-                        );
-                    });
-
-                    if (rawLine) {
-                        console.log("%cRaw CSV Line", "font-size: 14px; font-weight: bold; color: #FF5722; border-bottom: 2px solid #FF5722; padding-bottom: 4px; margin-bottom: 8px; display: block;");
-                        console.log(`%c${rawLine}`, "background: #2d2d2d; color: #e0e0e0; padding: 8px 12px; border-radius: 4px; font-family: monospace; border: 1px solid #444; display: block; margin-top: 4px; line-height: 1.5; white-space: pre-wrap;");
-                    }
-                } else {
-                    console.log("%cItem ID/Name not found directly in CSV", "color: orange;");
-                    console.log("Searched for ID:", item.id, "or Name:", item.name);
-                }
-                console.groupEnd();
-            }
             console.groupEnd();
         });
 
@@ -429,6 +456,8 @@ export const renderMapDataAndMarkers = () => {
         });
 
         marker.bindPopup(() => createPopupHtml(item, lat, lng, finalRegionName));
+
+        markersToAdd.push(marker);
 
         state.allMarkers.push({
             id: item.id,
@@ -442,34 +471,24 @@ export const renderMapDataAndMarkers = () => {
         });
     });
 
+    if (state.enableClustering && state.markerClusterGroup) {
+        state.markerClusterGroup.addLayers(markersToAdd);
+        if (!state.map.hasLayer(state.markerClusterGroup)) {
+            state.map.addLayer(state.markerClusterGroup);
+        }
+    } else {
+        if (state.markerClusterGroup && state.map.hasLayer(state.markerClusterGroup)) {
+            state.map.removeLayer(state.markerClusterGroup);
+        }
+        markersToAdd.forEach(m => {
+            if (!state.map.hasLayer(m)) state.map.addLayer(m);
+        });
+    }
     refreshSidebarLists();
-    updateMapVisibility();
 };
 
 export const updateMapVisibility = () => {
-    if (!state.map) return;
-    const bounds = state.map.getBounds().pad(0.2);
-    state.allMarkers.forEach(m => {
-        const isCatActive = state.activeCategoryIds.has(m.category);
-        const isRegActive = state.activeRegionNames.has(m.region);
-        if (isCatActive && isRegActive) {
-            const isCompleted = state.completedList.includes(m.id);
-            if (state.hideCompleted && isCompleted) {
-                if (state.map.hasLayer(m.marker)) state.map.removeLayer(m.marker);
-                return;
-            }
-
-            const isVisible = bounds.contains(m.marker.getLatLng());
-            const isOnMap = state.map.hasLayer(m.marker);
-            if (isVisible) {
-                if (!isOnMap) state.map.addLayer(m.marker);
-            } else {
-                if (isOnMap) state.map.removeLayer(m.marker);
-            }
-        } else {
-            if (state.map.hasLayer(m.marker)) state.map.removeLayer(m.marker);
-        }
-    });
+    renderMapDataAndMarkers();
 };
 
 export const moveToLocation = (latlng, marker = null, regionName = null) => {

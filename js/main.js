@@ -1,6 +1,6 @@
 import { state, setState } from './state.js';
 import { MAP_CONFIGS, contributionLinks } from './config.js';
-import { t, parseCSV } from './utils.js';
+import { t, parseCSV, fetchAndParseCSVChunks } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
 import { renderMapDataAndMarkers, createPopupHtml, moveToLocation } from './map.js';
 import {
@@ -52,167 +52,23 @@ const initAdToggle = () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const [transRes] = await Promise.all([
-            fetch('./translation.csv')
-        ]);
+        fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
+            if (!headers) return;
 
-        if (!transRes.ok) throw new Error("필수 파일을 찾을 수 없습니다.");
-
-        const githubModal = document.getElementById('github-modal');
-        const openGithubModalBtn = document.getElementById('open-github-modal');
-        const githubModalTitle = document.getElementById('github-modal-title');
-        const githubModalDesc = document.getElementById('github-modal-desc');
-        const githubModalLinks = document.getElementById('github-modal-links');
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const mapParam = urlParams.get('map');
-        const isEmbed = urlParams.get('embed') === 'true';
-
-        if (mapParam && MAP_CONFIGS[mapParam]) {
-            setState('currentMapKey', mapParam);
-        }
-        if (isEmbed) {
-            document.body.classList.add('embed-mode');
-            const sidebar = document.getElementById('sidebar');
-            const openBtn = document.getElementById('open-sidebar');
-
-            sidebar.classList.remove('open');
-            sidebar.classList.add('collapsed');
-            if (openBtn) openBtn.classList.remove('hidden-btn');
-        }
-
-        const originalBtn = document.getElementById('btn-open-original');
-        if (originalBtn) {
-            originalBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const targetUrl = new URL(window.location.href);
-                targetUrl.searchParams.delete('embed');
-                targetUrl.searchParams.set('map', state.currentMapKey);
-
-                window.open(targetUrl.toString(), '_blank');
-            });
-        }
-
-        if (openGithubModalBtn && githubModal) {
-            openGithubModalBtn.addEventListener('click', () => {
-                renderContributionModal();
-                githubModal.classList.remove('hidden');
-            });
-        }
-
-        const settingsModal = document.getElementById('settings-modal');
-        const openSettingsBtn = document.getElementById('open-settings');
-        const saveApiKeyBtn = document.getElementById('save-api-key');
-        const apiKeyInput = document.getElementById('api-key-input');
-        const regionColorInput = document.getElementById('region-line-color');
-        const regionFillColorInput = document.getElementById('region-fill-color');
-        const adToggleInput = document.getElementById('toggle-ad');
-
-        if (regionColorInput) {
-            regionColorInput.addEventListener('input', (e) => {
-                const valDisplay = document.getElementById('region-line-color-value');
-                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
-            });
-        }
-        if (regionFillColorInput) {
-            regionFillColorInput.addEventListener('input', (e) => {
-                const valDisplay = document.getElementById('region-fill-color-value');
-                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
-            });
-        }
-
-        const hideCompletedInput = document.getElementById('toggle-hide-completed');
-        if (hideCompletedInput) {
-            hideCompletedInput.checked = state.hideCompleted;
-            hideCompletedInput.addEventListener('change', (e) => {
-                setState('hideCompleted', e.target.checked);
-                localStorage.setItem('wwm_hide_completed', state.hideCompleted);
-                renderMapDataAndMarkers();
-            });
-        }
-
-        if (openSettingsBtn) {
-            openSettingsBtn.addEventListener('click', () => {
-                apiKeyInput.value = state.savedApiKey;
-                if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
-                if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
-                if (regionColorInput) {
-                    regionColorInput.value = state.savedRegionColor;
-                    const valDisplay = document.getElementById('region-line-color-value');
-                    if (valDisplay) valDisplay.textContent = state.savedRegionColor.toUpperCase();
-                }
-                if (regionFillColorInput) {
-                    regionFillColorInput.value = state.savedRegionFillColor;
-                    const valDisplay = document.getElementById('region-fill-color-value');
-                    if (valDisplay) valDisplay.textContent = state.savedRegionFillColor.toUpperCase();
-                }
-                settingsModal.classList.remove('hidden');
-            });
-        }
-        if (saveApiKeyBtn) {
-            saveApiKeyBtn.addEventListener('click', (event) => {
-                event.preventDefault();
-
-                try {
-                    if (apiKeyInput) {
-                        const newKey = apiKeyInput.value.trim();
-                        setState('savedApiKey', newKey);
-                        localStorage.setItem('wwm_api_key', newKey);
-                    } else {
-                        console.error("오류: apiKeyInput 요소를 찾을 수 없습니다.");
-                    }
-
-                    if (regionColorInput) {
-                        const newColor = regionColorInput.value;
-                        setState('savedRegionColor', newColor);
-                        localStorage.setItem('wwm_region_color', newColor);
-                    }
-
-                    if (regionFillColorInput) {
-                        const newFillColor = regionFillColorInput.value;
-                        setState('savedRegionFillColor', newFillColor);
-                        localStorage.setItem('wwm_region_fill_color', newFillColor);
-                    }
-
-                    if (adToggleInput) {
-                        let savedShowAd = adToggleInput.checked;
-                        localStorage.setItem('wwm_show_ad', savedShowAd);
-                    }
-                    alert("옵션 저장되었습니다.");
-                    if (settingsModal) settingsModal.classList.add('hidden');
-                    renderMapDataAndMarkers();
-
-                } catch (error) {
-                    console.error("저장 중 에러 발생:", error);
-                    alert("설정 저장 중 오류가 발생했습니다. 콘솔을 확인해주세요.");
-                }
-            });
-        } else {
-            console.error("오류: saveApiKeyBtn 버튼을 찾을 수 없습니다.");
-        }
-
-        const transText = await transRes.text();
-        const csvData = parseCSV(transText);
-
-        setState('rawCSV', transText);
-        setState('parsedCSV', csvData);
-
-        if (csvData.length > 0) {
-            const headers = csvData[0].map(h => h.trim());
             const typeIdx = headers.indexOf('Type');
             const catIdx = headers.indexOf('Category');
             const keyIdx = headers.indexOf('Key');
             const valIdx = headers.indexOf('Korean');
             const descIdx = headers.indexOf('Description');
             const regIdx = headers.indexOf('Region');
+            const imgIdx = headers.indexOf('Image');
 
-            for (let i = 1; i < csvData.length; i++) {
-                const row = csvData[i];
-                if (row.length < 3) continue;
+            chunkData.forEach(row => {
+                if (row.length < 3) return;
 
                 const type = row[typeIdx]?.trim();
                 const key = row[keyIdx]?.trim();
-                if (!key) continue;
+                if (!key) return;
 
                 if (type === 'Common') {
                     const val = row[valIdx];
@@ -222,7 +78,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     }
                 } else if (type === 'Override') {
                     const catId = row[catIdx]?.trim();
-                    if (!catId) continue;
+                    if (!catId) return;
 
                     if (!state.categoryItemTranslations[catId]) {
                         state.categoryItemTranslations[catId] = {};
@@ -231,7 +87,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                     if (key === '_common_description') {
                         state.categoryItemTranslations[catId]._common_description = row[descIdx];
                     } else {
-                        const imgIdx = headers.indexOf('Image');
                         let desc = row[descIdx];
                         if (desc) {
                             desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
@@ -250,8 +105,10 @@ document.addEventListener('DOMContentLoaded', async () => {
                         };
                     }
                 }
-            }
-        }
+            });
+        }, () => {
+            console.log("CSV Loading Completed");
+        });
 
         initCustomDropdown();
 
@@ -464,6 +321,122 @@ document.addEventListener('DOMContentLoaded', async () => {
                 };
                 reader.readAsText(file);
                 e.target.value = '';
+            });
+        }
+
+        const githubModal = document.getElementById('github-modal');
+        const openGithubModalBtn = document.getElementById('open-github-modal');
+        if (openGithubModalBtn && githubModal) {
+            openGithubModalBtn.addEventListener('click', () => {
+                renderContributionModal();
+                githubModal.classList.remove('hidden');
+            });
+        }
+
+        const settingsModal = document.getElementById('settings-modal');
+        const openSettingsBtn = document.getElementById('open-settings');
+        const saveApiKeyBtn = document.getElementById('save-api-key');
+        const apiKeyInput = document.getElementById('api-key-input');
+        const regionColorInput = document.getElementById('region-line-color');
+        const regionFillColorInput = document.getElementById('region-fill-color');
+        const adToggleInput = document.getElementById('toggle-ad');
+        const clusterToggleInput = document.getElementById('toggle-cluster');
+        const hideCompletedInput = document.getElementById('toggle-hide-completed');
+
+        let initialClusteringState = state.enableClustering;
+
+        if (openSettingsBtn && settingsModal) {
+            openSettingsBtn.addEventListener('click', () => {
+                initialClusteringState = state.enableClustering;
+                apiKeyInput.value = state.savedApiKey;
+                if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
+                if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
+                if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
+
+                if (regionColorInput) {
+                    regionColorInput.value = state.savedRegionColor;
+                    const valDisplay = document.getElementById('region-line-color-value');
+                    if (valDisplay) valDisplay.textContent = state.savedRegionColor.toUpperCase();
+                }
+                if (regionFillColorInput) {
+                    regionFillColorInput.value = state.savedRegionFillColor;
+                    const valDisplay = document.getElementById('region-fill-color-value');
+                    if (valDisplay) valDisplay.textContent = state.savedRegionFillColor.toUpperCase();
+                }
+                settingsModal.classList.remove('hidden');
+            });
+
+            const closeSettingsBtn = document.getElementById('close-settings');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.addEventListener('click', () => {
+                    if (state.enableClustering !== initialClusteringState) {
+                        alert("마커 클러스터링 설정이 변경되었습니다. 적용을 위해 페이지를 새로고침합니다.");
+                        location.reload();
+                    } else {
+                        settingsModal.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        if (saveApiKeyBtn) {
+            saveApiKeyBtn.addEventListener('click', (event) => {
+                event.preventDefault();
+                try {
+                    if (apiKeyInput) {
+                        const newKey = apiKeyInput.value.trim();
+                        setState('savedApiKey', newKey);
+                        localStorage.setItem('wwm_api_key', newKey);
+                    }
+                    if (regionColorInput) {
+                        const newColor = regionColorInput.value;
+                        setState('savedRegionColor', newColor);
+                        localStorage.setItem('wwm_region_color', newColor);
+                    }
+                    if (regionFillColorInput) {
+                        const newFillColor = regionFillColorInput.value;
+                        setState('savedRegionFillColor', newFillColor);
+                        localStorage.setItem('wwm_region_fill_color', newFillColor);
+                    }
+                    if (adToggleInput) {
+                        localStorage.setItem('wwm_show_ad', adToggleInput.checked);
+                    }
+                    alert("설정이 저장되었습니다. 적용을 위해 페이지를 새로고침합니다.");
+                    if (settingsModal) settingsModal.classList.add('hidden');
+                    location.reload();
+                } catch (error) {
+                    console.error("저장 중 에러 발생:", error);
+                    alert("설정 저장 중 오류가 발생했습니다.");
+                }
+            });
+        }
+
+        if (clusterToggleInput) {
+            clusterToggleInput.checked = state.enableClustering;
+            clusterToggleInput.addEventListener('change', (e) => {
+                setState('enableClustering', e.target.checked);
+                localStorage.setItem('wwm_enable_clustering', state.enableClustering);
+            });
+        }
+
+        if (hideCompletedInput) {
+            hideCompletedInput.addEventListener('change', (e) => {
+                setState('hideCompleted', e.target.checked);
+                localStorage.setItem('wwm_hide_completed', state.hideCompleted);
+                renderMapDataAndMarkers();
+            });
+        }
+
+        if (regionColorInput) {
+            regionColorInput.addEventListener('input', (e) => {
+                const valDisplay = document.getElementById('region-line-color-value');
+                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
+            });
+        }
+        if (regionFillColorInput) {
+            regionFillColorInput.addEventListener('input', (e) => {
+                const valDisplay = document.getElementById('region-fill-color-value');
+                if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
             });
         }
 
