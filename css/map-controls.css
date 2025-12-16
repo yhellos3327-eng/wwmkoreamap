@@ -1,0 +1,173 @@
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+    overflow: visible;
+    height: 44px;
+    transition: all 0.3s ease;
+}
+
+.map-toolbar .icon {
+    margin-right: 6px;
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.toolbar-btn {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding: 0 16px;
+    background: transparent;
+    border: none;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s ease;
+    opacity: 1;
+    max-width: 100px;
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+
+.toolbar-btn:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}
+
+.toolbar-btn.hidden-btn {
+    opacity: 0;
+    pointer-events: none;
+    max-width: 0;
+    padding: 0;
+    overflow: hidden;
+}
+
+.toolbar-divider {
+    width: 1px;
+    height: 20px;
+    background-color: var(--border);
+    transition: opacity 0.3s ease;
+}
+
+.toolbar-btn.hidden-btn+.toolbar-divider {
+    opacity: 0;
+    width: 0;
+    margin: 0;
+}
+
+.map-selector-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 100%;
+    padding-left: 0;
+    background: transparent;
+    transition: background 0.2s;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.custom-select {
+    position: relative;
+    height: 100%;
+    min-width: 160px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    user-select: none;
+}
+
+.select-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    padding: 0 16px;
+    background: transparent;
+    transition: all 0.2s;
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+.select-trigger:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}
+
+.select-trigger .icon {
+    margin-right: 8px;
+}
+
+.select-trigger .arrow {
+    font-size: 0.7rem;
+    margin-left: 10px;
+    transition: transform 0.3s;
+    opacity: 0.7;
+}
+
+.custom-select.open .select-trigger .arrow {
+    transform: rotate(180deg);
+    color: var(--accent);
+}
+
+.select-options {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 100%;
+    min-width: 160px;
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 2000;
+    overflow: hidden;
+}
+
+.custom-select.open .select-options {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.custom-option {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    color: #ccc;
+}
+
+.custom-option:last-child {
+    border-bottom: none;
+}
+
+.custom-option:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--text-main);
+}
+
+.custom-option.selected {
+    display: flex;
+    height: 100%;
+    transition: transform 0.3s ease;
+    z-index: 2000;
+    box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+    flex-shrink: 0;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-panel);
+}

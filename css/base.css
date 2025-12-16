@@ -1,0 +1,48 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
+:root {
+    --bg-dark: #121212;
+    --bg-panel: #1e1e1e;
+    --bg-item: #2a2a2a;
+    --bg-item-hover: #3a3a3a;
+    --text-main: #e0e0e0;
+    --text-muted: #888888;
+    --accent: #daac71;
+    --accent-bg: rgba(218, 172, 113, 0.15);
+    --accent-hover: #e5b981;
+    --border: #333;
+    --success: #4caf50;
+    --sidebar-width: 380px;
+}
+
+* {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    overflow: hidden;
+    font-size: 14px;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}

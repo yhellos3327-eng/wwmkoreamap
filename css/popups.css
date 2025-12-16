@@ -1,0 +1,340 @@
+.leaflet-popup-content-wrapper {
+    background: var(--bg-panel);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.leaflet-popup-content {
+    margin: 0;
+    width: 360px !important;
+    max-width: 80vw !important;
+}
+
+.leaflet-popup-tip {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-left: none;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+    color: var(--text-muted);
+    font-size: 18px;
+    padding: 8px 8px 0 0;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+    color: var(--text-main);
+}
+
+.popup-container {
+    padding: 16px;
+}
+
+.popup-header {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.popup-icon {
+    width: 40px;
+    height: 40px;
+    margin-right: 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 6px;
+    padding: 4px;
+}
+
+.popup-header h4 {
+    color: var(--accent);
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.popup-body {
+    max-height: 300px;
+    max-height: 50vh;
+    overflow-y: auto;
+    margin-bottom: 12px;
+}
+
+.popup-body p {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #ddd;
+    margin: 0;
+}
+
+.popup-related {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 0;
+    padding-top: 10px;
+    border-radius: 6px;
+    margin-top: 12px;
+    border: 1px solid #333;
+}
+
+.popup-related-header {
+    padding: 0 10px;
+    margin-bottom: 8px;
+}
+
+.popup-related h5 {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.related-list {
+    list-style: none;
+    padding: 0 10px 10px 10px;
+    margin: 0;
+    max-height: 120px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 transparent;
+}
+
+.related-item {
+    display: block;
+    padding: 3px 0;
+    font-size: 0.85rem;
+    color: var(--accent);
+    cursor: pointer;
+    text-decoration: none;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.related-item:hover {
+    text-decoration: underline;
+    color: #fff;
+}
+
+.related-item.hidden {
+    display: none !important;
+}
+
+.related-region {
+    font-size: 0.75rem;
+    color: #777;
+    margin-left: 4px;
+}
+
+.btn-search-modal {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 8px;
+}
+
+.btn-search-modal:hover {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-expand {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid transparent;
+    border-top: 1px solid #333;
+    color: #888;
+    padding: 10px 0;
+    margin-top: 0;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    border-radius: 0 0 6px 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-expand:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: #ccc;
+}
+
+.popup-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    border-top: 1px solid #333;
+    padding-top: 12px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: #3a3a3a;
+    color: white;
+    border-color: #666;
+}
+
+.action-btn.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.popup-footer {
+    margin-top: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.badge {
+    font-size: 0.75rem;
+    color: #666;
+    background: #111;
+    padding: 2px 6px;
+    border-radius: 4px;
+    border: 1px solid #333;
+}
+
+.popup-image-container {
+    position: relative;
+    width: 100%;
+    margin-bottom: 10px;
+    background: #222;
+    border-radius: 4px;
+    overflow: hidden;
+    min-height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.popup-image {
+    width: 100%;
+    height: auto;
+    max-height: 200px;
+    object-fit: contain;
+    display: none;
+    cursor: pointer;
+}
+
+.popup-image.active {
+    display: block;
+}
+
+.img-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    z-index: 10;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+    font-size: 12px;
+}
+
+.img-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.img-nav-btn.prev {
+    left: 5px;
+}
+
+.img-nav-btn.next {
+    right: 5px;
+}
+
+.img-counter {
+    position: absolute;
+    bottom: 5px;
+    right: 5px;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    pointer-events: none;
+}
+
+.completed-marker {
+    opacity: 0.5 !important;
+    filter: grayscale(100%) !important;
+}
+
+.region-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 0 0 4px #000, 0 0 4px #000;
+    text-align: center;
+}
+
+.region-label::before {
+    display: none;
+}
+
+.region-polygon {
+    transition: stroke-width 0.2s, fill-opacity 0.2s;
+}
+
+.region-label-icon {
+    background: transparent;
+    border: none;
+}
+
+.region-label-text {
+    font-size: 14px;
+    opacity: 0.7;
+    color: #fff;
+    text-shadow: 0 0 4px #000;
+    white-space: nowrap;
+    pointer-events: none;
+    text-align: center;
+    width: 100%;
+}

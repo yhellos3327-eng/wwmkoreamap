@@ -1,0 +1,121 @@
+@media (max-width: 768px) {
+    .map-toolbar {
+        overflow: visible !important;
+        overflow-x: visible !important;
+        flex-wrap: wrap;
+        height: auto;
+        padding: 4px;
+        max-width: calc(100vw - 40px);
+        overflow-x: auto;
+    }
+
+    .toolbar-btn,
+    .map-selector-wrapper {
+        margin-bottom: 4px;
+        border-radius: 8px !important;
+    }
+
+    .custom-select .select-options {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 100%;
+        min-width: 160px;
+        max-height: 300px;
+        overflow-y: auto;
+        z-index: 10000;
+        background-color: var(--bg-panel);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+        transform: none;
+    }
+
+    .custom-select.open .select-options {
+        opacity: 1;
+        visibility: visible;
+        margin-top: 13px;
+    }
+
+    .sidebar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        width: 100%;
+        max-width: 100%;
+        transform: translateX(-100%);
+    }
+
+    .sidebar.open {
+        transform: translateX(0);
+    }
+
+    .sidebar-header {
+        padding: 15px 20px;
+    }
+
+    .cate-list {
+        grid-template-columns: 1fr;
+    }
+
+    .leaflet-popup-content {
+        width: 300px !important;
+    }
+
+    .guide-tooltip {
+        width: 90% !important;
+        max-width: 400px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        bottom: 20px !important;
+        top: auto !important;
+        position: fixed !important;
+    }
+
+    .guide-highlight-box {
+        box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.85);
+    }
+}
+
+.embed-only {
+    display: none;
+}
+
+body.embed-mode .embed-only {
+    display: flex;
+}
+
+body.embed-mode .sidebar {
+    position: absolute;
+    z-index: 3000;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+body.embed-mode .menu-trigger {
+    display: flex !important;
+}
+
+body.embed-mode .map-toolbar {
+    padding: 0 12px;
+}
+
+body.embed-mode .map-selector-wrapper,
+body.embed-mode .select-trigger {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+body.embed-mode .map-selector-wrapper,
+body.embed-mode .select-trigger {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+body.embed-mode #btn-open-original {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+body.embed-mode #btn-open-original:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}
