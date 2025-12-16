@@ -52,8 +52,22 @@ const initAdToggle = () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // Debugging: Load raw CSV and store in state
+        fetch('./translation.csv')
+            .then(res => res.text())
+            .then(text => {
+                setState('rawCSV', text);
+            });
+
+        state.parsedCSV = [];
+
         fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
             if (!headers) return;
+
+            if (state.parsedCSV.length === 0) {
+                state.parsedCSV.push(headers);
+            }
+            state.parsedCSV.push(...chunkData);
 
             const typeIdx = headers.indexOf('Type');
             const catIdx = headers.indexOf('Category');

@@ -448,6 +448,51 @@ export const renderMapDataAndMarkers = () => {
 
             console.groupCollapsed(`%c📍 [${item.id}] ${item.name}`, "font-size: 14px; font-weight: bold; color: #ffbd53; background: #222; padding: 4px 8px; border-radius: 4px;");
             console.table(debugInfo);
+
+            if (state.rawCSV && state.parsedCSV && state.parsedCSV.length > 0) {
+                console.groupCollapsed("%c📄 CSV Source Data Available", "font-weight: bold; color: #4CAF50;");
+                const headers = state.parsedCSV[0].map(h => h.trim());
+                const keyIdx = headers.indexOf('Key');
+
+                let rowIndex = -1;
+
+                if (keyIdx !== -1) {
+                    rowIndex = state.parsedCSV.findIndex(r => r[keyIdx] == item.id);
+                }
+
+                if (rowIndex === -1 && keyIdx !== -1) {
+                    rowIndex = state.parsedCSV.findIndex(r => r[keyIdx] === item.name || r[keyIdx] === item.name?.trim());
+                }
+
+                if (rowIndex !== -1) {
+                    const row = state.parsedCSV[rowIndex];
+
+                    const rawLines = state.rawCSV.split(/\r?\n/);
+                    const rawLine = rawLines[rowIndex];
+
+                    console.log("%cFound Row in CSV", "font-size: 16px; font-weight: bold; color: #2196F3; border-bottom: 2px solid #2196F3; padding-bottom: 4px; margin-bottom: 8px; display: block;");
+
+                    console.log("%cParsed CSV Data", "font-weight:bold; color: #90CAF9; margin-bottom: 4px;");
+
+                    headers.forEach((h, i) => {
+                        let val = row[i];
+                        if (h === 'Description' && val) val = val.trim();
+                        console.log(`%c${h.padEnd(12)}%c${val}`,
+                            "color: #aaa; font-family: monospace; font-weight: bold; background: #222; padding: 2px 6px; border-radius: 3px 0 0 3px;",
+                            "color: #fff; font-family: monospace; background: #333; padding: 2px 8px; border-radius: 0 3px 3px 0;"
+                        );
+                    });
+
+                    if (rawLine) {
+                        console.log("%cRaw CSV Line", "font-size: 14px; font-weight: bold; color: #FF5722; border-bottom: 2px solid #FF5722; padding-bottom: 4px; margin-bottom: 8px; display: block;");
+                        console.log(`%c${rawLine}`, "background: #2d2d2d; color: #e0e0e0; padding: 8px 12px; border-radius: 4px; font-family: monospace; border: 1px solid #444; display: block; margin-top: 4px; line-height: 1.5; white-space: pre-wrap;");
+                    }
+                } else {
+                    console.log("%cItem ID/Name not found directly in CSV", "color: orange;");
+                    console.log("Searched for ID:", item.id, "or Name:", item.name);
+                }
+                console.groupEnd();
+            }
             console.groupEnd();
         });
 
