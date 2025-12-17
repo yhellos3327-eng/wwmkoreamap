@@ -12,9 +12,10 @@ export const loadMapData = async (mapKey) => {
     try {
         initMap(mapKey);
 
-        const [dataRes, regionRes] = await Promise.all([
+        const [dataRes, regionRes, missingRes] = await Promise.all([
             fetch(config.dataFile),
-            fetch(config.regionFile)
+            fetch(config.regionFile),
+            fetch('missing_data.csv').catch(e => ({ ok: false }))
         ]);
 
         if (!dataRes.ok) throw new Error(`${config.dataFile} 로드 실패`);
@@ -22,6 +23,22 @@ export const loadMapData = async (mapKey) => {
 
         const dataJson = await dataRes.json();
         const regionJson = await regionRes.json();
+
+        const missingItems = new Set();
+        if (missingRes.ok) {
+            const missingText = await missingRes.text();
+            const lines = missingText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const catId = parts[0].trim();
+                    const itemId = parts[1].trim();
+                    if (catId && itemId && catId !== 'CategoryID') {
+                        missingItems.add(`${catId}_${itemId}`);
+                    }
+                }
+            });
+        }
 
         const regionData = regionJson.data || [];
         setState('regionData', regionData);
@@ -64,32 +81,34 @@ export const loadMapData = async (mapKey) => {
 
         const mapData = { categories: [], items: [] };
 
-        mapData.items = rawItems.map(item => {
-            const catId = String(item.category_id);
-            const regionName = regionIdMap[item.regionId] || "알 수 없음";
+        mapData.items = rawItems
+            .filter(item => !missingItems.has(`${item.category_id}_${item.id}`))
+            .map(item => {
+                const catId = String(item.category_id);
+                const regionName = regionIdMap[item.regionId] || "알 수 없음";
 
-            let imgList = [];
-            if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-                imgList = item.images;
-            } else if (item.image) {
-                imgList = [item.image];
-            }
+                let imgList = [];
+                if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                    imgList = item.images;
+                } else if (item.image) {
+                    imgList = [item.image];
+                }
 
-            return {
-                ...item,
-                id: item.id,
-                category: catId,
-                name: item.title || "Unknown",
-                description: item.description || "",
-                x: item.latitude,
-                y: item.longitude,
-                region: regionName,
-                images: imgList,
-                imageSizeW: 44,
-                imageSizeH: 44,
-                isTranslated: false
-            };
-        });
+                return {
+                    ...item,
+                    id: item.id,
+                    category: catId,
+                    name: item.title || "Unknown",
+                    description: item.description || "",
+                    x: item.latitude,
+                    y: item.longitude,
+                    region: regionName,
+                    images: imgList,
+                    imageSizeW: 44,
+                    imageSizeH: 44,
+                    isTranslated: false
+                };
+            });
 
         const uniqueCategoryIds = new Set(mapData.items.map(i => i.category));
 

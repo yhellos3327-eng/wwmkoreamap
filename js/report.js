@@ -92,8 +92,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
 
+        let locationInfo = "";
+        try {
+            const parsedData = JSON.parse(validReportData);
+            if (parsedData.id && parsedData.lat && parsedData.lng) {
+                const baseUrl = window.location.href.replace('report.html', 'index.html').split('?')[0];
+                const mapUrl = `${baseUrl}?id=${parsedData.id}&lat=${parsedData.lat}&lng=${parsedData.lng}`;
+                locationInfo = `\n### 위치 이동\n${mapUrl}`;
+            }
+        } catch (e) { }
+
         const payload = {
-            content: `## 내용\n${content}\n## 데이터\n\`\`\`json\n${validReportData}\n\`\`\``,
+            content: `## 내용\n${content}${locationInfo}\n## 데이터\n\`\`\`json\n${validReportData}\n\`\`\``,
             username: nicknameInput.value.trim() || '익명 제보자',
             thread_name: title,
             applied_tags: []
@@ -128,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 submitBtn.disabled = false;
                 submitBtn.textContent = "게시글 작성";
 
-                // Refresh board after delay
                 setTimeout(() => {
                     loadBoard();
                 }, 5000);

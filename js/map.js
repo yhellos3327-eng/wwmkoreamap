@@ -1,7 +1,7 @@
 import { MAP_CONFIGS, ICON_MAPPING } from './config.js';
 import { state, setState } from './state.js';
 import { t, getJosa, isPointInPolygon } from './utils.js';
-import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState, openLightbox, openVideoLightbox, openRelatedModal, toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId } from './ui.js';
+import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState } from './ui.js';
 import { saveFilterState } from './data.js';
 // import { loadExternalContent } from './external-loader.js';
 
@@ -522,7 +522,9 @@ export const renderMapDataAndMarkers = () => {
             desc: (item.description || '').toLowerCase(),
             category: catId,
             region: finalRegionName,
-            forceRegion: item.forceRegion
+            forceRegion: item.forceRegion,
+            lat: lat,
+            lng: lng
         });
     });
 
@@ -585,7 +587,9 @@ window.openReportPage = (itemId) => {
             name: item.originalName,
             category: item.category,
             region: item.region,
-            description: item.desc
+            description: item.desc,
+            lat: item.lat,
+            lng: item.lng
         };
         localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
         window.open('report.html', '_blank');
