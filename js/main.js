@@ -150,7 +150,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             console.log("CSV Loading Completed");
         }, (loaded, total) => {
             if (total > 0) {
-                const percent = (loaded / total) * 100;
+                const percent = Math.min(100, (loaded / total) * 100);
                 setState('loadingState', {
                     ...state.loadingState,
                     csvProgress: percent,
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         await loadMapData(state.currentMapKey, (loaded, total) => {
             if (total > 0) {
-                const percent = (loaded / total) * 100;
+                const percent = Math.min(100, (loaded / total) * 100);
                 setState('loadingState', {
                     ...state.loadingState,
                     mapProgress: percent,
