@@ -1,5 +1,14 @@
 export const updateHistory = [
     {
+        version: "v1.3.1",
+        date: "2025-12-18",
+        content: [
+            "초기 로딩 화면 추가 (데이터 로드 진행률 표시)",
+            "팝업 닫힘 문제 수정",
+            "AI 번역 모델 및 제공자 설정 UI 개선"
+        ]
+    },
+    {
         version: "v1.3.0",
         date: "2025-12-16",
         content: [

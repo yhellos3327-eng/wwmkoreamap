@@ -1,4 +1,4 @@
-import { state, setState } from './state.js';
+import { state, setState, subscribe } from './state.js';
 import { MAP_CONFIGS, contributionLinks } from './config.js';
 import { t, parseCSV, fetchAndParseCSVChunks } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
@@ -54,11 +54,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('embed') === 'true') {
         document.body.classList.add('embed-mode');
-        // Ensure sidebar is closed in embed mode
         const sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.add('collapsed');
     }
     try {
+        subscribe('loadingState', (loadingState) => {
+            const loadingScreen = document.getElementById('loading-screen');
+            const loadingBar = document.getElementById('loading-bar');
+            const loadingText = document.getElementById('loading-text');
+            const loadingDetail = document.getElementById('loading-detail');
+
+            if (!loadingState.isVisible) {
+                if (loadingScreen) loadingScreen.classList.add('hidden');
+                return;
+            }
+
+            const WEIGHTS = { csv: 0.3, map: 0.7 };
+            const total = (loadingState.csvProgress * WEIGHTS.csv) + (loadingState.mapProgress * WEIGHTS.map);
+
+            if (loadingBar) loadingBar.style.width = `${Math.min(100, Math.round(total))}%`;
+            if (loadingText) loadingText.textContent = loadingState.message;
+            if (loadingDetail) loadingDetail.textContent = loadingState.detail;
+        });
+
         fetch('./translation.csv')
             .then(res => res.text())
             .then(text => {
@@ -67,7 +85,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         state.parsedCSV = [];
 
-        fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
+        setState('loadingState', { ...state.loadingState, message: "초기화 중...", detail: "번역 데이터 불러오는 중..." });
+
+        await fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
             if (!headers) return;
 
             if (state.parsedCSV.length === 0) {
@@ -128,11 +148,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }, () => {
             console.log("CSV Loading Completed");
+        }, (loaded, total) => {
+            if (total > 0) {
+                const percent = (loaded / total) * 100;
+                setState('loadingState', {
+                    ...state.loadingState,
+                    csvProgress: percent,
+                    detail: `번역 데이터: ${Math.round(percent)}%`
+                });
+            }
+        });
+
+        setState('loadingState', {
+            ...state.loadingState,
+            csvProgress: 100,
+            message: "지도 데이터 불러오는 중..."
         });
 
         initCustomDropdown();
 
-        await loadMapData(state.currentMapKey);
+        await loadMapData(state.currentMapKey, (loaded, total) => {
+            if (total > 0) {
+                const percent = (loaded / total) * 100;
+                setState('loadingState', {
+                    ...state.loadingState,
+                    mapProgress: percent,
+                    detail: `지도 데이터: ${Math.round(percent)}%`
+                });
+            }
+        });
+
+        setState('loadingState', {
+            ...state.loadingState,
+            mapProgress: 100,
+            message: "준비 완료!"
+        });
+
+        setTimeout(() => {
+            setState('loadingState', { ...state.loadingState, isVisible: false });
+        }, 500);
 
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
@@ -398,7 +452,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             let key = '';
             let placeholder = '';
             if (provider === 'gemini') {
-                key = state.savedGeminiKey || state.savedApiKey; // Fallback to legacy
+                key = state.savedGeminiKey || state.savedApiKey;
                 placeholder = "Google Gemini API Key 입력";
             } else if (provider === 'openai') {
                 key = state.savedOpenAIKey;
@@ -439,8 +493,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 }
 
                 if (apiModelSelect) apiModelSelect.value = state.savedApiModel;
-
-                // Ensure correct key is shown if provider logic fails or first load
                 if (apiKeyInput && !apiProviderSelect) apiKeyInput.value = state.savedApiKey;
                 if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
                 if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
@@ -485,7 +537,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                             const newKey = apiKeyInput.value.trim();
                             if (provider === 'gemini') {
                                 setState('savedGeminiKey', newKey);
-                                setState('savedApiKey', newKey); // Sync legacy
+                                setState('savedApiKey', newKey);
                                 localStorage.setItem('wwm_api_key', newKey);
                             } else if (provider === 'openai') {
                                 setState('savedOpenAIKey', newKey);
@@ -496,7 +548,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                             }
                         }
                     } else if (apiKeyInput) {
-                        // Fallback for legacy
                         const newKey = apiKeyInput.value.trim();
                         setState('savedApiKey', newKey);
                         localStorage.setItem('wwm_api_key', newKey);

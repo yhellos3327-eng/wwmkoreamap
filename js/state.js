@@ -19,18 +19,25 @@ const state = {
     currentLightboxIndex: 0,
     regionMetaInfo: {},
     savedAIProvider: localStorage.getItem('wwm_ai_provider') || "gemini",
-    savedGeminiKey: localStorage.getItem('wwm_api_key') || "", // Legacy key support
+    savedGeminiKey: localStorage.getItem('wwm_api_key') || "",
     savedOpenAIKey: localStorage.getItem('wwm_openai_key') || "",
     savedClaudeKey: localStorage.getItem('wwm_claude_key') || "",
     savedApiModel: localStorage.getItem('wwm_api_model') || "gemini-1.5-flash",
     savedRegionColor: localStorage.getItem('wwm_region_color') || "#242424",
     savedRegionFillColor: localStorage.getItem('wwm_region_fill_color') || "#ffbd53",
     hideCompleted: localStorage.getItem('wwm_hide_completed') === 'true',
-    enableClustering: localStorage.getItem('wwm_enable_clustering') !== 'false', // Default true
+    enableClustering: localStorage.getItem('wwm_enable_clustering') !== 'false',
     currentGuideStep: 0,
     rawCSV: null,
     parsedCSV: null,
-    isDevMode: false
+    isDevMode: false,
+    loadingState: {
+        csvProgress: 0,
+        mapProgress: 0,
+        message: "초기화 중...",
+        detail: "",
+        isVisible: true
+    }
 };
 
 const listeners = {};

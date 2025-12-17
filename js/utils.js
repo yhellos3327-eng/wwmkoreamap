@@ -49,8 +49,40 @@ export const parseCSV = (str) => {
     return arr;
 };
 
-export const fetchAndParseCSVChunks = async (url, onChunk, onComplete) => {
+export const fetchWithProgress = async (url, onProgress) => {
     const response = await fetch(url);
+    if (!response.ok) throw new Error(`${url} 로드 실패: ${response.statusText}`);
+
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    let loaded = 0;
+
+    const reader = response.body.getReader();
+    const chunks = [];
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        chunks.push(value);
+        loaded += value.length;
+        if (total && onProgress) {
+            onProgress(loaded, total);
+        }
+    }
+
+    const blob = new Blob(chunks);
+    return blob; // Return blob, caller can use .json() or .text()
+};
+
+export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress) => {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`${url} 로드 실패`);
+
+    const contentLength = response.headers.get('content-length');
+    const total = contentLength ? parseInt(contentLength, 10) : 0;
+    let loaded = 0;
+
     const reader = response.body.getReader();
     const decoder = new TextDecoder("utf-8");
     let buffer = "";
@@ -60,6 +92,11 @@ export const fetchAndParseCSVChunks = async (url, onChunk, onComplete) => {
     while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+
+        loaded += value.length;
+        if (total && onProgress) {
+            onProgress(loaded, total);
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split(/\r?\n/);

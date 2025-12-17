@@ -1,28 +1,52 @@
 import { MAP_CONFIGS } from './config.js';
 import { state, setState, updateState } from './state.js';
-import { t } from './utils.js';
+import { t, fetchWithProgress } from './utils.js';
 import { initMap, renderMapDataAndMarkers } from './map.js';
 import { refreshCategoryList, updateToggleButtonsState, renderFavorites } from './ui.js';
 import { calculateTranslationProgress } from './translation.js';
 
-export const loadMapData = async (mapKey) => {
+export const loadMapData = async (mapKey, onProgress) => {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
 
     try {
         initMap(mapKey);
+        const progressState = {
+            data: { loaded: 0, total: 0 },
+            region: { loaded: 0, total: 0 }
+        };
 
-        const [dataRes, regionRes, missingRes] = await Promise.all([
-            fetch(config.dataFile),
-            fetch(config.regionFile),
-            fetch('missing_data.csv').catch(e => ({ ok: false }))
+        const updateAggregateProgress = () => {
+            if (!onProgress) return;
+            const totalLoaded = progressState.data.loaded + progressState.region.loaded;
+            const totalSize = progressState.data.total + progressState.region.total;
+            if (totalSize > 0) {
+                onProgress(totalLoaded, totalSize);
+            }
+        };
+
+        const dataBlobPromise = fetchWithProgress(config.dataFile, (loaded, total) => {
+            progressState.data.loaded = loaded;
+            progressState.data.total = total;
+            updateAggregateProgress();
+        });
+
+        const regionBlobPromise = fetchWithProgress(config.regionFile, (loaded, total) => {
+            progressState.region.loaded = loaded;
+            progressState.region.total = total;
+            updateAggregateProgress();
+        });
+
+        const missingPromise = fetch('missing_data.csv').catch(e => ({ ok: false }));
+
+        const [dataBlob, regionBlob, missingRes] = await Promise.all([
+            dataBlobPromise,
+            regionBlobPromise,
+            missingPromise
         ]);
 
-        if (!dataRes.ok) throw new Error(`${config.dataFile} 로드 실패`);
-        if (!regionRes.ok) throw new Error(`${config.regionFile} 로드 실패`);
-
-        const dataJson = await dataRes.json();
-        const regionJson = await regionRes.json();
+        const dataJson = JSON.parse(await dataBlob.text());
+        const regionJson = JSON.parse(await regionBlob.text());
 
         const missingItems = new Set();
         if (missingRes.ok) {
