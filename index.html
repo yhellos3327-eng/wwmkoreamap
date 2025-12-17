@@ -312,193 +312,28 @@
                             style="display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px;">
                         </div>
                     </div>
-
-                    <div>
-                        <span class="lightbox-close">&times;</span>
-                        <button class="lightbox-nav prev"
-                            onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
-                        <button class="lightbox-nav next"
-                            onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
-                        <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
-                    </div>
-
-                    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
-                        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
-                        <div class="settings-group">
-                            <label class="settings-label">지역 경계선 색상 <span class="settings-subtitle">(지도
-                                    스타일)</span></label>
-                            <div class="color-picker-wrapper">
-                                <div class="color-input-container">
-                                    <input type="color" id="region-line-color" value="#242424" class="color-input">
-                                    <span class="color-value" id="region-line-color-value">#242424</span>
-                                </div>
-                                <span class="color-label">기본값: #242424</span>
-                            </div>
-                        </div>
-
-                        <div class="settings-group">
-                            <label class="settings-label">지역 채우기 색상 <span class="settings-subtitle">(지도
-                                    스타일)</span></label>
-                            <div class="color-picker-wrapper">
-                                <div class="color-input-container">
-                                    <input type="color" id="region-fill-color" value="#ffbd53" class="color-input">
-                                    <span class="color-value" id="region-fill-color-value">#ffbd53</span>
-                                </div>
-                                <span class="color-label">기본값: #ffbd53</span>
-                            </div>
-                        </div>
-                        <div class="settings-backup-section"
-                            style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 15px;     ">
-
-                            <h4 style="margin-bottom: 10px; font-size: 1.1em; font-weight: bold;">💾 데이터 백업 및 복구</h4>
-                            <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
-                                현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
-                                <span style="color: #d9534f; font-size: 0.8em;">
-                                    <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>
-                                </span>
-                            </p>
-
-                            <div class="backup-buttons" style="display: flex; gap: 10px;">
-                                <button id="btn-backup-save" class="modal-btn save-btn"
-                                    style="flex: 1; padding: 8px; cursor: pointer;">
-                                    파일로 저장
-                                </button>
-
-                                <button id="btn-backup-load" class="modal-btn load-btn"
-                                    style="flex: 1; padding: 8px; cursor: pointer;">
-                                    파일 불러오기
-                                </button>
-
-                                <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
-                            </div>
-                        </div>
-                        <button id="save-api-key" class="action-btn"
-                            style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
-                        <ul class="settings-note">
-                            <li>API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.</li>
-                            <li>미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.</li>
-                        </ul>
-                    </div>
+                </form>
             </div>
         </div>
+    </div>
 
-        <div id="github-modal" class="modal-overlay hidden">
-            <div class="modal-content github-modal-content">
-                <div class="modal-header">
-                    <h3 id="github-modal-title">기여하기</h3>
-                    <button class="close-modal-btn"
-                        onclick="document.getElementById('github-modal').classList.add('hidden')">&times;</button>
-                </div>
-                <div class="modal-body" style="padding: 30px;">
-                    <div class="github-intro">
-                        <p id="github-modal-desc">
-                            이 지도는 커뮤니티의 기여로 만들어집니다.<br>
-                            잘못된 정보가 있거나 새로운 정보를 추가하고 싶다면 언제든 알려주세요.
-                        </p>
-                    </div>
+    <div id="lightbox-modal" class="modal-overlay hidden" onclick="closeLightbox()">
+        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+        <button class="lightbox-nav prev" onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
+        <button class="lightbox-nav next" onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
+        <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
+    </div>
 
-                    <div id="github-modal-links" class="github-links-grid">
-                    </div>
-
-                    <div id="contribution-guide-container" class="contribution-guide">
-                    </div>
-                </div>
-            </div>
+    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
+        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
+        <div class="video-lightbox-content" onclick="event.stopPropagation()">
+            <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
         </div>
+    </div>
 
-        <div id="related-modal" class="modal-overlay hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3 id="modal-title">관련 항목</h3>
-                    <button class="close-modal-btn" onclick="closeModal()">&times;</button>
-                </div>
-                <div class="modal-search">
-                    <input type="text" id="modal-search-input" placeholder="리스트 내 검색...">
-                </div>
-                <div class="modal-body">
-                    <ul id="modal-list" class="modal-list-items">
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div id="dev-modal" class="modal-overlay hidden" style="z-index: 9999;">
-            <div class="modal-content">
-                <div class="modal-header" style="border-bottom: 1px solid var(--accent);">
-                    <h3 style="color: var(--accent);">🛠️ 데이터 추가 도구</h3>
-                    <button class="close-modal-btn"
-                        onclick="document.getElementById('dev-modal').classList.add('hidden')">&times;</button>
-                </div>
-                <div class="modal-body" style="padding: 20px;">
-                    <form id="dev-form" style="display: flex; flex-direction: column; gap: 10px;">
-                        <div style="display: flex; gap: 10px;">
-                            <div style="flex:1;">
-                                <label style="font-size: 0.8rem; color: #888;">X 좌표</label>
-                                <input type="text" id="dev-x" readonly
-                                    style="width: 100%; background: #222; border: 1px solid #444; color: #aaa;">
-                            </div>
-                            <div style="flex:1;">
-                                <label style="font-size: 0.8rem; color: #888;">Y 좌표</label>
-                                <input type="text" id="dev-y" readonly
-                                    style="width: 100%; background: #222; border: 1px solid #444; color: #aaa;">
-                            </div>
-                        </div>
-
-                        <div>
-                            <label style="font-size: 0.8rem; color: #ccc;">카테고리</label>
-                            <select id="dev-category"
-                                style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                            </select>
-                        </div>
-
-                        <div>
-                            <label style="font-size: 0.8rem; color: #ccc;">이름 (English Key)</label>
-                            <input type="text" id="dev-name" placeholder="예: Chest, NPC Name..."
-                                style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px;">
-                        </div>
-
-                        <div>
-                            <label style="font-size: 0.8rem; color: #ccc;">설명 (선택)</label>
-                            <textarea id="dev-desc" rows="3" placeholder="HTML 태그 사용 가능"
-                                style="width: 100%; padding: 8px; background: #333; color: white; border: 1px solid #555; border-radius: 4px; resize: vertical;"></textarea>
-                        </div>
-
-                        <div>
-                            <label style="font-size: 0.8rem; color: #ccc;">이미지 (드래그 & 드롭 또는 붙여넣기)</label>
-                            <div id="dev-drop-zone"
-                                style="border: 2px dashed #555; padding: 20px; text-align: center; color: #888; border-radius: 4px; cursor: pointer; transition: all 0.2s;">
-                                <p style="margin: 0; pointer-events: none;">이미지를 이곳에 드래그하거나 클릭하여 선택하세요.<br>(Ctrl+V로 붙여넣기
-                                    가능)
-                                </p>
-                                <input type="file" id="dev-image-input" accept="image/*" multiple
-                                    style="display: none;">
-                            </div>
-                            <div id="dev-image-preview"
-                                style="display: flex; gap: 10px; overflow-x: auto; margin-top: 10px; padding-bottom: 5px;">
-                            </div>
-                        </div>
-
-                        <div>
-                            <span class="lightbox-close">&times;</span>
-                            <button class="lightbox-nav prev"
-                                onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
-                            <button class="lightbox-nav next"
-                                onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
-                            <img class="lightbox-content" id="lightbox-img" onclick="event.stopPropagation()">
-                        </div>
-
-                        <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
-                            <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
-                            <div class="video-lightbox-content" onclick="event.stopPropagation()">
-                                <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen
-                                    allow="autoplay"></iframe>
-                            </div>
-                        </div>
-
-                        <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-                        <script
-                            src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
-                        <script type="module" src="js/main.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script type="module" src="js/main.js"></script>
 </body>
 
 </html>
