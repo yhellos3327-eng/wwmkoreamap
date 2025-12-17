@@ -32,6 +32,9 @@ jobs:
               messagingSenderId: "${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}",
               appId: "${{ secrets.FIREBASE_APP_ID }}"
           };
+
+          // reCAPTCHA v3 Site Key for Firebase App Check
+          export const RECAPTCHA_SITE_KEY = "${{ secrets.RECAPTCHA_SITE_KEY }}";
           EOF
       
       - name: Setup Pages
