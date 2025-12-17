@@ -18,7 +18,11 @@ const state = {
     currentLightboxImages: [],
     currentLightboxIndex: 0,
     regionMetaInfo: {},
-    savedApiKey: localStorage.getItem('wwm_api_key') || "",
+    savedAIProvider: localStorage.getItem('wwm_ai_provider') || "gemini",
+    savedGeminiKey: localStorage.getItem('wwm_api_key') || "", // Legacy key support
+    savedOpenAIKey: localStorage.getItem('wwm_openai_key') || "",
+    savedClaudeKey: localStorage.getItem('wwm_claude_key') || "",
+    savedApiModel: localStorage.getItem('wwm_api_model') || "gemini-1.5-flash",
     savedRegionColor: localStorage.getItem('wwm_region_color') || "#242424",
     savedRegionFillColor: localStorage.getItem('wwm_region_fill_color') || "#ffbd53",
     hideCompleted: localStorage.getItem('wwm_hide_completed') === 'true',

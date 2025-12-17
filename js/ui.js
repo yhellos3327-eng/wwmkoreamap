@@ -350,18 +350,16 @@ export const renderContributionModal = () => {
 
     // Links
     linksContainer.innerHTML = contributionLinks.map(link => `
-        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="contribution-link">
-            <span>
-                ${link.icon === 'code' ? '💻' : '🐛'}
-                ${t(link.titleKey)}
-            </span>
-            <span class="link-type-badge">${link.icon === 'code' ? 'Code' : 'Issues'}</span>
+        <a href="${link.url}" target="_blank" rel="noopener noreferrer" class="github-link-card">
+            <div class="github-card-icon">${link.icon === 'code' ? '💻' : '🐛'}</div>
+            <div class="github-card-title">${t(link.titleKey)}</div>
+            <div class="github-card-desc">${link.icon === 'code' ? 'Source Code' : 'Bug Reports'}</div>
         </a>
     `).join('');
 
     // Guide
     guideContainer.innerHTML = `
-        <h4>${t("guide_trans_title")}</h4>
+        <h1 style="margin-bottom: 15px; margin-left: 5px; font-size: 1.5rem;">${t("guide_trans_title")}</h1>
         <div class="guide-steps">${t("guide_trans_steps")}</div>
     `;
 };

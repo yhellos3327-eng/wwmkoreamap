@@ -205,13 +205,72 @@
                 height: 50%;
             }
         }
+
+        .header-btn {
+            background-color: #2d2d2d;
+            color: #ccc;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .header-btn:hover {
+            border-color: #daac71;
+            color: #daac71;
+        }
+
+        .mobile-only {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-only {
+                display: block;
+            }
+
+            .header h2 {
+                font-size: 1rem;
+            }
+
+            /* Override previous styles */
+            .write-section {
+                display: flex;
+                width: 100%;
+                height: 100%;
+                border: none;
+            }
+
+            .board-section {
+                display: none;
+                height: 100%;
+            }
+
+            .main-container.board-mode .write-section {
+                display: none;
+            }
+
+            .main-container.board-mode .board-section {
+                display: block;
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <div class="header">
-        <h2>📋 게시판 (오류 제보)</h2>
+        <a href="index.html" class="header-btn">
+            <span>⬅</span> <span>지도으로</span>
+        </a>
+        <h2>📋 게시판</h2>
+        <button id="mobile-write-toggle" class="header-btn mobile-only">글쓰기</button>
     </div>
 
     <div class="main-container">
@@ -276,6 +335,14 @@
     <script src="https://cdn.jsdelivr.net/npm/@widgetbot/html-embed"></script>
     <script type="module" src="js/report.js"></script>
 
+    <script>
+        document.getElementById('mobile-write-toggle').textContent = '게시판 보기';
+        document.getElementById('mobile-write-toggle').addEventListener('click', function () {
+            const container = document.querySelector('.main-container');
+            container.classList.toggle('board-mode');
+            this.textContent = container.classList.contains('board-mode') ? '글쓰기' : '게시판 보기';
+        });
+    </script>
 </body>
 
 </html>

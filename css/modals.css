@@ -100,7 +100,7 @@
     font-weight: 400;
     color: var(--text-muted);
     font-size: 0.85rem;
-    margin-left: 6px;
+    margin-left: -2px;
 }
 
 .settings-input {
@@ -532,4 +532,51 @@ input:checked+.slider:before {
         width: 40px;
         height: 40px;
     }
+}
+
+/* Contribution Guide Styles */
+.contribute-guide-content {
+    font-size: 0.9rem;
+    color: #ccc;
+    line-height: 1.6;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+}
+
+.contribute-guide-content h5 {
+    font-size: 1rem;
+    color: var(--accent);
+    margin: 15px 0 10px 0;
+    font-weight: 700;
+}
+
+.contribute-guide-content h5:first-child {
+    margin-top: 0;
+}
+
+.contribute-guide-list {
+    margin: 0 0 15px 0;
+    padding-left: 20px;
+}
+
+.contribute-guide-list li {
+    margin-bottom: 5px;
+}
+
+.contribute-guide-list li strong {
+    color: #fff;
+}
+
+.contribute-guide-content p {
+    margin-bottom: 10px;
+}
+
+.contribute-guide-content code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 4px;
+    border-radius: 4px;
+    font-family: monospace;
+    color: #e6db74;
 }

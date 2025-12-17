@@ -42,23 +42,75 @@ export const translateItem = async (itemId) => {
     `;
 
     try {
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${state.savedApiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
-            })
-        });
+        const provider = state.savedAIProvider || 'gemini';
+        const model = state.savedApiModel || 'gemini-1.5-flash';
+        let result = null;
 
-        const data = await response.json();
+        if (provider === 'gemini') {
+            const key = state.savedGeminiKey || state.savedApiKey;
+            if (!key) throw new Error("Google Gemini API Key가 설정되지 않았습니다.");
 
-        if (data.error) {
-            throw new Error(data.error.message);
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            const text = data.candidates[0].content.parts[0].text;
+            result = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+        } else if (provider === 'openai') {
+            const key = state.savedOpenAIKey;
+            if (!key) throw new Error("OpenAI API Key가 설정되지 않았습니다.");
+
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${key}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [
+                        { role: "system", content: "You are a helpful assistant that outputs JSON only." },
+                        { role: "user", content: prompt }
+                    ],
+                    response_format: { type: "json_object" }
+                })
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            result = JSON.parse(data.choices[0].message.content);
+
+        } else if (provider === 'claude') {
+            const key = state.savedClaudeKey;
+            if (!key) throw new Error("Anthropic API Key가 설정되지 않았습니다.");
+
+            const response = await fetch('https://api.anthropic.com/v1/messages', {
+                method: 'POST',
+                headers: {
+                    'x-api-key': key,
+                    'anthropic-version': '2023-06-01',
+                    'content-type': 'application/json',
+                    'anthropic-dangerous-direct-browser-access': 'true' // Required for client-side calls
+                },
+                body: JSON.stringify({
+                    model: model,
+                    max_tokens: 1024,
+                    messages: [{ role: "user", content: prompt }]
+                })
+            });
+            const data = await response.json();
+            if (data.error) throw new Error(data.error.message);
+            const text = data.content[0].text;
+            // Claude might not return pure JSON, so we try to extract it
+            const jsonMatch = text.match(/\{[\s\S]*\}/);
+            const jsonStr = jsonMatch ? jsonMatch[0] : text;
+            result = JSON.parse(jsonStr);
         }
-
-        const text = data.candidates[0].content.parts[0].text;
-        const jsonStr = text.replace(/```json|```/g, '').trim();
-        const result = JSON.parse(jsonStr);
 
         item.name = result.name;
         item.description = result.description;

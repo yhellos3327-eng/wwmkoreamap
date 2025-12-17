@@ -51,6 +51,13 @@ const initAdToggle = () => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('embed') === 'true') {
+        document.body.classList.add('embed-mode');
+        // Ensure sidebar is closed in embed mode
+        const sidebar = document.getElementById('sidebar');
+        if (sidebar) sidebar.classList.add('collapsed');
+    }
     try {
         fetch('./translation.csv')
             .then(res => res.text())
@@ -350,6 +357,68 @@ document.addEventListener('DOMContentLoaded', async () => {
         const openSettingsBtn = document.getElementById('open-settings');
         const saveApiKeyBtn = document.getElementById('save-api-key');
         const apiKeyInput = document.getElementById('api-key-input');
+        const apiModelSelect = document.getElementById('api-model-select');
+        const apiProviderSelect = document.getElementById('api-provider-select');
+
+        const MODELS = {
+            gemini: [
+                { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro' },
+                { value: 'gemini-2.5-pro', label: 'Gemini 2 Pro' },
+                { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
+                { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite' },
+            ],
+            openai: [
+                { value: 'gpt-5.2-pro', label: 'GPT-5.2 pro' },
+                { value: 'gpt-5.2', label: 'GPT 5.2' },
+                { value: 'gpt-5', label: 'GPT-5' },
+                { value: 'gpt-5-mini', label: 'GPT-5 mini' },
+                { value: 'gpt-5-nano', label: 'GPT-5 nano' }
+            ],
+            claude: [
+                { value: 'claude-opus-4-5-20251101', label: 'Claude Opus 4.5' },
+                { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
+                { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+            ]
+        };
+
+        const updateModelOptions = (provider) => {
+            if (!apiModelSelect) return;
+            apiModelSelect.innerHTML = '';
+            const models = MODELS[provider] || [];
+            models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model.value;
+                option.textContent = model.label;
+                apiModelSelect.appendChild(option);
+            });
+        };
+
+        const updateApiKeyInput = (provider) => {
+            if (!apiKeyInput) return;
+            let key = '';
+            let placeholder = '';
+            if (provider === 'gemini') {
+                key = state.savedGeminiKey || state.savedApiKey; // Fallback to legacy
+                placeholder = "Google Gemini API Key 입력";
+            } else if (provider === 'openai') {
+                key = state.savedOpenAIKey;
+                placeholder = "OpenAI API Key 입력 (sk-...)";
+            } else if (provider === 'claude') {
+                key = state.savedClaudeKey;
+                placeholder = "Anthropic API Key 입력 (sk-ant-...)";
+            }
+            apiKeyInput.value = key || '';
+            apiKeyInput.placeholder = placeholder;
+        };
+
+        if (apiProviderSelect) {
+            apiProviderSelect.addEventListener('change', (e) => {
+                const provider = e.target.value;
+                updateModelOptions(provider);
+                updateApiKeyInput(provider);
+            });
+        }
+
         const regionColorInput = document.getElementById('region-line-color');
         const regionFillColorInput = document.getElementById('region-fill-color');
         const adToggleInput = document.getElementById('toggle-ad');
@@ -361,7 +430,18 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (openSettingsBtn && settingsModal) {
             openSettingsBtn.addEventListener('click', () => {
                 initialClusteringState = state.enableClustering;
-                apiKeyInput.value = state.savedApiKey;
+                initialClusteringState = state.enableClustering;
+
+                if (apiProviderSelect) {
+                    apiProviderSelect.value = state.savedAIProvider;
+                    updateModelOptions(state.savedAIProvider);
+                    updateApiKeyInput(state.savedAIProvider);
+                }
+
+                if (apiModelSelect) apiModelSelect.value = state.savedApiModel;
+
+                // Ensure correct key is shown if provider logic fails or first load
+                if (apiKeyInput && !apiProviderSelect) apiKeyInput.value = state.savedApiKey;
                 if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
                 if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
                 if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
@@ -396,10 +476,36 @@ document.addEventListener('DOMContentLoaded', async () => {
             saveApiKeyBtn.addEventListener('click', (event) => {
                 event.preventDefault();
                 try {
-                    if (apiKeyInput) {
+                    if (apiProviderSelect) {
+                        const provider = apiProviderSelect.value;
+                        setState('savedAIProvider', provider);
+                        localStorage.setItem('wwm_ai_provider', provider);
+
+                        if (apiKeyInput) {
+                            const newKey = apiKeyInput.value.trim();
+                            if (provider === 'gemini') {
+                                setState('savedGeminiKey', newKey);
+                                setState('savedApiKey', newKey); // Sync legacy
+                                localStorage.setItem('wwm_api_key', newKey);
+                            } else if (provider === 'openai') {
+                                setState('savedOpenAIKey', newKey);
+                                localStorage.setItem('wwm_openai_key', newKey);
+                            } else if (provider === 'claude') {
+                                setState('savedClaudeKey', newKey);
+                                localStorage.setItem('wwm_claude_key', newKey);
+                            }
+                        }
+                    } else if (apiKeyInput) {
+                        // Fallback for legacy
                         const newKey = apiKeyInput.value.trim();
                         setState('savedApiKey', newKey);
                         localStorage.setItem('wwm_api_key', newKey);
+                    }
+
+                    if (apiModelSelect) {
+                        const newModel = apiModelSelect.value;
+                        setState('savedApiModel', newModel);
+                        localStorage.setItem('wwm_api_model', newModel);
                     }
                     if (regionColorInput) {
                         const newColor = regionColorInput.value;
@@ -461,7 +567,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
-    const urlParams = new URLSearchParams(window.location.search);
     const sharedId = parseInt(urlParams.get('id'));
     const sharedLat = parseFloat(urlParams.get('lat'));
     const sharedLng = parseFloat(urlParams.get('lng'));

@@ -106,6 +106,7 @@
                             </div>
                         </div>
                     </div>
+                    <div class="toolbar-divider embed-only"></div>
                     <a id="btn-open-original" class="toolbar-btn embed-only" href="#" title="새 탭에서 원본 지도 열기">
                         <span class="icon">↗️</span>
                     </a>
@@ -125,10 +126,32 @@
             </div>
             <div class="modal-body settings-modal-body">
                 <div class="settings-group">
-                    <label class="settings-label">Google Gemini API Key <span class="settings-subtitle">(AI 번역
-                            기능)</span></label>
-                    <input type="password" id="api-key-input" class="settings-input" placeholder="AI 번역을 위한 키 입력">
+
+
+                    <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
+                            class="settings-subtitle">(AI 서비스 선택)</span></label>
+                    <select id="api-provider-select" class="settings-input"
+                        style="background-color: var(--bg-dark); color: var(--text-main); margin-bottom: 15px;">
+                        <option value="gemini">Google Gemini</option>
+                        <option value="openai">OpenAI (ChatGPT)</option>
+                        <option value="claude">Anthropic (Claude)</option>
+                    </select>
+                    <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의
+                            키)</span></label>
+                    <input type="password" id="api-key-input" class="settings-input" placeholder="API Key 입력">
                 </div>
+
+                <div class="settings-group">
+                    <label class="settings-label">AI Model <span class="settings-subtitle">(모델 선택)</span></label>
+
+                    <select id="api-model-select" class="settings-input"
+                        style="background-color: var(--bg-dark); color: var(--text-main);">
+                        <!-- Options will be populated by JS -->
+
+
+                    </select>
+                </div>
+
 
                 <div class="settings-group settings-toggle-wrapper">
                     <div class="settings-label-container">

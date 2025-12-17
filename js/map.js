@@ -166,9 +166,9 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         </div>
         ${relatedHtml}
         <div class="popup-actions">
-            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" onclick="window.toggleFavorite(${item.id})" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
-            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" onclick="window.toggleCompleted(${item.id})" title="완료 상태로 표시">${isCompleted ? '완료됨' : '완료 체크'}</button>
-            <button class="action-btn btn-share" onclick="window.shareLocation(${item.id}, ${lat}, ${lng})" title="위치 공유">📤</button>
+            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); window.toggleFavorite(${item.id})" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
+            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" onclick="event.stopPropagation(); window.toggleCompleted(${item.id})" title="완료 상태로 표시">${isCompleted ? '완료됨' : '완료 체크'}</button>
+            <button class="action-btn btn-share" onclick="event.stopPropagation(); window.shareLocation(${item.id}, ${lat}, ${lng})" title="위치 공유">📤</button>
         </div>
         <div class="popup-footer">
             <div class="footer-badges">
