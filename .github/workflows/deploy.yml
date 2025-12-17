@@ -36,6 +36,9 @@ jobs:
           // reCAPTCHA v3 Site Key for Firebase App Check
           export const RECAPTCHA_SITE_KEY = "${{ secrets.RECAPTCHA_SITE_KEY }}";
           EOF
+          
+          # Remove env.js from .gitignore so it gets included in the artifact
+          sed -i '/js\/env.js/d' .gitignore
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
