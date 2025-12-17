@@ -20,7 +20,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--border);
+    /* Removed border for cleaner look */
     background: var(--bg-panel);
 }
 
@@ -136,12 +136,16 @@
 
 .tabs {
     display: flex;
-    padding: 0 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 4px;
+    margin: 0 24px 10px 24px;
+    /* Added margin */
+    background: var(--bg-dark);
+    /* Darker track */
+    border-radius: 8px;
     flex-shrink: 0;
-    overflow-x: auto;
-    white-space: nowrap;
-    gap: 30px;
+    gap: 0;
+    /* No gap */
+    border: 1px solid var(--border);
 }
 
 .tabs::-webkit-scrollbar {
@@ -149,17 +153,18 @@
 }
 
 .tab-btn {
-    flex: none;
+    flex: 1;
+    /* Equal width */
     background: none;
     border: none;
     color: var(--text-muted);
-    padding: 14px 0;
+    padding: 8px 0;
     cursor: pointer;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     transition: all 0.2s;
-    border-bottom: 2px solid transparent;
-    position: relative;
+    border-radius: 6px;
+    text-align: center;
 }
 
 .tab-btn:hover {
@@ -167,18 +172,15 @@
 }
 
 .tab-btn.active {
+    background: var(--bg-panel);
+    /* Card-like active state */
     color: var(--accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tab-btn.active::after {
-    content: '';
-    position: absolute;
-    bottom: -1px;
-    left: 0;
-    width: 100%;
-    height: 2px;
-    background: var(--accent);
-    border-radius: 2px 2px 0 0;
+    content: none;
+    /* Remove underline */
 }
 
 .filter-container {
@@ -234,28 +236,30 @@
 .cate-item {
     background: var(--bg-item);
     border: 1px solid transparent;
-    border-radius: 8px;
-    padding: 10px 12px;
+    border-radius: 12px;
+    /* More rounded */
+    padding: 12px;
     display: flex;
     align-items: center;
     cursor: pointer;
     transition: all 0.2s ease;
     color: #ccc;
     user-select: none;
-    min-height: 56px;
+    min-height: 60px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .cate-item:hover {
     background: var(--bg-item-hover);
-    border-color: #555;
+    border-color: rgba(255, 255, 255, 0.1);
     color: var(--text-main);
     transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .cate-item.active {
-    background: var(--accent-bg);
+    background: rgba(218, 172, 113, 0.15);
+    /* Subtle accent bg */
     border-color: var(--accent);
     color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent) inset;

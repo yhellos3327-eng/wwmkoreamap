@@ -1,0 +1,2 @@
+# env.js (contains secrets, generated during deployment)
+js/env.js

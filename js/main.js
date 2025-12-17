@@ -5,7 +5,7 @@ import { loadMapData, saveFilterState } from './data.js';
 import { renderMapDataAndMarkers, createPopupHtml, moveToLocation } from './map.js';
 import {
     toggleSidebar, refreshCategoryList, setAllCategories, setAllRegions, updateToggleButtonsState,
-    renderFavorites, renderLinks, renderUpdates, initCustomDropdown, renderContributionModal,
+    renderFavorites, initCustomDropdown, renderContributionModal,
     openRelatedModal, closeModal, renderModalList, openLightbox, switchLightbox, closeLightbox,
     openVideoLightbox, closeVideoLightbox, viewFullImage, switchImage,
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId
@@ -325,8 +325,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         renderFavorites();
-        renderLinks();
-        renderUpdates();
 
         initAdToggle();
 

@@ -32,6 +32,8 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/9/91/Octicons-mark-github.svg"
                             alt="GitHub" style="width: 20px;height: 20px;filter: invert(100%);">
                     </button>
+                    <a href="notice.html" class="close-btn" title="공지사항"
+                        style="text-decoration: none; display: flex; align-items: center; justify-content: center;">📢</a>
                     <button id="open-settings" class="close-btn" title="설정">⚙️</button>
                     <button id="toggle-sidebar" class="close-btn">&times;</button>
                 </div>
@@ -51,8 +53,6 @@
                 <button class="tab-btn active" data-tab="category-tab">카테고리</button>
                 <button class="tab-btn" data-tab="region-tab">지역</button>
                 <button class="tab-btn" data-tab="favorite-tab">즐겨찾기</button>
-                <button class="tab-btn" data-tab="link-tab">링크</button>
-                <button class="tab-btn" data-tab="update-tab">업데이트</button>
             </div>
 
             <div class="filter-container">
@@ -83,14 +83,6 @@
                     <div id="favorite-list" class="favorite-list">
                         <p class="empty-msg">즐겨찾기한 항목이 없습니다.</p>
                     </div>
-                </div>
-
-                <div id="link-tab" class="tab-content">
-                    <div id="link-list" class="link-list"></div>
-                </div>
-
-                <div id="update-tab" class="tab-content">
-                    <div id="update-list" class="update-list"></div>
                 </div>
             </div>
         </aside>

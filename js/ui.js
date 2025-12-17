@@ -1,5 +1,5 @@
 import { state, setState } from './state.js';
-import { MAP_CONFIGS, usefulLinks, updateHistory, contributionLinks } from './config.js';
+import { MAP_CONFIGS, contributionLinks } from './config.js';
 import { t } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
 import { updateMapVisibility, moveToLocation, createPopupHtml } from './map.js';
@@ -233,41 +233,9 @@ export const renderFavorites = () => {
     });
 };
 
-export const renderLinks = () => {
-    const linkTab = document.getElementById('link-tab');
-    let linkListEl = linkTab ? linkTab.querySelector('.link-list') : null;
-    if (!linkListEl) return;
 
-    linkListEl.innerHTML = '';
-    usefulLinks.forEach(link => {
-        const a = document.createElement('a');
-        a.href = link.url;
-        a.target = "_blank";
-        a.className = "link-item";
-        a.innerHTML = `🔗 ${link.title}`;
-        linkListEl.appendChild(a);
-    });
-};
 
-export const renderUpdates = () => {
-    const updateListEl = document.getElementById('update-list');
-    if (!updateListEl) return;
-    updateListEl.innerHTML = '';
-    updateHistory.forEach((update, index) => {
-        const isLatest = index === 0 ? 'latest' : '';
-        const div = document.createElement('div');
-        div.className = `update-item ${isLatest}`;
-        const contentHtml = update.content.map(line => `<li>${line}</li>`).join('');
-        div.innerHTML = `
-            <div class="update-header">
-                <span class="update-version">${update.version}</span>
-                <span class="update-date">${update.date}</span>
-            </div>
-            <div class="update-content"><ul>${contentHtml}</ul></div>
-        `;
-        updateListEl.appendChild(div);
-    });
-};
+
 
 export const handleMapSelection = async (key, config, customSelect, optionsContainer, selectedText, optionDiv) => {
     if (state.currentMapKey === key) {
