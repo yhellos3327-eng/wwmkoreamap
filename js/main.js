@@ -7,7 +7,7 @@ import {
     toggleSidebar, refreshCategoryList, setAllCategories, setAllRegions, updateToggleButtonsState,
     renderFavorites, renderLinks, renderUpdates, initCustomDropdown, renderContributionModal,
     openRelatedModal, closeModal, renderModalList, openLightbox, switchLightbox, closeLightbox,
-    openVideoLightbox, closeVideoLightbox, viewFullImage, switchImage, initGuide,
+    openVideoLightbox, closeVideoLightbox, viewFullImage, switchImage,
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId
 } from './ui.js';
 import { translateItem } from './translation.js';
@@ -453,7 +453,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             });
         }
 
-        initGuide();
+
 
     } catch (error) {
         console.error("초기화 실패:", error);

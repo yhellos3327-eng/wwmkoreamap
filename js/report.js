@@ -11,17 +11,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const tagSelect = document.getElementById('tag-select');
     const boardContainer = document.getElementById('board-container');
 
-    if (DISCORD_SERVER_ID && DISCORD_CHANNEL_ID) {
-        const iframe = document.createElement('iframe');
-        iframe.src = `https://e.widgetbot.io/channels/${DISCORD_SERVER_ID}/${DISCORD_CHANNEL_ID}`;
-        iframe.style.width = '100%';
-        iframe.style.height = '100%';
-        iframe.style.border = 'none';
-        iframe.allow = "clipboard-write; fullscreen";
-        boardContainer.appendChild(iframe);
-    } else {
-        boardContainer.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">게시판 설정이 완료되지 않았습니다.</p>';
-    }
+    const loadBoard = () => {
+        boardContainer.innerHTML = '';
+        if (DISCORD_SERVER_ID && DISCORD_CHANNEL_ID) {
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://e.widgetbot.io/channels/${DISCORD_SERVER_ID}/${DISCORD_CHANNEL_ID}`;
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = 'none';
+            iframe.allow = "clipboard-write; fullscreen";
+            boardContainer.appendChild(iframe);
+        } else {
+            boardContainer.innerHTML = '<p style="color:#666; text-align:center; padding:20px;">게시판 설정이 완료되지 않았습니다.</p>';
+        }
+    };
+
+    loadBoard();
 
     let validReportData = null;
     const reportTarget = localStorage.getItem('wwm_report_target');
@@ -88,7 +93,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData();
 
         const payload = {
-            content: `## 내용\n${content}\n\n## 데이터\n\`\`\`json\n${validReportData}\n\`\`\``,
+            content: `## 내용\n${content}\n## 데이터\n\`\`\`json\n${validReportData}\n\`\`\``,
             username: nicknameInput.value.trim() || '익명 제보자',
             thread_name: title,
             applied_tags: []
@@ -122,6 +127,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 validReportData = null;
                 submitBtn.disabled = false;
                 submitBtn.textContent = "게시글 작성";
+
+                // Refresh board after delay
+                setTimeout(() => {
+                    loadBoard();
+                }, 5000);
+
             } else {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
