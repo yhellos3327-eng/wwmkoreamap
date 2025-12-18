@@ -56,16 +56,18 @@ jobs:
           RECAPTCHA_SITE_KEY: ${{ secrets.RECAPTCHA_SITE_KEY }}
         run: |
           mkdir -p js
-          echo "export const FIREBASE_CONFIG = {" > js/env.js
-          echo "    apiKey: \"$FIREBASE_API_KEY\"," >> js/env.js
-          echo "    authDomain: \"$FIREBASE_AUTH_DOMAIN\"," >> js/env.js
-          echo "    projectId: \"$FIREBASE_PROJECT_ID\"," >> js/env.js
-          echo "    storageBucket: \"$FIREBASE_STORAGE_BUCKET\"," >> js/env.js
-          echo "    messagingSenderId: \"$FIREBASE_MESSAGING_SENDER_ID\"," >> js/env.js
-          echo "    appId: \"$FIREBASE_APP_ID\"" >> js/env.js
-          echo "};" >> js/env.js
-          echo "" >> js/env.js
-          echo "export const RECAPTCHA_SITE_KEY = \"$RECAPTCHA_SITE_KEY\";" >> js/env.js
+          # Prepare JSON content
+          json_content="{\"apiKey\":\"$FIREBASE_API_KEY\",\"authDomain\":\"$FIREBASE_AUTH_DOMAIN\",\"projectId\":\"$FIREBASE_PROJECT_ID\",\"storageBucket\":\"$FIREBASE_STORAGE_BUCKET\",\"messagingSenderId\":\"$FIREBASE_MESSAGING_SENDER_ID\",\"appId\":\"$FIREBASE_APP_ID\"}"
+          
+          # Encode to Base64 (using -w 0 to disable line wrapping)
+          config_base64=$(echo -n "$json_content" | base64 -w 0)
+          key_base64=$(echo -n "$RECAPTCHA_SITE_KEY" | base64 -w 0)
+          
+          # Inject secrets directly into js/firebase-config.js
+          # This replaces the import statement with the actual secret objects
+          sed -i "s|import \* as env from './env.js';|const env = { FIREBASE_CONFIG_BASE64: \"$config_base64\", RECAPTCHA_SITE_KEY_BASE64: \"$key_base64\" };|" js/firebase-config.js
+          
+          echo "Secrets injected into js/firebase-config.js"
           
           # Ensure .nojekyll exists
           touch .nojekyll
@@ -73,10 +75,10 @@ jobs:
       - name: Debug - List files
         run: |
           ls -R js/
-          if [ -f js/env.js ]; then
-            echo "js/env.js created successfully"
+          if grep -q "FIREBASE_CONFIG_BASE64" js/firebase-config.js; then
+            echo "Secrets injected successfully"
           else
-            echo "js/env.js NOT found"
+            echo "Secrets injection FAILED"
             exit 1
           fi
       

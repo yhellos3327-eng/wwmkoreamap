@@ -3,7 +3,31 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from './env.js';
+import * as env from './env.js';
+// import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from './env.js';
+
+let FIREBASE_CONFIG;
+let RECAPTCHA_SITE_KEY;
+
+if (env.FIREBASE_CONFIG) {
+    FIREBASE_CONFIG = env.FIREBASE_CONFIG;
+} else if (env.FIREBASE_CONFIG_BASE64) {
+    try {
+        FIREBASE_CONFIG = JSON.parse(atob(env.FIREBASE_CONFIG_BASE64));
+    } catch (e) {
+        console.error("Failed to decode FIREBASE_CONFIG", e);
+    }
+}
+
+if (env.RECAPTCHA_SITE_KEY) {
+    RECAPTCHA_SITE_KEY = env.RECAPTCHA_SITE_KEY;
+} else if (env.RECAPTCHA_SITE_KEY_BASE64) {
+    try {
+        RECAPTCHA_SITE_KEY = atob(env.RECAPTCHA_SITE_KEY_BASE64);
+    } catch (e) {
+        console.error("Failed to decode RECAPTCHA_SITE_KEY", e);
+    }
+}
 
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
