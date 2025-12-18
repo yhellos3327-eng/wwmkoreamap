@@ -3,48 +3,46 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebas
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
-import * as env from './env.js';
-
-let FIREBASE_CONFIG;
-let RECAPTCHA_SITE_KEY;
-
-if (env.FIREBASE_CONFIG) {
-    FIREBASE_CONFIG = env.FIREBASE_CONFIG;
-} else if (env.FIREBASE_CONFIG_BASE64) {
-    try {
-        FIREBASE_CONFIG = JSON.parse(atob(env.FIREBASE_CONFIG_BASE64));
-    } catch (e) {
-        console.error("Failed to decode FIREBASE_CONFIG", e);
-    }
-}
-
-if (env.RECAPTCHA_SITE_KEY) {
-    RECAPTCHA_SITE_KEY = env.RECAPTCHA_SITE_KEY;
-} else if (env.RECAPTCHA_SITE_KEY_BASE64) {
-    try {
-        RECAPTCHA_SITE_KEY = atob(env.RECAPTCHA_SITE_KEY_BASE64);
-    } catch (e) {
-        console.error("Failed to decode RECAPTCHA_SITE_KEY", e);
-    }
-}
-
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
+// Backend URL - Change this to your deployed backend URL
+const BACKEND_URL = 'http://211.253.7.150:5555';
 
-const app = initializeApp(FIREBASE_CONFIG);
+let app;
+let db;
+let storage;
+let auth;
+let appCheck;
 
+try {
+    const response = await fetch(`${BACKEND_URL}/api/config`);
+    if (!response.ok) throw new Error('Failed to fetch config');
 
-if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
-    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+    const config = await response.json();
+
+    if (!config.firebaseConfig) {
+        throw new Error('Firebase config not found in response');
+    }
+
+    app = initializeApp(config?.firebaseConfig);
+
+    if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        self.FIREBASE_APPCHECK_DEBUG_TOKEN = "94634c86-7f59-4ed4-aff1-90211f4ffb1c";
+    }
+
+    if (config.recaptchaSiteKey) {
+        appCheck = initializeAppCheck(app, {
+            provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
+            isTokenAutoRefreshEnabled: true
+        });
+    }
+
+    db = getFirestore(app);
+    storage = getStorage(app);
+    auth = getAuth(app);
+
+} catch (error) {
+    console.error("Error initializing Firebase:", error);
 }
-
-const appCheck = initializeAppCheck(app, {
-    provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
-    isTokenAutoRefreshEnabled: true
-});
-
-const db = getFirestore(app);
-const storage = getStorage(app);
-const auth = getAuth(app);
 
 export { db, storage, appCheck, auth };

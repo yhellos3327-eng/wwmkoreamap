@@ -9,7 +9,7 @@ let currentPostId = null;
 let currentReportId = null;
 let isAdmin = false;
 
-document.addEventListener('DOMContentLoaded', () => {
+const init = () => {
     // Auth State Listener
     onAuthStateChanged(auth, (user) => {
         const postAuthorInput = document.getElementById('post-author');
@@ -65,33 +65,39 @@ document.addEventListener('DOMContentLoaded', () => {
     const emailInput = document.getElementById('login-email');
     const passwordInput = document.getElementById('login-password');
 
-    btnLogin.addEventListener('click', () => {
-        if (isAdmin) {
-            signOut(auth).then(() => {
-                alert('로그아웃되었습니다.');
-                window.location.reload();
-            });
-        } else {
-            loginModal.style.display = 'flex';
-        }
-    });
+    if (btnLogin) {
+        btnLogin.addEventListener('click', () => {
+            if (isAdmin) {
+                signOut(auth).then(() => {
+                    alert('로그아웃되었습니다.');
+                    window.location.reload();
+                });
+            } else {
+                loginModal.style.display = 'flex';
+            }
+        });
+    }
 
-    btnCloseLogin.addEventListener('click', () => {
-        loginModal.style.display = 'none';
-    });
-
-    btnPerformLogin.addEventListener('click', async () => {
-        const email = emailInput.value;
-        const password = passwordInput.value;
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
+    if (btnCloseLogin) {
+        btnCloseLogin.addEventListener('click', () => {
             loginModal.style.display = 'none';
-            alert('관리자로 로그인되었습니다.');
-        } catch (error) {
-            console.error("Login failed:", error);
-            alert("로그인 실패: " + error.message);
-        }
-    });
+        });
+    }
+
+    if (btnPerformLogin) {
+        btnPerformLogin.addEventListener('click', async () => {
+            const email = emailInput.value;
+            const password = passwordInput.value;
+            try {
+                await signInWithEmailAndPassword(auth, email, password);
+                loginModal.style.display = 'none';
+                alert('관리자로 로그인되었습니다.');
+            } catch (error) {
+                console.error("Login failed:", error);
+                alert("로그인 실패: " + error.message);
+            }
+        });
+    }
 
     // Initial Renders
     renderSystemUpdates();
@@ -128,7 +134,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     }
-});
+};
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
 
 // New Render Functions for Updates (Firestore + Static)
 async function renderSystemUpdates() {
