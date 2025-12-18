@@ -23,7 +23,8 @@ jobs:
       # Generate env.js from secrets
       - name: Create env.js
         run: |
-          cat << 'EOF' > js/env.js
+          mkdir -p js
+          cat << EOF > js/env.js
           export const FIREBASE_CONFIG = {
               apiKey: "${{ secrets.FIREBASE_API_KEY }}",
               authDomain: "${{ secrets.FIREBASE_AUTH_DOMAIN }}",
@@ -38,7 +39,19 @@ jobs:
           EOF
           
           # Remove env.js from .gitignore so it gets included in the artifact
-          sed -i '/js\/env.js/d' .gitignore
+          if [ -f .gitignore ]; then
+            sed -i '/js\/env.js/d' .gitignore
+          fi
+
+      - name: Debug - List files
+        run: |
+          ls -R js/
+          if [ -f js/env.js ]; then
+            echo "js/env.js created successfully"
+          else
+            echo "js/env.js NOT found"
+            exit 1
+          fi
       
       - name: Setup Pages
         uses: actions/configure-pages@v4
