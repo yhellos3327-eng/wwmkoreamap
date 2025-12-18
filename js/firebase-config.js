@@ -6,7 +6,7 @@ import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 // Backend URL - Change this to your deployed backend URL
-const BACKEND_URL = 'https://api.wwmmap.kro.kr:5555/';
+const BACKEND_URL = 'https://api.wwmmap.kro.kr:5555';
 
 let app;
 let db;
