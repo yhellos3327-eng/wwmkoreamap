@@ -15,7 +15,7 @@ let auth;
 let appCheck;
 
 try {
-    const response = await fetch(`${BACKEND_URL}/api/config`);
+    const response = await fetch(BACKEND_URL);
     if (!response.ok) throw new Error('Failed to fetch config');
 
     const config = await response.json();
