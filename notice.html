@@ -7,6 +7,10 @@
     <title>연운 - 게시판</title>
     <link rel="icon" type="image/png" href="https://cdn.discordapp.com/emojis/1410879101194993744.webp?size=256" />
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <style>
         body {
             background-color: var(--bg-dark);
@@ -597,6 +601,7 @@
             <button class="board-tab" data-tab="translation-update-section">번역 업데이트</button>
             <button class="board-tab" data-tab="notice-section">공지사항</button>
             <button class="board-tab" data-tab="free-board-section">자유게시판</button>
+            <button class="board-tab" data-tab="report-board-section">신고/제보</button>
             <button class="board-tab" data-tab="link-section">링크</button>
         </div>
 
@@ -712,12 +717,115 @@
             </div>
         </div>
 
+        <div id="report-board-section" class="board-content">
+            <!-- List View -->
+            <div id="report-board-list-view" class="board-sub-view active">
+                <div class="list-header">
+                    <h3 style="margin: 0; color: #fff;">신고/제보 게시판</h3>
+                    <button class="btn-write" id="btn-show-report-write">제보하기</button>
+                </div>
+                <div id="report-board-list" class="post-list" style="flex: 1;">
+                    <table class="board-table">
+                        <thead>
+                            <tr>
+                                <th class="col-id">상태</th>
+                                <th class="col-title">제목</th>
+                                <th class="col-author">태그</th>
+                                <th class="col-date">작성일</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-board-table-body">
+                            <!-- Reports will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Write View -->
+            <div id="report-board-write-view" class="board-sub-view">
+                <button class="btn-list" id="btn-cancel-report">목록으로</button>
+                <h3 style="margin-top: 0; color: #fff;">오류 제보 / 데이터 추가</h3>
+                <div class="write-form">
+                    <div class="form-group">
+                        <label for="report-author">닉네임 (선택)</label>
+                        <input type="text" id="report-author" placeholder="익명 제보자">
+                    </div>
+                    <div class="form-group">
+                        <label for="report-tag">태그 (필수)</label>
+                        <select id="report-tag"
+                            style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 6px;">
+                            <option value="BUG">🐛 오류 제보</option>
+                            <option value="DATA">✨ 데이터 추가</option>
+                            <option value="TRANSLATION">🔤 번역 수정</option>
+                            <option value="OTHER">💬 기타</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="report-title">제목 (필수)</label>
+                        <input type="text" id="report-title" placeholder="제목을 입력하세요">
+                    </div>
+                    <div class="form-group">
+                        <label for="report-content">내용 (필수) - 마크다운 지원</label>
+                        <textarea id="report-content" placeholder="내용을 자세히 적어주세요 (마크다운 사용 가능)"></textarea>
+                    </div>
+
+                    <!--<div class="form-group">
+                        <label>이미지 첨부 (선택)</label>
+                        <input type="file" id="report-image" accept="image/*" style="color: #ccc;">
+                    </div>-->
+                    <div class="form-group" id="report-json-group" style="display: none;">
+                        <label for="report-json">데이터 (자동 입력)</label>
+                        <textarea id="report-json" readonly
+                            style="background: #151515; color: #666; font-family: monospace; height: 80px;"></textarea>
+                    </div>
+                    <button id="btn-submit-report" class="btn-submit">제보하기</button>
+                </div>
+            </div>
+
+            <!-- Detail View -->
+            <div id="report-board-detail-view" class="board-sub-view post-detail">
+                <button class="btn-list" id="btn-back-to-report-list">목록으로</button>
+                <div class="detail-header">
+                    <div class="detail-title">
+                        <span id="report-detail-status"
+                            style="font-size: 0.8em; vertical-align: middle; margin-right: 10px;"></span>
+                        <span id="report-detail-title"></span>
+                    </div>
+                    <div class="detail-meta">
+                        <span id="report-detail-author"></span>
+                        <span id="report-detail-date"></span>
+                        <span id="report-detail-tag" style="margin-left: auto; color: var(--accent);"></span>
+                    </div>
+                </div>
+                <div class="detail-body">
+                    <div id="report-detail-image-container" style="margin-bottom: 20px; display: none;">
+                        <img id="report-detail-image" src="" alt="첨부 이미지"
+                            style="max-width: 100%; border-radius: 8px; border: 1px solid #444;">
+                    </div>
+                    <div id="report-detail-content"></div>
+                    <div id="report-detail-json-container" style="margin-top: 20px; display: none;">
+                        <h4 style="color: #888; margin-bottom: 5px;">첨부 데이터</h4>
+                        <pre
+                            style="background: #282c34; padding: 10px; border-radius: 4px; overflow-x: auto;"><code id="report-detail-json" class="language-json"></code></pre>
+                    </div>
+                </div>
+                <div class="comment-section">
+                    <div class="comment-form">
+                        <input type="text" id="report-comment-input" class="comment-input" placeholder="댓글을 입력하세요...">
+                        <button id="btn-submit-report-comment" class="comment-btn">등록</button>
+                    </div>
+                    <div id="report-comment-list" class="comment-list"></div>
+                </div>
+            </div>
+        </div>
+
         <div id="link-section" class="board-content">
             <div id="link-list" class="link-grid"></div>
         </div>
     </div>
 
     <script type="module" src="js/notice.js"></script>
+    <script>hljs.highlightAll();</script>
 </body>
 
 </html>

@@ -592,6 +592,6 @@ window.openReportPage = (itemId) => {
             lng: item.lng
         };
         localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
-        window.open('report.html', '_blank');
+        window.open('notice.html#report', '_blank');
     }
 };

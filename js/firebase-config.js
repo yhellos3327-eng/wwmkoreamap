@@ -1,6 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from './env.js';
 
@@ -18,5 +19,6 @@ const appCheck = initializeAppCheck(app, {
 });
 
 const db = getFirestore(app);
+const storage = getStorage(app);
 
-export { db, appCheck };
+export { db, storage, appCheck };

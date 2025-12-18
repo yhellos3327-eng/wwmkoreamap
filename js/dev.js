@@ -221,7 +221,7 @@ export const enableDevMode = () => {
                 return;
             }
             localStorage.setItem('wwm_report_target', jsonString);
-            window.open('report.html', '_blank');
+            window.open('notice.html#report', '_blank');
         };
     }
 };
