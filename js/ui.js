@@ -76,7 +76,11 @@ export const refreshCategoryList = () => {
             });
 
             const percent = count > 0 ? Math.round((transCount / count) * 100) : 0;
-            const progressClass = percent === 100 ? 'done' : (percent > 0 ? 'in-progress' : '');
+            let progressClass = '';
+            if (percent === 100) progressClass = 'done';
+            else if (percent >= 70) progressClass = 'high';
+            else if (percent >= 30) progressClass = 'mid';
+            else if (percent > 0) progressClass = 'low';
 
             btn.innerHTML = `
                 <span class="cate-icon"><img src="${cat.image}" alt=""></span>
@@ -127,13 +131,43 @@ export const refreshSidebarLists = () => {
         btn.className = state.activeRegionNames.has(region) ? 'cate-item active' : 'cate-item';
         btn.dataset.region = region;
 
-        const count = state.allMarkers.filter(m => m.region === region).length;
+        const regionMarkers = state.allMarkers.filter(m => m.region === region);
+        const count = regionMarkers.length;
+
+        let translatedCount = 0;
+        regionMarkers.forEach(m => {
+            // Check if item is translated (either via API or dictionary)
+            // Note: m is a marker object which has reference to item data usually, 
+            // but here state.allMarkers seems to be constructed from mapData.items.
+            // Let's verify what state.allMarkers contains. 
+            // In map.js: state.allMarkers.push({ id: item.id, marker: marker, category: item.category, region: item.region, name: item.name, desc: item.description });
+            // It doesn't seem to have isTranslated flag directly on marker object unless we added it.
+            // However, we can check state.koDict or if the name is Korean.
+            // Better approach: Look up the original item in state.mapData.items using m.id
+            const item = state.mapData.items.find(i => i.id === m.id);
+            if (item && (item.isTranslated || state.koDict[item.name] || state.koDict[item.name.trim()])) {
+                translatedCount++;
+            }
+        });
+
+        const percentage = count > 0 ? Math.round((translatedCount / count) * 100) : 0;
         const translatedName = t(region);
+
+        let progressClass = '';
+        if (percentage === 100) progressClass = 'done';
+        else if (percentage >= 70) progressClass = 'high';
+        else if (percentage >= 30) progressClass = 'mid';
+        else if (percentage > 0) progressClass = 'low';
 
         btn.innerHTML = `
             <span class="cate-icon"><img src="${regionIconUrl}" alt="Region"></span>
-            <span class="cate-name">${translatedName}</span>
-            <span class="cate-count">${count}</span>
+            <div class="cate-info">
+                <span class="cate-name">${translatedName}</span>
+                <div class="cate-meta">
+                    <span class="cate-count">${count}</span>
+                    <span class="cate-trans-stat ${progressClass}">${percentage}% 한글화</span>
+                </div>
+            </div>
         `;
 
         btn.addEventListener('click', (e) => {

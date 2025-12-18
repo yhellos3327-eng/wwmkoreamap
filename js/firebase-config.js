@@ -5,7 +5,6 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-s
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import * as env from './env.js';
 
-
 let FIREBASE_CONFIG;
 let RECAPTCHA_SITE_KEY;
 

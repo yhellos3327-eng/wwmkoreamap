@@ -65,7 +65,7 @@ jobs:
           
           # Inject secrets directly into js/firebase-config.js
           # This replaces the import statement with the actual secret objects
-          sed -i "s|import \* as env from './env.js';|const env = { FIREBASE_CONFIG_BASE64: \"$config_base64\", RECAPTCHA_SITE_KEY_BASE64: \"$key_base64\" };|" js/firebase-config.js
+          sed -i "s|import \* as env from ['\"]\./env\.js['\"];|const env = { FIREBASE_CONFIG_BASE64: \"$config_base64\", RECAPTCHA_SITE_KEY_BASE64: \"$key_base64\" };|" js/firebase-config.js
           
           echo "Secrets injected into js/firebase-config.js"
           
