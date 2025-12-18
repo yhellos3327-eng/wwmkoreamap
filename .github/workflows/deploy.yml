@@ -56,19 +56,19 @@ jobs:
           RECAPTCHA_SITE_KEY: ${{ secrets.RECAPTCHA_SITE_KEY }}
         run: |
           mkdir -p js
-          cat << EOF > js/env.js
-          export const FIREBASE_CONFIG = {
-              apiKey: "$FIREBASE_API_KEY",
-              authDomain: "$FIREBASE_AUTH_DOMAIN",
-              projectId: "$FIREBASE_PROJECT_ID",
-              storageBucket: "$FIREBASE_STORAGE_BUCKET",
-              messagingSenderId: "$FIREBASE_MESSAGING_SENDER_ID",
-              appId: "$FIREBASE_APP_ID"
-          };
-
-          // reCAPTCHA v3 Site Key for Firebase App Check
-          export const RECAPTCHA_SITE_KEY = "$RECAPTCHA_SITE_KEY";
-          EOF
+          echo "export const FIREBASE_CONFIG = {" > js/env.js
+          echo "    apiKey: \"$FIREBASE_API_KEY\"," >> js/env.js
+          echo "    authDomain: \"$FIREBASE_AUTH_DOMAIN\"," >> js/env.js
+          echo "    projectId: \"$FIREBASE_PROJECT_ID\"," >> js/env.js
+          echo "    storageBucket: \"$FIREBASE_STORAGE_BUCKET\"," >> js/env.js
+          echo "    messagingSenderId: \"$FIREBASE_MESSAGING_SENDER_ID\"," >> js/env.js
+          echo "    appId: \"$FIREBASE_APP_ID\"" >> js/env.js
+          echo "};" >> js/env.js
+          echo "" >> js/env.js
+          echo "export const RECAPTCHA_SITE_KEY = \"$RECAPTCHA_SITE_KEY\";" >> js/env.js
+          
+          # Ensure .nojekyll exists
+          touch .nojekyll
 
       - name: Debug - List files
         run: |
