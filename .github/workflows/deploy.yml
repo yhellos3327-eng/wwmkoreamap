@@ -24,6 +24,26 @@ jobs:
       - name: Remove .gitignore
         run: rm -f .gitignore
 
+      # Debug - Check Secret Availability
+      - name: Debug - Secret Status
+        env:
+          FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY }}
+          FIREBASE_AUTH_DOMAIN: ${{ secrets.FIREBASE_AUTH_DOMAIN }}
+          FIREBASE_PROJECT_ID: ${{ secrets.FIREBASE_PROJECT_ID }}
+          FIREBASE_STORAGE_BUCKET: ${{ secrets.FIREBASE_STORAGE_BUCKET }}
+          FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.FIREBASE_MESSAGING_SENDER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          RECAPTCHA_SITE_KEY: ${{ secrets.RECAPTCHA_SITE_KEY }}
+        run: |
+          echo "Checking secret availability..."
+          if [ -n "$FIREBASE_API_KEY" ]; then echo "FIREBASE_API_KEY is set"; else echo "FIREBASE_API_KEY is EMPTY"; fi
+          if [ -n "$FIREBASE_AUTH_DOMAIN" ]; then echo "FIREBASE_AUTH_DOMAIN is set"; else echo "FIREBASE_AUTH_DOMAIN is EMPTY"; fi
+          if [ -n "$FIREBASE_PROJECT_ID" ]; then echo "FIREBASE_PROJECT_ID is set"; else echo "FIREBASE_PROJECT_ID is EMPTY"; fi
+          if [ -n "$FIREBASE_STORAGE_BUCKET" ]; then echo "FIREBASE_STORAGE_BUCKET is set"; else echo "FIREBASE_STORAGE_BUCKET is EMPTY"; fi
+          if [ -n "$FIREBASE_MESSAGING_SENDER_ID" ]; then echo "FIREBASE_MESSAGING_SENDER_ID is set"; else echo "FIREBASE_MESSAGING_SENDER_ID is EMPTY"; fi
+          if [ -n "$FIREBASE_APP_ID" ]; then echo "FIREBASE_APP_ID is set"; else echo "FIREBASE_APP_ID is EMPTY"; fi
+          if [ -n "$RECAPTCHA_SITE_KEY" ]; then echo "RECAPTCHA_SITE_KEY is set"; else echo "RECAPTCHA_SITE_KEY is EMPTY"; fi
+
       # Generate env.js from secrets
       - name: Create env.js
         env:
