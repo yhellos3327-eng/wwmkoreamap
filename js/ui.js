@@ -233,10 +233,6 @@ export const renderFavorites = () => {
     });
 };
 
-
-
-
-
 export const handleMapSelection = async (key, config, customSelect, optionsContainer, selectedText, optionDiv) => {
     if (state.currentMapKey === key) {
         customSelect.classList.remove('open');
@@ -478,8 +474,6 @@ export const switchImage = (btn, direction) => {
     container.dataset.idx = currentIdx;
     if (counter) counter.innerText = `${currentIdx + 1} / ${total}`;
 };
-
-
 
 export const toggleCompleted = (id) => {
     const index = state.completedList.indexOf(id);

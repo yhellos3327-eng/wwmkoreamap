@@ -1,0 +1,50 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper function to check if user is admin
+    // Replace 'YOUR_ADMIN_UID' with your actual Firebase Auth UID after signing up
+    function isAdmin() {
+      return request.auth != null && request.auth.uid == '6KHlSN1GoAY7aqBtt65rCnvSfdC2';
+    }
+
+    // Posts (Free Board)
+    match /posts/{postId} {
+      allow read: if true; // Anyone can read
+      allow create: if true; // Anyone can post (for now, maybe restrict later)
+      allow update, delete: if isAdmin(); // Only admin can edit/delete
+    }
+
+    // Reports (Report Board)
+    match /reports/{reportId} {
+      allow read: if true;
+      allow create: if true;
+      allow update: if isAdmin(); // Only admin can change status
+      allow delete: if isAdmin(); // Only admin can delete
+    }
+
+    // Comments
+    match /comments/{commentId} {
+      allow read: if true;
+      allow create: if true;
+      allow delete: if isAdmin(); // Only admin can delete comments
+    }
+
+    // System Updates
+    match /system_updates/{updateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Translation Updates
+    match /translation_updates/{updateId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Notices
+    match /notices/{noticeId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+  }
+}

@@ -29,6 +29,8 @@ if (env.RECAPTCHA_SITE_KEY) {
     }
 }
 
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
 // Initialize Firebase
 const app = initializeApp(FIREBASE_CONFIG);
 
@@ -44,5 +46,6 @@ const appCheck = initializeAppCheck(app, {
 
 const db = getFirestore(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
-export { db, storage, appCheck };
+export { db, storage, appCheck, auth };
