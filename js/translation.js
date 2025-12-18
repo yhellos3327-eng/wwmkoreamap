@@ -2,7 +2,18 @@ import { state } from './state.js';
 import { createPopupHtml } from './map.js';
 
 export const translateItem = async (itemId) => {
-    if (!state.savedApiKey) {
+    const provider = state.savedAIProvider || 'gemini';
+    let key = '';
+
+    if (provider === 'gemini') {
+        key = state.savedGeminiKey;
+    } else if (provider === 'openai') {
+        key = state.savedOpenAIKey;
+    } else if (provider === 'claude') {
+        key = state.savedClaudeKey;
+    }
+
+    if (!key) {
         alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
         return;
     }
