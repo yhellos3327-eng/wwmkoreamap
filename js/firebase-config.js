@@ -8,6 +8,10 @@ import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from './env.js';
 const app = initializeApp(FIREBASE_CONFIG);
 
 // Initialize App Check with reCAPTCHA v3
+if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+    self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
+}
+
 const appCheck = initializeAppCheck(app, {
     provider: new ReCaptchaV3Provider(RECAPTCHA_SITE_KEY),
     isTokenAutoRefreshEnabled: true
