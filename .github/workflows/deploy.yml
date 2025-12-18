@@ -38,10 +38,8 @@ jobs:
           export const RECAPTCHA_SITE_KEY = "${{ secrets.RECAPTCHA_SITE_KEY }}";
           EOF
           
-          # Remove env.js from .gitignore so it gets included in the artifact
-          if [ -f .gitignore ]; then
-            sed -i '/js\/env.js/d' .gitignore
-          fi
+          # Remove .gitignore to ensure all generated files (like js/env.js) are included
+          rm -f .gitignore
 
       - name: Debug - List files
         run: |
