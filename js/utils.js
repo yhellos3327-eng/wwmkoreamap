@@ -1,5 +1,4 @@
 import { state } from './state.js';
-import { getCachedFile, setCachedFile } from './cache.js';
 
 export const t = (key) => {
     if (!key) return "";
@@ -50,15 +49,7 @@ export const parseCSV = (str) => {
     return arr;
 };
 
-export const fetchWithProgress = async (url, onProgress, useCache = true) => {
-    if (useCache) {
-        const cached = await getCachedFile(url);
-        if (cached) {
-            if (onProgress) onProgress(cached.size, cached.size);
-            return cached;
-        }
-    }
-
+export const fetchWithProgress = async (url, onProgress) => {
     const response = await fetch(url);
     if (!response.ok) throw new Error(`${url} 로드 실패: ${response.statusText}`);
 
@@ -81,21 +72,11 @@ export const fetchWithProgress = async (url, onProgress, useCache = true) => {
     }
 
     const blob = new Blob(chunks);
-    if (useCache) await setCachedFile(url, blob);
     return blob;
 };
 
-export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress, useCache = true) => {
-    let blob;
-    if (useCache) {
-        blob = await getCachedFile(url);
-    }
-
-    if (!blob) {
-        blob = await fetchWithProgress(url, onProgress, useCache);
-    } else {
-        if (onProgress) onProgress(blob.size, blob.size);
-    }
+export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress) => {
+    const blob = await fetchWithProgress(url, onProgress);
 
     const text = await blob.text();
     const lines = text.split(/\r?\n/);

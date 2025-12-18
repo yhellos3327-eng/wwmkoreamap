@@ -1,6 +1,5 @@
 import { MAP_CONFIGS } from './config.js';
 import { state, setState, updateState } from './state.js';
-import { getCachedFile, setCachedFile } from './cache.js';
 import { t, fetchWithProgress } from './utils.js';
 import { initMap, renderMapDataAndMarkers } from './map.js';
 import { refreshCategoryList, updateToggleButtonsState, renderFavorites } from './ui.js';
@@ -12,237 +11,204 @@ export const loadMapData = async (mapKey, onProgress) => {
 
     try {
         initMap(mapKey);
-        const cacheKey = `map_data_processed_${mapKey}`;
-        const cachedMapData = await getCachedFile(cacheKey);
 
-        if (cachedMapData) {
-            console.log("Loaded map data from cache");
-            setState('regionData', cachedMapData.regionData);
-            setState('regionMetaInfo', cachedMapData.regionMetaInfo);
-            setState('mapData', cachedMapData.mapData);
-            setState('itemsByCategory', cachedMapData.itemsByCategory);
-            setState('uniqueRegions', cachedMapData.uniqueRegions);
+        const progressState = {
+            data: { loaded: 0, total: 0 },
+            region: { loaded: 0, total: 0 }
+        };
 
-            // Re-apply bounds and tile settings which are not state but map options
-            const totalBounds = L.latLngBounds(cachedMapData.bounds);
-            if (totalBounds.isValid()) {
-                state.map.setMaxBounds(totalBounds.pad(0.85));
-                state.map.options.minZoom = config.minZoom;
-                if (state.currentTileLayer) {
-                    const padding = (config.tilePadding !== undefined) ? config.tilePadding : 0.1;
-                    state.currentTileLayer.options.bounds = totalBounds.pad(padding);
-                    state.currentTileLayer.redraw();
-                }
+        const updateAggregateProgress = () => {
+            if (!onProgress) return;
+            const totalLoaded = progressState.data.loaded + progressState.region.loaded;
+            const totalSize = progressState.data.total + progressState.region.total;
+            if (totalSize > 0) {
+                onProgress(totalLoaded, totalSize);
             }
-        } else {
-            const progressState = {
-                data: { loaded: 0, total: 0 },
-                region: { loaded: 0, total: 0 }
-            };
+        };
 
-            const updateAggregateProgress = () => {
-                if (!onProgress) return;
-                const totalLoaded = progressState.data.loaded + progressState.region.loaded;
-                const totalSize = progressState.data.total + progressState.region.total;
-                if (totalSize > 0) {
-                    onProgress(totalLoaded, totalSize);
+        const dataBlobPromise = fetchWithProgress(config.dataFile, (loaded, total) => {
+            progressState.data.loaded = loaded;
+            progressState.data.total = total;
+            updateAggregateProgress();
+        });
+
+        const regionBlobPromise = fetchWithProgress(config.regionFile, (loaded, total) => {
+            progressState.region.loaded = loaded;
+            progressState.region.total = total;
+            updateAggregateProgress();
+        });
+
+        const missingPromise = fetch('missing_data.csv').catch(e => ({ ok: false }));
+
+        const [dataBlob, regionBlob, missingRes] = await Promise.all([
+            dataBlobPromise,
+            regionBlobPromise,
+            missingPromise
+        ]);
+
+        const dataJson = JSON.parse(await dataBlob.text());
+        const regionJson = JSON.parse(await regionBlob.text());
+
+        const missingItems = new Set();
+        if (missingRes.ok) {
+            const missingText = await missingRes.text();
+            const lines = missingText.split('\n');
+            lines.forEach(line => {
+                const parts = line.split(',');
+                if (parts.length >= 2) {
+                    const catId = parts[0].trim();
+                    const itemId = parts[1].trim();
+                    if (catId && itemId && catId !== 'CategoryID') {
+                        missingItems.add(`${catId}_${itemId}`);
+                    }
                 }
-            };
-
-            const dataBlobPromise = fetchWithProgress(config.dataFile, (loaded, total) => {
-                progressState.data.loaded = loaded;
-                progressState.data.total = total;
-                updateAggregateProgress();
             });
+        }
 
-            const regionBlobPromise = fetchWithProgress(config.regionFile, (loaded, total) => {
-                progressState.region.loaded = loaded;
-                progressState.region.total = total;
-                updateAggregateProgress();
-            });
+        const regionData = regionJson.data || [];
+        setState('regionData', regionData);
 
-            const missingPromise = fetch('missing_data.csv').catch(e => ({ ok: false }));
+        const regionIdMap = {};
+        const regionMetaInfo = {};
+        const reverseRegionMap = {};
 
-            const [dataBlob, regionBlob, missingRes] = await Promise.all([
-                dataBlobPromise,
-                regionBlobPromise,
-                missingPromise
-            ]);
+        const totalBounds = L.latLngBounds([]);
 
-            const dataJson = JSON.parse(await dataBlob.text());
-            const regionJson = JSON.parse(await regionBlob.text());
+        if (regionData && Array.isArray(regionData)) {
+            regionData.forEach(region => {
+                regionIdMap[region.id] = region.title;
+                regionMetaInfo[region.title] = {
+                    lat: parseFloat(region.latitude),
+                    lng: parseFloat(region.longitude),
+                    zoom: region.zoom || 12
+                };
 
-            const missingItems = new Set();
-            if (missingRes.ok) {
-                const missingText = await missingRes.text();
-                const lines = missingText.split('\n');
-                lines.forEach(line => {
-                    const parts = line.split(',');
-                    if (parts.length >= 2) {
-                        const catId = parts[0].trim();
-                        const itemId = parts[1].trim();
-                        if (catId && itemId && catId !== 'CategoryID') {
-                            missingItems.add(`${catId}_${itemId}`);
-                        }
-                    }
-                });
-            }
-
-            const regionData = regionJson.data || [];
-            setState('regionData', regionData);
-
-            const regionIdMap = {};
-            const regionMetaInfo = {};
-
-            const totalBounds = L.latLngBounds([]);
-
-            if (regionData && Array.isArray(regionData)) {
-                regionData.forEach(region => {
-                    regionIdMap[region.id] = region.title;
-                    regionMetaInfo[region.title] = {
-                        lat: parseFloat(region.latitude),
-                        lng: parseFloat(region.longitude),
-                        zoom: region.zoom || 12
-                    };
-
-                    if (region.coordinates && region.coordinates.length > 0) {
-                        const coords = region.coordinates.map(c => [parseFloat(c[1]), parseFloat(c[0])]);
-                        totalBounds.extend(coords);
-                    }
-                });
-            }
-            setState('regionMetaInfo', regionMetaInfo);
-
-            if (totalBounds.isValid()) {
-                state.map.setMaxBounds(totalBounds.pad(0.85));
-                state.map.options.minZoom = config.minZoom;
-
-                if (state.currentTileLayer) {
-                    const padding = (config.tilePadding !== undefined) ? config.tilePadding : 0.1;
-                    state.currentTileLayer.options.bounds = totalBounds.pad(padding);
-                    state.currentTileLayer.redraw();
+                reverseRegionMap[region.title] = region.title;
+                const translatedTitle = t(region.title);
+                if (translatedTitle) {
+                    reverseRegionMap[translatedTitle] = region.title;
                 }
+
+                if (region.coordinates && region.coordinates.length > 0) {
+                    const coords = region.coordinates.map(c => [parseFloat(c[1]), parseFloat(c[0])]);
+                    totalBounds.extend(coords);
+                }
+            });
+        }
+        setState('regionMetaInfo', regionMetaInfo);
+
+        if (totalBounds.isValid()) {
+            state.map.setMaxBounds(totalBounds.pad(0.85));
+            state.map.options.minZoom = config.minZoom;
+
+            if (state.currentTileLayer) {
+                const padding = (config.tilePadding !== undefined) ? config.tilePadding : 0.1;
+                state.currentTileLayer.options.bounds = totalBounds.pad(padding);
+                state.currentTileLayer.redraw();
             }
+        }
 
-            const rawItems = dataJson.data || [];
-            const itemsByCategory = {};
+        const rawItems = dataJson.data || [];
+        const itemsByCategory = {};
 
-            const mapData = { categories: [], items: [] };
+        const mapData = { categories: [], items: [] };
 
-            mapData.items = rawItems
-                .filter(item => !missingItems.has(`${item.category_id}_${item.id}`))
-                .map(item => {
-                    const catId = String(item.category_id);
-                    const regionName = regionIdMap[item.regionId] || "알 수 없음";
+        mapData.items = rawItems
+            .filter(item => !missingItems.has(`${item.category_id}_${item.id}`))
+            .map(item => {
+                const catId = String(item.category_id);
+                const regionName = regionIdMap[item.regionId] || "알 수 없음";
 
-                    let imgList = [];
-                    if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-                        imgList = item.images;
-                    } else if (item.image) {
-                        imgList = [item.image];
-                    }
+                let imgList = [];
+                if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+                    imgList = item.images;
+                } else if (item.image) {
+                    imgList = [item.image];
+                }
 
-                    return {
-                        ...item,
-                        id: item.id,
-                        category: catId,
-                        name: item.title || "Unknown",
-                        description: item.description || "",
-                        x: item.latitude,
-                        y: item.longitude,
-                        region: regionName,
-                        images: imgList,
-                        imageSizeW: 44,
-                        imageSizeH: 44,
-                        isTranslated: false
-                    };
-                });
-
-            const uniqueCategoryIds = new Set(mapData.items.map(i => i.category));
-
-            mapData.categories = Array.from(uniqueCategoryIds).map(catId => {
                 return {
-                    id: catId,
-                    name: catId,
-                    image: `./icons/${catId}.png`
+                    ...item,
+                    id: item.id,
+                    category: catId,
+                    name: item.title || "Unknown",
+                    description: item.description || "",
+                    x: item.latitude,
+                    y: item.longitude,
+                    region: regionName,
+                    images: imgList,
+                    imageSizeW: 44,
+                    imageSizeH: 44,
+                    isTranslated: false
                 };
             });
 
-            mapData.items.forEach(item => {
-                const catTrans = state.categoryItemTranslations[item.category];
-                let commonDesc = null;
+        const uniqueCategoryIds = new Set(mapData.items.map(i => i.category));
 
-                if (catTrans && catTrans._common_description) {
-                    commonDesc = catTrans._common_description;
-                }
+        mapData.categories = Array.from(uniqueCategoryIds).map(catId => {
+            return {
+                id: catId,
+                name: catId,
+                image: `./icons/${catId}.png`
+            };
+        });
 
-                if (catTrans) {
-                    let transData = catTrans[item.id];
-                    if (!transData && item.name) {
-                        transData = catTrans[item.name];
-                    }
+        mapData.items.forEach(item => {
+            const catTrans = state.categoryItemTranslations[item.category];
+            let commonDesc = null;
 
-                    if (transData) {
-                        if (transData.name) {
-                            item.name = transData.name;
-                            item.isTranslated = true;
-                        }
-                        if (transData.description) {
-                            item.description = transData.description;
-                        }
-                        if (transData.region) item.forceRegion = transData.region;
-                        if (transData.image) {
-                            item.images = [transData.image];
-                        }
-                    }
-                }
-
-                if ((!item.description || item.description.trim() === "") && commonDesc) {
-                    item.description = commonDesc;
-                }
-            });
-
-            mapData.items.forEach(item => {
-                if (!itemsByCategory[item.category]) {
-                    itemsByCategory[item.category] = [];
-                }
-                itemsByCategory[item.category].push(item);
-            });
-
-            for (const key in itemsByCategory) {
-                itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
+            if (catTrans && catTrans._common_description) {
+                commonDesc = catTrans._common_description;
             }
 
-            setState('mapData', mapData);
-            setState('itemsByCategory', itemsByCategory);
+            if (catTrans) {
+                let transData = catTrans[item.id];
+                if (!transData && item.name) {
+                    transData = catTrans[item.name];
+                }
 
-            const currentMapRegions = new Set();
-            regionData.forEach(r => currentMapRegions.add(r.title));
-            mapData.items.forEach(i => {
-                if (i.region) currentMapRegions.add(i.region);
-            });
+                if (transData) {
+                    if (transData.name) {
+                        item.name = transData.name;
+                        item.isTranslated = true;
+                    }
+                    if (transData.description) {
+                        item.description = transData.description;
+                    }
+                    if (transData.region) {
+                        item.forceRegion = reverseRegionMap[transData.region] || transData.region;
+                    }
+                    if (transData.image) {
+                        item.images = [transData.image];
+                    }
+                }
+            }
 
-            setState('uniqueRegions', currentMapRegions);
+            if ((!item.description || item.description.trim() === "") && commonDesc) {
+                item.description = commonDesc;
+            }
+        });
 
-            // Save to cache
-            // Note: We need to serialize bounds manually or just save the coordinates
-            // L.latLngBounds is not directly serializable to JSON in a way that reconstructs easily without logic
-            // But IndexedDB can store objects. However, L.latLngBounds has methods. We should store the plain object.
-            // We'll store the bounds as [southWest, northEast] or similar.
-            const boundsToSave = totalBounds.isValid() ? [
-                [totalBounds.getSouth(), totalBounds.getWest()],
-                [totalBounds.getNorth(), totalBounds.getEast()]
-            ] : [];
+        mapData.items.forEach(item => {
+            if (!itemsByCategory[item.category]) {
+                itemsByCategory[item.category] = [];
+            }
+            itemsByCategory[item.category].push(item);
+        });
 
-            await setCachedFile(cacheKey, {
-                regionData: state.regionData,
-                regionMetaInfo: state.regionMetaInfo,
-                mapData: state.mapData,
-                itemsByCategory: state.itemsByCategory,
-                uniqueRegions: state.uniqueRegions,
-                bounds: boundsToSave
-            });
+        for (const key in itemsByCategory) {
+            itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
         }
+
+        setState('mapData', mapData);
+        setState('itemsByCategory', itemsByCategory);
+
+        const currentMapRegions = new Set();
+        regionData.forEach(r => currentMapRegions.add(r.title));
+        mapData.items.forEach(i => {
+            if (i.region) currentMapRegions.add(i.region);
+        });
+
+        setState('uniqueRegions', currentMapRegions);
 
         const favStorageKey = `wwm_favorites_${mapKey}`;
         let favorites = JSON.parse(localStorage.getItem(favStorageKey)) || [];
@@ -295,7 +261,7 @@ export const loadMapData = async (mapKey, onProgress) => {
         refreshCategoryList();
         updateToggleButtonsState();
         renderFavorites();
-        return !!cachedMapData;
+        return true;
     } catch (error) {
         console.error("데이터 로드 실패:", error);
         alert(`${config.name} 데이터를 불러오는데 실패했습니다.\n` + error.message);
