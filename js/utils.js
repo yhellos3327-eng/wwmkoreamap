@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { getCachedFile, setCachedFile } from './cache.js';
 
 export const t = (key) => {
     if (!key) return "";
@@ -49,7 +50,15 @@ export const parseCSV = (str) => {
     return arr;
 };
 
-export const fetchWithProgress = async (url, onProgress) => {
+export const fetchWithProgress = async (url, onProgress, useCache = true) => {
+    if (useCache) {
+        const cached = await getCachedFile(url);
+        if (cached) {
+            if (onProgress) onProgress(cached.size, cached.size);
+            return cached;
+        }
+    }
+
     const response = await fetch(url);
     if (!response.ok) throw new Error(`${url} 로드 실패: ${response.statusText}`);
 
@@ -72,59 +81,46 @@ export const fetchWithProgress = async (url, onProgress) => {
     }
 
     const blob = new Blob(chunks);
-    return blob; // Return blob, caller can use .json() or .text()
+    if (useCache) await setCachedFile(url, blob);
+    return blob;
 };
 
-export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress) => {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`${url} 로드 실패`);
+export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress, useCache = true) => {
+    let blob;
+    if (useCache) {
+        blob = await getCachedFile(url);
+    }
 
-    const contentLength = response.headers.get('content-length');
-    const total = contentLength ? parseInt(contentLength, 10) : 0;
-    let loaded = 0;
+    if (!blob) {
+        blob = await fetchWithProgress(url, onProgress, useCache);
+    } else {
+        if (onProgress) onProgress(blob.size, blob.size);
+    }
 
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
-    let isFirstChunk = true;
+    const text = await blob.text();
+    const lines = text.split(/\r?\n/);
     let headers = null;
 
-    while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        loaded += value.length;
-        if (total && onProgress) {
-            onProgress(loaded, total);
-        }
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split(/\r?\n/);
-        buffer = lines.pop();
-
-        if (isFirstChunk) {
-            if (lines.length > 0) {
-                const headerLine = lines.shift();
-                headers = parseCSV(headerLine)[0];
-                isFirstChunk = false;
-            }
-        }
-
-        if (lines.length > 0) {
-            const chunkData = lines.map(line => {
-                const parsed = parseCSV(line)[0];
-                if (!parsed || parsed.length === 0 || (parsed.length === 1 && parsed[0] === "")) return null;
-                return parsed;
-            }).filter(item => item !== null);
-
-            if (chunkData.length > 0) {
-                onChunk(chunkData, headers);
-            }
-        }
+    if (lines.length > 0) {
+        const headerLine = lines.shift();
+        headers = parseCSV(headerLine)[0];
     }
-    if (buffer.trim()) {
-        const chunkData = [parseCSV(buffer)[0]];
-        onChunk(chunkData, headers);
+
+    // Process in chunks to avoid blocking UI
+    const CHUNK_SIZE = 500;
+    for (let i = 0; i < lines.length; i += CHUNK_SIZE) {
+        const chunkLines = lines.slice(i, i + CHUNK_SIZE);
+        const chunkData = chunkLines.map(line => {
+            const parsed = parseCSV(line)[0];
+            if (!parsed || parsed.length === 0 || (parsed.length === 1 && parsed[0] === "")) return null;
+            return parsed;
+        }).filter(item => item !== null);
+
+        if (chunkData.length > 0) {
+            onChunk(chunkData, headers);
+        }
+        // Small delay to yield to main thread
+        if (i + CHUNK_SIZE < lines.length) await new Promise(r => setTimeout(r, 0));
     }
 
     if (onComplete) onComplete();

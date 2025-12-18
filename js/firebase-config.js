@@ -1,10 +1,9 @@
-// Import the functions you need from the SDKs you need
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import * as env from './env.js';
-// import { FIREBASE_CONFIG, RECAPTCHA_SITE_KEY } from './env.js';
 
 let FIREBASE_CONFIG;
 let RECAPTCHA_SITE_KEY;
@@ -29,10 +28,12 @@ if (env.RECAPTCHA_SITE_KEY) {
     }
 }
 
-// Initialize Firebase
+import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+
 const app = initializeApp(FIREBASE_CONFIG);
 
-// Initialize App Check with reCAPTCHA v3
+
 if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
     self.FIREBASE_APPCHECK_DEBUG_TOKEN = true;
 }
@@ -44,5 +45,6 @@ const appCheck = initializeAppCheck(app, {
 
 const db = getFirestore(app);
 const storage = getStorage(app);
+const auth = getAuth(app);
 
-export { db, storage, appCheck };
+export { db, storage, appCheck, auth };

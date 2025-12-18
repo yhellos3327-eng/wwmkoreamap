@@ -682,3 +682,27 @@
 .btn-add-route.remove {
     background: #d9534f;
 }
+.trans-percent-badge {
+    font-size: 0.75rem;
+    color: var(--accent);
+    background: rgba(218, 172, 113, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 700;
+}
+
+.cate-trans-stat.low {
+    color: #ff5252;
+    background: rgba(255, 82, 82, 0.1);
+}
+
+.cate-trans-stat.mid {
+    color: #ff9800;
+    background: rgba(255, 152, 0, 0.1);
+}
+
+.cate-trans-stat.high {
+    color: var(--accent);
+    background: rgba(218, 172, 113, 0.1);
+}

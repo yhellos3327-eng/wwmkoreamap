@@ -1,23 +1,111 @@
 import { systemUpdates, translationUpdates, usefulLinks, noticeData } from './config.js';
-import { db, storage } from './firebase-config.js';
-import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { db, storage, auth } from './firebase-config.js';
+import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
+import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 let currentNoticeId = null;
 let currentPostId = null;
 let currentReportId = null;
+let isAdmin = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-    renderUpdateList(systemUpdates, 'system-update-list');
-    renderUpdateList(translationUpdates, 'translation-update-list');
+    // Auth State Listener
+    onAuthStateChanged(auth, (user) => {
+        const postAuthorInput = document.getElementById('post-author');
+        const reportAuthorInput = document.getElementById('report-author');
+        const adminBtns = document.querySelectorAll('.admin-only');
+
+        if (user) {
+            isAdmin = true;
+            document.getElementById('btn-login').textContent = '🔓 로그아웃';
+            document.body.classList.add('admin-mode');
+
+            // Show Admin Buttons
+            adminBtns.forEach(btn => btn.style.display = 'block');
+
+            // Fix Nickname for Admin
+            if (postAuthorInput) {
+                postAuthorInput.value = '관리자';
+                postAuthorInput.disabled = true;
+                postAuthorInput.classList.add('admin-text');
+            }
+            if (reportAuthorInput) {
+                reportAuthorInput.value = '관리자';
+                reportAuthorInput.disabled = true;
+                reportAuthorInput.classList.add('admin-text');
+            }
+        } else {
+            isAdmin = false;
+            document.getElementById('btn-login').textContent = '🔒 관리자 로그인';
+            document.body.classList.remove('admin-mode');
+
+            // Hide Admin Buttons
+            adminBtns.forEach(btn => btn.style.display = 'none');
+
+            // Reset Nickname fields
+            if (postAuthorInput) {
+                postAuthorInput.value = '';
+                postAuthorInput.disabled = false;
+                postAuthorInput.classList.remove('admin-text');
+            }
+            if (reportAuthorInput) {
+                reportAuthorInput.value = '';
+                reportAuthorInput.disabled = false;
+                reportAuthorInput.classList.remove('admin-text');
+            }
+        }
+    });
+
+    // Login Modal Events
+    const loginModal = document.getElementById('login-modal');
+    const btnLogin = document.getElementById('btn-login');
+    const btnPerformLogin = document.getElementById('btn-perform-login');
+    const btnCloseLogin = document.getElementById('btn-close-login');
+    const emailInput = document.getElementById('login-email');
+    const passwordInput = document.getElementById('login-password');
+
+    btnLogin.addEventListener('click', () => {
+        if (isAdmin) {
+            signOut(auth).then(() => {
+                alert('로그아웃되었습니다.');
+                window.location.reload();
+            });
+        } else {
+            loginModal.style.display = 'flex';
+        }
+    });
+
+    btnCloseLogin.addEventListener('click', () => {
+        loginModal.style.display = 'none';
+    });
+
+    btnPerformLogin.addEventListener('click', async () => {
+        const email = emailInput.value;
+        const password = passwordInput.value;
+        try {
+            await signInWithEmailAndPassword(auth, email, password);
+            loginModal.style.display = 'none';
+            alert('관리자로 로그인되었습니다.');
+        } catch (error) {
+            console.error("Login failed:", error);
+            alert("로그인 실패: " + error.message);
+        }
+    });
+
+    // Initial Renders
+    renderSystemUpdates();
+    renderTranslationUpdates();
     renderLinks();
     renderNotices();
     renderFreeBoardPosts();
     renderReportBoardPosts();
+
     initTabs();
     initBoardEvents();
     initFreeBoardEvents();
     initReportBoardEvents();
+    initAdminWriteEvents();
 
     // Check for report data or hash
     if (window.location.hash === '#report') {
@@ -42,20 +130,40 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-function renderUpdateList(updates, elementId) {
-    const listEl = document.getElementById(elementId);
+// New Render Functions for Updates (Firestore + Static)
+async function renderSystemUpdates() {
+    const listEl = document.getElementById('system-update-list');
     if (!listEl) return;
+    listEl.innerHTML = '<div class="post-item" style="text-align: center; padding: 40px; color: #666;">로딩 중...</div>';
+
+    let updates = [...systemUpdates];
+
+    try {
+        const q = query(collection(db, "system_updates"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        const firestoreUpdates = [];
+        querySnapshot.forEach((doc) => {
+            firestoreUpdates.push(doc.data());
+        });
+        updates = [...firestoreUpdates, ...updates];
+    } catch (error) {
+        console.error("Error loading system updates:", error);
+    }
 
     listEl.innerHTML = '';
-
     updates.forEach((update, index) => {
         const isLatest = index === 0;
         const div = document.createElement('div');
         div.className = 'post-item';
 
-        const contentHtml = update.content.map(line => `<li>${line}</li>`).join('');
-        const badgeHtml = isLatest ? '<span class="latest-badge">NEW</span>' : '';
+        let contentHtml = '';
+        if (Array.isArray(update.content)) {
+            contentHtml = update.content.map(line => `<li>${line}</li>`).join('');
+        } else {
+            contentHtml = update.content.split('\n').map(line => `<li>${line}</li>`).join('');
+        }
 
+        const badgeHtml = isLatest ? '<span class="latest-badge">NEW</span>' : '';
         div.style.animationDelay = `${index * 0.1}s`;
 
         div.innerHTML = `
@@ -70,6 +178,248 @@ function renderUpdateList(updates, elementId) {
             </div>
         `;
         listEl.appendChild(div);
+    });
+}
+
+async function renderTranslationUpdates() {
+    const listEl = document.getElementById('translation-update-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<div class="post-item" style="text-align: center; padding: 40px; color: #666;">로딩 중...</div>';
+
+    let updates = [...translationUpdates];
+
+    try {
+        const q = query(collection(db, "translation_updates"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        const firestoreUpdates = [];
+        querySnapshot.forEach((doc) => {
+            firestoreUpdates.push(doc.data());
+        });
+        updates = [...firestoreUpdates, ...updates];
+    } catch (error) {
+        console.error("Error loading translation updates:", error);
+    }
+
+    listEl.innerHTML = '';
+    updates.forEach((update, index) => {
+        const isLatest = index === 0;
+        const div = document.createElement('div');
+        div.className = 'post-item';
+
+        let contentHtml = '';
+        if (Array.isArray(update.content)) {
+            contentHtml = update.content.map(line => `<li>${line}</li>`).join('');
+        } else {
+            contentHtml = update.content.split('\n').map(line => `<li>${line}</li>`).join('');
+        }
+
+        const badgeHtml = isLatest ? '<span class="latest-badge">NEW</span>' : '';
+        div.style.animationDelay = `${index * 0.1}s`;
+
+        div.innerHTML = `
+            <div class="post-header">
+                <div class="post-title">
+                    ${update.version} 업데이트 ${badgeHtml}
+                </div>
+                <span class="post-date">${update.date}</span>
+            </div>
+            <div class="post-content">
+                <ul>${contentHtml}</ul>
+            </div>
+        `;
+        listEl.appendChild(div);
+    });
+}
+
+async function renderNotices() {
+    const tbody = document.getElementById('notice-table-body');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #666;">로딩 중...</td></tr>';
+
+    let notices = [...noticeData];
+
+    try {
+        const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
+        const querySnapshot = await getDocs(q);
+        const firestoreNotices = [];
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            data.id = doc.id;
+            firestoreNotices.push(data);
+        });
+        notices = [...firestoreNotices, ...notices];
+    } catch (error) {
+        console.error("Error loading notices:", error);
+    }
+
+    tbody.innerHTML = '';
+    let totalCount = notices.length;
+    notices.forEach((notice, index) => {
+        const tr = document.createElement('tr');
+        const idDisplay = totalCount - index;
+
+        tr.innerHTML = `
+            <td class="col-id">${idDisplay}</td>
+            <td class="col-title">${notice.title}</td>
+            <td class="col-author">${formatAuthor(notice.author)}</td>
+            <td class="col-date">${notice.date}</td>
+        `;
+        tr.addEventListener('click', () => viewNotice(notice));
+        tbody.appendChild(tr);
+    });
+}
+
+function viewNotice(notice) {
+    document.getElementById('notice-list-view').style.display = 'none';
+    document.getElementById('notice-write-view').style.display = 'none';
+    const detailView = document.getElementById('notice-detail-view');
+    detailView.style.display = 'flex';
+    detailView.classList.add('active');
+
+    document.getElementById('detail-title').textContent = notice.title;
+    document.getElementById('detail-author').innerHTML = `작성자: ${formatAuthor(notice.author)}`;
+    document.getElementById('detail-date').textContent = `작성일: ${notice.date}`;
+    document.getElementById('detail-content').innerHTML = marked.parse(notice.content);
+
+    // Admin Delete Button for Notice
+    const existingDeleteBtn = document.getElementById('admin-notice-delete-btn');
+    if (existingDeleteBtn) existingDeleteBtn.remove();
+
+    if (isAdmin && typeof notice.id === 'string' && notice.id.length > 5) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.id = 'admin-notice-delete-btn';
+        deleteBtn.textContent = '공지 삭제';
+        deleteBtn.style.marginLeft = '15px';
+        deleteBtn.style.padding = '2px 8px';
+        deleteBtn.style.background = '#ff5555';
+        deleteBtn.style.color = 'white';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.borderRadius = '4px';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.fontSize = '0.8rem';
+
+        deleteBtn.addEventListener('click', async () => {
+            if (confirm('정말로 이 공지사항을 삭제하시겠습니까?')) {
+                try {
+                    await deleteDoc(doc(db, "notices", notice.id));
+                    alert('삭제되었습니다.');
+                    document.getElementById('btn-back-to-list').click();
+                    renderNotices();
+                } catch (error) {
+                    console.error("Error deleting notice:", error);
+                    alert("삭제 실패: " + error.message);
+                }
+            }
+        });
+
+        document.getElementById('detail-date').appendChild(deleteBtn);
+    }
+
+    const entityId = (typeof notice.id === 'string' && notice.id.length > 5) ? `notice_${notice.id}` : `notice_static_${notice.id}`;
+    currentNoticeId = entityId;
+    renderComments(entityId, 'comment-list');
+}
+
+// Admin Write Event Listeners
+function initAdminWriteEvents() {
+    // System Update
+    document.getElementById('btn-show-system-write').addEventListener('click', () => {
+        document.getElementById('system-update-list-view').classList.remove('active');
+        document.getElementById('system-update-write-view').classList.add('active');
+    });
+    document.getElementById('btn-cancel-system-write').addEventListener('click', () => {
+        document.getElementById('system-update-write-view').classList.remove('active');
+        document.getElementById('system-update-list-view').classList.add('active');
+    });
+    document.getElementById('btn-submit-system-update').addEventListener('click', async () => {
+        const version = document.getElementById('system-version').value;
+        const content = document.getElementById('system-content').value;
+        if (!version || !content) return alert('버전과 내용을 입력하세요.');
+
+        try {
+            await addDoc(collection(db, "system_updates"), {
+                version: version,
+                content: content,
+                date: new Date().toLocaleDateString(),
+                timestamp: serverTimestamp()
+            });
+            alert('업데이트가 등록되었습니다.');
+            document.getElementById('system-version').value = '';
+            document.getElementById('system-content').value = '';
+            document.getElementById('btn-cancel-system-write').click();
+            renderSystemUpdates();
+        } catch (e) {
+            console.error(e);
+            alert('등록 실패');
+        }
+    });
+
+    // Translation Update
+    document.getElementById('btn-show-translation-write').addEventListener('click', () => {
+        document.getElementById('translation-update-list-view').classList.remove('active');
+        document.getElementById('translation-update-write-view').classList.add('active');
+    });
+    document.getElementById('btn-cancel-translation-write').addEventListener('click', () => {
+        document.getElementById('translation-update-write-view').classList.remove('active');
+        document.getElementById('translation-update-list-view').classList.add('active');
+    });
+    document.getElementById('btn-submit-translation-update').addEventListener('click', async () => {
+        const version = document.getElementById('translation-version').value;
+        const content = document.getElementById('translation-content').value;
+        if (!version || !content) return alert('버전과 내용을 입력하세요.');
+
+        try {
+            await addDoc(collection(db, "translation_updates"), {
+                version: version,
+                content: content,
+                date: new Date().toLocaleDateString(),
+                timestamp: serverTimestamp()
+            });
+            alert('업데이트가 등록되었습니다.');
+            document.getElementById('translation-version').value = '';
+            document.getElementById('translation-content').value = '';
+            document.getElementById('btn-cancel-translation-write').click();
+            renderTranslationUpdates();
+        } catch (e) {
+            console.error(e);
+            alert('등록 실패');
+        }
+    });
+
+    // Notice
+    document.getElementById('btn-show-notice-write').addEventListener('click', () => {
+        document.getElementById('notice-list-view').style.display = 'none';
+        document.getElementById('notice-detail-view').style.display = 'none';
+        document.getElementById('notice-write-view').style.display = 'flex';
+        document.getElementById('notice-write-view').classList.add('active');
+    });
+    document.getElementById('btn-cancel-notice-write').addEventListener('click', () => {
+        document.getElementById('notice-write-view').classList.remove('active');
+        document.getElementById('notice-write-view').style.display = 'none';
+        document.getElementById('notice-list-view').style.display = 'flex';
+    });
+    document.getElementById('btn-submit-notice').addEventListener('click', async () => {
+        const title = document.getElementById('notice-title').value;
+        const content = document.getElementById('notice-content').value;
+        if (!title || !content) return alert('제목과 내용을 입력하세요.');
+
+        try {
+            await addDoc(collection(db, "notices"), {
+                title: title,
+                content: content,
+                author: '관리자',
+                date: new Date().toLocaleDateString(),
+                timestamp: serverTimestamp()
+            });
+            alert('공지사항이 등록되었습니다.');
+            document.getElementById('notice-title').value = '';
+            document.getElementById('notice-content').value = '';
+            document.getElementById('btn-cancel-notice-write').click();
+            renderNotices();
+        } catch (e) {
+            console.error(e);
+            alert('등록 실패');
+        }
     });
 }
 
@@ -100,54 +450,12 @@ function renderLinks() {
     });
 }
 
-function renderNotices() {
-    const tbody = document.getElementById('notice-table-body');
-    if (!tbody) return;
-
-    tbody.innerHTML = '';
-    noticeData.forEach(notice => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="col-id">${notice.id}</td>
-            <td class="col-title">${notice.title}</td>
-            <td class="col-author">${notice.author}</td>
-            <td class="col-date">${notice.date}</td>
-        `;
-        tr.addEventListener('click', () => viewNotice(notice.id));
-        tbody.appendChild(tr);
-    });
-}
-
-function viewNotice(id) {
-    const notice = noticeData.find(n => n.id === id);
-    if (!notice) return;
-
-    currentNoticeId = id;
-
-    document.getElementById('notice-list-view').style.display = 'none';
-    const detailView = document.getElementById('notice-detail-view');
-    detailView.style.display = 'flex';
-    detailView.classList.add('active');
-
-    document.getElementById('detail-title').textContent = notice.title;
-    document.getElementById('detail-author').textContent = `작성자: ${notice.author}`;
-    document.getElementById('detail-date').textContent = `작성일: ${notice.date}`;
-    document.getElementById('detail-content').innerHTML = notice.content;
-
-    renderComments(id, 'comment-list');
-}
-
 async function renderComments(entityId, listElementId) {
     const listEl = document.getElementById(listElementId);
-    listEl.innerHTML = '<div style="color: #666; padding: 10px;">댓글을 불러오는 중...</div>';
+    if (!listEl) return;
 
     try {
-        const q = query(
-            collection(db, "comments"),
-            where("entityId", "==", entityId),
-            orderBy("timestamp", "desc")
-        );
-
+        const q = query(collection(db, "comments"), where("entityId", "==", entityId), orderBy("timestamp", "asc"));
         const querySnapshot = await getDocs(q);
 
         listEl.innerHTML = '';
@@ -161,9 +469,15 @@ async function renderComments(entityId, listElementId) {
             const comment = doc.data();
             const div = document.createElement('div');
             div.className = 'comment-item';
+            const authorName = comment.author || '익명';
+            const authorClass = (comment.isAdmin || authorName === '관리자') ? 'comment-author admin' : 'comment-author';
+            const authorStyle = (comment.isAdmin || authorName === '관리자') ? 'color: #ff5555;' : '';
+
+            const authorHtml = (comment.isAdmin || authorName === '관리자') ? formatAuthor('관리자') : authorName;
+
             div.innerHTML = `
                 <div class="comment-meta">
-                    <span class="comment-author">익명</span>
+                    <span class="${authorClass}" style="${authorStyle}">${authorHtml}</span>
                     <span>${comment.date}</span>
                 </div>
                 <div class="comment-content">${comment.text}</div>
@@ -183,9 +497,14 @@ async function addComment(entityId, inputId, listElementId) {
     if (!text || !entityId) return;
 
     try {
+        const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const realIsAdmin = isAdmin;
+
         await addDoc(collection(db, "comments"), {
             entityId: entityId,
             text: text,
+            author: realIsAdmin ? '관리자' : '익명',
+            isAdmin: realIsAdmin,
             date: new Date().toLocaleString(),
             timestamp: serverTimestamp()
         });
@@ -226,7 +545,7 @@ async function renderFreeBoardPosts() {
             tr.innerHTML = `
                 <td class="col-id">${index--}</td>
                 <td class="col-title">${post.title}</td>
-                <td class="col-author">${post.author || '익명'}</td>
+                <td class="col-author">${formatAuthor(post.author)}</td>
                 <td class="col-date">${post.date}</td>
             `;
             tr.addEventListener('click', () => viewPost(docSnap.id, post));
@@ -249,8 +568,42 @@ function viewPost(id, post) {
 
     // Populate content
     document.getElementById('post-detail-title').textContent = post.title;
-    document.getElementById('post-detail-author').textContent = `작성자: ${post.author || '익명'}`;
+    document.getElementById('post-detail-author').innerHTML = `작성자: ${formatAuthor(post.author)}`;
     document.getElementById('post-detail-date').textContent = `작성일: ${post.date}`;
+
+    // Admin Delete Button for Free Board
+    const existingDeleteBtn = document.getElementById('admin-post-delete-btn');
+    if (existingDeleteBtn) existingDeleteBtn.remove();
+
+    if (isAdmin) {
+        const deleteBtn = document.createElement('button');
+        deleteBtn.id = 'admin-post-delete-btn';
+        deleteBtn.textContent = '글 삭제';
+        deleteBtn.style.marginLeft = '15px';
+        deleteBtn.style.padding = '2px 8px';
+        deleteBtn.style.background = '#ff5555';
+        deleteBtn.style.color = 'white';
+        deleteBtn.style.border = 'none';
+        deleteBtn.style.borderRadius = '4px';
+        deleteBtn.style.cursor = 'pointer';
+        deleteBtn.style.fontSize = '0.8rem';
+
+        deleteBtn.addEventListener('click', async () => {
+            if (confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
+                try {
+                    await deleteDoc(doc(db, "posts", id));
+                    alert('삭제되었습니다.');
+                    showFreeBoardList();
+                    renderFreeBoardPosts();
+                } catch (error) {
+                    console.error("Error deleting post:", error);
+                    alert("삭제 실패");
+                }
+            }
+        });
+
+        document.getElementById('post-detail-date').appendChild(deleteBtn);
+    }
 
     // Markdown parsing
     const contentHtml = marked.parse(post.content);
@@ -282,14 +635,12 @@ async function submitPost() {
             timestamp: serverTimestamp()
         });
 
-        // Reset form
         document.getElementById('post-author').value = '';
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
 
-        // Go back to list
         showFreeBoardList();
-        renderFreeBoardPosts(); // Refresh list
+        renderFreeBoardPosts();
     } catch (error) {
         console.error("Error submitting post:", error);
         alert("게시글 등록에 실패했습니다.");
@@ -389,78 +740,68 @@ function viewReport(id, report) {
     const statusEl = document.getElementById('report-detail-status');
     statusEl.textContent = statusText;
 
-    // Admin Feature: Status Change on Localhost
-    if (window.location.hostname === 'localhost') {
-        const existingSelect = document.getElementById('admin-status-select');
-        if (existingSelect) existingSelect.remove();
+    if (isAdmin) {
+        const adminIndicator = document.createElement('span');
+        adminIndicator.textContent = ' (Admin Mode)';
+        adminIndicator.style.color = 'red';
+        adminIndicator.style.fontSize = '0.8em';
+        adminIndicator.style.marginLeft = '10px';
+        if (!document.getElementById('admin-indicator')) {
+            adminIndicator.id = 'admin-indicator';
+            document.querySelector('.board-title').appendChild(adminIndicator);
+        }
 
-        const select = document.createElement('select');
-        select.id = 'admin-status-select';
-        select.style.marginLeft = '10px';
-        select.style.padding = '2px 5px';
-        select.style.background = '#333';
-        select.style.color = 'white';
-        select.style.border = '1px solid #555';
-        select.style.borderRadius = '4px';
+        const statusContainer = document.createElement('div');
+        statusContainer.style.marginTop = '10px';
+        statusContainer.innerHTML = `
+            <button onclick="updateReportStatus('${id}', 'WAITING')" style="margin-right:5px;">대기</button>
+            <button onclick="updateReportStatus('${id}', 'IN_PROGRESS')" style="margin-right:5px;">진행중</button>
+            <button onclick="updateReportStatus('${id}', 'DONE')">완료</button>
+        `;
+        const existingStatusControls = document.getElementById('admin-status-controls');
+        if (existingStatusControls) existingStatusControls.remove();
 
-        const options = [
-            { val: 'WAITING', text: '대기 중' },
-            { val: 'IN_PROGRESS', text: '처리 중' },
-            { val: 'DONE', text: '완료됨' }
-        ];
+        statusContainer.id = 'admin-status-controls';
+        document.getElementById('report-detail-status').appendChild(statusContainer);
 
-        options.forEach(opt => {
-            const option = document.createElement('option');
-            option.value = opt.val;
-            option.textContent = opt.text;
-            if (report.status === opt.val) option.selected = true;
-            select.appendChild(option);
-        });
-
-        select.addEventListener('change', async (e) => {
-            const newStatus = e.target.value;
+        window.updateReportStatus = async (reportId, newStatus) => {
             try {
-                const reportRef = doc(db, "reports", id);
-                await updateDoc(reportRef, { status: newStatus });
-
-                let newStatusText = '대기 중';
-                if (newStatus === 'DONE') newStatusText = '완료됨';
-                if (newStatus === 'IN_PROGRESS') newStatusText = '처리 중';
-                statusEl.textContent = newStatusText;
-
-                alert(`상태가 ${newStatusText}(으)로 변경되었습니다.`);
-            } catch (error) {
-                console.error("Error updating status:", error);
-                alert("상태 변경 실패");
+                await updateDoc(doc(db, "reports", reportId), { status: newStatus });
+                alert('상태가 변경되었습니다.');
+                alert('상태가 변경되었습니다.');
+                let newText = '대기 중';
+                if (newStatus === 'DONE') newText = '완료됨';
+                if (newStatus === 'IN_PROGRESS') newText = '처리 중';
+                statusEl.childNodes[0].textContent = newText;
+            } catch (e) {
+                console.error(e);
+                alert('상태 변경 실패');
             }
-        });
-
-        statusEl.parentNode.appendChild(select);
+        };
     }
 
+    statusEl.className = `status-badge status-${report.status}`;
     document.getElementById('report-detail-title').textContent = report.title;
-    document.getElementById('report-detail-author').textContent = `작성자: ${report.author || '익명'}`;
+    document.getElementById('report-detail-author').innerHTML = `작성자: ${formatAuthor(report.author)}`;
     document.getElementById('report-detail-date').textContent = `작성일: ${report.date}`;
     document.getElementById('report-detail-tag').textContent = `#${report.tag}`;
 
-    const contentHtml = marked.parse(report.content);
-    document.getElementById('report-detail-content').innerHTML = contentHtml;
-
     const imgContainer = document.getElementById('report-detail-image-container');
-    const img = document.getElementById('report-detail-image');
+    const imgEl = document.getElementById('report-detail-image');
     if (report.imageUrl) {
-        img.src = report.imageUrl;
+        imgEl.src = report.imageUrl;
         imgContainer.style.display = 'block';
     } else {
         imgContainer.style.display = 'none';
     }
 
+    document.getElementById('report-detail-content').innerHTML = marked.parse(report.content);
+
     const jsonContainer = document.getElementById('report-detail-json-container');
-    const jsonCode = document.getElementById('report-detail-json');
     if (report.jsonData) {
-        jsonCode.textContent = report.jsonData;
+        document.getElementById('report-detail-json').textContent = report.jsonData;
         jsonContainer.style.display = 'block';
-        if (window.hljs) hljs.highlightElement(jsonCode);
+        hljs.highlightElement(document.getElementById('report-detail-json'));
     } else {
         jsonContainer.style.display = 'none';
     }
@@ -469,33 +810,21 @@ function viewReport(id, report) {
 }
 
 async function submitReport() {
-    const author = document.getElementById('report-author').value || '익명';
+    const author = document.getElementById('report-author').value || '익명 제보자';
     const tag = document.getElementById('report-tag').value;
     const title = document.getElementById('report-title').value;
-    let content = document.getElementById('report-content').value;
+    const content = document.getElementById('report-content').value;
     const jsonData = document.getElementById('report-json').value;
-    const btn = document.getElementById('btn-submit-report');
 
     if (!title || !content) {
         alert('제목과 내용은 필수입니다.');
         return;
     }
 
-    if (jsonData) {
-        try {
-            const parsed = JSON.parse(jsonData);
-            if (parsed.latitude && parsed.longitude) {
-                content += `\n\n[📍 위치 이동](index.html#x=${parsed.latitude}&y=${parsed.longitude})`;
-            } else if (parsed.x && parsed.y) {
-                content += `\n\n[📍 위치 이동](index.html#x=${parsed.x}&y=${parsed.y})`;
-            }
-        } catch (e) {
-            console.log("JSON parse error", e);
-        }
+    if (!jsonData || jsonData.trim() === '') {
+        alert('오류 제보 시 JSON 데이터 첨부는 필수입니다.\n지도에서 오류가 발생한 마커나 위치를 선택한 후 제보해주세요.');
+        return;
     }
-
-    btn.disabled = true;
-    btn.textContent = '전송 중...';
 
     try {
         await addDoc(collection(db, "reports"), {
@@ -503,27 +832,23 @@ async function submitReport() {
             tag: tag,
             title: title,
             content: content,
-            jsonData: jsonData || null,
+            jsonData: jsonData,
             status: 'WAITING',
             date: new Date().toLocaleDateString(),
             timestamp: serverTimestamp()
         });
 
-        document.getElementById('report-author').value = '';
+        alert('제보가 등록되었습니다. 감사합니다!');
         document.getElementById('report-title').value = '';
         document.getElementById('report-content').value = '';
         document.getElementById('report-json').value = '';
         document.getElementById('report-json-group').style.display = 'none';
-        localStorage.removeItem('wwm_report_target');
 
         showReportBoardList();
         renderReportBoardPosts();
     } catch (error) {
         console.error("Error submitting report:", error);
-        alert("제보 등록에 실패했습니다.");
-    } finally {
-        btn.disabled = false;
-        btn.textContent = '제보하기';
+        alert("제보 등록 실패");
     }
 }
 
@@ -590,5 +915,14 @@ function initTabs() {
             const targetId = tab.dataset.tab;
             document.getElementById(targetId).classList.add('active');
         });
-    });
+    })
+}
+
+
+// Helper to format author
+function formatAuthor(author) {
+    if (author === '관리자') {
+        return `<span class="admin-text">관리자</span>`;
+    }
+    return author || '익명';
 }

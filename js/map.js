@@ -3,7 +3,7 @@ import { state, setState } from './state.js';
 import { t, getJosa, isPointInPolygon } from './utils.js';
 import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState } from './ui.js';
 import { saveFilterState } from './data.js';
-// import { loadExternalContent } from './external-loader.js';
+
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
@@ -141,7 +141,6 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         setTimeout(() => {
             const container = document.getElementById(contentId);
             if (container) {
-                //loadExternalContent(itemDescription, container);
             }
         }, 100);
     }

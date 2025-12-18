@@ -117,7 +117,6 @@ export const translateItem = async (itemId) => {
             const data = await response.json();
             if (data.error) throw new Error(data.error.message);
             const text = data.content[0].text;
-            // Claude might not return pure JSON, so we try to extract it
             const jsonMatch = text.match(/\{[\s\S]*\}/);
             const jsonStr = jsonMatch ? jsonMatch[0] : text;
             result = JSON.parse(jsonStr);

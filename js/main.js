@@ -1,5 +1,6 @@
 import { state, setState, subscribe } from './state.js';
-import { MAP_CONFIGS, contributionLinks } from './config.js';
+import { clearCache, getCachedFile, setCachedFile } from './cache.js';
+import { MAP_CONFIGS, contributionLinks, systemUpdates } from './config.js';
 import { t, parseCSV, fetchAndParseCSVChunks } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
 import { renderMapDataAndMarkers, createPopupHtml, moveToLocation } from './map.js';
@@ -51,6 +52,15 @@ const initAdToggle = () => {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Cache Version Check
+    const currentVersion = systemUpdates[0].version;
+    const savedVersion = localStorage.getItem('wwm_data_version');
+
+    if (currentVersion !== savedVersion) {
+        console.log(`Version changed: ${savedVersion} -> ${currentVersion}. Clearing cache.`);
+        await clearCache();
+        localStorage.setItem('wwm_data_version', currentVersion);
+    }
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('embed') === 'true') {
         document.body.classList.add('embed-mode');
@@ -85,89 +95,111 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         state.parsedCSV = [];
 
-        setState('loadingState', { ...state.loadingState, message: "초기화 중...", detail: "번역 데이터 불러오는 중..." });
+        const cachedTranslation = await getCachedFile('translation_processed');
+        let translationLoadedFromCache = false;
 
-        await fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
-            if (!headers) return;
+        if (cachedTranslation) {
+            console.log("Loaded translation data from cache");
+            state.parsedCSV = cachedTranslation.parsedCSV;
+            state.koDict = cachedTranslation.koDict;
+            state.categoryItemTranslations = cachedTranslation.categoryItemTranslations;
+            translationLoadedFromCache = true;
+        } else {
+            setState('loadingState', { ...state.loadingState, message: "초기화 중...", detail: "번역 데이터 불러오는 중..." });
+        }
 
-            if (state.parsedCSV.length === 0) {
-                state.parsedCSV.push(headers);
-            }
-            state.parsedCSV.push(...chunkData);
+        if (!translationLoadedFromCache) {
+            await fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
+                if (!headers) return;
 
-            const typeIdx = headers.indexOf('Type');
-            const catIdx = headers.indexOf('Category');
-            const keyIdx = headers.indexOf('Key');
-            const valIdx = headers.indexOf('Korean');
-            const descIdx = headers.indexOf('Description');
-            const regIdx = headers.indexOf('Region');
-            const imgIdx = headers.indexOf('Image');
+                if (state.parsedCSV.length === 0) {
+                    state.parsedCSV.push(headers);
+                }
+                state.parsedCSV.push(...chunkData);
 
-            chunkData.forEach(row => {
-                if (row.length < 3) return;
+                const typeIdx = headers.indexOf('Type');
+                const catIdx = headers.indexOf('Category');
+                const keyIdx = headers.indexOf('Key');
+                const valIdx = headers.indexOf('Korean');
+                const descIdx = headers.indexOf('Description');
+                const regIdx = headers.indexOf('Region');
+                const imgIdx = headers.indexOf('Image');
 
-                const type = row[typeIdx]?.trim();
-                const key = row[keyIdx]?.trim();
-                if (!key) return;
+                chunkData.forEach(row => {
+                    if (row.length < 3) return;
 
-                if (type === 'Common') {
-                    const val = row[valIdx];
-                    if (val) {
-                        state.koDict[key] = val;
-                        state.koDict[key.trim()] = val;
-                    }
-                } else if (type === 'Override') {
-                    const catId = row[catIdx]?.trim();
-                    if (!catId) return;
+                    const type = row[typeIdx]?.trim();
+                    const key = row[keyIdx]?.trim();
+                    if (!key) return;
 
-                    if (!state.categoryItemTranslations[catId]) {
-                        state.categoryItemTranslations[catId] = {};
-                    }
+                    if (type === 'Common') {
+                        const val = row[valIdx];
+                        if (val) {
+                            state.koDict[key] = val;
+                            state.koDict[key.trim()] = val;
+                        }
+                    } else if (type === 'Override') {
+                        const catId = row[catIdx]?.trim();
+                        if (!catId) return;
 
-                    if (key === '_common_description') {
-                        state.categoryItemTranslations[catId]._common_description = row[descIdx];
-                    } else {
-                        let desc = row[descIdx];
-                        if (desc) {
-                            desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
+                        if (!state.categoryItemTranslations[catId]) {
+                            state.categoryItemTranslations[catId] = {};
                         }
 
-                        let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
-                        if (imagePath && imagePath.includes('{id}')) {
-                            imagePath = imagePath.replace('{id}', key);
-                        }
+                        if (key === '_common_description') {
+                            state.categoryItemTranslations[catId]._common_description = row[descIdx];
+                        } else {
+                            let desc = row[descIdx];
+                            if (desc) {
+                                desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
+                            }
 
-                        state.categoryItemTranslations[catId][key] = {
-                            name: row[valIdx],
-                            description: desc,
-                            region: row[regIdx],
-                            image: imagePath
-                        };
+                            let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
+                            if (imagePath && imagePath.includes('{id}')) {
+                                imagePath = imagePath.replace('{id}', key);
+                            }
+
+                            state.categoryItemTranslations[catId][key] = {
+                                name: row[valIdx],
+                                description: desc,
+                                region: row[regIdx],
+                                image: imagePath
+                            };
+                        }
                     }
+                });
+            }, () => {
+                console.log("CSV Loading Completed");
+            }, (loaded, total) => {
+                if (total > 0) {
+                    const percent = Math.min(100, (loaded / total) * 100);
+                    setState('loadingState', {
+                        ...state.loadingState,
+                        csvProgress: percent,
+                        detail: `번역 데이터: ${Math.round(percent)}%`
+                    });
                 }
             });
-        }, () => {
-            console.log("CSV Loading Completed");
-        }, (loaded, total) => {
-            if (total > 0) {
-                const percent = Math.min(100, (loaded / total) * 100);
-                setState('loadingState', {
-                    ...state.loadingState,
-                    csvProgress: percent,
-                    detail: `번역 데이터: ${Math.round(percent)}%`
-                });
-            }
-        });
 
-        setState('loadingState', {
-            ...state.loadingState,
-            csvProgress: 100,
-            message: "지도 데이터 불러오는 중..."
-        });
+            // Save to cache
+            await setCachedFile('translation_processed', {
+                parsedCSV: state.parsedCSV,
+                koDict: state.koDict,
+                categoryItemTranslations: state.categoryItemTranslations
+            });
+        }
 
         initCustomDropdown();
 
-        await loadMapData(state.currentMapKey, (loaded, total) => {
+        if (!translationLoadedFromCache) {
+            setState('loadingState', {
+                ...state.loadingState,
+                csvProgress: 100,
+                message: "지도 데이터 불러오는 중..."
+            });
+        }
+
+        const mapLoadedFromCache = await loadMapData(state.currentMapKey, (loaded, total) => {
             if (total > 0) {
                 const percent = Math.min(100, (loaded / total) * 100);
                 setState('loadingState', {
@@ -178,15 +210,19 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
         });
 
-        setState('loadingState', {
-            ...state.loadingState,
-            mapProgress: 100,
-            message: "준비 완료!"
-        });
-
-        setTimeout(() => {
+        if (translationLoadedFromCache && mapLoadedFromCache) {
             setState('loadingState', { ...state.loadingState, isVisible: false });
-        }, 500);
+        } else {
+            setState('loadingState', {
+                ...state.loadingState,
+                mapProgress: 100,
+                message: "준비 완료!"
+            });
+
+            setTimeout(() => {
+                setState('loadingState', { ...state.loadingState, isVisible: false });
+            }, 500);
+        }
 
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
