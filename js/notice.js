@@ -136,7 +136,7 @@ async function renderSystemUpdates() {
     if (!listEl) return;
     listEl.innerHTML = '<div class="post-item" style="text-align: center; padding: 40px; color: #666;">로딩 중...</div>';
 
-    let updates = [...systemUpdates]; // Start with static data
+    let updates = [...systemUpdates];
 
     try {
         const q = query(collection(db, "system_updates"), orderBy("timestamp", "desc"));
@@ -145,7 +145,6 @@ async function renderSystemUpdates() {
         querySnapshot.forEach((doc) => {
             firestoreUpdates.push(doc.data());
         });
-        // Merge: Firestore updates first
         updates = [...firestoreUpdates, ...updates];
     } catch (error) {
         console.error("Error loading system updates:", error);
@@ -157,7 +156,6 @@ async function renderSystemUpdates() {
         const div = document.createElement('div');
         div.className = 'post-item';
 
-        // Handle content array or string (Firestore might save as string with newlines)
         let contentHtml = '';
         if (Array.isArray(update.content)) {
             contentHtml = update.content.map(line => `<li>${line}</li>`).join('');
@@ -246,12 +244,9 @@ async function renderNotices() {
         const firestoreNotices = [];
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            data.id = doc.id; // Use doc ID for Firestore items
-            // Or maybe we want a numeric ID? For now let's use what we have.
-            // Existing static data has numeric IDs.
+            data.id = doc.id;
             firestoreNotices.push(data);
         });
-        // Merge
         notices = [...firestoreNotices, ...notices];
     } catch (error) {
         console.error("Error loading notices:", error);
@@ -261,7 +256,6 @@ async function renderNotices() {
     let totalCount = notices.length;
     notices.forEach((notice, index) => {
         const tr = document.createElement('tr');
-        // Sequential ID: Total - Index
         const idDisplay = totalCount - index;
 
         tr.innerHTML = `
@@ -277,10 +271,10 @@ async function renderNotices() {
 
 function viewNotice(notice) {
     document.getElementById('notice-list-view').style.display = 'none';
-    document.getElementById('notice-write-view').style.display = 'none'; // Ensure write view is hidden
+    document.getElementById('notice-write-view').style.display = 'none';
     const detailView = document.getElementById('notice-detail-view');
     detailView.style.display = 'flex';
-    detailView.classList.add('active'); // Ensure active class
+    detailView.classList.add('active');
 
     document.getElementById('detail-title').textContent = notice.title;
     document.getElementById('detail-author').innerHTML = `작성자: ${formatAuthor(notice.author)}`;
@@ -291,7 +285,6 @@ function viewNotice(notice) {
     const existingDeleteBtn = document.getElementById('admin-notice-delete-btn');
     if (existingDeleteBtn) existingDeleteBtn.remove();
 
-    // Only allow deleting Firestore notices (string ID > 5 chars)
     if (isAdmin && typeof notice.id === 'string' && notice.id.length > 5) {
         const deleteBtn = document.createElement('button');
         deleteBtn.id = 'admin-notice-delete-btn';
@@ -310,7 +303,6 @@ function viewNotice(notice) {
                 try {
                     await deleteDoc(doc(db, "notices", notice.id));
                     alert('삭제되었습니다.');
-                    // Return to list
                     document.getElementById('btn-back-to-list').click();
                     renderNotices();
                 } catch (error) {
@@ -323,9 +315,8 @@ function viewNotice(notice) {
         document.getElementById('detail-date').appendChild(deleteBtn);
     }
 
-    // Comments for notices
     const entityId = (typeof notice.id === 'string' && notice.id.length > 5) ? `notice_${notice.id}` : `notice_static_${notice.id}`;
-    currentNoticeId = entityId; // Reuse currentNoticeId for comments
+    currentNoticeId = entityId;
     renderComments(entityId, 'comment-list');
 }
 
@@ -348,7 +339,7 @@ function initAdminWriteEvents() {
         try {
             await addDoc(collection(db, "system_updates"), {
                 version: version,
-                content: content, // Save as string, split on render
+                content: content,
                 date: new Date().toLocaleDateString(),
                 timestamp: serverTimestamp()
             });
@@ -405,7 +396,7 @@ function initAdminWriteEvents() {
     document.getElementById('btn-cancel-notice-write').addEventListener('click', () => {
         document.getElementById('notice-write-view').classList.remove('active');
         document.getElementById('notice-write-view').style.display = 'none';
-        document.getElementById('notice-list-view').style.display = 'flex'; // Restore list view
+        document.getElementById('notice-list-view').style.display = 'flex';
     });
     document.getElementById('btn-submit-notice').addEventListener('click', async () => {
         const title = document.getElementById('notice-title').value;
@@ -459,7 +450,6 @@ function renderLinks() {
     });
 }
 
-// Comment Functions (Generic)
 async function renderComments(entityId, listElementId) {
     const listEl = document.getElementById(listElementId);
     if (!listEl) return;
@@ -483,7 +473,6 @@ async function renderComments(entityId, listElementId) {
             const authorClass = (comment.isAdmin || authorName === '관리자') ? 'comment-author admin' : 'comment-author';
             const authorStyle = (comment.isAdmin || authorName === '관리자') ? 'color: #ff5555;' : '';
 
-            // Use formatAuthor for consistent admin styling
             const authorHtml = (comment.isAdmin || authorName === '관리자') ? formatAuthor('관리자') : authorName;
 
             div.innerHTML = `
@@ -509,8 +498,7 @@ async function addComment(entityId, inputId, listElementId) {
 
     try {
         const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        // Check if actually logged in as admin
-        const realIsAdmin = isAdmin; // Use the global isAdmin flag
+        const realIsAdmin = isAdmin;
 
         await addDoc(collection(db, "comments"), {
             entityId: entityId,
@@ -647,14 +635,12 @@ async function submitPost() {
             timestamp: serverTimestamp()
         });
 
-        // Reset form
         document.getElementById('post-author').value = '';
         document.getElementById('post-title').value = '';
         document.getElementById('post-content').value = '';
 
-        // Go back to list
         showFreeBoardList();
-        renderFreeBoardPosts(); // Refresh list
+        renderFreeBoardPosts();
     } catch (error) {
         console.error("Error submitting post:", error);
         alert("게시글 등록에 실패했습니다.");
@@ -754,9 +740,7 @@ function viewReport(id, report) {
     const statusEl = document.getElementById('report-detail-status');
     statusEl.textContent = statusText;
 
-    // Admin Feature: Status Change
     if (isAdmin) {
-        // Admin Mode Indicator
         const adminIndicator = document.createElement('span');
         adminIndicator.textContent = ' (Admin Mode)';
         adminIndicator.style.color = 'red';
@@ -767,7 +751,6 @@ function viewReport(id, report) {
             document.querySelector('.board-title').appendChild(adminIndicator);
         }
 
-        // Status Change Buttons
         const statusContainer = document.createElement('div');
         statusContainer.style.marginTop = '10px';
         statusContainer.innerHTML = `
@@ -775,23 +758,21 @@ function viewReport(id, report) {
             <button onclick="updateReportStatus('${id}', 'IN_PROGRESS')" style="margin-right:5px;">진행중</button>
             <button onclick="updateReportStatus('${id}', 'DONE')">완료</button>
         `;
-        // Remove existing if any (hacky but works for now)
         const existingStatusControls = document.getElementById('admin-status-controls');
         if (existingStatusControls) existingStatusControls.remove();
 
         statusContainer.id = 'admin-status-controls';
         document.getElementById('report-detail-status').appendChild(statusContainer);
 
-        // Expose function globally for onclick
         window.updateReportStatus = async (reportId, newStatus) => {
             try {
                 await updateDoc(doc(db, "reports", reportId), { status: newStatus });
                 alert('상태가 변경되었습니다.');
-                // Update UI immediately
+                alert('상태가 변경되었습니다.');
                 let newText = '대기 중';
                 if (newStatus === 'DONE') newText = '완료됨';
                 if (newStatus === 'IN_PROGRESS') newText = '처리 중';
-                statusEl.childNodes[0].textContent = newText; // Keep the buttons
+                statusEl.childNodes[0].textContent = newText;
             } catch (e) {
                 console.error(e);
                 alert('상태 변경 실패');
@@ -805,7 +786,6 @@ function viewReport(id, report) {
     document.getElementById('report-detail-date').textContent = `작성일: ${report.date}`;
     document.getElementById('report-detail-tag').textContent = `#${report.tag}`;
 
-    // Image
     const imgContainer = document.getElementById('report-detail-image-container');
     const imgEl = document.getElementById('report-detail-image');
     if (report.imageUrl) {
@@ -815,10 +795,8 @@ function viewReport(id, report) {
         imgContainer.style.display = 'none';
     }
 
-    // Content
     document.getElementById('report-detail-content').innerHTML = marked.parse(report.content);
 
-    // JSON Data
     const jsonContainer = document.getElementById('report-detail-json-container');
     if (report.jsonData) {
         document.getElementById('report-detail-json').textContent = report.jsonData;
@@ -837,8 +815,6 @@ async function submitReport() {
     const title = document.getElementById('report-title').value;
     const content = document.getElementById('report-content').value;
     const jsonData = document.getElementById('report-json').value;
-
-    // Image upload logic would go here (omitted for simplicity as no input in HTML yet)
 
     if (!title || !content) {
         alert('제목과 내용은 필수입니다.');
@@ -863,8 +839,6 @@ async function submitReport() {
         });
 
         alert('제보가 등록되었습니다. 감사합니다!');
-
-        // Reset
         document.getElementById('report-title').value = '';
         document.getElementById('report-content').value = '';
         document.getElementById('report-json').value = '';
