@@ -69,6 +69,7 @@ export const loadMapData = async (mapKey, onProgress) => {
 
         const regionIdMap = {};
         const regionMetaInfo = {};
+        const regionTranslationMap = {};
 
         const totalBounds = L.latLngBounds([]);
 
@@ -80,6 +81,7 @@ export const loadMapData = async (mapKey, onProgress) => {
                     lng: parseFloat(region.longitude),
                     zoom: region.zoom || 12
                 };
+                regionTranslationMap[t(region.title)] = region.title;
 
                 if (region.coordinates && region.coordinates.length > 0) {
                     const coords = region.coordinates.map(c => [parseFloat(c[1]), parseFloat(c[0])]);
@@ -166,7 +168,9 @@ export const loadMapData = async (mapKey, onProgress) => {
                     if (transData.description) {
                         item.description = transData.description;
                     }
-                    if (transData.region) item.forceRegion = transData.region;
+                    if (transData.region) {
+                        item.forceRegion = regionTranslationMap[transData.region] || transData.region;
+                    }
                     if (transData.image) {
                         item.images = [transData.image];
                     }

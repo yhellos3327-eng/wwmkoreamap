@@ -386,20 +386,23 @@ export const renderMapDataAndMarkers = () => {
         const lat = parseFloat(item.x);
         const lng = parseFloat(item.y);
 
-        let finalRegionName = item.region || "알 수 없음";
-        let physicallyInRegion = null;
+        let finalRegionName = item.forceRegion || item.region || "알 수 없음";
 
-        for (const polyObj of regionPolygons) {
-            if (isPointInPolygon([lat, lng], polyObj.coords)) {
-                physicallyInRegion = polyObj.title;
-                break;
+        if (!item.forceRegion) {
+            let physicallyInRegion = null;
+            for (const polyObj of regionPolygons) {
+                if (isPointInPolygon([lat, lng], polyObj.coords)) {
+                    physicallyInRegion = polyObj.title;
+                    break;
+                }
             }
-        }
 
-        if (physicallyInRegion) {
-            finalRegionName = physicallyInRegion;
-            item.region = physicallyInRegion;
-            item.forceRegion = physicallyInRegion;
+            if (physicallyInRegion) {
+                finalRegionName = physicallyInRegion;
+                item.region = physicallyInRegion;
+            }
+        } else {
+            item.region = item.forceRegion;
         }
 
         if (finalRegionName) state.uniqueRegions.add(finalRegionName);

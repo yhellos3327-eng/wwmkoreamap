@@ -16,22 +16,22 @@ Common,"","17310010001","유물","",
 Common,"","前尘旧物","유물","",
 Common,"","界碑","경계석","",
 Common,"","BoundaryStones","경계석","",
-Common,"","17310010015","탐방","",
-Common,"","探游指引","탐방","",
-Common,"","风水宝地","탐방","",
+Common,"","17310010015","만물의 울림 (노랑나비)","",
+Common,"","探游指引","만물의 울림 (노랑나비)","",
+Common,"","风水宝地","만물의 울림 (노랑나비)","",
 Common,"","17310010017","연주","",
 Common,"","天地万籁","연주","",
 Common,"","丝竹雅韵","연주","",
-Common,"","17310010012","곡경심유","",
-Common,"","曲径寻幽","곡경심유","",
+Common,"","17310010012","곡경심유 (파랑나비)","",
+Common,"","曲径寻幽","곡경심유 (파랑나비)","",
 Common,"","17310010009","사건","",
 Common,"","不平事","사건","",
 Common,"","17310010003","묘묘냥","",
 Common,"","妙妙喵","묘묘냥","",
 Common,"","17310010004","고양이","",
 Common,"","猫戏","고양이","",
-Common,"","17310010090","불놀이","",
-Common,"","野祀游火","불놀이","",
+Common,"","17310010090","야외 제사 (빨간나비)","",
+Common,"","野祀游火","야외 제사 (빨간나비)","",
 Common,"","17310010008","묘물","",
 Common,"","蹊跷","묘물","",
 Common,"","奇珍采集","묘물","",
@@ -235,68 +235,98 @@ Override,"17310010008","Whisper Hive","속삭이는 벌집","",
 Override,"17310010008","Ironwing Mantis","금강 사마귀","",
 Override,"17310010008","Dagger General","비견 장군","",
 Override,"17310010008","1290","비견 장군 3마리","",
-Override,"DivinecraftDungeon","1014","제비의 비행","",
-Override,"DivinecraftDungeon","434","명경지수","<h3>보상</h3><br /><div class=""row""><div class=""col-sm-6""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/charater-exp-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""캐릭터 경험치""> X 10900<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/enlightenment-point-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""깨달음 포인트""> X 130<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/oscillating-jade-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""진동하는 옥""> X 5<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/echo-jade-map-marker-where-winds-meet-wiki-guide.png"" alt=""메아리 옥""> X 39</div><div class=""col-sm-6""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/qinghe-exploration-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""청하 탐사""> X 41<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/ten-directions-pendant-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""십방 펜던트""> X 1<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/tales-of-medicine-map-marker-where-winds-meet-wiki-guide.png"" alt=""의약 이야기""> X 2<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/zhou-coin-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""주화""> X 10900</div></div>",
-Override,"DivinecraftDungeon","1013","밝혀진 화살불","",
-Override,"DivinecraftDungeon","394","동산 금혈","",
-Override,"BellofDemoncalm","63","","청하의 태평종루 꼭대기에 있는 황종이 울리면 마음을 가라앉히는 효능이 있었다고 한다. 다만 3년 전 알 수 없는 이유로 황종이 손상되어, 그 소리를 더는 들을 수 없게 되었다.<br><br><h3>사용 가능한 기능</h3>종을 울려 청하 지역 전체의 필드 보스들을 약화시킵니다.",
-Override,"Bounty","Bounty","","강호 각지에 발표된 현상 수배를 수락하고 완료하면 풍부한 보상을 얻을 수 있습니다!",
-Override,"17310010014","Yao Yuan","요원","<h3>{name}</h3><div class=""row""><div class=""col-sm-4""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/yao-yuan-where-winds-meet-wiki-guide.png"" alt=""요원""></div><div class=""col-sm-8""><p>{name}은 트인 공간을 발견하고 당신을 궁술 대결에 초대했습니다.</p></div></div><hr class=""deco"" /><h3>필요 조건</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>추천 무기</h3><br />롱 보우<br /><h3>보상</h3><br />C등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""C등급 보상""/><br />B등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""B등급 보상""/><br />A등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""A등급 보상""/>",
-Override,"17310010014","399","요원","<h3>{name}</h3><div class=""row""><div class=""col-sm-4""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/yao-yuan-where-winds-meet-wiki-guide.png"" alt=""요원""></div><div class=""col-sm-8""><p>{name}은 트인 공간을 발견하고 당신을 궁술 대결에 초대했습니다.</p></div></div><hr class=""deco"" /><h3>필요 조건</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>추천 무기</h3><br />롱 보우<br /><h3>보상</h3><br />C등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""C등급 보상""/><br />B등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""B등급 보상""/><br />A등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""A등급 보상""/>",
-Override,"17310010014","Feng Jisheng","풍계승","<h3>{name}</h3><div class=""row""><div class=""col-sm-4""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/feng-jisheng-where-winds-meet-wiki-guide.png"" alt=""Yao Yuan""></div><div class=""col-sm-8""><p>{name}이 탁 트인 공간을 찾아 당신을 궁술 시합에 초대합니다.</p></div></div><hr class=""deco"" /><h3>요구 사항</h3>체력(Constitution) - 13<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>추천 무기</h3><br />장궁(Long Bow)<br /><h3>보상</h3><br />C 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""C 등급 보상""/><br />B 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""B 등급 보상""/><br />A 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""A 등급 보상""/>",
-Override,"17310010014","392","풍계승","<h3>{name}</h3><div class=""row""><div class=""col-sm-4""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/feng-jisheng-where-winds-meet-wiki-guide.png"" alt=""Yao Yuan""></div><div class=""col-sm-8""><p>{name}이 탁 트인 공간을 찾아 당신을 궁술 시합에 초대합니다.</p></div></div><hr class=""deco"" /><h3>요구 사항</h3>체력(Constitution) - 13<br /><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>추천 무기</h3><br />장궁(Long Bow)<br /><h3>보상</h3><br />C 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""C 등급 보상""/><br />B 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""B 등급 보상""/><br />A 등급 보상<br /><img  src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png""  alt=""A 등급 보상""/>",
-Override,"17310010014","Wang Xiangpier","왕향피","<h3>{name}</h3><br /><div class=""row""><div class=""col-sm-4""><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-xiangpier-where-winds-meet-wiki-guide.png"" 	alt=""Description of the image""/></div><br /><div class=""col-sm-8"">{name}가 넓은 공간을 찾아 당신에게 궁술 대결을 제안합니다.</div></div><br /><h3>필요 조건</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>권장 무기</h3><br />장궁<br /><h3>보상</h3><br />C 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""C 등급 보상""/><br />B 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""B 등급 보상""/><br />A 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""A 등급 보상""/>",
-Override,"17310010014","Wang Xiangpi","왕향피","<h3>{name}</h3><br /><div class=""row""><div class=""col-sm-4""><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-xiangpier-where-winds-meet-wiki-guide.png"" 	alt=""Description of the image""/></div><br /><div class=""col-sm-8"">{name}가 넓은 공간을 찾아 당신에게 궁술 대결을 제안합니다.</div></div><br /><h3>필요 조건</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/archery-competition-requirements-map-icon-where-winds-meet-wiki-guide.png"" alt=""화살""><h3>권장 무기</h3><br />장궁<br /><h3>보상</h3><br />C 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-c-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""C 등급 보상""/><br />B 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-b-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""B 등급 보상""/><br />A 등급 보상<br /><img 	src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/grade-a-archery-rewards-where-winds-meet-wiki-guide.png"" 	alt=""A 등급 보상""/>",
 Override,"17310010031","43","{region} 제작 구역","{region} 거주민의 제작 구역으로, 목공 장인이 지어 간단한 제작을 할 수 있다. <br><br><h3>사용 가능한 기능</h3><ul style=""list-style-type: disc; padding-left: 20px; margin-left: 0;""><li>단로</li><li>부뚜막</li><li>연약대</li><li>목공대</li></ul>",신선 나루
 Override,"17310010031","71","{region} 제작 구역","{region} 제작구역은, 이씨 대장장이가 지은것으로, 마을 주민이 물건을 제작하기 편리하게 만들어졌다. <br><br><h3>사용 가능한 기능</h3><ul style=""list-style-type: disc; padding-left: 20px; margin-left: 0;""><li>단로</li><li>부뚜막</li><li>연약대</li><li>목공대</li></ul>",
 Override,"17310010079","420","왕대연","<h3>{name}</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/wang-dayan-where-winds-meet-wiki-guide.jpg"" alt=""{name}""><br />{name}은 상기를 무척 좋아하지만, 실력은 평범하다. 그래도 초보자들을 입문시키는 선생으로는 충분하다. 그는 낮에는 신선 나루의 마당에서 식량이 마르는 것을 살펴야 하기에, 밤이 되어서야 귀가해 상기를 익힌다. 그와 상기를 두려면 반드시 시간을 잘 살펴야 한다!<hr class=""deco"" /><h3 class=""bonfire"">참가 비용</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""단맥전""> X 10<hr class=""deco"" /><h3 class=""bonfire"">보상</h3><div class=""row""><div class=""col-sm-6""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""단맥전""> X 20",
 Override,"17310010079","718","연형","{name}은 한때 세종 황제 휘하의 지략가로 상기에 매우 능했다. 그의 상기 실력은 수많은 전쟁 속에서 깨우치고 단련된 것으로, 상기를 통해 전장을 모의하고 국면을 밀어낼 수 있었다. 그러나 부인 기성과 즐겁게 상기를 두는 경우를 제외하면, 요즘은 마을에서 좀처럼 기량을 드러내지 않았다. 그런데 최근 기성이 화가 나 친정으로 돌아갔는데, 늘 아내를 사랑하던 {name}은 조급해 하기는 커녕 오히려 상기판을 두고 전세를 풀어내는 데 몰두하니, 참으로 기이하고도 이상한 일이다!",
 Override,"17310010079","388","엽비휴","<h3>{name}</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/ye-buxiu-where-winds-meet-wiki-guide.png"" alt=""{name}""><br />{name}의 상기 실력은 매우 뛰어나 젊었을 때는 당 명종의 궁정 기수로 일하기도 했다고 전해진다. 그는 도박 상기를 생계의 기술로 삼았으나, 탐욕을 부리지 않고 오히려 하루에 한 사람당 최대 세 판까지만 두도록 규칙을 정했다. 도박 상기에 빠져 세 판을 넘어 집요하게 달려드는 자가 있어도, 엽비휴는 늘 웃으며 교묘하게 돌려보냈다. 왕대연은 그가 상기를 가볍게 대하는 태도를 못마땅히 여겨 공공연히 또 은밀히 수없이 그를 ‘늙은 여우’라 욕하였다.<hr class=""deco"" /><h3 class=""bonfire"">참가 비용</h3><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""단맥전""> X 50<hr class=""deco"" /><h3 class=""bonfire"">보상</h3><div class=""row""><div class=""col-sm-6""><img src=""https://wherewindsmeet.wiki.fextralife.com/file/Where-Winds-Meet/commerce-coin-map-marker-icon-where-winds-meet-wiki-guide.png"" alt=""단맥전""> X 100",
 Override,"17310010079","1010","기성","<h3>{name}</h3>{name}은 순마장의 큰고모이자 현 장주 기비준의 고모였다. 어릴 적부터 상기에 매료되었고, 시집간 뒤에도 초심을 바꾸지 않아 세속적인 일에는 신경 쓰지 않았다. 남편 연형은 이를 이해하고 너그럽게 받아들여 자주 맞춰 주었다. 부부는 평소 화목했으나 최근에는 알 수 없는 이유로 틈이 생겼고, 기성은 화가 나 친정인 순마장으로 돌아와 매일 상기판을 연구하며, 겸사겸사 누군가가 찾아와 고개 숙여 사과하기를 기다리고 있었다.",
-Override,"17310010087","87186915328","기술 : 허공섭물","'훔쳐배우기 - 취지유도(取之有道)' 임무를 먼저 완료해야 합니다. 그렇지 않으면 NPC 구월해가 다른 퀘스트로 인해 선점되어 접근 또는 대화가 불가능해집니다.",
-Override,"17310010087","39126065152","기술 : 금옥점혈수","먼저 완석포의 경계석에 도착한 후, 남서쪽으로 향하여 석상들이 모여 있는 곳에 도착합니다. 그곳에서 엄기인을 만나게 됩니다. 그와 이야기를 나누세요.",
-Override,"17310010087","24135319552","기술: 속세의 장막","잔편 임무인 '속세의 흐린 눈동자'를 완료해야 합니다. 퀘스트 안내를 따라 NPC '천불수'와 대화하십시오.",
-Override,"17310010087","271664013312","기술 : 비첨 2개 (이동 기술)","청하의 묘물을 충분히 수집한뒤, 오음지태평으로 가서 제출하면 비첨 기술 2개와 심법 2개를 얻을수 있습니다.",
-Override,"17310010087","906496876544","기술 : 천공의 일격","청하의 협적 중 첫 번째 '변치 않는 강산'을 완료하세요.",
-Override,"17310010087","239745007616","기술 : 유성 낙하","엽만산(叶万山)의 특정 기술이 무력화된 후에는 스택이 쌓이며, 스택을 모두 쌓은 뒤 그를 격파하면 획득할 수 있습니다.",
-Override,"17310010087","897188388864","기술 : 합마공","장군 사당의 근처 양소룡이라는 NPC에게서 임무를 받아 얻을수 있습니다.",
-Override,"17310010087","239084650496","기술 : 사자후 (1)","사자후 습득에 필요한 종의 위치.",
-Override,"17310010087","613208702976","기술 : 사자후 (2)","사자후 습득에 필요한 종의 위치.",
-Override,"17310010087","10823790592","기술 : 음양의 교차","임무를 따라가기만 하면 됩니다.",
-Override,"17310010087","574394527744","기술 : 창공의 유성","잔편의 임무인 '구름 속 발걸음'을 완료해야 합니다. 황혼촌의 경계석으로 가서 동남 방향으로 이동한 후, 임무 지시에 따라 어부와 대화합니다.",
-Override,"17310010087","574394527744","기술 : 창공의 유성","잔편의 임무인 '구름 속 발걸음'을 완료해야 합니다. 황혼촌의 경계석으로 가서 동남 방향으로 이동한 후, 임무 지시에 따라 어부와 대화합니다.",
-Override,"17310010087","880196825088","기술 : 묘령의 그림자","임무를 따라가기만 하면 됩니다.",
-Override,"17310010087","281284067328","기술 : 사자후 (3)","사자후 습득에 필요한 종의 위치.",
-Override,"17310010087","154855825408","기술 : 사자후 (4)","사자후 습득에 필요한 종의 위치.",
-Override,"17310010087","695856848896","기술 : 응조권법","춘추별관 동남쪽 산기슭을 따라 오르면, 높은 산봉우리에 '망응정(望鷹亭)'이라 불리는 정자가 보입니다. 절벽 가장자리에 서면, 바위 틈에 홀로 앉아 장염을 바라보는 한 마리의 늙은 응(鷹)을 마주하게 될 것입니다.",
-Override,"17310010087","228029927424","기술 : 암야의 휘광","권장 획득 방법: '형연' 던전/임무 해금 과정에서 획득 가능",
-Override,"17310010087","609764442112","기술 : 무쇠 낙하","입수 방법: 수수께끼 병영 첫 클리어 보상 + 유룡 열쇠(소모)",
-Override,"17310010087","802687414272","기술 : 태백취권","습득 조건: 홍점주, 장미주, 잔향주, 강산벽주 술 구매 필요",
-Override,"17310010087","506192637952","기술 : 금강의 호법 + 속박의 자유"
-Override,"17310010087","179689979904","기술 : 거위의 절규", "탐험 임무: 누가 진정한 패왕인가를 진행하며 곰을 패고있는 거위에게 훔쳐 배우세요."
-Override,"17310010087","529273180160","기술 : 가벼운 날개짓"
+Override,"17310010087","87186915328","기술 · 허공섭물","'훔쳐배우기 - 취지유도(取之有道)' 임무를 먼저 완료해야 합니다. 그렇지 않으면 NPC 구월해가 다른 퀘스트로 인해 선점되어 접근 또는 대화가 불가능해집니다.",
+Override,"17310010087","39126065152","기술 · 금옥점혈수","먼저 완석포의 경계석에 도착한 후, 남서쪽으로 향하여 석상들이 모여 있는 곳에 도착합니다. 그곳에서 엄기인을 만나게 됩니다. 그와 이야기를 나누세요.",
+Override,"17310010087","24135319552","기술 · 속세의 장막","잔편 임무인 '속세의 흐린 눈동자'를 완료해야 합니다. 퀘스트 안내를 따라 NPC '천불수'와 대화하십시오.",
+Override,"17310010087","271664013312","기술 · 비첨 2개 (이동 기술)","청하의 묘물을 충분히 수집한뒤, 오음지태평으로 가서 제출하면 비첨 기술 2개와 심법 2개를 얻을수 있습니다.",
+Override,"17310010087","906496876544","기술 · 천공의 일격","청하의 협적 중 첫 번째 '변치 않는 강산'을 완료하세요.",
+Override,"17310010087","239745007616","기술 · 유성 낙하","엽만산(叶万山)의 특정 기술이 무력화된 후에는 스택이 쌓이며, 스택을 모두 쌓은 뒤 그를 격파하면 획득할 수 있습니다.",
+Override,"17310010087","897188388864","기술 · 합마공","장군 사당의 근처 양소룡이라는 NPC에게서 임무를 받아 얻을수 있습니다.",
+Override,"17310010087","239084650496","기술 · 사자후 (1)","사자후 습득에 필요한 종의 위치.",
+Override,"17310010087","613208702976","기술 · 사자후 (2)","사자후 습득에 필요한 종의 위치.",
+Override,"17310010087","10823790592","기술 · 음양의 교차","임무를 따라가기만 하면 됩니다.",
+Override,"17310010087","574394527744","기술 · 창공의 유성","잔편의 임무인 '구름 속 발걸음'을 완료해야 합니다. 황혼촌의 경계석으로 가서 동남 방향으로 이동한 후, 임무 지시에 따라 어부와 대화합니다.",
+Override,"17310010087","574394527744","기술 · 창공의 유성","잔편의 임무인 '구름 속 발걸음'을 완료해야 합니다. 황혼촌의 경계석으로 가서 동남 방향으로 이동한 후, 임무 지시에 따라 어부와 대화합니다.",
+Override,"17310010087","880196825088","기술 · 묘령의 그림자","임무를 따라가기만 하면 됩니다.",
+Override,"17310010087","281284067328","기술 · 사자후 (3)","사자후 습득에 필요한 종의 위치.",
+Override,"17310010087","154855825408","기술 · 사자후 (4)","사자후 습득에 필요한 종의 위치.",
+Override,"17310010087","695856848896","기술 · 응조권법","춘추별관 동남쪽 산기슭을 따라 오르면, 높은 산봉우리에 '망응정(望鷹亭)'이라 불리는 정자가 보입니다. 절벽 가장자리에 서면, 바위 틈에 홀로 앉아 장염을 바라보는 한 마리의 늙은 응(鷹)을 마주하게 될 것입니다.",
+Override,"17310010087","228029927424","기술 · 암야의 휘광","권장 획득 방법· '형연' 던전/임무 해금 과정에서 획득 가능",
+Override,"17310010087","609764442112","기술 · 무쇠 낙하","입수 방법: 수수께끼 병영 첫 클리어 보상 + 유룡 열쇠(소모)",
+Override,"17310010087","802687414272","기술 · 태백취권","습득 조건: 홍점주, 장미주, 잔향주, 강산벽주 술 구매 필요",
+Override,"17310010087","506192637952","기술 · 금강의 호법 + 속박의 자유"
+Override,"17310010087","179689979904","기술 · 거위의 절규", "탐험 임무: 누가 진정한 패왕인가를 진행하며 곰을 패고있는 거위에게 훔쳐 배우세요."
+Override,"17310010087","529273180160","기술 · 가벼운 날개짓"
 Override,"17310010023","159105531904","제향의 투구", "먼저 망토 위로 점프한 다음, 다시 점프해서 G 키를 누르세요. 점프할 필요 없이, 마우스로 클릭하면 바로 획득할 수 있습니다."
 Override,"17310010023","308832407552","산문갑", "사당 내부 조각상 다리쪽에 G키를 누르면 획득."
 Override,"17310010022","799507918848","오 장수 손무의 화전", "민속 화전 중 하나. 상기 놀이에 사용되는 화전 형태의 상기말이다. 고대 명장들을 주조한 것으로 한 면에는 장수 이름이 있고 다른 면에는 기마도나 말이 새겨져 있다. 이 화전은 '오 장수 손무'의 명성을 기리기 위해 주조됐다.<br><hr>오나라 장수 손무'를 대표하는 타마격전"
 Override,"17310010031","787015438336","격자문", "개폐식 채광 격자문. 당나라 때의 판문과 직릉창을 결합하여 발전시킨 것이다. 목제 틀에 상부는 방격자, 구형무늬 등 다양한 격자로 되어 있고 하부는 방수판으로 구성되어 쉽게 닫히고 빛이 잘 투과한다.",,"./image/{id}.png"
 Override,"17310010022","527144255488","주옹", "술을 담는 용기. 남방에서는 자기 주옹을 많이 쓰고 서북 지방에서는 와기 주옹을 주로 사용한다.<hr><p>새 주옹의 경우 재불 7근을 독 위에 덮어 두고 골고루 뜨거워지면 기름과 밀납을 전체에 바른다. 오래된 독을 초겨울에 사용할 때는 반드시 훈증을 거쳐야 한다. 방법은 반쪽 벽돌을 받침으로 삼고 그 위에 독을 올려놓은 후, 독 위에 메밀짚을 올려놓고 불의 강약을 조절하면서 독 가장자리에서 검은 액체가 나올 때까지 찐다. 그런 다음 물로 3~5번 씻고 말려서 사용하면 된다. 또한 옡칠을 하면 더욱 좋다.</p>",,"./image/{id}.png"
-Override,"17310010001","17353351168","강무랑·낡은 창", "강무랑은 대장간을 지나다가 무심한 척 창 한 자루를 샀다. 세상 무심한 얼굴로 몰래 당신을 위해 창을 손질해 주었다. 향선 이모 몰래 연습하던 시간은 차츰 부자 간의 비밀스러운 추억이 되었다. 가끔 사색이 길어질 때면, 강무랑은 이런 생각을 했다. “훗날 네가 강호의 풍파를 겪게 될 때 왜 그때 너를 말리지 않았느냐고 나를 원망하게 될까?”",
+Override,"17310010001","17353351168","강무랑 · 낡은 창", "강무랑은 대장간을 지나다가 무심한 척 창 한 자루를 샀다. 세상 무심한 얼굴로 몰래 당신을 위해 창을 손질해 주었다. 향선 이모 몰래 연습하던 시간은 차츰 부자 간의 비밀스러운 추억이 되었다. 가끔 사색이 길어질 때면, 강무랑은 이런 생각을 했다. “훗날 네가 강호의 풍파를 겪게 될 때 왜 그때 너를 말리지 않았느냐고 나를 원망하게 될까?”",
 Override,"17310010008","38988750848","속삭이는 벌집","강호 사람들 모두가 찾고자 하는 물건"
 Override,"17310010002","939053293568","흔들리는 붉은 꿈 5", "이곳의 활쏘기 NPC와 대화하고, 대결 후 마지막 편지를 획득하여, 인벤토리에서 확인하세요."
 Override,"17310010002","917257125888","흔들리는 붉은 꿈 6", "편지를 읽은 후, 대나무 숲 오두막 뒤편 빛나는 곳에서 붉은 끈을 줍습니다."
 Override,"17310010008","255802253312","속삭이는 벌집", "절벽에 속삭이는 벌집이 있습니다."
 Override,"17310010008","387209527296","붉은 탐욕"
 Override,"17310010008","502930374656","노래하는 백목련"
-Override,"17310010003","477653295104","검자루 만지기 - 파죽지세","대나무를 자르세요."
-Override,"17310010004","811574419456","고양이 - 원추리","낮에 만약 찾지 못했다면, 시간을 밤으로 바꿔서 한번 보세요. 위치가 약간의 오차가 있을 수 있으니, 위아래로 움직이며 살펴보세요."
-Override,"17310010025","9207406592","별록 : 무명 도법","진자해가 강염을 알게 된 지 얼마 되지 않았을 무렵, 그가 항상 책을 읽고 있다는 것을 발견했다. 강염은 낮에도 밤에도, 술을 마실 때조차 틈만 나면 책을 읽었다. 진자해는 이토록 집중하는 강염을 보며, 그가 강호의 일화를 읽는다고 생각했다. 그 좋은 것을 앞장서서 나와 함께 나누지 않는다니, 자신을 벗으로 여기지 않는다 생각해 매우 괘씸했다.<br>그리하여 진자해가 하는 수없이 먼저 강염에게 청했다.<br><br>“문파의 물건인지라, 말할 수 없다네.” 강무랑이 단호히 거절하자, 진자해의 궁금증은 더욱 커졌다. 혹시 문파의 어떤 비화라서 외부에 발설할 수 없는 것인가?<br><br>진자해는 애타는 마음을 참을 수 없어, 강염이 깊게 잠든 틈을 타, 보따리에서 몰래 책을 꺼내 보았다. 제목 없는 낡고 평범한 책 같아 보였다. 그러나 첫 번째 장을 펼쳐본 진자해는 그 자리에 얼어붙고 말았다. 책에는 도법 초식이 빼곡히 적혀있었다. 강무랑이 밤낮없이 끼니도 거르며 보던 것은 ... 도법이었다. 도대체가 이 사람을 재밌다고 해야할지, 따분하다고 해야 할지 헷갈렸다.<br>이튿날 아침, 강무랑이 다시 그 도법을 펼쳐 수련을 준비하려던 찰나, 왠지 모르게 더 빼곡해진 주석을 발견했다.<br><br>'주: 이리도 어렵고 난해하다니. 그대의 문파는 혹시 천서파인 것이오?'<br>'주: 설령 이 책이 세상에 알려지더라도 흥미를 가질 자는 아무도 없을 것이오. 안심하시오 ... '<br>'주: 다 읽긴 했네만, 이해는 되지 않소. 구태여 더 볼 필요는 없겠소.'<br>'주: 강염, 술 한잔 어떻소?'<br><br>강무랑은 눈썹을 찌푸리며, 진자해를 올려다보았다. 진자해가 살랑살랑 부채질하며, 웃음을 머금고 물었다. 술 한잔 어떻소 강염?"
+Override,"17310010003","477653295104","검자루 만지기 · 파죽지세","대나무를 자르세요."
+Override,"17310010004","811574419456","고양이 · 원추리","낮에 만약 찾지 못했다면, 시간을 밤으로 바꿔서 한번 보세요. 위치가 약간의 오차가 있을 수 있으니, 위아래로 움직이며 살펴보세요."
+Override,"17310010025","9207406592","별록 · 무명 도법","진자해가 강염을 알게 된 지 얼마 되지 않았을 무렵, 그가 항상 책을 읽고 있다는 것을 발견했다. 강염은 낮에도 밤에도, 술을 마실 때조차 틈만 나면 책을 읽었다. 진자해는 이토록 집중하는 강염을 보며, 그가 강호의 일화를 읽는다고 생각했다. 그 좋은 것을 앞장서서 나와 함께 나누지 않는다니, 자신을 벗으로 여기지 않는다 생각해 매우 괘씸했다.<br>그리하여 진자해가 하는 수없이 먼저 강염에게 청했다.<br><br>“문파의 물건인지라, 말할 수 없다네.” 강무랑이 단호히 거절하자, 진자해의 궁금증은 더욱 커졌다. 혹시 문파의 어떤 비화라서 외부에 발설할 수 없는 것인가?<br><br>진자해는 애타는 마음을 참을 수 없어, 강염이 깊게 잠든 틈을 타, 보따리에서 몰래 책을 꺼내 보았다. 제목 없는 낡고 평범한 책 같아 보였다. 그러나 첫 번째 장을 펼쳐본 진자해는 그 자리에 얼어붙고 말았다. 책에는 도법 초식이 빼곡히 적혀있었다. 강무랑이 밤낮없이 끼니도 거르며 보던 것은 ... 도법이었다. 도대체가 이 사람을 재밌다고 해야할지, 따분하다고 해야 할지 헷갈렸다.<br>이튿날 아침, 강무랑이 다시 그 도법을 펼쳐 수련을 준비하려던 찰나, 왠지 모르게 더 빼곡해진 주석을 발견했다.<br><br>'주: 이리도 어렵고 난해하다니. 그대의 문파는 혹시 천서파인 것이오?'<br>'주: 설령 이 책이 세상에 알려지더라도 흥미를 가질 자는 아무도 없을 것이오. 안심하시오 ... '<br>'주: 다 읽긴 했네만, 이해는 되지 않소. 구태여 더 볼 필요는 없겠소.'<br>'주: 강염, 술 한잔 어떻소?'<br><br>강무랑은 눈썹을 찌푸리며, 진자해를 올려다보았다. 진자해가 살랑살랑 부채질하며, 웃음을 머금고 물었다. 술 한잔 어떻소 강염?"
 Override,"17310010022","689315164160","조 기병 특륵의 화전","민속 화전 중 하나. 상기 놀이에 사용되는 화전 형태의 상기말이다. 고대 명장들을 주조한 것으로 한 면에는 장수 이름이 있고 다른 면에는 기마도나 말이 새겨져 있다. 이 화전에는 '조 기병 특륵'이라는 문구가 새겨져 있다.<br><hr>조나라 기병 특륵'을 대표하는 타마격전",
 Override,"17310010002","424583553024","기연 · 강호의 아이 2", "오른쪽 보물상자 수호자를 모두 처치해야 아이가 나타납니다! 고정된 위치가 아니며, 캠프를 정리한 후 캠프 근처에서 확률적으로 발생합니다.<hr>당신은 다시 소평안이라는 아이를 만났다. 그는 당신이 보여준 구현의 검무를 매우 만족스러워 하며 새로운 요구를 했다. 바로 광란문의 풍뢰의 징표를 배워오라는 것이었다. 인연이 닿는 날, 다시 백초야에서 만나기로 약속했다."
 Override,"17310010002","5862354944","기연 · 강호의 아이 3", "소평안 3번째 만남<hr>당신은 다시 소평안이라는 아이를 만났다. 그는 당신이 보여준 구현의 검무를 매우 만족스러워 하며 새로운 요구를 했다. 바로 광란문의 풍뢰의 징표를 배워오라는 것이었다. 인연이 닿는 날, 다시 백초야에서 만나기로 약속했다."
 Override,"17310010002","115075035136","기연 · 강호의 아이 4", "노인과의 대화 (발동 조건: 근처 야영지 정리 필요, 선택 지역: 장군사당·백초야)<hr>당신은 다시 소평안이라는 아이를 만났다. 그는 당신이 보여준 구현의 검무를 매우 만족스러워 하며 새로운 요구를 했다. 바로 광란문의 풍뢰의 징표를 배워오라는 것이었다. 인연이 닿는 날, 다시 백초야에서 만나기로 약속했다.",
 Override,"17310010010","380005478400","영지 · 수금루","수금루의 영지입니다."
 Override,"17310010010","137482432512","영지 · 수금루","수금루의 영지입니다."
-Override,"17310010006","958729416704","보물상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요.",
-Override,"17310010006","814566723584","보물상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요.",
+Override,"17310010006","958729416704","상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요.",
+Override,"17310010006","814566723584","상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요.",
 Override,"17310010012","519123918848","파란나비","파란나비가 있습니다.",
 Override,"17310010008","791339106304","노래하는 백목련","대나무 숲 옛집에서 활로 하늘을 나는 보라색 나비를 쏜 후, 노래하는 백목련을 채집하세요."
+Override,"17310010014","440786599936","요원","요원이 넓은 지역을 발견하고, 당신을 활솜씨 겨루기에 초대합니다.",
+Override,"17310010085","366227447808","동굴 탐험 · 천계의 수호","천계의 수호를 배울수 있는 동굴 입구입니다.",
+Override,"17310010007","159821959168","상자 (지하)","천계의 수호를 훔쳐 배울수 있는 동굴을 탐색하여 획득할수 있습니다.",
+Override,"17310010006","511318814720","상자 (지상)","물 가운데에 상자가 있습니다.",
+Override,"17310010007","271864672256","상자 (지하)","천계의 수호를 훔쳐 배울수 있는 동굴을 탐색하여 획득할수 있습니다."
+Override,"17310010007","417171869696","상자 (지하)","천계의 수호를 훔쳐 배울수 있는 동굴을 탐색하여 획득할수 있습니다."
+Override,"17310010085","842033553408","천계의 수호","여기에서 유룡열쇠를 사용하여 기관을 열고 동굴로 들어가면 기술을 훔쳐 배울 수 있습니다."
+Override,"17310010086","95986065408","심법 · 군신의 묘약","이곳에서 유룡열쇠로 장치를 열고 동굴로 들어가 보물 상자를 획득하세요.",
+Override,"17310010007","5714841600","상자 (지하)","천계의 수호를 훔쳐 배울수 있는 동굴을 탐색하여 획득할수 있습니다.",
+Override,"17310010001","949025845248","강무랑 · 제향의 투구","집 안의 보물 상자에서 획득 하고, 장군 사당 아래에서 과거의 유물 추적 가능.",
+Override,"17310010006","635457630208","상자 (지상)","집 내부에서 획득 가능.<br>내용물은 제향의 투구 (과거의 유물)"
+Override,"17310010008","979720310784","노래하는 백목련"
+Override,"17310010006","147777716224","상자 (지상)","경계석 근처에 녹림 영지가 있으므로, 몰살한후 보물상자를 획득하세요."
+Override,"17310010006","242526842880","상자 (지상)","근처에 상자가 존재."
+Override,"17310010006","354485399552","상자 (지상)","경계석 근처에 녹림 영지가 있으므로, 몰살한후 보물상자를 획득하세요."
+Override,"17310010010","992791527424","영지 · 녹림","녹림의 영지입니다."
+Override,"17310010090","123307945984","야외 제사 (빨간나비)","V를 눌러 빨간 선을 찾아 나비를 찾고 제사를 완료한 뒤, 보상(상자)를 얻으세요."
+Override,"17310010006","681067323392","상자 (지상)","태극을 이용하여 곰을 바위에 날려보내 돌을 부시고 보상을 획득하세요.",
+Override,"17310010008","489966641152","속삭이는 벌집","태극권을 배울수 있는 곰 근처 나무에 속삭이는 벌집이 존재합니다.","","./image/{id}.png"
+Override,"17310010086","725795991552","심법 · 월하의 섬광","묘물을 제출하고 월하의 섬광을 얻으세요."
+Override,"17310010086","583904452608","심법 · 무공의 경지","묘물을 제출하고 무공의 경지를 얻으세요."
+Override,"17310010006","995691782144","상자 (지상)","근처에 상자가 존재합니다.","","./image/{id}.png"
+Override,"17310010092","216488542208","견문 · 곰의 야망","선행 조건: 스킬 '영혼의 공명'를 해금해야 합니다. 이 곰을 찾은 후 V 키를 누르면 견문을 획득할 수 있습니다. 해당 지역은 대나무 숲 지역이나, 장군 사당 견문입니다.","장군 사당"
+Override,"17310010008","636295163904","비견 장군","상자를 부시면 비견 장군를 획득할수 있습니다."
+Override,"17310010006","470165135360","상자 (지상)","근처에 상자가 존재합니다."
+Override,"17310010003","175831179264","검자루 만지기 · 인화수집","일정 시간 내에 지정된 수량의 인화를 수집해 도전을 완료하고 보상을 얻으세요."
+Override,"17310010008","833318129664","붉은 탐욕","강호 사람들 모두가 찾고자 하는 물건"
+Override,"17310010010","625418399744","영지 · 수금루","수금루의 영지입니다."
+Override,"17310010006","351717990400","상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요. "
+Override,"17310010003","329204293632","검자루 만지기 · 인화수집","일정 시간 내에 지정된 수량의 인화를 수집해 도전을 완료하고 보상을 얻으세요."
+Override,"17310010084","791536603136","대협 비급 · 임무 수락","NPC 용아와 대화후 대협 비급 임무를 수락합니다."
+Override,"17310010084","283318747136","대협 비금 · 임무 완료","NPC 용아와 대화하고 아이템을 제출하여 임무를 완료합니다."
+Override,"17310010084","892799819776","대협 비급 1", "근처에 첫 단서, 굵은 나무가 있으므로 공격하여 나무를 없애고 퀘스트 아이템을 획득하세요."
+Override,"17310010006","209603051520","상자 (지상)","폭포 안에 상자가 있습니다."
+Override,"17310010006","816174243840","상자 (지상)","돌 위에 상자가 있습니다."
+Override,"17310010006","772143763456","야외 제사","폭포 근처에 장치가 있으므로, 무쇠 낙하를 이용하여 활성화 하고 보상을 획득하세요.","","./image/{id}.png"
+Override,"17310010084","169678409728","대협 비급 3","흰 새를 떨어뜨리고, 퀘스트 아이템을 획득하세요."
+Override,"17310010006","605481959424","상자 (지상)","근처에 수금루의 영지가 있으므로, 몰살한후 보물상자를 획득하세요."
+Override,"17310010010","508409901056","영지 · 수금루","수금루의 영지입니다."
+Override,"17310010006","497726095360","상자 (지상)","상자 안에 적이 있습니다! 처리하면 자동으로 보상을 얻습니다."
+Override,"17310010084","45128417280","대협 비급 2","탑을 올라가 퀘스트 아이템을 획득하세요."
+Override,"17310010003","649145802752","검자루 만지기 · 인화수집","일정 시간 내에 지정된 수량의 인화를 수집해 도전을 완료하고 보상을 얻으세요."
