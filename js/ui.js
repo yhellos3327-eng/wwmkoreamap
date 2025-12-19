@@ -425,11 +425,14 @@ export const openLightbox = (itemId, index) => {
         return;
     }
 
-    const item = state.mapData.items.find(i => i.id === itemId);
-    if (!item || !item.images || item.images.length === 0) return;
+    const item = state.mapData.items.find(i => i.id == itemId);
+    if (!item || !item.images || item.images.length === 0) {
+        console.warn('Lightbox: Item not found or has no images', itemId);
+        return;
+    }
 
     setState('currentLightboxImages', item.images);
-    setState('currentLightboxIndex', index);
+    setState('currentLightboxIndex', index || 0);
 
     updateLightboxImage();
 
@@ -444,9 +447,14 @@ export const openLightbox = (itemId, index) => {
 
 function updateLightboxImage() {
     const imgElement = document.getElementById('lightbox-img');
-    let src = state.currentLightboxImages[state.currentLightboxIndex];
-    src = src.startsWith('http') ? src : src;
-    imgElement.src = src;
+    if (!imgElement) return;
+
+    const images = state.currentLightboxImages;
+    const index = state.currentLightboxIndex;
+
+    if (images && images[index]) {
+        imgElement.src = images[index];
+    }
 }
 
 export const switchLightbox = (direction) => {
