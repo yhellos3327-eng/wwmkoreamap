@@ -38,7 +38,7 @@ function createNoticeModal() {
                         <strong style="color: #ff6b6b; display: block; margin-bottom: 8px; font-size: 1.1em;">🚨 왜 데이터 백업이 필요한가요?</strong>
                         <p style="margin-bottom: 8px; font-size: 0.95em; line-height: 1.5;">
                             브라우저의 보안 정책(Same-Origin Policy)으로 인해, <strong>도메인이 달라지면 기존 도메인에 저장된 데이터에 접근할 수 없습니다.</strong> 
-                            기술적인 한계로 인해 데이터를 자동으로 옮겨드릴 수 없으므로, 소중한 즐겨찾기와 설정 데이터를 지키기 위해 반드시 백업이 필요합니다.
+                            기술적인 한계로 인해 데이터를 자동으로 옮겨드릴 수 없으므로(할수만 있다면 가능하겠지만 보안이나 이것저것을 위해), 소중한 즐겨찾기와 설정 데이터를 지키기 위해 반드시 백업이 필요합니다.
                         </p>
                         <p style="margin: 0; font-weight: bold;">
                             [설정] > [데이터 백업] 기능을 통해 현재 데이터를 파일로 저장해 주세요.
