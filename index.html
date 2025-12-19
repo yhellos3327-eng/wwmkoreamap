@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/main-notice.css">
 </head>
 
 <body>
@@ -120,8 +121,8 @@
 
     </div>
 
-    <div id="settings-modal" class="modal-overlay hidden" style="z-index: 9999;">
-        <div class="modal-content" style="height: auto;">
+    <div id="settings-modal" class="modal-overlay hidden">
+        <div class="modal-content">
             <div class="modal-header">
                 <h3>설정</h3>
                 <button id="close-settings" class="close-modal-btn">&times;</button>
@@ -209,11 +210,9 @@
                         <span class="color-label">기본값: #ffbd53</span>
                     </div>
                 </div>
-                <div class="settings-backup-section"
-                    style="margin-top: 20px; border-top: 1px solid #ccc; padding-top: 15px; margin-bottom: 20px; border-bottom: 1px solid #ccc; padding-bottom: 15px;     ">
-
-                    <h4 style="margin-bottom: 10px; font-size: 1.1em; font-weight: bold;">💾 데이터 백업 및 복구</h4>
-                    <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                <div class="settings-backup-section">
+                    <h4>💾 데이터 백업 및 복구</h4>
+                    <p>
                         현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
                         <span style="color: #d9534f; font-size: 0.8em;">
                             <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>

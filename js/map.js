@@ -235,11 +235,16 @@ export const initMap = (mapKey) => {
     if (!state.markerClusterGroup) {
         const isMobile = window.innerWidth <= 768;
         const markerClusterGroup = L.markerClusterGroup({
-            maxClusterRadius: isMobile ? 80 : 50,
+            maxClusterRadius: isMobile ? 40 : 30, // 더 정밀한 클러스터링을 위해 반경 축소
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
-            zoomToBoundsOnClick: true,
-            disableClusteringAtZoom: 16
+            zoomToBoundsOnClick: false, // 클릭 시 확대 대신 퍼지게 설정
+            disableClusteringAtZoom: 14, // 최대 확대 시 클러스터링 해제하여 정확한 위치 표시
+            spiderfyDistanceMultiplier: 2 // 적절한 간격으로 마커 분산
+        });
+
+        markerClusterGroup.on('clusterclick', function (a) {
+            a.layer.spiderfy();
         });
         state.map.addLayer(markerClusterGroup);
         setState('markerClusterGroup', markerClusterGroup);
@@ -567,7 +572,7 @@ export const moveToLocation = (latlng, marker = null, regionName = null) => {
     }
 
     const currentZoom = state.map.getZoom();
-    const targetZoom = currentZoom > 12 ? currentZoom : 12;
+    const targetZoom = currentZoom > 11 ? currentZoom : 11;
     state.map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
     if (marker) {
         const catId = marker.options.alt;

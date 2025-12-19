@@ -171,3 +171,59 @@
     border-bottom: 1px solid var(--border);
     background: var(--bg-panel);
 }
+
+/* Marker Cluster Dark Theme */
+.marker-cluster-small {
+    background-color: rgba(218, 172, 113, 0.4);
+}
+
+.marker-cluster-small div {
+    background-color: rgba(218, 172, 113, 0.8);
+    color: #000;
+    font-weight: 700;
+}
+
+.marker-cluster-medium {
+    background-color: rgba(235, 185, 129, 0.4);
+}
+
+.marker-cluster-medium div {
+    background-color: rgba(235, 185, 129, 0.8);
+    color: #000;
+    font-weight: 700;
+}
+
+.marker-cluster-large {
+    background-color: rgba(255, 215, 0, 0.4);
+}
+
+.marker-cluster-large div {
+    background-color: rgba(255, 215, 0, 0.8);
+    color: #000;
+    font-weight: 700;
+}
+
+.marker-cluster {
+    background-clip: padding-box;
+    border-radius: 20px;
+}
+
+.marker-cluster div {
+    width: 30px;
+    height: 30px;
+    margin-left: 5px;
+    margin-top: 5px;
+    text-align: center;
+    border-radius: 15px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(2px);
+}
+
+.marker-cluster span {
+    line-height: 30px;
+}

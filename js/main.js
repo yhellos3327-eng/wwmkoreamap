@@ -12,6 +12,7 @@ import {
 } from './ui.js';
 import { translateItem } from './translation.js';
 import { enableDevMode } from './dev.js';
+import { initMainNotice } from './main-notice.js';
 
 window.toggleSidebar = toggleSidebar;
 window.openLightbox = openLightbox;
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             if (!loadingState.isVisible) {
                 if (loadingScreen) loadingScreen.classList.add('hidden');
+                initMainNotice();
                 return;
             }
 
