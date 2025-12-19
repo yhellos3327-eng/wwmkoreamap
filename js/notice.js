@@ -7,6 +7,8 @@ import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https:/
 let currentNoticeId = null;
 let currentPostId = null;
 let currentReportId = null;
+let editingSystemUpdateId = null;
+let editingTranslationUpdateId = null;
 let isAdmin = false;
 
 const init = () => {
@@ -55,6 +57,13 @@ const init = () => {
                 reportAuthorInput.classList.remove('admin-text');
             }
         }
+
+        // Re-render lists to update Admin UI (buttons)
+        renderSystemUpdates();
+        renderTranslationUpdates();
+        renderNotices();
+        renderFreeBoardPosts();
+        renderReportBoardPosts();
     });
 
     // Login Modal Events
@@ -155,7 +164,9 @@ async function renderSystemUpdates() {
         const querySnapshot = await getDocs(q);
         const firestoreUpdates = [];
         querySnapshot.forEach((doc) => {
-            firestoreUpdates.push(doc.data());
+            const data = doc.data();
+            data.id = doc.id;
+            firestoreUpdates.push(data);
         });
         updates = [...firestoreUpdates, ...updates];
     } catch (error) {
@@ -189,6 +200,59 @@ async function renderSystemUpdates() {
                 <ul>${contentHtml}</ul>
             </div>
         `;
+
+        if (isAdmin && update.id) {
+            const adminDiv = document.createElement('div');
+            adminDiv.style.marginTop = '10px';
+            adminDiv.style.borderTop = '1px solid #444';
+            adminDiv.style.paddingTop = '10px';
+            adminDiv.style.textAlign = 'right';
+
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '수정';
+            editBtn.className = 'btn-list';
+            editBtn.style.marginRight = '5px';
+            editBtn.onclick = () => {
+                editingSystemUpdateId = update.id;
+                document.getElementById('system-version').value = update.version;
+                // Convert list items back to text
+                let contentText = '';
+                if (Array.isArray(update.content)) {
+                    contentText = update.content.join('\n');
+                } else {
+                    contentText = update.content;
+                }
+                document.getElementById('system-content').value = contentText;
+
+                document.getElementById('system-update-list-view').classList.remove('active');
+                document.getElementById('system-update-write-view').classList.add('active');
+                document.getElementById('btn-submit-system-update').textContent = '수정하기';
+                document.querySelector('#system-update-write-view h3').textContent = '시스템 업데이트 수정';
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '삭제';
+            deleteBtn.className = 'btn-list';
+            deleteBtn.style.background = '#ff5555';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.color = 'white';
+            deleteBtn.onclick = async () => {
+                if (confirm('정말로 삭제하시겠습니까?')) {
+                    try {
+                        await deleteDoc(doc(db, "system_updates", update.id));
+                        alert('삭제되었습니다.');
+                        renderSystemUpdates();
+                    } catch (e) {
+                        console.error(e);
+                        alert('삭제 실패');
+                    }
+                }
+            };
+
+            adminDiv.appendChild(editBtn);
+            adminDiv.appendChild(deleteBtn);
+            div.appendChild(adminDiv);
+        }
         listEl.appendChild(div);
     });
 }
@@ -205,7 +269,9 @@ async function renderTranslationUpdates() {
         const querySnapshot = await getDocs(q);
         const firestoreUpdates = [];
         querySnapshot.forEach((doc) => {
-            firestoreUpdates.push(doc.data());
+            const data = doc.data();
+            data.id = doc.id;
+            firestoreUpdates.push(data);
         });
         updates = [...firestoreUpdates, ...updates];
     } catch (error) {
@@ -239,6 +305,59 @@ async function renderTranslationUpdates() {
                 <ul>${contentHtml}</ul>
             </div>
         `;
+
+        if (isAdmin && update.id) {
+            const adminDiv = document.createElement('div');
+            adminDiv.style.marginTop = '10px';
+            adminDiv.style.borderTop = '1px solid #444';
+            adminDiv.style.paddingTop = '10px';
+            adminDiv.style.textAlign = 'right';
+
+            const editBtn = document.createElement('button');
+            editBtn.textContent = '수정';
+            editBtn.className = 'btn-list';
+            editBtn.style.marginRight = '5px';
+            editBtn.onclick = () => {
+                editingTranslationUpdateId = update.id;
+                document.getElementById('translation-version').value = update.version;
+                // Convert list items back to text
+                let contentText = '';
+                if (Array.isArray(update.content)) {
+                    contentText = update.content.join('\n');
+                } else {
+                    contentText = update.content;
+                }
+                document.getElementById('translation-content').value = contentText;
+
+                document.getElementById('translation-update-list-view').classList.remove('active');
+                document.getElementById('translation-update-write-view').classList.add('active');
+                document.getElementById('btn-submit-translation-update').textContent = '수정하기';
+                document.querySelector('#translation-update-write-view h3').textContent = '번역 업데이트 수정';
+            };
+
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = '삭제';
+            deleteBtn.className = 'btn-list';
+            deleteBtn.style.background = '#ff5555';
+            deleteBtn.style.border = 'none';
+            deleteBtn.style.color = 'white';
+            deleteBtn.onclick = async () => {
+                if (confirm('정말로 삭제하시겠습니까?')) {
+                    try {
+                        await deleteDoc(doc(db, "translation_updates", update.id));
+                        alert('삭제되었습니다.');
+                        renderTranslationUpdates();
+                    } catch (e) {
+                        console.error(e);
+                        alert('삭제 실패');
+                    }
+                }
+            };
+
+            adminDiv.appendChild(editBtn);
+            adminDiv.appendChild(deleteBtn);
+            div.appendChild(adminDiv);
+        }
         listEl.appendChild(div);
     });
 }
@@ -336,6 +455,12 @@ function viewNotice(notice) {
 function initAdminWriteEvents() {
     // System Update
     document.getElementById('btn-show-system-write').addEventListener('click', () => {
+        editingSystemUpdateId = null;
+        document.getElementById('system-version').value = '';
+        document.getElementById('system-content').value = '';
+        document.getElementById('btn-submit-system-update').textContent = '등록하기';
+        document.querySelector('#system-update-write-view h3').textContent = '시스템 업데이트 작성';
+
         document.getElementById('system-update-list-view').classList.remove('active');
         document.getElementById('system-update-write-view').classList.add('active');
     });
@@ -349,25 +474,40 @@ function initAdminWriteEvents() {
         if (!version || !content) return alert('버전과 내용을 입력하세요.');
 
         try {
-            await addDoc(collection(db, "system_updates"), {
-                version: version,
-                content: content,
-                date: new Date().toLocaleDateString(),
-                timestamp: serverTimestamp()
-            });
-            alert('업데이트가 등록되었습니다.');
+            if (editingSystemUpdateId) {
+                await updateDoc(doc(db, "system_updates", editingSystemUpdateId), {
+                    version: version,
+                    content: content
+                });
+                alert('업데이트가 수정되었습니다.');
+            } else {
+                await addDoc(collection(db, "system_updates"), {
+                    version: version,
+                    content: content,
+                    date: new Date().toLocaleDateString(),
+                    timestamp: serverTimestamp()
+                });
+                alert('업데이트가 등록되었습니다.');
+            }
+
             document.getElementById('system-version').value = '';
             document.getElementById('system-content').value = '';
             document.getElementById('btn-cancel-system-write').click();
             renderSystemUpdates();
         } catch (e) {
             console.error(e);
-            alert('등록 실패');
+            alert('작업 실패');
         }
     });
 
     // Translation Update
     document.getElementById('btn-show-translation-write').addEventListener('click', () => {
+        editingTranslationUpdateId = null;
+        document.getElementById('translation-version').value = '';
+        document.getElementById('translation-content').value = '';
+        document.getElementById('btn-submit-translation-update').textContent = '등록하기';
+        document.querySelector('#translation-update-write-view h3').textContent = '번역 업데이트 작성';
+
         document.getElementById('translation-update-list-view').classList.remove('active');
         document.getElementById('translation-update-write-view').classList.add('active');
     });
@@ -381,20 +521,29 @@ function initAdminWriteEvents() {
         if (!version || !content) return alert('버전과 내용을 입력하세요.');
 
         try {
-            await addDoc(collection(db, "translation_updates"), {
-                version: version,
-                content: content,
-                date: new Date().toLocaleDateString(),
-                timestamp: serverTimestamp()
-            });
-            alert('업데이트가 등록되었습니다.');
+            if (editingTranslationUpdateId) {
+                await updateDoc(doc(db, "translation_updates", editingTranslationUpdateId), {
+                    version: version,
+                    content: content
+                });
+                alert('업데이트가 수정되었습니다.');
+            } else {
+                await addDoc(collection(db, "translation_updates"), {
+                    version: version,
+                    content: content,
+                    date: new Date().toLocaleDateString(),
+                    timestamp: serverTimestamp()
+                });
+                alert('업데이트가 등록되었습니다.');
+            }
+
             document.getElementById('translation-version').value = '';
             document.getElementById('translation-content').value = '';
             document.getElementById('btn-cancel-translation-write').click();
             renderTranslationUpdates();
         } catch (e) {
             console.error(e);
-            alert('등록 실패');
+            alert('작업 실패');
         }
     });
 
