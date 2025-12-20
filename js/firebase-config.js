@@ -19,6 +19,11 @@ export const firebaseInitialized = (async () => {
         if (!response.ok) throw new Error('Failed to fetch config');
 
         const config = await response.json();
+        console.log("[Firebase] Config loaded from backend:", {
+            hasFirebaseConfig: !!config.firebaseConfig,
+            recaptchaSiteKey: config.recaptchaSiteKey,
+            hostname: location.hostname
+        });
 
         if (!config.firebaseConfig) {
             throw new Error('Firebase config not found in response');
@@ -26,15 +31,24 @@ export const firebaseInitialized = (async () => {
 
         app = initializeApp(config?.firebaseConfig);
 
-        if (location.hostname === "localhost" || location.hostname === "127.0.0.1") {
+        const urlParams = new URLSearchParams(window.location.search);
+        const isDebug = location.hostname === "localhost" || location.hostname === "127.0.0.1" || urlParams.get('debug') === 'true';
+
+        if (isDebug) {
             self.FIREBASE_APPCHECK_DEBUG_TOKEN = "94634c86-7f59-4ed4-aff1-90211f4ffb1c";
+            console.log("[Firebase] App Check Debug Mode Active");
         }
 
         if (config.recaptchaSiteKey) {
-            appCheck = initializeAppCheck(app, {
-                provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
-                isTokenAutoRefreshEnabled: true
-            });
+            try {
+                console.log("[Firebase] Initializing App Check. Mode:", isDebug ? "Debug" : "Production");
+                appCheck = initializeAppCheck(app, {
+                    provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
+                    isTokenAutoRefreshEnabled: true
+                });
+            } catch (acError) {
+                console.error("[Firebase] App Check initialization failed:", acError);
+            }
         }
 
         db = getFirestore(app);

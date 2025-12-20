@@ -285,6 +285,9 @@ export const initMap = (mapKey) => {
 
         map.on('movestart', () => {
             if (!state.enableClustering && state.pendingMarkers) {
+                state.pendingMarkers.forEach(m => {
+                    if (!state.map.hasLayer(m)) state.map.addLayer(m);
+                });
             }
         });
 
@@ -622,20 +625,22 @@ export const renderMapDataAndMarkers = () => {
         });
     });
 
+    // 기존에 개별적으로 추가된 마커들 무조건 제거 (상태 전환 및 필터 변경 대비)
+    if (state.pendingMarkers) {
+        state.pendingMarkers.forEach(m => {
+            if (state.map.hasLayer(m)) state.map.removeLayer(m);
+        });
+    }
+
     if (state.enableClustering && state.markerClusterGroup) {
         state.markerClusterGroup.addLayers(markersToAdd);
         if (!state.map.hasLayer(state.markerClusterGroup)) {
             state.map.addLayer(state.markerClusterGroup);
         }
+        setState('pendingMarkers', []);
     } else {
         if (state.markerClusterGroup && state.map.hasLayer(state.markerClusterGroup)) {
             state.map.removeLayer(state.markerClusterGroup);
-        }
-
-        if (state.pendingMarkers) {
-            state.pendingMarkers.forEach(m => {
-                if (state.map.hasLayer(m)) state.map.removeLayer(m);
-            });
         }
 
         setState('pendingMarkers', markersToAdd);
