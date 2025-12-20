@@ -15,8 +15,20 @@ let appCheck;
 
 export const firebaseInitialized = (async () => {
     try {
-        const response = await fetch(BACKEND_URL);
-        if (!response.ok) throw new Error('Failed to fetch config');
+        let response;
+        try {
+            response = await fetch(BACKEND_URL, { cache: 'no-cache' });
+        } catch (fetchError) {
+            console.error("[Firebase] Fetch failed for BACKEND_URL:", BACKEND_URL);
+            if (fetchError.message === 'Failed to fetch') {
+                console.error("[Firebase] 'Failed to fetch' usually means the server is down or port 5555 is blocked by your network/provider.");
+            }
+            throw fetchError;
+        }
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
+        }
 
         const config = await response.json();
         console.log("[Firebase] Config loaded from backend:", {
