@@ -57,9 +57,26 @@ export const loadTranslations = async (mapKey) => {
                         desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
                     }
 
-                    let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
-                    if (imagePath && imagePath.includes('{id}')) {
-                        imagePath = imagePath.replace('{id}', key);
+                    let imageRaw = imgIdx !== -1 ? row[imgIdx] : null;
+                    let imageData = null;
+                    if (imageRaw) {
+                        const trimmed = imageRaw.trim();
+                        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                            const content = trimmed.slice(1, -1);
+                            imageData = content.split('|').map(v => {
+                                let path = v.trim();
+                                if (path.includes('{id}')) {
+                                    path = path.replace('{id}', key);
+                                }
+                                return path;
+                            }).filter(v => v !== "");
+                        } else {
+                            let path = trimmed;
+                            if (path.includes('{id}')) {
+                                path = path.replace('{id}', key);
+                            }
+                            imageData = path;
+                        }
                     }
 
                     let videoUrl = videoIdx !== -1 ? row[videoIdx] : null;
@@ -78,7 +95,7 @@ export const loadTranslations = async (mapKey) => {
                         name: row[valIdx],
                         description: desc,
                         region: row[regIdx],
-                        image: imagePath,
+                        image: imageData,
                         video: videoData
                     };
                 }
@@ -276,7 +293,7 @@ export const loadMapData = async (mapKey, onProgress) => {
                         item.forceRegion = reverseRegionMap[transData.region] || transData.region;
                     }
                     if (transData.image) {
-                        item.images = [transData.image];
+                        item.images = Array.isArray(transData.image) ? transData.image : [transData.image];
                     }
                     if (transData.video) {
                         item.video_url = transData.video;

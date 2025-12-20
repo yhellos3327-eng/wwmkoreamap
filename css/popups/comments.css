@@ -236,7 +236,6 @@
     transform: none;
 }
 
-/* Comment Guide */
 .comment-guide {
     background: rgba(0, 0, 0, 0.6);
     border-radius: 8px;
@@ -272,4 +271,123 @@
     display: block;
     margin: 4px 0;
     border-radius: 8px;
+}
+
+/* Reply/Thread Styles */
+.comment-reply {
+    position: relative;
+    margin-left: 24px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.comment-reply::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 14px;
+    width: 10px;
+    height: 10px;
+    border-left: 2px solid rgba(99, 99, 99, 0.4);
+    border-bottom: 2px solid rgba(99, 99, 99, 0.4);
+    border-radius: 0 0 0 6px;
+}
+
+.comment-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-reply {
+    background: transparent;
+    border: none;
+    color: #888;
+    font-size: 0.7rem;
+    cursor: pointer;
+    padding: 2px 6px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.btn-reply:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent, #ffa500);
+}
+
+.reply-form-container {
+    margin-top: 8px;
+}
+
+.reply-form {
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.reply-input-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.reply-nickname {
+    width: 70px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 5px 10px;
+    color: #fff;
+    font-size: 0.75rem;
+    outline: none;
+}
+
+.reply-input {
+    flex: 1;
+    min-width: 100px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 5px 10px;
+    color: #fff;
+    font-size: 0.75rem;
+    outline: none;
+}
+
+.reply-input:focus,
+.reply-nickname:focus {
+    border-color: var(--accent, #ffa500);
+}
+
+.reply-submit {
+    background: var(--accent, #ffa500);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    padding: 5px 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reply-submit:hover {
+    filter: brightness(1.1);
+}
+
+.reply-cancel {
+    background: transparent;
+    border: 1px solid #666;
+    color: #aaa;
+    border-radius: 12px;
+    padding: 5px 10px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.reply-cancel:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
 }

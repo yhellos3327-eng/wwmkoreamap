@@ -144,7 +144,10 @@ export async function loadComments(itemId) {
 
         let html = '';
         const deletePromises = [];
+        const comments = [];
+        const replies = {};
 
+        // 댓글과 답글 분류
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const text = data.text || '';
@@ -161,17 +164,54 @@ export async function loadComments(itemId) {
                 return;
             }
 
-            const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
+            const commentData = {
+                id: docSnap.id,
+                ...data
+            };
+
+            if (data.parentId) {
+                if (!replies[data.parentId]) replies[data.parentId] = [];
+                replies[data.parentId].push(commentData);
+            } else {
+                comments.push(commentData);
+            }
+        });
+
+        // 답글 정렬 (오래된 순)
+        Object.values(replies).forEach(arr => arr.sort((a, b) => {
+            const aTime = a.createdAt?.toDate?.() || new Date(0);
+            const bTime = b.createdAt?.toDate?.() || new Date(0);
+            return aTime - bTime;
+        }));
+
+        function renderComment(data, isReply = false) {
+            const date = data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
-            html += `
-                <div class="comment-item">
+            const replyBtn = isReply ? '' : `<button class="btn-reply" onclick="showReplyForm('${itemId}', '${data.id}')">↩ 답글</button>`;
+
+            return `
+                <div class="comment-item ${isReply ? 'comment-reply' : ''}" data-id="${data.id}">
                     <div class="comment-header">
                         <span class="comment-author">${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${data.ip || '...'})</span></span>
-                        <span class="comment-date">${date}</span>
+                        <span class="comment-meta">
+                            <span class="comment-date">${date}</span>
+                            ${replyBtn}
+                        </span>
                     </div>
                     <div class="comment-text">${processCommentText(data.text)}</div>
+                    <div class="reply-form-container" id="reply-form-${data.id}" style="display:none;"></div>
                 </div>
             `;
+        }
+
+        // 댓글과 답글 렌더링
+        comments.forEach(comment => {
+            html += renderComment(comment);
+            if (replies[comment.id]) {
+                replies[comment.id].forEach(reply => {
+                    html += renderComment(reply, true);
+                });
+            }
         });
 
         if (deletePromises.length > 0) {
@@ -382,3 +422,92 @@ window.submitAnonymousComment = submitAnonymousComment;
 window.loadComments = loadComments;
 window.toggleStickerModal = toggleStickerModal;
 window.selectSticker = selectSticker;
+
+// 답글 폼 표시
+function showReplyForm(itemId, parentId) {
+    // 기존 답글 폼 숨기기
+    document.querySelectorAll('.reply-form-container').forEach(el => {
+        el.style.display = 'none';
+        el.innerHTML = '';
+    });
+
+    const container = document.getElementById(`reply-form-${parentId}`);
+    if (!container) return;
+
+    container.style.display = 'block';
+    container.innerHTML = `
+        <form class="reply-form" onsubmit="submitReply(event, ${itemId}, '${parentId}')">
+            <div class="reply-input-group">
+                <input type="text" class="reply-nickname" placeholder="닉네임" maxlength="10">
+                <input type="text" class="reply-input" placeholder="답글 입력..." maxlength="200" required>
+                <button type="submit" class="reply-submit">답글</button>
+                <button type="button" class="reply-cancel" onclick="hideReplyForm('${parentId}')">취소</button>
+            </div>
+        </form>
+    `;
+    container.querySelector('.reply-input').focus();
+}
+
+function hideReplyForm(parentId) {
+    const container = document.getElementById(`reply-form-${parentId}`);
+    if (container) {
+        container.style.display = 'none';
+        container.innerHTML = '';
+    }
+}
+
+// 답글 제출
+async function submitReply(event, itemId, parentId) {
+    event.preventDefault();
+    await firebaseInitialized;
+
+    const form = event.target;
+    const input = form.querySelector('.reply-input');
+    const nicknameInput = form.querySelector('.reply-nickname');
+    const text = input.value.trim();
+    const nickname = nicknameInput ? nicknameInput.value.trim() : '익명';
+
+    if (!text) return;
+
+    // 비속어 검사
+    if (containsBadWord(text) || containsBadWord(nickname)) {
+        alert('부적절한 표현이 포함되어 있습니다.');
+        return;
+    }
+
+    const btn = form.querySelector('.reply-submit');
+    btn.disabled = true;
+    btn.textContent = '...';
+
+    try {
+        let ip = 'unknown';
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch (e) {
+            console.warn('Failed to get IP', e);
+        }
+        const maskedIp = ip.split('.').slice(0, 2).join('.');
+
+        await addDoc(collection(db, "comments"), {
+            itemId: itemId,
+            parentId: parentId,
+            text: text,
+            nickname: nickname || '익명',
+            ip: maskedIp,
+            createdAt: serverTimestamp(),
+            expireAt: getExpireAt(),
+            isAnonymous: true
+        });
+
+        loadComments(itemId);
+    } catch (error) {
+        console.error("Error adding reply:", error);
+        alert('답글 등록에 실패했습니다.');
+    }
+}
+
+window.showReplyForm = showReplyForm;
+window.hideReplyForm = hideReplyForm;
+window.submitReply = submitReply;
