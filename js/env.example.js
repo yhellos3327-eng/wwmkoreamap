@@ -6,5 +6,3 @@ export const FIREBASE_CONFIG = {
     messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
     appId: "YOUR_APP_ID"
 };
-
-export const RECAPTCHA_SITE_KEY = "YOUR_RECAPTCHA_SITE_KEY";
