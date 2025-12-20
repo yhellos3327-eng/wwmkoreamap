@@ -1,0 +1,173 @@
+/**
+ * Mobile Console for Debugging
+ * Activates when 'debug' parameter is present in URL
+ */
+
+(function () {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (!urlParams.has('debug')) return;
+
+    // Load CSS
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'css/mobile-console.css';
+    document.head.appendChild(link);
+
+    const logs = [];
+    const originalConsole = {
+        log: console.log,
+        error: console.error,
+        warn: console.warn,
+        info: console.info
+    };
+
+    let container, body, toggleBtn;
+    let isMinimized = false;
+
+    function createUI() {
+        container = document.createElement('div');
+        container.className = 'mobile-console-container';
+        container.innerHTML = `
+            <div class="mobile-console-header">
+                <div class="mobile-console-title">🔧 Mobile Console</div>
+                <div class="mobile-console-controls">
+                    <button class="mobile-console-btn" id="console-copy">Copy</button>
+                    <button class="mobile-console-btn" id="console-clear">Clear</button>
+                    <button class="mobile-console-btn" id="console-minimize">_</button>
+                </div>
+            </div>
+            <div class="mobile-console-body"></div>
+        `;
+
+        body = container.querySelector('.mobile-console-body');
+
+        toggleBtn = document.createElement('button');
+        toggleBtn.className = 'mobile-console-toggle hidden';
+        toggleBtn.innerHTML = '🛠️';
+
+        document.body.appendChild(container);
+        document.body.appendChild(toggleBtn);
+
+        container.querySelector('.mobile-console-header').onclick = (e) => {
+            if (e.target.tagName !== 'BUTTON') {
+                toggleMinimize();
+            }
+        };
+
+        document.getElementById('console-copy').onclick = (e) => {
+            e.stopPropagation();
+            copyLogs();
+        };
+
+        document.getElementById('console-clear').onclick = (e) => {
+            e.stopPropagation();
+            clearLogs();
+        };
+
+        document.getElementById('console-minimize').onclick = (e) => {
+            e.stopPropagation();
+            toggleMinimize();
+        };
+
+        toggleBtn.onclick = () => {
+            toggleMinimize();
+        };
+    }
+
+    function toggleMinimize() {
+        isMinimized = !isMinimized;
+        if (isMinimized) {
+            container.classList.add('minimized');
+            toggleBtn.classList.remove('hidden');
+        } else {
+            container.classList.remove('minimized');
+            toggleBtn.classList.add('hidden');
+        }
+    }
+
+    function clearLogs() {
+        logs.length = 0;
+        body.innerHTML = '';
+    }
+
+    function copyLogs() {
+        const text = logs.map(l => `[${l.time}] ${l.type.toUpperCase()}: ${l.message}`).join('\n');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('Logs copied to clipboard!');
+        }).catch(err => {
+            console.error('Failed to copy logs:', err);
+        });
+    }
+
+    function formatArgs(args) {
+        return args.map(arg => {
+            if (typeof arg === 'object') {
+                try {
+                    return JSON.stringify(arg, null, 2);
+                } catch (e) {
+                    return String(arg);
+                }
+            }
+            return String(arg);
+        }).join(' ');
+    }
+
+    function addLog(type, args) {
+        const time = new Date().toLocaleTimeString('ko-KR', { hour12: false });
+        const message = formatArgs(args);
+
+        const logItem = { type, time, message };
+        logs.push(logItem);
+
+        if (body) {
+            const div = document.createElement('div');
+            div.className = `console-log-item ${type}`;
+            div.innerHTML = `<span class="time">[${time}]</span> <span class="message">${message}</span>`;
+            body.appendChild(div);
+
+            // Auto scroll to bottom
+            body.scrollTop = body.scrollHeight;
+        }
+    }
+
+    // Override console methods
+    console.log = function (...args) {
+        originalConsole.log.apply(console, args);
+        addLog('log', args);
+    };
+
+    console.error = function (...args) {
+        originalConsole.error.apply(console, args);
+        addLog('error', args);
+    };
+
+    console.warn = function (...args) {
+        originalConsole.warn.apply(console, args);
+        addLog('warn', args);
+    };
+
+    console.info = function (...args) {
+        originalConsole.info.apply(console, args);
+        addLog('info', args);
+    };
+
+    // Catch global errors
+    window.onerror = function (msg, url, lineNo, columnNo, error) {
+        addLog('error', [`Global Error: ${msg}\nAt: ${url}:${lineNo}:${columnNo}`]);
+        return false;
+    };
+
+    // Catch unhandled promise rejections
+    window.onunhandledrejection = function (event) {
+        addLog('error', [`Unhandled Promise Rejection: ${event.reason}`]);
+    };
+
+    // Initialize UI on DOMContentLoaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', createUI);
+    } else {
+        createUI();
+    }
+
+    console.log("Mobile Console Initialized. Debug mode active.");
+})();
