@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js";
 import { getFirestore } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
-import { initializeAppCheck, ReCaptchaV3Provider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
+import { initializeAppCheck, ReCaptchaV3Provider, CustomProvider } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-app-check.js";
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 const BACKEND_URL = 'https://api.wwmmap.kro.kr:5555';
@@ -46,9 +46,22 @@ export const firebaseInitialized = (async () => {
 
         if (config.recaptchaSiteKey) {
             try {
+                let provider;
+                if (isDebug) {
+                    // 디버그 모드일 때는 reCAPTCHA를 로드하지 않고 커스텀 프로바이더 사용
+                    provider = new CustomProvider({
+                        getToken: () => Promise.resolve({
+                            token: "94634c86-7f59-4ed4-aff1-90211f4ffb1c",
+                            expireTimeMillis: Date.now() + 3600000,
+                        })
+                    });
+                } else {
+                    provider = new ReCaptchaV3Provider(config.recaptchaSiteKey);
+                }
+
                 console.log(`[Firebase] Initializing App Check (${isDebug ? "Debug" : "Production"})`);
                 appCheck = initializeAppCheck(app, {
-                    provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
+                    provider: provider,
                     isTokenAutoRefreshEnabled: true
                 });
                 console.log("[Firebase] App Check provider initialized");
