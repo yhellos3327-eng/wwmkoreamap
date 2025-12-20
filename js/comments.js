@@ -88,6 +88,15 @@ setTimeout(() => cleanupOldComments(), 5000);
 
 export async function loadComments(itemId) {
     await firebaseInitialized;
+
+    // Ensure itemId is a number (Firestore IDs in this project are numbers)
+    const numericId = Number(itemId);
+
+    if (!itemId || isNaN(numericId)) {
+        console.error("[Comments] Invalid itemId provided:", itemId);
+        return;
+    }
+
     const container = document.getElementById(`comments-list-${itemId}`);
     if (!container) return;
 
@@ -97,9 +106,11 @@ export async function loadComments(itemId) {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - TTL_DAYS);
 
+        console.log(`[Comments] Loading for itemId: ${numericId} (Type: ${typeof numericId})`);
+
         const q = query(
             collection(db, "comments"),
-            where("itemId", "==", itemId),
+            where("itemId", "==", numericId),
             where("createdAt", ">", Timestamp.fromDate(cutoffDate)),
             orderBy("createdAt", "desc"),
             limit(30)
@@ -229,6 +240,11 @@ export async function loadComments(itemId) {
 export async function submitAnonymousComment(event, itemId) {
     event.preventDefault();
     await firebaseInitialized;
+    const numericId = Number(itemId);
+    if (isNaN(numericId)) {
+        console.error("[Comments] Invalid itemId for submission:", itemId);
+        return;
+    }
     const form = event.target;
     const input = form.querySelector('.comment-input');
     const nicknameInput = form.querySelector('.comment-nickname');
@@ -260,7 +276,7 @@ export async function submitAnonymousComment(event, itemId) {
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
         await addDoc(collection(db, "comments"), {
-            itemId: itemId,
+            itemId: numericId,
             text: text,
             nickname: nickname || '익명',
             ip: maskedIp,
@@ -343,7 +359,7 @@ async function selectSticker(itemId, url) {
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
         await addDoc(collection(db, "comments"), {
-            itemId: itemId,
+            itemId: Number(itemId),
             text: `[sticker:${url}]`,
             nickname: nickname || '익명',
             ip: maskedIp,
@@ -436,7 +452,7 @@ function showReplyForm(itemId, parentId) {
 
     container.style.display = 'block';
     container.innerHTML = `
-        <form class="reply-form" onsubmit="submitReply(event, ${itemId}, '${parentId}')">
+        <form class="reply-form" onsubmit="submitReply(event, '${itemId}', '${parentId}')">
             <div class="reply-input-group">
                 <input type="text" class="reply-nickname" placeholder="닉네임" maxlength="10">
                 <input type="text" class="reply-input" placeholder="답글 입력..." maxlength="200" required>
@@ -460,6 +476,7 @@ function hideReplyForm(parentId) {
 async function submitReply(event, itemId, parentId) {
     event.preventDefault();
     await firebaseInitialized;
+    const numericId = Number(itemId);
 
     const form = event.target;
     const input = form.querySelector('.reply-input');
@@ -491,7 +508,7 @@ async function submitReply(event, itemId, parentId) {
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
         await addDoc(collection(db, "comments"), {
-            itemId: itemId,
+            itemId: numericId,
             parentId: parentId,
             text: text,
             nickname: nickname || '익명',
