@@ -87,7 +87,6 @@ export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgres
         headers = parseCSV(headerLine)[0];
     }
 
-    // Process in chunks to avoid blocking UI
     const CHUNK_SIZE = 500;
     for (let i = 0; i < lines.length; i += CHUNK_SIZE) {
         const chunkLines = lines.slice(i, i + CHUNK_SIZE);
@@ -100,7 +99,6 @@ export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgres
         if (chunkData.length > 0) {
             onChunk(chunkData, headers);
         }
-        // Small delay to yield to main thread
         if (i + CHUNK_SIZE < lines.length) await new Promise(r => setTimeout(r, 0));
     }
 

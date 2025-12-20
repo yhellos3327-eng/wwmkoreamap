@@ -1,4 +1,3 @@
-/* Modal Base Styles */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -83,7 +82,6 @@
     flex: 1;
 }
 
-/* Settings Modal Styles */
 .settings-group {
     margin-bottom: 24px;
 }
@@ -136,7 +134,6 @@
     color: var(--text-main);
 }
 
-/* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
@@ -225,7 +222,6 @@ input:checked+.slider:before {
     color: #666;
 }
 
-/* Backup Section */
 .settings-backup-section {
     background: rgba(0, 0, 0, 0.2);
     padding: 16px;
@@ -283,7 +279,6 @@ input:checked+.slider:before {
     line-height: 1.5;
 }
 
-/* GitHub Modal */
 .github-modal-content {
     width: 600px;
 }
@@ -396,9 +391,6 @@ input:checked+.slider:before {
     color: var(--text-muted);
 }
 
-/* =========================================
-   LIGHTBOX REDESIGN (Premium & Expanded)
-   ========================================= */
 #lightbox-modal {
     background: rgba(0, 0, 0, 0.92);
     backdrop-filter: blur(8px);
@@ -420,7 +412,6 @@ input:checked+.slider:before {
     user-select: none;
 }
 
-/* Navigation Buttons */
 .lightbox-nav {
     position: absolute;
     top: 50%;
@@ -456,7 +447,6 @@ input:checked+.slider:before {
     right: 30px;
 }
 
-/* Close Button */
 .lightbox-close {
     position: absolute;
     top: 30px;
@@ -482,7 +472,6 @@ input:checked+.slider:before {
     transform: rotate(90deg);
 }
 
-/* Video Lightbox */
 #video-lightbox-modal {
     background: rgba(0, 0, 0, 0.95);
 }
@@ -503,7 +492,6 @@ input:checked+.slider:before {
     height: 100%;
 }
 
-/* Mobile Adjustments for Lightbox */
 @media (max-width: 768px) {
     .lightbox-content {
         max-width: 100vw;
@@ -534,7 +522,6 @@ input:checked+.slider:before {
     }
 }
 
-/* Contribution Guide Styles */
 .contribute-guide-content {
     font-size: 0.9rem;
     color: #ccc;

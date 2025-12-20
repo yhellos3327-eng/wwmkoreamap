@@ -106,7 +106,7 @@ export const translateItem = async (itemId) => {
                     'x-api-key': key,
                     'anthropic-version': '2023-06-01',
                     'content-type': 'application/json',
-                    'anthropic-dangerous-direct-browser-access': 'true' // Required for client-side calls
+                    'anthropic-dangerous-direct-browser-access': 'true'
                 },
                 body: JSON.stringify({
                     model: model,

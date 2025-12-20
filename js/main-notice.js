@@ -1,4 +1,4 @@
-const NOTICE_ID = '2025-12-20-domain-change-v2'; // ID updated to show for everyone again
+const NOTICE_ID = '2025-12-20-domain-change-v2';
 
 export function initMainNotice() {
     const dontShowAgain = localStorage.getItem(`wwm_notice_hidden_${NOTICE_ID}`);
@@ -74,14 +74,12 @@ function createNoticeModal() {
         if (settingsBtn) {
             settingsBtn.click();
 
-            // Wait for modal to open and then scroll/highlight
             setTimeout(() => {
                 const backupSection = document.querySelector('.settings-backup-section');
                 if (backupSection) {
                     backupSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     backupSection.classList.add('highlight-backup');
 
-                    // Remove highlight after animation finishes (1.5s * 3 = 4.5s)
                     setTimeout(() => {
                         backupSection.classList.remove('highlight-backup');
                     }, 5000);

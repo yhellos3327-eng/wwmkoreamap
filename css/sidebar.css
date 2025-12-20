@@ -20,7 +20,6 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    /* Removed border for cleaner look */
     background: var(--bg-panel);
 }
 
@@ -138,13 +137,10 @@
     display: flex;
     padding: 4px;
     margin: 0 24px 10px 24px;
-    /* Added margin */
     background: var(--bg-dark);
-    /* Darker track */
     border-radius: 8px;
     flex-shrink: 0;
     gap: 0;
-    /* No gap */
     border: 1px solid var(--border);
 }
 
@@ -154,7 +150,6 @@
 
 .tab-btn {
     flex: 1;
-    /* Equal width */
     background: none;
     border: none;
     color: var(--text-muted);
@@ -173,14 +168,12 @@
 
 .tab-btn.active {
     background: var(--bg-panel);
-    /* Card-like active state */
     color: var(--accent);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
 .tab-btn.active::after {
     content: none;
-    /* Remove underline */
 }
 
 .filter-container {
@@ -237,7 +230,6 @@
     background: var(--bg-item);
     border: 1px solid transparent;
     border-radius: 12px;
-    /* More rounded */
     padding: 12px;
     display: flex;
     align-items: center;
@@ -259,7 +251,6 @@
 
 .cate-item.active {
     background: rgba(218, 172, 113, 0.15);
-    /* Subtle accent bg */
     border-color: var(--accent);
     color: var(--accent);
     box-shadow: 0 0 0 1px var(--accent) inset;
@@ -682,6 +673,7 @@
 .btn-add-route.remove {
     background: #d9534f;
 }
+
 .trans-percent-badge {
     font-size: 0.75rem;
     color: var(--accent);

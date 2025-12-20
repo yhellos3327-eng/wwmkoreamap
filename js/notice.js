@@ -1,5 +1,5 @@
 import { systemUpdates, translationUpdates, usefulLinks, noticeData } from './config.js';
-import { db, storage, auth } from './firebase-config.js';
+import { db, storage, auth, firebaseInitialized } from './firebase-config.js';
 import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
@@ -11,8 +11,8 @@ let editingSystemUpdateId = null;
 let editingTranslationUpdateId = null;
 let isAdmin = false;
 
-const init = () => {
-    // Auth State Listener
+const init = async () => {
+    await firebaseInitialized;
     onAuthStateChanged(auth, (user) => {
         const postAuthorInput = document.getElementById('post-author');
         const reportAuthorInput = document.getElementById('report-author');
@@ -23,10 +23,8 @@ const init = () => {
             document.getElementById('btn-login').textContent = '🔓 로그아웃';
             document.body.classList.add('admin-mode');
 
-            // Show Admin Buttons
             adminBtns.forEach(btn => btn.style.display = 'block');
 
-            // Fix Nickname for Admin
             if (postAuthorInput) {
                 postAuthorInput.value = '관리자';
                 postAuthorInput.disabled = true;
@@ -42,10 +40,8 @@ const init = () => {
             document.getElementById('btn-login').textContent = '🔒 관리자 로그인';
             document.body.classList.remove('admin-mode');
 
-            // Hide Admin Buttons
             adminBtns.forEach(btn => btn.style.display = 'none');
 
-            // Reset Nickname fields
             if (postAuthorInput) {
                 postAuthorInput.value = '';
                 postAuthorInput.disabled = false;
@@ -58,7 +54,6 @@ const init = () => {
             }
         }
 
-        // Re-render lists to update Admin UI (buttons)
         renderSystemUpdates();
         renderTranslationUpdates();
         renderNotices();
@@ -66,7 +61,6 @@ const init = () => {
         renderReportBoardPosts();
     });
 
-    // Login Modal Events
     const loginModal = document.getElementById('login-modal');
     const btnLogin = document.getElementById('btn-login');
     const btnPerformLogin = document.getElementById('btn-perform-login');
@@ -108,7 +102,6 @@ const init = () => {
         });
     }
 
-    // Initial Renders
     renderSystemUpdates();
     renderTranslationUpdates();
     renderLinks();
@@ -122,7 +115,6 @@ const init = () => {
     initReportBoardEvents();
     initAdminWriteEvents();
 
-    // Check for report data or hash
     if (window.location.hash === '#report') {
         const reportTab = document.querySelector('.board-tab[data-tab="report-board-section"]');
         if (reportTab) reportTab.click();
@@ -151,7 +143,6 @@ if (document.readyState === 'loading') {
     init();
 }
 
-// New Render Functions for Updates (Firestore + Static)
 async function renderSystemUpdates() {
     const listEl = document.getElementById('system-update-list');
     if (!listEl) return;
@@ -215,7 +206,6 @@ async function renderSystemUpdates() {
             editBtn.onclick = () => {
                 editingSystemUpdateId = update.id;
                 document.getElementById('system-version').value = update.version;
-                // Convert list items back to text
                 let contentText = '';
                 if (Array.isArray(update.content)) {
                     contentText = update.content.join('\n');
@@ -320,7 +310,7 @@ async function renderTranslationUpdates() {
             editBtn.onclick = () => {
                 editingTranslationUpdateId = update.id;
                 document.getElementById('translation-version').value = update.version;
-                // Convert list items back to text
+
                 let contentText = '';
                 if (Array.isArray(update.content)) {
                     contentText = update.content.join('\n');
@@ -412,7 +402,6 @@ function viewNotice(notice) {
     document.getElementById('detail-date').textContent = `작성일: ${notice.date}`;
     document.getElementById('detail-content').innerHTML = marked.parse(notice.content);
 
-    // Admin Delete Button for Notice
     const existingDeleteBtn = document.getElementById('admin-notice-delete-btn');
     if (existingDeleteBtn) existingDeleteBtn.remove();
 
@@ -451,9 +440,7 @@ function viewNotice(notice) {
     renderComments(entityId, 'comment-list');
 }
 
-// Admin Write Event Listeners
 function initAdminWriteEvents() {
-    // System Update
     document.getElementById('btn-show-system-write').addEventListener('click', () => {
         editingSystemUpdateId = null;
         document.getElementById('system-version').value = '';
@@ -500,7 +487,6 @@ function initAdminWriteEvents() {
         }
     });
 
-    // Translation Update
     document.getElementById('btn-show-translation-write').addEventListener('click', () => {
         editingTranslationUpdateId = null;
         document.getElementById('translation-version').value = '';
@@ -547,7 +533,6 @@ function initAdminWriteEvents() {
         }
     });
 
-    // Notice
     document.getElementById('btn-show-notice-write').addEventListener('click', () => {
         document.getElementById('notice-list-view').style.display = 'none';
         document.getElementById('notice-detail-view').style.display = 'none';
@@ -678,10 +663,6 @@ async function addComment(entityId, inputId, listElementId) {
     }
 }
 
-// ====================
-// Free Board Functions
-// ====================
-
 async function renderFreeBoardPosts() {
     const tbody = document.getElementById('free-board-table-body');
     if (!tbody) return;
@@ -720,19 +701,13 @@ async function renderFreeBoardPosts() {
 
 function viewPost(id, post) {
     currentPostId = id;
-
-    // Switch views
     document.getElementById('free-board-list-view').classList.remove('active');
     document.getElementById('free-board-write-view').classList.remove('active');
     const detailView = document.getElementById('free-board-detail-view');
     detailView.classList.add('active');
-
-    // Populate content
     document.getElementById('post-detail-title').textContent = post.title;
     document.getElementById('post-detail-author').innerHTML = `작성자: ${formatAuthor(post.author)}`;
     document.getElementById('post-detail-date').textContent = `작성일: ${post.date}`;
-
-    // Admin Delete Button for Free Board
     const existingDeleteBtn = document.getElementById('admin-post-delete-btn');
     if (existingDeleteBtn) existingDeleteBtn.remove();
 
@@ -766,7 +741,6 @@ function viewPost(id, post) {
         document.getElementById('post-detail-date').appendChild(deleteBtn);
     }
 
-    // Markdown parsing
     const contentHtml = marked.parse(post.content);
     document.getElementById('post-detail-content').innerHTML = contentHtml;
 
@@ -841,10 +815,6 @@ function initFreeBoardEvents() {
         }
     });
 }
-
-// ====================
-// Report Board Functions
-// ====================
 
 async function renderReportBoardPosts() {
     const tbody = document.getElementById('report-board-table-body');
@@ -1078,9 +1048,6 @@ function initTabs() {
         });
     })
 }
-
-
-// Helper to format author
 function formatAuthor(author) {
     if (author === '관리자') {
         return `<span class="admin-text">관리자</span>`;

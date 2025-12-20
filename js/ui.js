@@ -136,14 +136,6 @@ export const refreshSidebarLists = () => {
 
         let translatedCount = 0;
         regionMarkers.forEach(m => {
-            // Check if item is translated (either via API or dictionary)
-            // Note: m is a marker object which has reference to item data usually, 
-            // but here state.allMarkers seems to be constructed from mapData.items.
-            // Let's verify what state.allMarkers contains. 
-            // In map.js: state.allMarkers.push({ id: item.id, marker: marker, category: item.category, region: item.region, name: item.name, desc: item.description });
-            // It doesn't seem to have isTranslated flag directly on marker object unless we added it.
-            // However, we can check state.koDict or if the name is Korean.
-            // Better approach: Look up the original item in state.mapData.items using m.id
             const item = state.mapData.items.find(i => i.id === m.id);
             if (item && (item.isTranslated || state.koDict[item.name] || state.koDict[item.name.trim()])) {
                 translatedCount++;
@@ -413,7 +405,6 @@ export const renderModalList = (items) => {
 };
 
 export const openLightbox = (itemId, index) => {
-    // Handle direct URL passed as first argument
     if (typeof itemId === 'string' && (itemId.startsWith('http') || itemId.startsWith('//') || itemId.startsWith('./'))) {
         setState('currentLightboxImages', [itemId]);
         setState('currentLightboxIndex', 0);

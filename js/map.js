@@ -106,34 +106,47 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         `;
     }
 
-    let relatedHtml = '';
-    const relatedItems = state.itemsByCategory[item.category] || [];
-    const filteredList = relatedItems.filter(i => i.id !== item.id);
-    if (filteredList.length > 0) {
-        const limit = 3;
-        const hiddenCount = filteredList.length - limit;
-        const listItemsHtml = filteredList.map((r, index) => {
-            const hiddenClass = index >= limit ? 'hidden' : '';
-            const rReg = r.forceRegion || r.region;
-            let rName = t(r.name);
-            if (rName) rName = rName.replace(/{region}/g, rReg);
-            const rRegHtml = rReg ? `<span class="related-region">(${rReg})</span>` : '';
-            return `<li class="related-item ${hiddenClass}" onclick="window.jumpToId(${r.id})">${rName} ${rRegHtml}</li>`;
-        }).join('');
-        const expandBtn = hiddenCount > 0
-            ? `<button class="btn-expand" onclick="event.stopPropagation(); window.expandRelated(this)">▼ 더보기 (${hiddenCount}+)</button>`
-            : '';
-        relatedHtml = `
+    let relatedHtml = `
         <div class="popup-related">
             <div class="popup-related-header">
-                <h5>관련 ${categoryName} (${filteredList.length})
-                <button class="btn-search-modal" onclick="window.openRelatedModal('${item.category}')" title="전체 목록 검색">🔍</button></h5>
+                <h5>
+                    <span style="flex:1">익명 코멘트</span>
+                    <button class="btn-search-modal" onclick="window.openRelatedModal('${item.category}')" title="전체 목록 검색">🔍</button>
+                </h5>
             </div>
-            <ul class="related-list">${listItemsHtml}</ul>
-            ${expandBtn}
+            <div class="popup-comments-container">
+                <div id="comments-list-${item.id}" class="comments-list">
+                    <div class="loading-comments">코멘트 불러오는 중...</div>
+                </div>
+                
+                <div id="comment-guide-${item.id}" class="comment-guide hidden">
+                    <h6>📝 작성 가이드</h6>
+                    <ul>
+                        <li><b>**굵게**</b>, <i>*기울임*</i>, <u>__밑줄__</u>, <del>~~취소선~~</del></li>
+                        <li>[color:#ffaa00]색상[/c]</li>
+                        <li>URL 입력 시 자동 링크</li>
+                    </ul>
+                </div>
+
+                <form class="comment-form" onsubmit="window.submitAnonymousComment(event, ${item.id})">
+                    <div class="comment-input-group">
+                        <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
+                        <button type="button" class="btn-guide" onclick="document.getElementById('comment-guide-${item.id}').classList.toggle('hidden')" title="작성 가이드">?</button>
+                    </div>
+                    <div class="comment-input-wrapper" style="position: relative;">
+                        <div id="sticker-modal-${item.id}" class="sticker-modal">
+                            <div class="sticker-grid" id="sticker-grid-${item.id}">
+                                <!-- Stickers will be loaded here -->
+                            </div>
+                        </div>
+                        <button type="button" class="btn-sticker" onclick="window.toggleStickerModal(${item.id})" title="스티커">😊</button>
+                        <input type="text" class="comment-input" placeholder="정보 공유하기..." required>
+                        <button type="submit" class="comment-submit">등록</button>
+                    </div>
+                </form>
+            </div>
         </div>
     `;
-    }
 
     const contentId = `popup-content-${item.id}`;
 
@@ -235,12 +248,12 @@ export const initMap = (mapKey) => {
     if (!state.markerClusterGroup) {
         const isMobile = window.innerWidth <= 768;
         const markerClusterGroup = L.markerClusterGroup({
-            maxClusterRadius: isMobile ? 40 : 30, // 더 정밀한 클러스터링을 위해 반경 축소
+            maxClusterRadius: isMobile ? 40 : 30,
             spiderfyOnMaxZoom: true,
             showCoverageOnHover: false,
-            zoomToBoundsOnClick: false, // 클릭 시 확대 대신 퍼지게 설정
-            disableClusteringAtZoom: 14, // 최대 확대 시 클러스터링 해제하여 정확한 위치 표시
-            spiderfyDistanceMultiplier: 2 // 적절한 간격으로 마커 분산
+            zoomToBoundsOnClick: false,
+            disableClusteringAtZoom: 14,
+            spiderfyDistanceMultiplier: 2
         });
 
         markerClusterGroup.on('clusterclick', function (a) {
@@ -515,6 +528,12 @@ export const renderMapDataAndMarkers = () => {
             e.originalEvent.preventDefault();
             if (marker.isPopupOpen()) marker.closePopup();
             window.toggleCompleted(item.id);
+        });
+
+        marker.on('popupopen', () => {
+            if (window.loadComments) {
+                window.loadComments(item.id);
+            }
         });
 
         marker.bindPopup(() => createPopupHtml(item, lat, lng, finalRegionName));
