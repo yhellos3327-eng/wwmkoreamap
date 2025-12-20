@@ -130,7 +130,10 @@
 
     function formatArgs(args) {
         return args.map(arg => {
-            if (typeof arg === 'object') {
+            if (arg instanceof Error) {
+                return `${arg.name}: ${arg.message}\n${arg.stack}`;
+            }
+            if (typeof arg === 'object' && arg !== null) {
                 try {
                     return JSON.stringify(arg, null, 2);
                 } catch (e) {

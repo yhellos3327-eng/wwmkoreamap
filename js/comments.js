@@ -58,6 +58,10 @@ async function cleanupOldComments() {
 
     try {
         await firebaseInitialized;
+        if (!db) {
+            console.warn("[Cleanup] Firebase DB not initialized, skipping cleanup.");
+            return;
+        }
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - TTL_DAYS);
 
@@ -87,7 +91,15 @@ async function cleanupOldComments() {
 setTimeout(() => cleanupOldComments(), 5000);
 
 export async function loadComments(itemId) {
-    await firebaseInitialized;
+    try {
+        await firebaseInitialized;
+        if (!db) throw new Error("Firebase DB not initialized");
+    } catch (e) {
+        console.error("[Comments] Failed to initialize Firebase:", e.message);
+        const container = document.getElementById(`comments-list-${itemId}`);
+        if (container) container.innerHTML = '<div class="error-comments">서비스 연결 실패</div>';
+        return;
+    }
 
     // Ensure itemId is a number (Firestore IDs in this project are numbers)
     const numericId = Number(itemId);
@@ -239,7 +251,14 @@ export async function loadComments(itemId) {
 
 export async function submitAnonymousComment(event, itemId) {
     event.preventDefault();
-    await firebaseInitialized;
+    try {
+        await firebaseInitialized;
+        if (!db) throw new Error("Firebase DB not initialized");
+    } catch (e) {
+        alert('서비스 연결에 실패했습니다.');
+        return;
+    }
+
     const numericId = Number(itemId);
     if (isNaN(numericId)) {
         console.error("[Comments] Invalid itemId for submission:", itemId);
@@ -331,6 +350,14 @@ function toggleStickerModal(itemId) {
 }
 
 async function selectSticker(itemId, url) {
+    try {
+        await firebaseInitialized;
+        if (!db) throw new Error("Firebase DB not initialized");
+    } catch (e) {
+        alert('서비스 연결에 실패했습니다.');
+        return;
+    }
+
     const modal = document.getElementById(`sticker-modal-${itemId}`);
     const form = modal.closest('form');
     const nicknameInput = form.querySelector('.comment-nickname');
@@ -347,7 +374,6 @@ async function selectSticker(itemId, url) {
     }
 
     try {
-        await firebaseInitialized;
         let ip = 'unknown';
         try {
             const response = await fetch('https://api.ipify.org?format=json');
@@ -475,7 +501,14 @@ function hideReplyForm(parentId) {
 // 답글 제출
 async function submitReply(event, itemId, parentId) {
     event.preventDefault();
-    await firebaseInitialized;
+    try {
+        await firebaseInitialized;
+        if (!db) throw new Error("Firebase DB not initialized");
+    } catch (e) {
+        alert('서비스 연결에 실패했습니다.');
+        return;
+    }
+
     const numericId = Number(itemId);
 
     const form = event.target;

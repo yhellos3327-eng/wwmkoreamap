@@ -80,6 +80,8 @@ export const firebaseInitialized = (async () => {
 
     } catch (error) {
         console.error("%c[Firebase] Critical Initialization Error:", "color: red; font-weight: bold;", error);
+        // Rethrow to ensure callers of firebaseInitialized know it failed
+        throw error;
     }
 })();
 
