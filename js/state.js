@@ -4,6 +4,7 @@ const state = {
     regionLayerGroup: null,
     map: null,
     allMarkers: [],
+    pendingMarkers: [],
     regionData: [],
     koDict: {},
     mapData: { categories: [], items: [] },

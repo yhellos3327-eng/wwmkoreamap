@@ -4,7 +4,6 @@ import { t, getJosa, isPointInPolygon } from './utils.js';
 import { toggleSidebar, refreshSidebarLists, updateToggleButtonsState } from './ui.js';
 import { saveFilterState } from './data.js';
 
-
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
     const isCompleted = state.completedList.includes(item.id);
@@ -39,7 +38,6 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     let mediaHtml = '';
     const mediaItems = [];
 
-    // Add images
     if (item.images && item.images.length > 0) {
         item.images.forEach((src, idx) => {
             mediaItems.push({
@@ -50,7 +48,6 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         });
     }
 
-    // Add video
     if (item.video_url) {
         if (Array.isArray(item.video_url)) {
             item.video_url.forEach(url => {
@@ -76,14 +73,12 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             if (media.type === 'image') {
                 return `<img src="${media.src}" class="popup-media ${activeClass}" onclick="window.openLightbox(${item.id}, ${media.index})" alt="${translatedName}">`;
             } else {
-                // Video logic
                 let videoSrc = media.src.replace(/^http:/, 'https:');
                 if (videoSrc.startsWith('//')) videoSrc = 'https:' + videoSrc;
 
                 let thumbSrc = videoSrc;
                 let lightboxSrc = videoSrc;
 
-                // YouTube handling
                 const ytMatch = videoSrc.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
                 if (ytMatch && ytMatch[1]) {
                     const ytId = ytMatch[1];
@@ -91,7 +86,6 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                     lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
                 }
 
-                // Bilibili handling
                 if (videoSrc.includes('bilibili.com')) {
                     const separator = videoSrc.includes('?') ? '&' : '?';
                     lightboxSrc = videoSrc.replace(/&?autoplay=\d/, '');
@@ -233,6 +227,24 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 `;
 };
 
+export const updateViewportMarkers = () => {
+    if (!state.map || !state.pendingMarkers || state.enableClustering) return;
+
+    const bounds = state.map.getBounds();
+    const paddedBounds = bounds.pad(0.2);
+
+    state.pendingMarkers.forEach(marker => {
+        const latlng = marker.getLatLng();
+        const isInView = paddedBounds.contains(latlng);
+
+        if (isInView) {
+            if (!state.map.hasLayer(marker)) state.map.addLayer(marker);
+        } else {
+            if (state.map.hasLayer(marker)) state.map.removeLayer(marker);
+        }
+    });
+};
+
 export const initMap = (mapKey) => {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
@@ -255,8 +267,27 @@ export const initMap = (mapKey) => {
         setState('map', map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        map.on('moveend', updateMapVisibility);
-        map.on('zoomend', updateMapVisibility);
+        map.on('moveend', () => {
+            if (state.enableClustering) {
+                updateMapVisibility();
+            } else {
+                updateViewportMarkers();
+            }
+        });
+
+        map.on('zoomend', () => {
+            if (state.enableClustering) {
+                updateMapVisibility();
+            } else {
+                updateViewportMarkers();
+            }
+        });
+
+        map.on('movestart', () => {
+            if (!state.enableClustering && state.pendingMarkers) {
+            }
+        });
+
         map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });
     } else {
         state.map.setView(config.center, config.zoom);
@@ -600,9 +631,15 @@ export const renderMapDataAndMarkers = () => {
         if (state.markerClusterGroup && state.map.hasLayer(state.markerClusterGroup)) {
             state.map.removeLayer(state.markerClusterGroup);
         }
-        markersToAdd.forEach(m => {
-            if (!state.map.hasLayer(m)) state.map.addLayer(m);
-        });
+
+        if (state.pendingMarkers) {
+            state.pendingMarkers.forEach(m => {
+                if (state.map.hasLayer(m)) state.map.removeLayer(m);
+            });
+        }
+
+        setState('pendingMarkers', markersToAdd);
+        updateViewportMarkers();
     }
     refreshSidebarLists();
 };
