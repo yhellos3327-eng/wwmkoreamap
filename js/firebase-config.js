@@ -31,32 +31,34 @@ export const firebaseInitialized = (async () => {
 
         app = initializeApp(config?.firebaseConfig);
 
+        // App Check 전에 서비스 먼저 초기화 (App Check가 실패해도 서비스는 사용 가능하게)
+        db = getFirestore(app);
+        storage = getStorage(app);
+        auth = getAuth(app);
+
         const urlParams = new URLSearchParams(window.location.search);
         const isDebug = location.hostname === "localhost" || location.hostname === "127.0.0.1" || urlParams.get('debug') === 'true';
 
         if (isDebug) {
             self.FIREBASE_APPCHECK_DEBUG_TOKEN = "94634c86-7f59-4ed4-aff1-90211f4ffb1c";
-            console.log("[Firebase] App Check Debug Mode Active");
+            console.log("%c[Firebase] App Check Debug Mode Active", "color: #ff9800; font-weight: bold;");
         }
 
         if (config.recaptchaSiteKey) {
             try {
-                console.log("[Firebase] Initializing App Check. Mode:", isDebug ? "Debug" : "Production");
+                console.log(`[Firebase] Initializing App Check (${isDebug ? "Debug" : "Production"})`);
                 appCheck = initializeAppCheck(app, {
                     provider: new ReCaptchaV3Provider(config.recaptchaSiteKey),
                     isTokenAutoRefreshEnabled: true
                 });
+                console.log("[Firebase] App Check provider initialized");
             } catch (acError) {
                 console.error("[Firebase] App Check initialization failed:", acError);
             }
         }
 
-        db = getFirestore(app);
-        storage = getStorage(app);
-        auth = getAuth(app);
-
     } catch (error) {
-        console.error("Error initializing Firebase:", error);
+        console.error("%c[Firebase] Critical Initialization Error:", "color: red; font-weight: bold;", error);
     }
 })();
 
