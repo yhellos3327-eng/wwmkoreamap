@@ -42,6 +42,14 @@ export const firebaseInitialized = (async () => {
         if (isDebug) {
             self.FIREBASE_APPCHECK_DEBUG_TOKEN = "94634c86-7f59-4ed4-aff1-90211f4ffb1c";
             console.log("%c[Firebase] App Check Debug Mode Active", "color: #ff9800; font-weight: bold;");
+
+            // 안드로이드 환경 감지 및 안내
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            if (isAndroid) {
+                setTimeout(() => {
+                    alert("⚠️ 안드로이드 디버그 모드 안내\n\n현재 디버그 모드로 접속 중입니다. 안드로이드 환경에서는 보안 정책상 디버그 토큰이 거부될 수 있어, 이정표나 게시판 데이터를 불러오지 못할 수 있습니다.\n\n정상적인 이용을 위해서는 공식 도메인으로 접속해 주세요.");
+                }, 1000);
+            }
         }
 
         if (config.recaptchaSiteKey) {
