@@ -1019,3 +1019,29 @@
         transform: translateY(0);
     }
 }
+
+/* Dynamic Popup Height Adjustment */
+.popup-container {
+    max-height: 70vh;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+}
+
+.popup-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.popup-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.popup-container::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+
+.popup-body {
+    max-height: none !important;
+    overflow-y: visible !important;
+}
