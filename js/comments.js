@@ -1,7 +1,6 @@
 import { db, firebaseInitialized } from './firebase-config.js';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 
-// TTL: 댓글이 자동으로 삭제될 기간 (일)
 const TTL_DAYS = 90;
 
 function getExpireAt() {
@@ -10,10 +9,9 @@ function getExpireAt() {
     return Timestamp.fromDate(expireDate);
 }
 
-// 오래된 댓글 자동 삭제 (페이지 로드 시 실행)
 let cleanupRan = false;
 async function cleanupOldComments() {
-    if (cleanupRan) return; // 한 세션당 한 번만 실행
+    if (cleanupRan) return;
     cleanupRan = true;
 
     try {
@@ -24,7 +22,7 @@ async function cleanupOldComments() {
         const q = query(
             collection(db, "comments"),
             where("createdAt", "<", Timestamp.fromDate(cutoffDate)),
-            limit(20) // 한 번에 최대 20개씩 삭제
+            limit(20)
         );
 
         const snapshot = await getDocs(q);
@@ -72,7 +70,6 @@ export async function loadComments(itemId) {
             return;
         }
 
-        // 허용된 도메인 목록
         const allowedDomains = [
             'youtube.com', 'youtu.be', 'www.youtube.com', 'm.youtube.com',
             'wwm.tips', 'www.wwm.tips',
@@ -105,12 +102,10 @@ export async function loadComments(itemId) {
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
-
-            // 차단된 링크가 포함된 댓글은 삭제
             if (hasBlockedLink(data.text || '')) {
                 console.log(`[Spam] 차단된 링크 포함 댓글 삭제: ${docSnap.id}`);
                 deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
-                return; // 이 댓글은 표시하지 않음
+                return;
             }
 
             const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
@@ -126,7 +121,6 @@ export async function loadComments(itemId) {
             `;
         });
 
-        // 차단된 댓글 삭제 실행
         if (deletePromises.length > 0) {
             Promise.all(deletePromises).catch(e => console.warn("[Spam] 삭제 실패:", e.message));
         }
