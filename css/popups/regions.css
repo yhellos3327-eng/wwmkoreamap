@@ -1,0 +1,39 @@
+.completed-marker {
+    opacity: 0.5 !important;
+    filter: grayscale(100%) !important;
+}
+
+.region-label {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    text-shadow: 0 0 4px #000, 0 0 4px #000;
+    text-align: center;
+}
+
+.region-label::before {
+    display: none;
+}
+
+.region-polygon {
+    transition: stroke-width 0.2s, fill-opacity 0.2s;
+}
+
+.region-label-icon {
+    background: transparent;
+    border: none;
+}
+
+.region-label-text {
+    font-size: 14px;
+    opacity: 0.7;
+    color: #fff;
+    text-shadow: 0 0 4px #000;
+    white-space: nowrap;
+    pointer-events: none;
+    text-align: center;
+    width: 100%;
+}

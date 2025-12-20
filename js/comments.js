@@ -3,6 +3,48 @@ import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimest
 
 const TTL_DAYS = 90;
 
+// 비속어 목록 로드 (여러 소스에서 병합)
+let badWordsList = [];
+const BADWORDS_SOURCES = [
+    { url: 'https://raw.githubusercontent.com/yoonheyjung/badwords-ko/refs/heads/main/src/badwords.ko.config.json', type: 'json', key: 'badWords' },
+    { url: 'https://raw.githubusercontent.com/organization/Gentleman/refs/heads/master/resources/badwords.json', type: 'json', key: 'badwords' },
+    { url: './js/badwords/fword_list.txt', type: 'text' }
+];
+
+async function loadBadWords() {
+    const allWords = new Set();
+
+    for (const source of BADWORDS_SOURCES) {
+        try {
+            const response = await fetch(source.url);
+
+            if (source.type === 'text') {
+                const text = await response.text();
+                const words = text.split('\n').map(w => w.trim()).filter(w => w);
+                words.forEach(word => allWords.add(word.toLowerCase()));
+            } else {
+                const data = await response.json();
+                const words = data[source.key] || [];
+                words.forEach(word => allWords.add(word.toLowerCase()));
+            }
+        } catch (e) {
+            console.warn(`[BadWords] 소스 로드 실패: ${source.url}`, e.message);
+        }
+    }
+
+    badWordsList = [...allWords];
+    console.log(`[BadWords] ${badWordsList.length}개 비속어 로드 완료`);
+}
+
+function containsBadWord(text) {
+    if (!text || badWordsList.length === 0) return false;
+    const lowerText = text.toLowerCase();
+    return badWordsList.some(word => lowerText.includes(word));
+}
+
+// 페이지 로드 시 비속어 목록 로드
+loadBadWords();
+
 function getExpireAt() {
     const expireDate = new Date();
     expireDate.setDate(expireDate.getDate() + TTL_DAYS);
@@ -79,6 +121,9 @@ export async function loadComments(itemId) {
         const urlRegex = /(https?:\/\/[^\s]+)/g;
 
         function hasBlockedLink(text) {
+            // 스티커 형식은 제외: [sticker:URL]
+            if (/^\[sticker:.*\]$/.test(text.trim())) return false;
+
             const urls = text.match(urlRegex);
             if (!urls) return false;
 
@@ -102,8 +147,16 @@ export async function loadComments(itemId) {
 
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
-            if (hasBlockedLink(data.text || '')) {
+            const text = data.text || '';
+
+            // 차단된 링크 또는 비속어 포함 시 삭제
+            if (hasBlockedLink(text)) {
                 console.log(`[Spam] 차단된 링크 포함 댓글 삭제: ${docSnap.id}`);
+                deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
+                return;
+            }
+            if (containsBadWord(text)) {
+                console.log(`[BadWord] 비속어 포함 댓글 삭제: ${docSnap.id}`);
                 deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
                 return;
             }
@@ -143,6 +196,12 @@ export async function submitAnonymousComment(event, itemId) {
     const nickname = nicknameInput ? nicknameInput.value.trim() : '익명';
 
     if (!text) return;
+
+    // 비속어 검사
+    if (containsBadWord(text) || containsBadWord(nickname)) {
+        alert('부적절한 표현이 포함되어 있습니다.');
+        return;
+    }
 
     const btn = form.querySelector('button');
     const originalBtnText = btn.textContent;

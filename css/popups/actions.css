@@ -1,0 +1,63 @@
+.popup-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    border-top: 1px solid #333;
+    padding-top: 12px;
+}
+
+.action-btn {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #444;
+    background: #2a2a2a;
+    color: #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.action-btn:hover {
+    background: #3a3a3a;
+    color: white;
+    border-color: #666;
+}
+
+.action-btn.active {
+    background: var(--accent-bg);
+    color: var(--accent);
+    border-color: var(--accent);
+}
+
+.btn-report-styled {
+    background: #d9534f;
+    border: none;
+    color: white;
+    font-size: 0.75rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.btn-report-styled:hover {
+    background: #c9302c;
+    color: white;
+    text-decoration: none;
+}
+
+/* Legacy support */
+.related-list {
+    display: none;
+}
+
+.btn-expand {
+    display: none;
+}
