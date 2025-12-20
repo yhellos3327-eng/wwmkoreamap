@@ -36,6 +36,13 @@
                     <button class="mobile-console-btn" id="console-minimize">_</button>
                 </div>
             </div>
+            <div class="mobile-console-filter-bar">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="log">Log</button>
+                <button class="filter-btn" data-filter="info">Info</button>
+                <button class="filter-btn" data-filter="warn">Warn (Yellow)</button>
+                <button class="filter-btn" data-filter="error">Error (Red)</button>
+            </div>
             <div class="mobile-console-body"></div>
         `;
 
@@ -72,6 +79,28 @@
         toggleBtn.onclick = () => {
             toggleMinimize();
         };
+
+        container.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                const filter = btn.dataset.filter;
+                applyFilter(filter);
+
+                container.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            };
+        });
+    }
+
+    function applyFilter(filter) {
+        const items = body.querySelectorAll('.console-log-item');
+        items.forEach(item => {
+            if (filter === 'all' || item.classList.contains(filter)) {
+                item.style.display = 'flex';
+            } else {
+                item.style.display = 'none';
+            }
+        });
     }
 
     function toggleMinimize() {
@@ -123,9 +152,15 @@
             const div = document.createElement('div');
             div.className = `console-log-item ${type}`;
             div.innerHTML = `<span class="time">[${time}]</span> <span class="message">${message}</span>`;
-            body.appendChild(div);
 
-            // Auto scroll to bottom
+            // Check current filter
+            const activeFilterBtn = container.querySelector('.filter-btn.active');
+            const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
+            if (activeFilter !== 'all' && activeFilter !== type) {
+                div.style.display = 'none';
+            }
+
+            body.appendChild(div);
             body.scrollTop = body.scrollHeight;
         }
     }

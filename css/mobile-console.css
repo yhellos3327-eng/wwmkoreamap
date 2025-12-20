@@ -61,6 +61,33 @@
     color: #fff;
 }
 
+.mobile-console-filter-bar {
+    background: #1a1a1a;
+    padding: 5px;
+    display: flex;
+    gap: 5px;
+    border-bottom: 1px solid #333;
+    overflow-x: auto;
+}
+
+.filter-btn {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    color: #888;
+    padding: 2px 8px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 10px;
+    white-space: nowrap;
+}
+
+.filter-btn.active {
+    background: #daac71;
+    color: #000;
+    border-color: #daac71;
+    font-weight: bold;
+}
+
 .mobile-console-body {
     flex: 1;
     overflow-y: auto;
@@ -123,10 +150,6 @@
     cursor: pointer;
     border: none;
     transition: transform 0.2s;
-}
-
-.mobile-console-toggle:active {
-    transform: scale(0.9);
 }
 
 .mobile-console-toggle.hidden {
