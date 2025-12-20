@@ -1,5 +1,50 @@
 import { db, firebaseInitialized } from './firebase-config.js';
-import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+
+// TTL: 댓글이 자동으로 삭제될 기간 (일)
+const TTL_DAYS = 90;
+
+function getExpireAt() {
+    const expireDate = new Date();
+    expireDate.setDate(expireDate.getDate() + TTL_DAYS);
+    return Timestamp.fromDate(expireDate);
+}
+
+// 오래된 댓글 자동 삭제 (페이지 로드 시 실행)
+let cleanupRan = false;
+async function cleanupOldComments() {
+    if (cleanupRan) return; // 한 세션당 한 번만 실행
+    cleanupRan = true;
+
+    try {
+        await firebaseInitialized;
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - TTL_DAYS);
+
+        const q = query(
+            collection(db, "comments"),
+            where("createdAt", "<", Timestamp.fromDate(cutoffDate)),
+            limit(20) // 한 번에 최대 20개씩 삭제
+        );
+
+        const snapshot = await getDocs(q);
+        if (snapshot.empty) return;
+
+        console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 중...`);
+
+        const deletePromises = [];
+        snapshot.forEach((docSnap) => {
+            deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
+        });
+
+        await Promise.all(deletePromises);
+        console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 완료`);
+    } catch (error) {
+        console.warn("[Cleanup] 오래된 댓글 삭제 실패:", error.message);
+    }
+}
+
+setTimeout(() => cleanupOldComments(), 5000);
 
 export async function loadComments(itemId) {
     await firebaseInitialized;
@@ -9,11 +54,15 @@ export async function loadComments(itemId) {
     container.innerHTML = '<div class="loading-comments">이정표 불러오는 중...</div>';
 
     try {
+        const cutoffDate = new Date();
+        cutoffDate.setDate(cutoffDate.getDate() - TTL_DAYS);
+
         const q = query(
             collection(db, "comments"),
             where("itemId", "==", itemId),
+            where("createdAt", ">", Timestamp.fromDate(cutoffDate)),
             orderBy("createdAt", "desc"),
-            limit(50)
+            limit(30)
         );
 
         const querySnapshot = await getDocs(q);
@@ -23,9 +72,47 @@ export async function loadComments(itemId) {
             return;
         }
 
+        // 허용된 도메인 목록
+        const allowedDomains = [
+            'youtube.com', 'youtu.be', 'www.youtube.com', 'm.youtube.com',
+            'wwm.tips', 'www.wwm.tips',
+            window.location.hostname
+        ];
+
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+
+        function hasBlockedLink(text) {
+            const urls = text.match(urlRegex);
+            if (!urls) return false;
+
+            for (const url of urls) {
+                try {
+                    const urlObj = new URL(url);
+                    const hostname = urlObj.hostname.toLowerCase();
+                    const isAllowed = allowedDomains.some(domain =>
+                        hostname === domain || hostname.endsWith('.' + domain)
+                    );
+                    if (!isAllowed) return true;
+                } catch (e) {
+                    continue;
+                }
+            }
+            return false;
+        }
+
         let html = '';
-        querySnapshot.forEach((doc) => {
-            const data = doc.data();
+        const deletePromises = [];
+
+        querySnapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+
+            // 차단된 링크가 포함된 댓글은 삭제
+            if (hasBlockedLink(data.text || '')) {
+                console.log(`[Spam] 차단된 링크 포함 댓글 삭제: ${docSnap.id}`);
+                deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
+                return; // 이 댓글은 표시하지 않음
+            }
+
             const date = data.createdAt ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
             html += `
@@ -39,7 +126,12 @@ export async function loadComments(itemId) {
             `;
         });
 
-        container.innerHTML = html;
+        // 차단된 댓글 삭제 실행
+        if (deletePromises.length > 0) {
+            Promise.all(deletePromises).catch(e => console.warn("[Spam] 삭제 실패:", e.message));
+        }
+
+        container.innerHTML = html || '<div class="no-comments">첫 번째 이정표를 남겨보세요!</div>';
 
     } catch (error) {
         console.error("Error loading comments:", error);
@@ -80,6 +172,7 @@ export async function submitAnonymousComment(event, itemId) {
             nickname: nickname || '익명',
             ip: maskedIp,
             createdAt: serverTimestamp(),
+            expireAt: getExpireAt(),
             isAnonymous: true
         });
 
@@ -162,6 +255,7 @@ async function selectSticker(itemId, url) {
             nickname: nickname || '익명',
             ip: maskedIp,
             createdAt: serverTimestamp(),
+            expireAt: getExpireAt(),
             isAnonymous: true
         });
 
@@ -196,9 +290,32 @@ function processCommentText(text) {
         return `<span style="color:${color}">${content}</span>`;
     });
 
+    const allowedDomains = [
+        'youtube.com',
+        'youtu.be',
+        'www.youtube.com',
+        'm.youtube.com',
+        'wwm.tips',
+        'www.wwm.tips',
+        window.location.hostname
+    ];
+
     const urlRegex = /(https?:\/\/[^\s]+)/g;
     processed = processed.replace(urlRegex, (url) => {
-        return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="comment-link">${url}</a>`;
+        try {
+            const urlObj = new URL(url);
+            const hostname = urlObj.hostname.toLowerCase();
+            const isAllowed = allowedDomains.some(domain =>
+                hostname === domain || hostname.endsWith('.' + domain)
+            );
+            if (isAllowed) {
+                return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="comment-link">${url}</a>`;
+            } else {
+                return `<span class="blocked-link" title="허용되지 않은 링크">[링크 차단됨]</span>`;
+            }
+        } catch (e) {
+            return url;
+        }
     });
 
     processed = processed.replace(/\[\[STICKER_(\d+)\]\]/g, (match, index) => {
