@@ -405,8 +405,9 @@ export const renderModalList = (items) => {
 };
 
 export const openLightbox = (itemId, index) => {
+    // Handle direct URL opening (legacy support or specific use case)
     if (typeof itemId === 'string' && (itemId.startsWith('http') || itemId.startsWith('//') || itemId.startsWith('./'))) {
-        setState('currentLightboxImages', [itemId]);
+        setState('currentLightboxMedia', [{ type: 'image', src: itemId }]);
         setState('currentLightboxIndex', 0);
         updateLightboxImage();
         const modal = document.getElementById('lightbox-modal');
@@ -417,12 +418,34 @@ export const openLightbox = (itemId, index) => {
     }
 
     const item = state.mapData.items.find(i => i.id == itemId);
-    if (!item || !item.images || item.images.length === 0) {
-        console.warn('Lightbox: Item not found or has no images', itemId);
+    if (!item) {
+        console.warn('Lightbox: Item not found', itemId);
         return;
     }
 
-    setState('currentLightboxImages', item.images);
+    const mediaList = [];
+    if (item.images && item.images.length > 0) {
+        item.images.forEach(img => mediaList.push({ type: 'image', src: img }));
+    }
+
+    if (item.video_url) {
+        if (Array.isArray(item.video_url)) {
+            item.video_url.forEach(url => {
+                if (url && typeof url === 'string' && url.trim() !== "") {
+                    mediaList.push({ type: 'video', src: url.trim() });
+                }
+            });
+        } else if (typeof item.video_url === 'string' && item.video_url.trim() !== "") {
+            mediaList.push({ type: 'video', src: item.video_url.trim() });
+        }
+    }
+
+    if (mediaList.length === 0) {
+        console.warn('Lightbox: No media found for item', itemId);
+        return;
+    }
+
+    setState('currentLightboxMedia', mediaList);
     setState('currentLightboxIndex', index || 0);
 
     updateLightboxImage();
@@ -432,24 +455,64 @@ export const openLightbox = (itemId, index) => {
 
     const navBtns = modal.querySelectorAll('.lightbox-nav');
     navBtns.forEach(btn => {
-        btn.style.display = state.currentLightboxImages.length > 1 ? 'block' : 'none';
+        btn.style.display = state.currentLightboxMedia.length > 1 ? 'block' : 'none';
     });
 };
 
 function updateLightboxImage() {
-    const imgElement = document.getElementById('lightbox-img');
-    if (!imgElement) return;
+    const container = document.getElementById('lightbox-media-container');
+    if (!container) return;
 
-    const images = state.currentLightboxImages;
+    const mediaList = state.currentLightboxMedia;
     const index = state.currentLightboxIndex;
 
-    if (images && images[index]) {
-        imgElement.src = images[index];
+    if (mediaList && mediaList[index]) {
+        const media = mediaList[index];
+        container.innerHTML = '';
+
+        if (media.type === 'image') {
+            const img = document.createElement('img');
+            img.src = media.src;
+            img.className = 'lightbox-content';
+            img.style.maxWidth = '100%';
+            img.style.maxHeight = '100%';
+            img.style.objectFit = 'contain';
+            container.appendChild(img);
+        } else if (media.type === 'video') {
+            let videoSrc = media.src.replace(/^http:/, 'https:');
+            if (videoSrc.startsWith('//')) videoSrc = 'https:' + videoSrc;
+
+            let embedSrc = videoSrc;
+
+            // YouTube
+            const ytMatch = videoSrc.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+            if (ytMatch && ytMatch[1]) {
+                embedSrc = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+            }
+
+            // Bilibili
+            if (videoSrc.includes('bilibili.com')) {
+                const separator = videoSrc.includes('?') ? '&' : '?';
+                embedSrc = videoSrc.replace(/&?autoplay=\d/, '');
+                embedSrc += `${separator}autoplay=1&high_quality=1`;
+            }
+
+            const iframe = document.createElement('iframe');
+            iframe.src = embedSrc;
+            iframe.style.width = '80vw';
+            iframe.style.height = '80vh';
+            iframe.style.maxWidth = '1200px';
+            iframe.style.maxHeight = '675px';
+            iframe.frameBorder = '0';
+            iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+            iframe.allowFullscreen = true;
+            container.appendChild(iframe);
+        }
     }
 }
 
 export const switchLightbox = (direction) => {
-    const total = state.currentLightboxImages.length;
+    const total = state.currentLightboxMedia.length;
     if (total <= 1) return;
 
     let idx = state.currentLightboxIndex + direction;
@@ -463,6 +526,8 @@ export const switchLightbox = (direction) => {
 
 export const closeLightbox = () => {
     document.getElementById('lightbox-modal').classList.add('hidden');
+    const container = document.getElementById('lightbox-media-container');
+    if (container) container.innerHTML = '';
 };
 
 export const openVideoLightbox = (src) => {
@@ -492,7 +557,7 @@ export const viewFullImage = (src) => {
 
 export const switchImage = (btn, direction) => {
     const container = btn.parentElement;
-    const images = container.querySelectorAll('.popup-image');
+    const images = container.querySelectorAll('.popup-media');
     const counter = container.querySelector('.img-counter');
 
     let currentIdx = parseInt(container.dataset.idx);
@@ -530,7 +595,11 @@ export const toggleCompleted = (id) => {
         }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
-    if (target && target.marker.isPopupOpen()) {
+
+    // Close popup on complete if option enabled and item was marked complete
+    if (state.closeOnComplete && index === -1 && target && target.marker.isPopupOpen()) {
+        target.marker.closePopup();
+    } else if (target && target.marker.isPopupOpen()) {
         const item = state.mapData.items.find(i => i.id === id);
         target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
     }

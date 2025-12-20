@@ -1,6 +1,6 @@
 import { state, setState, subscribe } from './state.js';
 import { MAP_CONFIGS, contributionLinks, systemUpdates } from './config.js';
-import { t, parseCSV, fetchAndParseCSVChunks } from './utils.js';
+import { t } from './utils.js';
 import { loadMapData, saveFilterState } from './data.js';
 import { renderMapDataAndMarkers, createPopupHtml, moveToLocation } from './map.js';
 import {
@@ -85,82 +85,6 @@ document.addEventListener('DOMContentLoaded', async () => {
             .then(text => {
                 setState('rawCSV', text);
             });
-
-        state.parsedCSV = [];
-
-        setState('loadingState', { ...state.loadingState, message: "초기화 중...", detail: "번역 데이터 불러오는 중..." });
-
-        await fetchAndParseCSVChunks('./translation.csv', (chunkData, headers) => {
-            if (!headers) return;
-
-            if (state.parsedCSV.length === 0) {
-                state.parsedCSV.push(headers);
-            }
-            state.parsedCSV.push(...chunkData);
-
-            const typeIdx = headers.indexOf('Type');
-            const catIdx = headers.indexOf('Category');
-            const keyIdx = headers.indexOf('Key');
-            const valIdx = headers.indexOf('Korean');
-            const descIdx = headers.indexOf('Description');
-            const regIdx = headers.indexOf('Region');
-            const imgIdx = headers.indexOf('Image');
-
-            chunkData.forEach(row => {
-                if (row.length < 3) return;
-
-                const type = row[typeIdx]?.trim();
-                const key = row[keyIdx]?.trim();
-                if (!key) return;
-
-                if (type === 'Common') {
-                    const val = row[valIdx];
-                    if (val) {
-                        state.koDict[key] = val;
-                        state.koDict[key.trim()] = val;
-                    }
-                } else if (type === 'Override') {
-                    const catId = row[catIdx]?.trim();
-                    if (!catId) return;
-
-                    if (!state.categoryItemTranslations[catId]) {
-                        state.categoryItemTranslations[catId] = {};
-                    }
-
-                    if (key === '_common_description') {
-                        state.categoryItemTranslations[catId]._common_description = row[descIdx];
-                    } else {
-                        let desc = row[descIdx];
-                        if (desc) {
-                            desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
-                        }
-
-                        let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
-                        if (imagePath && imagePath.includes('{id}')) {
-                            imagePath = imagePath.replace('{id}', key);
-                        }
-
-                        state.categoryItemTranslations[catId][key] = {
-                            name: row[valIdx],
-                            description: desc,
-                            region: row[regIdx],
-                            image: imagePath
-                        };
-                    }
-                }
-            });
-        }, () => {
-            console.log("CSV Loading Completed");
-        }, (loaded, total) => {
-            if (total > 0) {
-                const percent = Math.min(100, (loaded / total) * 100);
-                setState('loadingState', {
-                    ...state.loadingState,
-                    csvProgress: percent,
-                    detail: `번역 데이터: ${Math.round(percent)}%`
-                });
-            }
-        });
 
         initCustomDropdown();
 
@@ -595,6 +519,24 @@ document.addEventListener('DOMContentLoaded', async () => {
                 setState('hideCompleted', e.target.checked);
                 localStorage.setItem('wwm_hide_completed', state.hideCompleted);
                 renderMapDataAndMarkers();
+            });
+        }
+
+        const commentsToggleInput = document.getElementById('toggle-comments');
+        if (commentsToggleInput) {
+            commentsToggleInput.checked = state.showComments;
+            commentsToggleInput.addEventListener('change', (e) => {
+                setState('showComments', e.target.checked);
+                localStorage.setItem('wwm_show_comments', e.target.checked);
+            });
+        }
+
+        const closeOnCompleteInput = document.getElementById('toggle-close-on-complete');
+        if (closeOnCompleteInput) {
+            closeOnCompleteInput.checked = state.closeOnComplete;
+            closeOnCompleteInput.addEventListener('change', (e) => {
+                setState('closeOnComplete', e.target.checked);
+                localStorage.setItem('wwm_close_on_complete', e.target.checked);
             });
         }
 

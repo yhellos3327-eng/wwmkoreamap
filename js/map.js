@@ -32,67 +32,102 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             itemDescription = itemDescription.replace(/{name}/g, replaceName);
             itemDescription = itemDescription.replace(/{region}/g, displayRegion);
         } else {
-            itemDescription = '<p class="no-desc">설명 없음</p>';
+            itemDescription = '';
         }
     }
 
-    let imageSliderHtml = '';
-    const imgs = item.images || [];
-    if (imgs.length > 0) {
-        const slides = imgs.map((src, index) => {
+    let mediaHtml = '';
+    const mediaItems = [];
+
+    // Add images
+    if (item.images && item.images.length > 0) {
+        item.images.forEach((src, idx) => {
+            mediaItems.push({
+                type: 'image',
+                src: src,
+                index: idx
+            });
+        });
+    }
+
+    // Add video
+    if (item.video_url) {
+        if (Array.isArray(item.video_url)) {
+            item.video_url.forEach(url => {
+                if (url && typeof url === 'string' && url.trim() !== "") {
+                    mediaItems.push({
+                        type: 'video',
+                        src: url.trim()
+                    });
+                }
+            });
+        } else if (typeof item.video_url === 'string' && item.video_url.trim() !== "") {
+            mediaItems.push({
+                type: 'video',
+                src: item.video_url.trim()
+            });
+        }
+    }
+
+    if (mediaItems.length > 0) {
+        const slides = mediaItems.map((media, index) => {
             const activeClass = index === 0 ? 'active' : '';
-            const imgSrc = src.startsWith('http') ? src : src;
-            return `<img src="${imgSrc}" class="popup-image ${activeClass}" onclick="window.openLightbox(${item.id}, ${index})" alt="${translatedName}">`;
+
+            if (media.type === 'image') {
+                return `<img src="${media.src}" class="popup-media ${activeClass}" onclick="window.openLightbox(${item.id}, ${media.index})" alt="${translatedName}">`;
+            } else {
+                // Video logic
+                let videoSrc = media.src.replace(/^http:/, 'https:');
+                if (videoSrc.startsWith('//')) videoSrc = 'https:' + videoSrc;
+
+                let thumbSrc = videoSrc;
+                let lightboxSrc = videoSrc;
+
+                // YouTube handling
+                const ytMatch = videoSrc.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
+                if (ytMatch && ytMatch[1]) {
+                    const ytId = ytMatch[1];
+                    thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0`;
+                    lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+                }
+
+                // Bilibili handling
+                if (videoSrc.includes('bilibili.com')) {
+                    const separator = videoSrc.includes('?') ? '&' : '?';
+                    lightboxSrc = videoSrc.replace(/&?autoplay=\d/, '');
+                    lightboxSrc += `${separator}autoplay=1&high_quality=1`;
+
+                    thumbSrc = videoSrc.replace(/&?autoplay=\d/, '');
+                    thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
+                }
+
+                return `
+                    <div class="popup-media popup-video-wrapper ${activeClass}" onclick="window.openVideoLightbox('${lightboxSrc}')">
+                        <iframe 
+                            src="${thumbSrc}" 
+                            style="width:100%; height:100%; pointer-events:none;" 
+                            frameborder="0" 
+                            scrolling="no"
+                            allowfullscreen>
+                        </iframe>
+                        <div class="video-thumb-cover">
+                            <div class="video-play-icon"></div>
+                        </div>
+                    </div>
+                `;
+            }
         }).join('');
-        const navBtns = imgs.length > 1 ? `
+
+        const navBtns = mediaItems.length > 1 ? `
             <button class="img-nav-btn prev" onclick="event.stopPropagation(); window.switchImage(this, -1)" style="display:block">❮</button>
             <button class="img-nav-btn next" onclick="event.stopPropagation(); window.switchImage(this, 1)" style="display:block">❯</button>
-            <span class="img-counter">1 / ${imgs.length}</span>
+            <span class="img-counter">1 / ${mediaItems.length}</span>
         ` : '';
-        imageSliderHtml = `
-            <div class="popup-image-container" data-idx="0" data-total="${imgs.length}">
+
+        mediaHtml = `
+            <div class="popup-image-container" data-idx="0" data-total="${mediaItems.length}">
                 ${slides}
                 ${navBtns}
-            </div>
-        `;
-    }
-
-    let videoHtml = '';
-    if (item.video_url && item.video_url.trim() !== "") {
-        let rawUrl = item.video_url.trim();
-
-        let videoSrc = rawUrl.replace(/^http:/, 'https:');
-        if (videoSrc.startsWith('//')) {
-            videoSrc = 'https:' + videoSrc;
-        }
-
-        let lightboxSrc = videoSrc;
-        const separator = videoSrc.includes('?') ? '&' : '?';
-
-        if (lightboxSrc.includes('bilibili.com')) {
-            lightboxSrc = lightboxSrc.replace(/&?autoplay=\d/, '');
-            lightboxSrc += `${separator}autoplay=1&high_quality=1`;
-        }
-
-        let thumbSrc = videoSrc;
-        if (thumbSrc.includes('bilibili.com')) {
-            thumbSrc = thumbSrc.replace(/&?autoplay=\d/, '');
-            thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
-        }
-
-        videoHtml = `
-            <div class="popup-video-thumbnail" onclick="window.openVideoLightbox('${lightboxSrc}')" style="position:relative; width:100%; padding-bottom:56.25%; height:0; overflow:hidden; border:1px solid #444; border-radius:6px; cursor:pointer; background:#000;">
-                <iframe 
-                    src="${thumbSrc}" 
-                    style="position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none;" 
-                    frameborder="0" 
-                    scrolling="no"
-                    allowfullscreen>
-                </iframe>
-                
-                <div class="video-thumb-cover" style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; z-index:2;">
-                    <div class="video-play-icon" style="font-size:40px; color:white; text-shadow:0 0 10px rgba(0,0,0,0.8); opacity:0.9;"></div>
-                </div>
             </div>
         `;
     }
@@ -106,17 +141,19 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         `;
     }
 
-    let relatedHtml = `
+    let relatedHtml = '';
+    if (state.showComments) {
+        relatedHtml = `
         <div class="popup-related">
             <div class="popup-related-header">
                 <h5>
-                    <span style="flex:1">익명 코멘트</span>
+                    <span style="flex:1">이정표</span>
                     <button class="btn-search-modal" onclick="window.openRelatedModal('${item.category}')" title="전체 목록 검색">🔍</button>
                 </h5>
             </div>
             <div class="popup-comments-container">
                 <div id="comments-list-${item.id}" class="comments-list">
-                    <div class="loading-comments">코멘트 불러오는 중...</div>
+                    <div class="loading-comments">이정표 불러오는 중...</div>
                 </div>
                 
                 <div id="comment-guide-${item.id}" class="comment-guide hidden">
@@ -147,6 +184,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             </div>
         </div>
     `;
+    }
 
     const contentId = `popup-content-${item.id}`;
 
@@ -171,8 +209,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             </div>
         </div>
         <div class="popup-body">
-            ${imageSliderHtml}
-            ${videoHtml}
+            ${mediaHtml}
             ${bodyContent}
             ${translateBtnHtml}
         </div>

@@ -6,7 +6,7 @@ export async function loadComments(itemId) {
     const container = document.getElementById(`comments-list-${itemId}`);
     if (!container) return;
 
-    container.innerHTML = '<div class="loading-comments">코멘트 불러오는 중...</div>';
+    container.innerHTML = '<div class="loading-comments">이정표 불러오는 중...</div>';
 
     try {
         const q = query(
@@ -19,7 +19,7 @@ export async function loadComments(itemId) {
         const querySnapshot = await getDocs(q);
 
         if (querySnapshot.empty) {
-            container.innerHTML = '<div class="no-comments">첫 번째 코멘트를 남겨보세요!</div>';
+            container.innerHTML = '<div class="no-comments">첫 번째 이정표를 남겨보세요!</div>';
             return;
         }
 
@@ -43,7 +43,7 @@ export async function loadComments(itemId) {
 
     } catch (error) {
         console.error("Error loading comments:", error);
-        container.innerHTML = '<div class="error-comments">코멘트를 불러올 수 없습니다.</div>';
+        container.innerHTML = '<div class="error-comments">이정표를 불러올 수 없습니다.</div>';
     }
 }
 
@@ -128,17 +128,49 @@ function toggleStickerModal(itemId) {
     }
 }
 
-function selectSticker(itemId, url) {
-    const form = document.querySelector(`#sticker-modal-${itemId}`).closest('form');
-    const input = form.querySelector('.comment-input');
-    const tag = ` [sticker:${url}] `;
-    const start = input.selectionStart;
-    const end = input.selectionEnd;
+async function selectSticker(itemId, url) {
+    const modal = document.getElementById(`sticker-modal-${itemId}`);
+    const form = modal.closest('form');
+    const nicknameInput = form.querySelector('.comment-nickname');
+    const nickname = nicknameInput ? nicknameInput.value.trim() : '익명';
 
-    input.value = input.value.substring(0, start) + tag + input.value.substring(end);
-    input.focus();
+    modal.classList.remove('active');
 
-    document.getElementById(`sticker-modal-${itemId}`).classList.remove('active');
+    const container = document.getElementById(`comments-list-${itemId}`);
+    if (container) {
+        const tempMsg = document.createElement('div');
+        tempMsg.className = 'loading-comments';
+        tempMsg.textContent = '스티커 전송 중...';
+        container.insertBefore(tempMsg, container.firstChild);
+    }
+
+    try {
+        await firebaseInitialized;
+        let ip = 'unknown';
+        try {
+            const response = await fetch('https://api.ipify.org?format=json');
+            const data = await response.json();
+            ip = data.ip;
+        } catch (e) {
+            console.warn('Failed to get IP', e);
+        }
+        const maskedIp = ip.split('.').slice(0, 2).join('.');
+
+        await addDoc(collection(db, "comments"), {
+            itemId: itemId,
+            text: `[sticker:${url}]`,
+            nickname: nickname || '익명',
+            ip: maskedIp,
+            createdAt: serverTimestamp(),
+            isAnonymous: true
+        });
+
+        loadComments(itemId);
+    } catch (error) {
+        console.error("Error sending sticker:", error);
+        alert('스티커 전송에 실패했습니다.');
+        loadComments(itemId);
+    }
 }
 
 function processCommentText(text) {

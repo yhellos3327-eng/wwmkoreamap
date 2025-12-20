@@ -1,15 +1,113 @@
 import { MAP_CONFIGS } from './config.js';
 import { state, setState, updateState } from './state.js';
-import { t, fetchWithProgress } from './utils.js';
+import { t, fetchWithProgress, fetchAndParseCSVChunks } from './utils.js';
 import { initMap, renderMapDataAndMarkers } from './map.js';
 import { refreshCategoryList, updateToggleButtonsState, renderFavorites } from './ui.js';
 import { calculateTranslationProgress } from './translation.js';
+
+export const loadTranslations = async (mapKey) => {
+    // Reset translation state
+    state.koDict = {};
+    state.categoryItemTranslations = {};
+    state.parsedCSV = [];
+
+    const processCSVChunk = (chunkData, headers) => {
+        if (!headers) return;
+
+        if (state.parsedCSV.length === 0) {
+            state.parsedCSV.push(headers);
+        }
+        state.parsedCSV.push(...chunkData);
+
+        const typeIdx = headers.indexOf('Type');
+        const catIdx = headers.indexOf('Category');
+        const keyIdx = headers.indexOf('Key');
+        const valIdx = headers.indexOf('Korean');
+        const descIdx = headers.indexOf('Description');
+        const regIdx = headers.indexOf('Region');
+        const imgIdx = headers.indexOf('Image');
+        const videoIdx = headers.indexOf('Video');
+
+        chunkData.forEach(row => {
+            if (row.length < 3) return;
+
+            const type = row[typeIdx]?.trim();
+            const key = row[keyIdx]?.trim();
+            if (!key) return;
+
+            if (type === 'Common') {
+                const val = row[valIdx];
+                if (val) {
+                    state.koDict[key] = val;
+                    state.koDict[key.trim()] = val;
+                }
+            } else if (type === 'Override') {
+                const catId = row[catIdx]?.trim();
+                if (!catId) return;
+
+                if (!state.categoryItemTranslations[catId]) {
+                    state.categoryItemTranslations[catId] = {};
+                }
+
+                if (key === '_common_description') {
+                    state.categoryItemTranslations[catId]._common_description = row[descIdx];
+                } else {
+                    let desc = row[descIdx];
+                    if (desc) {
+                        desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
+                    }
+
+                    let imagePath = imgIdx !== -1 ? row[imgIdx] : null;
+                    if (imagePath && imagePath.includes('{id}')) {
+                        imagePath = imagePath.replace('{id}', key);
+                    }
+
+                    let videoUrl = videoIdx !== -1 ? row[videoIdx] : null;
+                    let videoData = null;
+                    if (videoUrl) {
+                        const trimmed = videoUrl.trim();
+                        if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+                            const content = trimmed.slice(1, -1);
+                            videoData = content.split('|').map(v => v.trim()).filter(v => v !== "");
+                        } else {
+                            videoData = trimmed;
+                        }
+                    }
+
+                    state.categoryItemTranslations[catId][key] = {
+                        name: row[valIdx],
+                        description: desc,
+                        region: row[regIdx],
+                        image: imagePath,
+                        video: videoData
+                    };
+                }
+            }
+        });
+    };
+
+    // Always load base translation
+    await fetchAndParseCSVChunks('./translation.csv', processCSVChunk);
+
+    // Load additional translation for Kaifeng
+    if (mapKey === 'kaifeng') {
+        try {
+            await fetchAndParseCSVChunks('./translation2.csv', processCSVChunk);
+            console.log("Loaded translation2.csv for Kaifeng");
+        } catch (e) {
+            console.warn("translation2.csv not found or failed to load", e);
+        }
+    }
+};
 
 export const loadMapData = async (mapKey, onProgress) => {
     const config = MAP_CONFIGS[mapKey];
     if (!config) return;
 
     try {
+        // Load translations first
+        await loadTranslations(mapKey);
+
         initMap(mapKey);
 
         const progressState = {
@@ -179,6 +277,9 @@ export const loadMapData = async (mapKey, onProgress) => {
                     }
                     if (transData.image) {
                         item.images = [transData.image];
+                    }
+                    if (transData.video) {
+                        item.video_url = transData.video;
                     }
                 }
             }
