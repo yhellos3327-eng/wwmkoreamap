@@ -55,6 +55,12 @@ const initAdToggle = () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = new URLSearchParams(window.location.search);
+
+    const mapParam = urlParams.get('map');
+    if (mapParam && (mapParam === 'qinghe' || mapParam === 'kaifeng')) {
+        setState('currentMapKey', mapParam);
+    }
+
     if (urlParams.get('embed') === 'true') {
         document.body.classList.add('embed-mode');
         const sidebar = document.getElementById('sidebar');
@@ -566,8 +572,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const sharedLat = parseFloat(urlParams.get('lat'));
     const sharedLng = parseFloat(urlParams.get('lng'));
 
-    if (sharedId && !isNaN(sharedLat) && !isNaN(sharedLng)) {
-        setTimeout(() => jumpToId(sharedId), 500);
+    if (sharedId) {
+        setTimeout(() => jumpToId(sharedId), 1000);
+    } else if (!isNaN(sharedLat) && !isNaN(sharedLng)) {
+        setTimeout(() => {
+            if (state.map) {
+                state.map.flyTo([sharedLat, sharedLng], 17, { animate: true });
+            }
+        }, 1000);
     }
 });
 

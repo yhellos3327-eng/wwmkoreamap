@@ -1,0 +1,176 @@
+/* ===== Content Area ===== */
+.board-content {
+    display: none;
+}
+
+.board-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+.board-sub-view {
+    display: none;
+}
+
+.board-sub-view.active {
+    display: block;
+}
+
+/* ===== Post List ===== */
+.post-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.post-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.2s ease;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.post-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.post-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.post-date {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.post-content {
+    font-size: 0.95rem;
+    line-height: 1.7;
+    color: #aaa;
+}
+
+.post-content ul {
+    padding-left: 20px;
+    margin: 8px 0;
+}
+
+.post-content li {
+    margin-bottom: 6px;
+}
+
+.latest-badge {
+    background: linear-gradient(135deg, var(--accent), #ffcc00);
+    color: #000;
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin-left: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+/* ===== Board Table ===== */
+.board-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.board-table th,
+.board-table td {
+    padding: 14px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.board-table th {
+    background: rgba(255, 255, 255, 0.03);
+    color: #888;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.board-table tbody tr {
+    transition: all 0.15s ease;
+}
+
+.board-table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+}
+
+.board-table .col-id {
+    width: 60px;
+    text-align: center;
+    color: #555;
+}
+
+.board-table .col-title {
+    color: var(--text-main);
+    font-weight: 500;
+}
+
+.board-table .col-author {
+    width: 100px;
+    color: #888;
+}
+
+.board-table .col-date {
+    width: 100px;
+    color: #666;
+    font-size: 0.85rem;
+}
+
+/* ===== Links Grid ===== */
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+}
+
+.link-card {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+    padding: 20px;
+    text-decoration: none;
+    color: var(--text-main);
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    animation: fadeInUp 0.4s ease forwards;
+    opacity: 0;
+}
+
+.link-card:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+
+.link-icon {
+    font-size: 1.6rem;
+}
+
+.link-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}

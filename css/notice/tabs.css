@@ -1,0 +1,39 @@
+/* ===== Tabs ===== */
+.board-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    padding: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.board-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.board-tab {
+    background: transparent;
+    border: none;
+    color: #888;
+    padding: 12px 20px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.board-tab:hover {
+    color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.board-tab.active {
+    color: #000;
+    background: var(--accent);
+    font-weight: 600;
+}

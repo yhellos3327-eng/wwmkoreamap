@@ -1,0 +1,8 @@
+/* ===== CSS Variables ===== */
+:root {
+    --accent: #ffc800;
+    --bg-dark: #121212;
+    --bg-secondary: #1a1a1a;
+    --text-main: #eee;
+    --border: rgba(255, 255, 255, 0.1);
+}

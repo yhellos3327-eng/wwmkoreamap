@@ -1,0 +1,118 @@
+/* ===== Comments ===== */
+.comment-section {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    padding-top: 24px;
+    margin-top: 32px;
+}
+
+.comment-section::before {
+    content: '댓글';
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #888;
+    margin-bottom: 16px;
+    order: 0;
+}
+
+.comment-form {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+    order: 2;
+}
+
+.comment-input {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text-main);
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.comment-input::placeholder {
+    color: #555;
+}
+
+.comment-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: rgba(255, 255, 255, 0.06);
+    box-shadow: 0 0 0 2px rgba(255, 200, 0, 0.1);
+}
+
+.comment-btn {
+    background: var(--accent);
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.comment-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(255, 200, 0, 0.3);
+}
+
+.comment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    max-height: 300px;
+    overflow-y: auto;
+    order: 1;
+    margin-bottom: 20px;
+}
+
+.comment-item {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    padding: 14px 16px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    transition: all 0.15s ease;
+}
+
+.comment-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.comment-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.comment-author {
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.comment-author.admin {
+    background: linear-gradient(135deg, #ff4d4d, #ff9a44);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.comment-content {
+    color: #bbb;
+    line-height: 1.6;
+}

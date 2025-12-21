@@ -1,0 +1,13 @@
+﻿/* notice.css - 게시판 스타일 */
+
+@import 'notice/variables.css';
+@import 'notice/base.css';
+@import 'notice/header.css';
+@import 'notice/tabs.css';
+@import 'notice/list.css';
+@import 'notice/detail.css';
+@import 'notice/form.css';
+@import 'notice/comments.css';
+@import 'notice/modal.css';
+@import 'notice/admin.css';
+@import 'notice/responsive.css';

@@ -1,0 +1,63 @@
+/* ===== Admin Styles ===== */
+.admin-text {
+    background: linear-gradient(135deg, #ff4d4d, #ff9a44);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+}
+
+input.admin-text {
+    background: rgba(255, 77, 77, 0.1);
+    -webkit-text-fill-color: unset;
+    color: #ff6b6b !important;
+    border-color: rgba(255, 77, 77, 0.3);
+}
+
+#admin-status-controls {
+    display: flex;
+    gap: 8px;
+}
+
+#admin-status-controls button {
+    padding: 6px 14px;
+    font-size: 0.8rem;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+}
+
+#admin-status-controls button:hover {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+}
+
+/* ===== Status Badge ===== */
+.status-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-badge.status-WAITING {
+    background: rgba(255, 200, 0, 0.15);
+    color: #ffc800;
+}
+
+.status-badge.status-IN_PROGRESS {
+    background: rgba(0, 150, 255, 0.15);
+    color: #0096ff;
+}
+
+.status-badge.status-DONE {
+    background: rgba(0, 200, 100, 0.15);
+    color: #00c864;
+}

@@ -694,7 +694,8 @@ window.openReportPage = (itemId) => {
             region: item.region,
             description: item.desc,
             lat: item.lat,
-            lng: item.lng
+            lng: item.lng,
+            map: state.currentMapKey
         };
         localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
         window.open('notice.html#report', '_blank');

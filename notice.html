@@ -7,600 +7,11 @@
     <title>연운 - 게시판</title>
     <link rel="icon" type="image/png" href="https://cdn.discordapp.com/emojis/1410879101194993744.webp?size=256" />
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="css/notice.css">
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
-    <style>
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            font-family: 'Pretendard', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        .board-container {
-            width: 100%;
-            max-width: 800px;
-            padding: 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .board-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 2px solid var(--accent);
-            padding-bottom: 15px;
-            flex-shrink: 0;
-        }
-
-        .board-title {
-            font-size: 1.8rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin: 0;
-        }
-
-        .back-btn {
-            background-color: var(--bg-secondary);
-            color: var(--text-main);
-            border: 1px solid var(--border);
-            padding: 8px 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .back-btn:hover {
-            background-color: var(--accent);
-            color: black;
-            border-color: var(--accent);
-        }
-
-        .board-tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
-            overflow-x: auto;
-            white-space: nowrap;
-        }
-
-        .board-tab {
-            background: none;
-            border: none;
-            color: #888;
-            padding: 10px 20px;
-            font-size: 1rem;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-
-        .board-tab:hover {
-            color: var(--text-main);
-        }
-
-        .board-tab.active {
-            color: var(--accent);
-            border-bottom-color: var(--accent);
-            font-weight: bold;
-        }
-
-        .board-content {
-            display: none;
-            flex: 1;
-            overflow: hidden;
-            min-height: 0;
-        }
-
-        .board-content.active {
-            display: flex;
-            flex-direction: column;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .post-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            height: 100%;
-            overflow-y: auto;
-            padding-right: 10px;
-            scroll-behavior: smooth;
-        }
-
-        .post-list::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .post-list::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-            border-radius: 4px;
-        }
-
-        .post-list::-webkit-scrollbar-thumb {
-            background: rgba(85, 85, 85, 0.3);
-            border-radius: 4px;
-        }
-
-        .post-list:hover::-webkit-scrollbar-thumb {
-            background: #555;
-        }
-
-        .post-list::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        .post-item {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            transition: transform 0.2s;
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
-            transform: translateY(20px);
-            flex-shrink: 0;
-        }
-
-        @keyframes fadeInUp {
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .post-item:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-        }
-
-        .post-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 10px;
-        }
-
-        .post-title {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: var(--text-main);
-        }
-
-        .post-date {
-            font-size: 0.9rem;
-            color: #888;
-        }
-
-        .post-content {
-            font-size: 1rem;
-            line-height: 1.6;
-            color: #ccc;
-        }
-
-        .post-content ul {
-            padding-left: 20px;
-            margin: 0;
-        }
-
-        .post-content li {
-            margin-bottom: 5px;
-        }
-
-        .latest-badge {
-            background-color: var(--accent);
-            color: black;
-            font-size: 0.7rem;
-            padding: 2px 6px;
-            border-radius: 4px;
-            margin-left: 10px;
-            vertical-align: middle;
-            font-weight: bold;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .link-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-            gap: 15px;
-            overflow-y: auto;
-            padding-right: 10px;
-            align-content: start;
-        }
-
-        .link-grid::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .link-grid::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-            border-radius: 4px;
-        }
-
-        .link-grid::-webkit-scrollbar-thumb {
-            background: rgba(85, 85, 85, 0.3);
-            border-radius: 4px;
-        }
-
-        .link-grid:hover::-webkit-scrollbar-thumb {
-            background: #555;
-        }
-
-        .link-grid::-webkit-scrollbar-thumb:hover {
-            background: var(--accent);
-        }
-
-        .link-card {
-            background-color: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 20px;
-            text-decoration: none;
-            color: var(--text-main);
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            animation: fadeInUp 0.5s ease forwards;
-            opacity: 0;
-            transform: translateY(20px);
-        }
-
-        .link-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--accent);
-            background-color: #333;
-        }
-
-        .link-icon {
-            font-size: 1.5rem;
-        }
-
-        .link-title {
-            font-weight: bold;
-        }
-
-        /* Board Table Styles */
-        .board-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.95rem;
-        }
-
-        .board-table th,
-        .board-table td {
-            padding: 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .board-table th {
-            background-color: rgba(255, 255, 255, 0.05);
-            color: var(--text-muted);
-            font-weight: 600;
-        }
-
-        .board-table tbody tr:hover td {
-            background-color: var(--bg-item-hover);
-            cursor: pointer;
-        }
-
-        .board-table .col-id {
-            width: 60px;
-            text-align: center;
-            color: #666;
-        }
-
-        .board-table .col-title {
-            color: var(--text-main);
-        }
-
-        .board-table .col-author {
-            width: 100px;
-            color: #888;
-        }
-
-        .board-table .col-date {
-            width: 100px;
-            color: #666;
-            font-size: 0.85rem;
-        }
-
-        /* Detail View */
-        .notice-detail,
-        .post-detail {
-            display: none;
-            flex-direction: column;
-            height: 100%;
-        }
-
-        .notice-detail.active,
-        .post-detail.active {
-            display: flex;
-            animation: fadeIn 0.3s ease;
-        }
-
-        .detail-header {
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 20px;
-            margin-bottom: 20px;
-        }
-
-        .detail-title {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-            margin-bottom: 10px;
-        }
-
-        .detail-meta {
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            display: flex;
-            gap: 15px;
-        }
-
-        .detail-body {
-            flex: 1;
-            overflow-y: auto;
-            line-height: 1.8;
-            color: #ddd;
-            margin-bottom: 30px;
-            padding-right: 10px;
-        }
-
-        .detail-body::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .detail-body::-webkit-scrollbar-track {
-            background: var(--bg-secondary);
-            border-radius: 4px;
-        }
-
-        .detail-body::-webkit-scrollbar-thumb {
-            background: rgba(85, 85, 85, 0.3);
-            border-radius: 4px;
-        }
-
-        /* Comments */
-        .comment-section {
-            border-top: 1px solid var(--border);
-            padding-top: 20px;
-            margin-top: auto;
-        }
-
-        .comment-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .comment-input {
-            flex: 1;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 4px;
-            padding: 10px;
-            color: var(--text-main);
-            resize: none;
-            height: 40px;
-        }
-
-        .comment-input:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        .comment-btn {
-            background: var(--accent);
-            color: black;
-            border: none;
-            padding: 0 20px;
-            border-radius: 4px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-        }
-
-        .comment-btn:hover {
-            opacity: 0.9;
-        }
-
-        .comment-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-
-        .comment-list::-webkit-scrollbar {
-            width: 6px;
-        }
-
-        .comment-list::-webkit-scrollbar-thumb {
-            background: #444;
-            border-radius: 3px;
-        }
-
-        .comment-item {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 10px;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-
-        .comment-meta {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 4px;
-            font-size: 0.8rem;
-            color: #888;
-        }
-
-        .comment-author {
-            color: var(--accent);
-            font-weight: bold;
-        }
-
-        .btn-list,
-        .btn-write {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            padding: 6px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-        }
-
-        .btn-list:hover,
-        .btn-write:hover {
-            background: #333;
-            border-color: #666;
-        }
-
-        .btn-write {
-            background: var(--accent);
-            color: black;
-            border: none;
-        }
-
-        .btn-write:hover {
-            opacity: 0.9;
-        }
-
-        /* Write Form Styles */
-        .write-form {
-            padding: 10px 0;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #aaa;
-            font-size: 0.9rem;
-        }
-
-        input[type="text"],
-        textarea {
-            width: 100%;
-            padding: 10px;
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            border-radius: 6px;
-            color: #fff;
-            box-sizing: border-box;
-            font-size: 14px;
-        }
-
-        input[type="text"]:focus,
-        textarea:focus {
-            outline: none;
-            border-color: var(--accent);
-        }
-
-        textarea {
-            resize: vertical;
-            min-height: 150px;
-        }
-
-        .btn-submit {
-            width: 100%;
-            padding: 12px;
-            background-color: var(--accent);
-            color: #000;
-            border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: opacity 0.2s;
-            margin-top: 10px;
-        }
-
-        .btn-submit:hover {
-            opacity: 0.9;
-        }
-
-        .btn-submit:disabled {
-            background-color: #555;
-            cursor: not-allowed;
-            color: #888;
-        }
-
-        .list-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .board-sub-view {
-            display: none;
-            height: 100%;
-            overflow: hidden;
-            flex-direction: column;
-        }
-
-        .board-sub-view.active {
-            display: flex;
-        }
-
-        .admin-text {
-            background: linear-gradient(90deg, #ff4d4d, #ff9a44);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            font-weight: bold;
-            display: inline-block;
-        }
-
-        /* Ensure input shows gradient even when readonly */
-        input.admin-text {
-            background: #2d2d2d;
-            -webkit-text-fill-color: unset;
-            color: #ff4d4d !important;
-            border-color: #ff4d4d;
-        }
-    </style>
     <script src="js/mobile-console.js"></script>
 </head>
 
@@ -625,6 +36,7 @@
             <button class="board-tab" data-tab="link-section">링크</button>
         </div>
 
+        <!-- 시스템 업데이트 -->
         <div id="system-update-section" class="board-content active">
             <div id="system-update-list-view" class="board-sub-view active">
                 <div class="list-header" style="justify-content: flex-end; margin-bottom: 10px;">
@@ -653,6 +65,7 @@
             </div>
         </div>
 
+        <!-- 번역 업데이트 -->
         <div id="translation-update-section" class="board-content">
             <div id="translation-update-list-view" class="board-sub-view active">
                 <div class="list-header" style="justify-content: flex-end; margin-bottom: 10px;">
@@ -681,6 +94,7 @@
             </div>
         </div>
 
+        <!-- 공지사항 -->
         <div id="notice-section" class="board-content">
             <div id="notice-list-view" class="board-sub-view active" style="height: 100%;">
                 <div class="list-header" style="justify-content: flex-end; margin-bottom: 10px;">
@@ -715,6 +129,7 @@
                     <button id="btn-submit-notice" class="btn-submit">등록하기</button>
                 </div>
             </div>
+
             <div id="notice-detail-view" class="notice-detail">
                 <button class="btn-list" id="btn-back-to-list">목록으로</button>
                 <div class="detail-header">
@@ -735,8 +150,8 @@
             </div>
         </div>
 
+        <!-- 자유게시판 -->
         <div id="free-board-section" class="board-content">
-
             <div id="free-board-list-view" class="board-sub-view active">
                 <div class="list-header">
                     <h3 style="margin: 0; color: #fff;">자유게시판</h3>
@@ -752,13 +167,10 @@
                                 <th class="col-date">작성일</th>
                             </tr>
                         </thead>
-                        <tbody id="free-board-table-body">
-
-                        </tbody>
+                        <tbody id="free-board-table-body"></tbody>
                     </table>
                 </div>
             </div>
-
 
             <div id="free-board-write-view" class="board-sub-view">
                 <button class="btn-list" id="btn-cancel-write">목록으로</button>
@@ -780,7 +192,6 @@
                 </div>
             </div>
 
-
             <div id="free-board-detail-view" class="board-sub-view post-detail">
                 <button class="btn-list" id="btn-back-to-free-list">목록으로</button>
                 <div class="detail-header">
@@ -801,8 +212,8 @@
             </div>
         </div>
 
+        <!-- 신고/제보 게시판 -->
         <div id="report-board-section" class="board-content">
-            <!-- List View -->
             <div id="report-board-list-view" class="board-sub-view active">
                 <div class="list-header">
                     <h3 style="margin: 0; color: #fff;">신고/제보 게시판</h3>
@@ -818,14 +229,11 @@
                                 <th class="col-date">작성일</th>
                             </tr>
                         </thead>
-                        <tbody id="report-board-table-body">
-                            <!-- Reports will be populated here -->
-                        </tbody>
+                        <tbody id="report-board-table-body"></tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- Write View -->
             <div id="report-board-write-view" class="board-sub-view">
                 <button class="btn-list" id="btn-cancel-report">목록으로</button>
                 <h3 style="margin-top: 0; color: #fff;">오류 제보 / 데이터 추가</h3>
@@ -836,8 +244,7 @@
                     </div>
                     <div class="form-group">
                         <label for="report-tag">태그 (필수)</label>
-                        <select id="report-tag"
-                            style="width: 100%; padding: 10px; background: #2d2d2d; border: 1px solid #444; color: white; border-radius: 6px;">
+                        <select id="report-tag" class="form-select">
                             <option value="BUG">🐛 오류 제보</option>
                             <option value="DATA">✨ 데이터 추가</option>
                             <option value="TRANSLATION">🔤 번역 수정</option>
@@ -852,45 +259,40 @@
                         <label for="report-content">내용 (필수) - 마크다운 지원</label>
                         <textarea id="report-content" placeholder="내용을 자세히 적어주세요 (마크다운 사용 가능)"></textarea>
                     </div>
-
-                    <!--<div class="form-group">
-                        <label>이미지 첨부 (선택)</label>
-                        <input type="file" id="report-image" accept="image/*" style="color: #ccc;">
-                    </div>-->
                     <div class="form-group" id="report-json-group" style="display: none;">
                         <label for="report-json">데이터 (자동 입력)</label>
-                        <textarea id="report-json" readonly
-                            style="background: #151515; color: #666; font-family: monospace; height: 80px;"></textarea>
+                        <textarea id="report-json" readonly class="json-textarea"></textarea>
                     </div>
                     <button id="btn-submit-report" class="btn-submit">제보하기</button>
                 </div>
             </div>
 
-            <!-- Detail View -->
             <div id="report-board-detail-view" class="board-sub-view post-detail">
                 <button class="btn-list" id="btn-back-to-report-list">목록으로</button>
                 <div class="detail-header">
-                    <div class="detail-title">
-                        <span id="report-detail-status"
-                            style="font-size: 0.8em; vertical-align: middle; margin-right: 10px;"></span>
-                        <span id="report-detail-title"></span>
+                    <div class="report-status-row">
+                        <span id="report-detail-status" class="status-badge"></span>
                     </div>
+                    <h2 class="detail-title" id="report-detail-title"></h2>
                     <div class="detail-meta">
                         <span id="report-detail-author"></span>
                         <span id="report-detail-date"></span>
-                        <span id="report-detail-tag" style="margin-left: auto; color: var(--accent);"></span>
+                        <span id="report-detail-tag" class="report-tag"></span>
                     </div>
                 </div>
                 <div class="detail-body">
-                    <div id="report-detail-image-container" style="margin-bottom: 20px; display: none;">
-                        <img id="report-detail-image" src="" alt="첨부 이미지"
-                            style="max-width: 100%; border-radius: 8px; border: 1px solid #444;">
+                    <div id="report-detail-image-container" class="report-image-container">
+                        <img id="report-detail-image" src="" alt="첨부 이미지">
                     </div>
                     <div id="report-detail-content"></div>
-                    <div id="report-detail-json-container" style="margin-top: 20px; display: none;">
-                        <h4 style="color: #888; margin-bottom: 5px;">첨부 데이터</h4>
-                        <pre
-                            style="background: #282c34; padding: 10px; border-radius: 4px; overflow-x: auto;"><code id="report-detail-json" class="language-json"></code></pre>
+                    <div id="report-detail-json-container" class="json-container">
+                        <h4>첨부 데이터</h4>
+                        <pre><code id="report-detail-json" class="language-json"></code></pre>
+                    </div>
+                    <div id="report-map-container" class="map-viewer-container">
+                        <button id="btn-view-map" class="btn-view-map">
+                            <span>🗺️</span> 위치 확인하기
+                        </button>
                     </div>
                 </div>
                 <div class="comment-section">
@@ -903,25 +305,31 @@
             </div>
         </div>
 
+        <!-- 링크 -->
         <div id="link-section" class="board-content">
             <div id="link-list" class="link-grid"></div>
         </div>
     </div>
 
-    <!-- Login Modal -->
-    <div id="login-modal"
-        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; backdrop-filter: blur(5px);">
-        <div
-            style="background: rgba(30, 30, 30, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); padding: 30px; border-radius: 12px; width: 300px;">
-            <h3 style="margin-top: 0; color: var(--accent); text-align: center; margin-bottom: 20px;">관리자 로그인</h3>
-            <input type="email" id="login-email" placeholder="이메일"
-                style="width: 100%; padding: 12px; margin-bottom: 15px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 6px;">
-            <input type="password" id="login-password" placeholder="비밀번호"
-                style="width: 100%; padding: 12px; margin-bottom: 25px; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.1); color: white; border-radius: 6px;">
-            <button id="btn-perform-login"
-                style="width: 100%; padding: 12px; background: var(--accent); border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-bottom: 10px;">로그인</button>
-            <button id="btn-close-login"
-                style="width: 100%; padding: 12px; background: transparent; border: 1px solid rgba(255, 255, 255, 0.2); color: #ccc; border-radius: 6px; cursor: pointer;">닫기</button>
+    <!-- 로그인 모달 -->
+    <div id="login-modal" class="login-modal">
+        <div class="login-modal-content">
+            <h3 class="login-modal-title">관리자 로그인</h3>
+            <input type="email" id="login-email" class="login-input" placeholder="이메일">
+            <input type="password" id="login-password" class="login-input" placeholder="비밀번호">
+            <button id="btn-perform-login" class="login-btn">로그인</button>
+            <button id="btn-close-login" class="login-close-btn">닫기</button>
+        </div>
+    </div>
+
+    <!-- 지도 모달 -->
+    <div id="map-modal" class="map-modal">
+        <div class="map-modal-content">
+            <div class="map-modal-header">
+                <h3 class="map-modal-title">위치 확인</h3>
+                <button id="btn-close-map" class="map-modal-close">&times;</button>
+            </div>
+            <iframe id="map-frame" class="map-frame" src=""></iframe>
         </div>
     </div>
 
