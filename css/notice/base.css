@@ -17,6 +17,10 @@ body {
     box-sizing: border-box;
 }
 
+li {
+    margin-left: 18px;
+}
+
 /* ===== Animations ===== */
 @keyframes fadeIn {
     from {
