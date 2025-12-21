@@ -3,7 +3,6 @@ import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimest
 
 const TTL_DAYS = 90;
 
-// 비속어 목록 로드 (여러 소스에서 병합)
 let badWordsList = [];
 const BADWORDS_SOURCES = [
     { url: 'https://raw.githubusercontent.com/yoonheyjung/badwords-ko/refs/heads/main/src/badwords.ko.config.json', type: 'json', key: 'badWords' },
@@ -11,7 +10,7 @@ const BADWORDS_SOURCES = [
     { url: './js/badwords/fword_list.txt', type: 'text' }
 ];
 
-async function loadBadWords() {
+const loadBadWords = async () => {
     const allWords = new Set();
 
     for (const source of BADWORDS_SOURCES) {
@@ -36,25 +35,32 @@ async function loadBadWords() {
     console.log(`[BadWords] ${badWordsList.length}개 비속어 로드 완료`);
 }
 
-function containsBadWord(text) {
+const containsBadWord = (text) => {
     if (!text || badWordsList.length === 0) return false;
     const lowerText = text.toLowerCase();
     return badWordsList.some(word => lowerText.includes(word));
 }
 
-// 페이지 로드 시 비속어 목록 로드
 loadBadWords();
 
-function getExpireAt() {
+const getExpireAt = () => {
     const expireDate = new Date();
     expireDate.setDate(expireDate.getDate() + TTL_DAYS);
     return Timestamp.fromDate(expireDate);
 }
 
 let cleanupRan = false;
-async function cleanupOldComments() {
+const cleanupOldComments = async () => {
     if (cleanupRan) return;
     cleanupRan = true;
+
+    const CLEANUP_COOLDOWN_KEY = 'wwm_cleanup_last_run';
+    const COOLDOWN_MS = 24 * 60 * 60 * 1000;
+    const lastRun = localStorage.getItem(CLEANUP_COOLDOWN_KEY);
+    if (lastRun && (Date.now() - parseInt(lastRun)) < COOLDOWN_MS) {
+        console.log('[Cleanup] 쿨다운 중 - 24시간 내 이미 실행됨');
+        return;
+    }
 
     try {
         await firebaseInitialized;
@@ -68,11 +74,14 @@ async function cleanupOldComments() {
         const q = query(
             collection(db, "comments"),
             where("createdAt", "<", Timestamp.fromDate(cutoffDate)),
-            limit(20)
+            limit(10)
         );
 
         const snapshot = await getDocs(q);
-        if (snapshot.empty) return;
+        if (snapshot.empty) {
+            localStorage.setItem(CLEANUP_COOLDOWN_KEY, Date.now().toString());
+            return;
+        }
 
         console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 중...`);
 
@@ -82,15 +91,19 @@ async function cleanupOldComments() {
         });
 
         await Promise.all(deletePromises);
+        localStorage.setItem(CLEANUP_COOLDOWN_KEY, Date.now().toString());
         console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 완료`);
     } catch (error) {
         console.warn("[Cleanup] 오래된 댓글 삭제 실패:", error.message);
     }
 }
 
-setTimeout(() => cleanupOldComments(), 5000);
+setTimeout(() => cleanupOldComments(), 10000);
 
-export async function loadComments(itemId) {
+const commentsCache = new Map();
+const CACHE_TTL = 3 * 60 * 1000;
+
+export const loadComments = async (itemId, forceRefresh = false) => {
     try {
         await firebaseInitialized;
         if (!db) throw new Error("Firebase DB not initialized");
@@ -101,7 +114,6 @@ export async function loadComments(itemId) {
         return;
     }
 
-    // Ensure itemId is a number (Firestore IDs in this project are numbers)
     const numericId = Number(itemId);
 
     if (!itemId || isNaN(numericId)) {
@@ -111,6 +123,14 @@ export async function loadComments(itemId) {
 
     const container = document.getElementById(`comments-list-${itemId}`);
     if (!container) return;
+
+    const cacheKey = `comment_${numericId}`;
+    const cached = commentsCache.get(cacheKey);
+    if (!forceRefresh && cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
+        console.log(`[Comments] 캐시에서 로드: ${numericId}`);
+        container.innerHTML = cached.html;
+        return;
+    }
 
     container.innerHTML = '<div class="loading-comments">이정표 불러오는 중...</div>';
 
@@ -143,8 +163,7 @@ export async function loadComments(itemId) {
 
         const urlRegex = /(https?:\/\/[^\s]+)/g;
 
-        function hasBlockedLink(text) {
-            // 스티커 형식은 제외: [sticker:URL]
+        const hasBlockedLink = (text) => {
             if (/^\[sticker:.*\]$/.test(text.trim())) return false;
 
             const urls = text.match(urlRegex);
@@ -166,24 +185,15 @@ export async function loadComments(itemId) {
         }
 
         let html = '';
-        const deletePromises = [];
         const comments = [];
         const replies = {};
 
-        // 댓글과 답글 분류
         querySnapshot.forEach((docSnap) => {
             const data = docSnap.data();
             const text = data.text || '';
 
-            // 차단된 링크 또는 비속어 포함 시 삭제
-            if (hasBlockedLink(text)) {
-                console.log(`[Spam] 차단된 링크 포함 댓글 삭제: ${docSnap.id}`);
-                deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
-                return;
-            }
-            if (containsBadWord(text)) {
-                console.log(`[BadWord] 비속어 포함 댓글 삭제: ${docSnap.id}`);
-                deletePromises.push(deleteDoc(doc(db, "comments", docSnap.id)));
+            if (hasBlockedLink(text) || containsBadWord(text)) {
+                console.log(`[Filter] 부적절한 댓글 숨김 처리: ${docSnap.id}`);
                 return;
             }
 
@@ -200,14 +210,13 @@ export async function loadComments(itemId) {
             }
         });
 
-        // 답글 정렬 (오래된 순)
         Object.values(replies).forEach(arr => arr.sort((a, b) => {
             const aTime = a.createdAt?.toDate?.() || new Date(0);
             const bTime = b.createdAt?.toDate?.() || new Date(0);
             return aTime - bTime;
         }));
 
-        function renderComment(data, isReply = false) {
+        const renderComment = (data, isReply = false) => {
             const date = data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
             const replyBtn = isReply ? '' : `<button class="btn-reply" onclick="showReplyForm('${itemId}', '${data.id}')">↩ 답글</button>`;
@@ -227,7 +236,6 @@ export async function loadComments(itemId) {
             `;
         }
 
-        // 댓글과 답글 렌더링
         comments.forEach(comment => {
             html += renderComment(comment);
             if (replies[comment.id]) {
@@ -237,11 +245,13 @@ export async function loadComments(itemId) {
             }
         });
 
-        if (deletePromises.length > 0) {
-            Promise.all(deletePromises).catch(e => console.warn("[Spam] 삭제 실패:", e.message));
-        }
+        const resultHtml = html || '<div class="no-comments">첫 번째 이정표를 남겨보세요!</div>';
+        commentsCache.set(cacheKey, {
+            html: resultHtml,
+            timestamp: Date.now()
+        });
 
-        container.innerHTML = html || '<div class="no-comments">첫 번째 이정표를 남겨보세요!</div>';
+        container.innerHTML = resultHtml;
 
     } catch (error) {
         console.error("Error loading comments:", error);
@@ -249,7 +259,7 @@ export async function loadComments(itemId) {
     }
 }
 
-export async function submitAnonymousComment(event, itemId) {
+export const submitAnonymousComment = async (event, itemId) => {
     event.preventDefault();
     try {
         await firebaseInitialized;
@@ -271,8 +281,6 @@ export async function submitAnonymousComment(event, itemId) {
     const nickname = nicknameInput ? nicknameInput.value.trim() : '익명';
 
     if (!text) return;
-
-    // 비속어 검사
     if (containsBadWord(text) || containsBadWord(nickname)) {
         alert('부적절한 표현이 포함되어 있습니다.');
         return;
@@ -305,7 +313,8 @@ export async function submitAnonymousComment(event, itemId) {
         });
 
         input.value = '';
-        loadComments(itemId);
+        commentsCache.delete(`comment_${numericId}`);
+        loadComments(itemId, true);
     } catch (error) {
         console.error("Error adding comment:", error);
         alert('코멘트 등록에 실패했습니다.');
@@ -326,7 +335,7 @@ const STICKERS = [
     "https://cdn.discordapp.com/emojis/1448731853602291835.webp?size=256",
 ];
 
-function toggleStickerModal(itemId) {
+const toggleStickerModal = (itemId) => {
     const modal = document.getElementById(`sticker-modal-${itemId}`);
     const grid = document.getElementById(`sticker-grid-${itemId}`);
 
@@ -349,7 +358,7 @@ function toggleStickerModal(itemId) {
     }
 }
 
-async function selectSticker(itemId, url) {
+const selectSticker = async (itemId, url) => {
     try {
         await firebaseInitialized;
         if (!db) throw new Error("Firebase DB not initialized");
@@ -394,15 +403,16 @@ async function selectSticker(itemId, url) {
             isAnonymous: true
         });
 
-        loadComments(itemId);
+        commentsCache.delete(`comment_${Number(itemId)}`);
+        loadComments(itemId, true);
     } catch (error) {
         console.error("Error sending sticker:", error);
         alert('스티커 전송에 실패했습니다.');
-        loadComments(itemId);
+        loadComments(itemId, true);
     }
 }
 
-function processCommentText(text) {
+const processCommentText = (text) => {
     if (!text) return text;
     let processed = text
         .replace(/&/g, "&amp;")
@@ -465,9 +475,7 @@ window.loadComments = loadComments;
 window.toggleStickerModal = toggleStickerModal;
 window.selectSticker = selectSticker;
 
-// 답글 폼 표시
-function showReplyForm(itemId, parentId) {
-    // 기존 답글 폼 숨기기
+const showReplyForm = (itemId, parentId) => {
     document.querySelectorAll('.reply-form-container').forEach(el => {
         el.style.display = 'none';
         el.innerHTML = '';
@@ -490,7 +498,7 @@ function showReplyForm(itemId, parentId) {
     container.querySelector('.reply-input').focus();
 }
 
-function hideReplyForm(parentId) {
+const hideReplyForm = (parentId) => {
     const container = document.getElementById(`reply-form-${parentId}`);
     if (container) {
         container.style.display = 'none';
@@ -498,8 +506,7 @@ function hideReplyForm(parentId) {
     }
 }
 
-// 답글 제출
-async function submitReply(event, itemId, parentId) {
+const submitReply = async (event, itemId, parentId) => {
     event.preventDefault();
     try {
         await firebaseInitialized;
@@ -519,7 +526,6 @@ async function submitReply(event, itemId, parentId) {
 
     if (!text) return;
 
-    // 비속어 검사
     if (containsBadWord(text) || containsBadWord(nickname)) {
         alert('부적절한 표현이 포함되어 있습니다.');
         return;
@@ -551,7 +557,8 @@ async function submitReply(event, itemId, parentId) {
             isAnonymous: true
         });
 
-        loadComments(itemId);
+        commentsCache.delete(`comment_${numericId}`);
+        loadComments(itemId, true);
     } catch (error) {
         console.error("Error adding reply:", error);
         alert('답글 등록에 실패했습니다.');

@@ -1,6 +1,6 @@
 import { systemUpdates, translationUpdates, usefulLinks, noticeData } from './config.js';
 import { db, storage, auth, firebaseInitialized } from './firebase-config.js';
-import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, getDoc, updateDoc, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js";
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
@@ -102,12 +102,7 @@ const init = async () => {
         });
     }
 
-    renderSystemUpdates();
-    renderTranslationUpdates();
     renderLinks();
-    renderNotices();
-    renderFreeBoardPosts();
-    renderReportBoardPosts();
 
     initTabs();
     initBoardEvents();
@@ -151,7 +146,7 @@ async function renderSystemUpdates() {
     let updates = [...systemUpdates];
 
     try {
-        const q = query(collection(db, "system_updates"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "system_updates"), orderBy("timestamp", "desc"), limit(20));
         const querySnapshot = await getDocs(q);
         const firestoreUpdates = [];
         querySnapshot.forEach((doc) => {
@@ -255,7 +250,7 @@ async function renderTranslationUpdates() {
     let updates = [...translationUpdates];
 
     try {
-        const q = query(collection(db, "translation_updates"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "translation_updates"), orderBy("timestamp", "desc"), limit(20));
         const querySnapshot = await getDocs(q);
         const firestoreUpdates = [];
         querySnapshot.forEach((doc) => {
@@ -360,7 +355,7 @@ async function renderNotices() {
     let notices = [...noticeData];
 
     try {
-        const q = query(collection(db, "notices"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "notices"), orderBy("timestamp", "desc"), limit(30));
         const querySnapshot = await getDocs(q);
         const firestoreNotices = [];
         querySnapshot.forEach((doc) => {
@@ -670,7 +665,7 @@ async function renderFreeBoardPosts() {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #666;">로딩 중...</td></tr>';
 
     try {
-        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "posts"), orderBy("timestamp", "desc"), limit(50));
         const querySnapshot = await getDocs(q);
 
         tbody.innerHTML = '';
@@ -823,7 +818,7 @@ async function renderReportBoardPosts() {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align: center; padding: 40px; color: #666;">로딩 중...</td></tr>';
 
     try {
-        const q = query(collection(db, "reports"), orderBy("timestamp", "desc"));
+        const q = query(collection(db, "reports"), orderBy("timestamp", "desc"), limit(50));
         const querySnapshot = await getDocs(q);
 
         tbody.innerHTML = '';

@@ -637,3 +637,44 @@ export const jumpToId = (id) => {
     const target = state.allMarkers.find(m => m.id === id);
     if (target) moveToLocation(target.marker.getLatLng(), target.marker, target.region);
 };
+
+export const findItem = (id) => {
+    const targetId = String(id);
+    let target = state.allMarkers.find(m => String(m.id) === targetId);
+
+    if (target) {
+        moveToLocation(target.marker.getLatLng(), target.marker, target.region);
+        console.log(`✅ [${target.name}] 마커로 이동했습니다.`);
+        return;
+    }
+    const item = state.mapData.items.find(i => String(i.id) === targetId);
+
+    if (!item) {
+        console.warn(`❌ ID [${targetId}]를 찾을 수 없습니다. 현재 지도 데이터에 없는 항목입니다.`);
+        return;
+    }
+    console.log(`🔍 숨겨진 항목 발견: ${t(item.name)} (ID: ${targetId}) - 필터를 활성화합니다.`);
+    let filtersChanged = false;
+    if (!state.activeCategoryIds.has(item.category)) {
+        state.activeCategoryIds.add(item.category);
+        filtersChanged = true;
+    }
+    if (state.activeRegionNames.size !== state.uniqueRegions.size) {
+        setAllRegions(true);
+        filtersChanged = true;
+    }
+    if (filtersChanged) {
+        updateMapVisibility();
+        updateToggleButtonsState();
+        saveFilterState();
+    }
+    setTimeout(() => {
+        target = state.allMarkers.find(m => String(m.id) === targetId);
+        if (target) {
+            moveToLocation(target.marker.getLatLng(), target.marker, target.region);
+            console.log(`🚀 [${target.name}] 위치로 이동 완료!`);
+        } else {
+            console.error("⚠️ 오류: 필터를 활성화했으나 마커를 생성하지 못했습니다.");
+        }
+    }, 100);
+};

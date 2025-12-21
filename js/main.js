@@ -8,7 +8,7 @@ import {
     renderFavorites, initCustomDropdown, renderContributionModal,
     openRelatedModal, closeModal, renderModalList, openLightbox, switchLightbox, closeLightbox,
     openVideoLightbox, closeVideoLightbox, viewFullImage, switchImage,
-    toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId
+    toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId, findItem
 } from './ui.js';
 import { translateItem } from './translation.js';
 import { enableDevMode } from './dev.js';
@@ -25,6 +25,7 @@ window.viewFullImage = viewFullImage;
 window.closeLightbox = closeLightbox;
 window.translateItem = translateItem;
 window.jumpToId = jumpToId;
+window.findItem = findItem;
 window.expandRelated = expandRelated;
 window.openRelatedModal = openRelatedModal;
 window.closeModal = closeModal;
