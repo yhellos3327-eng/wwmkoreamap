@@ -49,7 +49,7 @@ export const viewNotice = (notice) => {
     document.getElementById('notice-list-view').style.display = 'none';
     document.getElementById('notice-write-view').style.display = 'none';
     const detailView = document.getElementById('notice-detail-view');
-    detailView.style.display = 'flex';
+    detailView.style.display = 'block';
     detailView.classList.add('active');
 
     document.getElementById('detail-title').textContent = notice.title;
@@ -99,14 +99,14 @@ export const initNoticeEvents = () => {
     document.getElementById('btn-show-notice-write').addEventListener('click', () => {
         document.getElementById('notice-list-view').style.display = 'none';
         document.getElementById('notice-detail-view').style.display = 'none';
-        document.getElementById('notice-write-view').style.display = 'flex';
+        document.getElementById('notice-write-view').style.display = 'block';
         document.getElementById('notice-write-view').classList.add('active');
     });
 
     document.getElementById('btn-cancel-notice-write').addEventListener('click', () => {
         document.getElementById('notice-write-view').classList.remove('active');
         document.getElementById('notice-write-view').style.display = 'none';
-        document.getElementById('notice-list-view').style.display = 'flex';
+        document.getElementById('notice-list-view').style.display = 'block';
     });
 
     document.getElementById('btn-submit-notice').addEventListener('click', async () => {
@@ -137,7 +137,7 @@ export const initNoticeEvents = () => {
 export const initBoardEvents = () => {
     document.getElementById('btn-back-to-list').addEventListener('click', () => {
         document.getElementById('notice-detail-view').style.display = 'none';
-        document.getElementById('notice-list-view').style.display = 'flex';
+        document.getElementById('notice-list-view').style.display = 'block';
         setCurrentNoticeId(null);
     });
 
