@@ -1,0 +1,70 @@
+.tabs {
+    display: flex;
+    padding: 4px;
+    margin: 0 24px 10px 24px;
+    background: var(--bg-dark);
+    border-radius: 8px;
+    flex-shrink: 0;
+    gap: 0;
+    border: 1px solid var(--border);
+}
+
+.tabs::-webkit-scrollbar {
+    height: 0px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    padding: 8px 0;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    border-radius: 6px;
+    text-align: center;
+}
+
+.tab-btn:hover {
+    color: var(--text-main);
+}
+
+.tab-btn.active {
+    background: var(--bg-panel);
+    color: var(--accent);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tab-btn.active::after {
+    content: none;
+}
+
+.filter-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+    background-color: var(--bg-panel);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
