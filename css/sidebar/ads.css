@@ -24,9 +24,8 @@
     box-sizing: border-box;
 }
 
-.ad-container ins,
-.ad-container iframe {
-    border-radius: 12px;
+.cm_ad {
+    border-radius: 12px !important;
     overflow: hidden;
 }
 
