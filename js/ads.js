@@ -67,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedAd.render(adContainer);
     }
 
-    //showRandomAd();
+    showRandomAd();
     //setInterval(showRandomAd, 30000);
 });
 
