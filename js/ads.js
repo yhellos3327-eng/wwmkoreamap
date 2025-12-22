@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
         notice.style.color = '#888';
         notice.style.marginTop = '8px';
         notice.style.fontWeight = 'normal';
-        notice.innerHTML = '설정에서 끄실 수 있습니다.<br>심사 설정 때문에 임시로 광고 설정을 ON으로 조정하였습니다. 🙇‍♂️';
+        notice.innerHTML = '설정에서 끄실 수 있습니다.<br>심사 설정 때문에 임시로 광고 설정을 ON으로 조정하였습니다. 🙇‍♂️<br>이후 공익 광고등 랜덤으로 표시될 예정입니다. (수익 X)';
         adContainer.appendChild(notice);
     }
 
