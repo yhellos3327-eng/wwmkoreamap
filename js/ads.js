@@ -65,6 +65,16 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         selectedAd.render(adContainer);
+
+        // 심사 기간 안내 메시지 추가
+        const notice = document.createElement('h3');
+        notice.style.textAlign = 'center';
+        notice.style.fontSize = '0.8rem';
+        notice.style.color = '#888';
+        notice.style.marginTop = '8px';
+        notice.style.fontWeight = 'normal';
+        notice.innerHTML = '설정에서 끄실 수 있습니다.<br>심사 설정 때문에 임시로 광고 설정을 ON으로 조정하였습니다. 🙇‍♂️';
+        adContainer.appendChild(notice);
     }
 
     showRandomAd();
