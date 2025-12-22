@@ -2,12 +2,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const adContainer = document.querySelector('.ad-container');
     if (!adContainer) return;
 
+    // 로컬 환경인지 확인 (localhost, 127.0.0.1, file://)
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
 
     const ads = [
         {
             type: 'kakao',
-            weight: isLocal ? 0 : 7,
+            weight: isLocal ? 0 : 100, // [심사 기간 임시 설정] 배포 환경에서는 카카오 광고만 100% 노출
             render: (container) => {
                 container.innerHTML = '';
 
@@ -28,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             type: 'public',
-            weight: 2,
+            weight: 0, // 심사 기간 동안 0으로 설정
             render: (container) => {
                 const el = createAdElement('공익 광고 캠페인', '수익 미발생', '#2ecc71', '#ffffff');
                 container.innerHTML = '';
@@ -37,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             type: 'alliance',
-            weight: 1,
+            weight: 0, // 심사 기간 동안 0으로 설정
             render: (container) => {
                 const el = createAdElement('자체 광고', '수익 미발생', '#3498db', '#ffffff');
                 container.innerHTML = '';
