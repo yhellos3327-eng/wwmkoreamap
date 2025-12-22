@@ -42,7 +42,8 @@ const initAdToggle = () => {
 
     if (!adContainer || !toggleAd) return;
 
-    const showAd = localStorage.getItem('wwm_show_ad') === 'true';
+    const storedAd = localStorage.getItem('wwm_show_ad');
+    const showAd = storedAd === null ? true : storedAd === 'true';
     toggleAd.checked = showAd;
     adContainer.style.display = showAd ? 'block' : 'none';
 
@@ -426,7 +427,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
                 if (apiModelSelect) apiModelSelect.value = state.savedApiModel;
                 if (apiKeyInput && !apiProviderSelect) apiKeyInput.value = state.savedApiKey;
-                if (adToggleInput) adToggleInput.checked = localStorage.getItem('wwm_show_ad') === 'true';
+                if (adToggleInput) {
+                    const storedAd = localStorage.getItem('wwm_show_ad');
+                    adToggleInput.checked = storedAd === null ? true : storedAd === 'true';
+                }
                 if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
                 if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
 
