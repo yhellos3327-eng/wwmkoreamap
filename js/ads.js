@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 container.innerHTML = '';
 
                 const ins = document.createElement('ins');
-                ins.className = 'kakao_ad_area';
-                ins.style.display = 'none';
+                ins.className = 'kakao_ad_area cm_ad';
+                ins.style.display = 'block'; // 심사 봇 인식을 위해 block으로 변경
+                ins.style.width = '320px';
+                ins.style.height = '100px';
                 ins.setAttribute('data-ad-unit', 'DAN-sL10OTBFL3WHRTPY');
                 ins.setAttribute('data-ad-width', '320');
                 ins.setAttribute('data-ad-height', '100');
