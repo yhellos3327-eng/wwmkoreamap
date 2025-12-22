@@ -67,8 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         selectedAd.render(adContainer);
     }
 
-    showRandomAd();
-    setInterval(showRandomAd, 30000);
+    //showRandomAd();
+    //setInterval(showRandomAd, 30000);
 });
 
 function createAdElement(title, badgeText, bgColor, textColor) {
