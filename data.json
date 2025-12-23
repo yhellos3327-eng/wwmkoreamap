@@ -17104,11 +17104,11 @@
             "latitude": 0.591191291655532,
             "longitude": -0.46196319631239163,
             "category_id": 17310010084,
-            "image": "//i.17173cdn.com/gdthue/YWxqaGBf/terra/MsYwIvbsdmitCrg.jpg",
+            "image": "https://i.17173cdn.com/gdthue/YWxqaGBf/terra/MsYwIvbsdmitCrg.jpg",
             "linkedPoiID": 104631377920,
             "regionId": 9,
             "images": [
-                "//i.17173cdn.com/gdthue/YWxqaGBf/Terra/HsTofBbsjybdtbe.jpg"
+                "//i.17173cdn.com/gdthue/YWxqaGBf/terra/MsYwIvbsdmitCrg.jpg"
             ],
             "video_url": "",
             "map_id": 3000,
@@ -17186,7 +17186,7 @@
             "image": "http://i.17173cdn.com/gdthue/YWxqaGBf/terra/rSpNoCbsdmjnaoB.jpg",
             "linkedPoiID": 588523900928,
             "images": [
-                "http://i.17173cdn.com/gdthue/YWxqaGBf/Terra/XlBuWtbsjybcvyl.jpg"
+                "http://i.17173cdn.com/gdthue/YWxqaGBf/terra/rSpNoCbsdmjnaoB.jpg"
             ],
             "map_id": 3000,
             "regionId": 9,
@@ -21653,7 +21653,7 @@
             "category_id": 17310010086,
             "regionId": 9,
             "images": [],
-            "video_url": "//player.bilibili.com/player.html?bvid=BV1XukbYmEaq&p=27",
+            "video_url": "",
             "id": 67195985920,
             "map_id": 3000,
             "author": {
