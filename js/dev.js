@@ -1,4 +1,4 @@
-import { state, setState } from './state.js';
+import { state, setState, subscribe } from './state.js';
 import { t } from './utils.js';
 
 export const enableDevMode = () => {
@@ -13,6 +13,8 @@ export const enableDevMode = () => {
     const devModal = document.getElementById('dev-modal');
     const categorySelect = document.getElementById('dev-category');
     let tempMarker = null;
+    let editingItem = null;
+    let uploadedImages = [];
 
     if (categorySelect && state.mapData.categories) {
         categorySelect.innerHTML = '';
@@ -30,29 +32,146 @@ export const enableDevMode = () => {
         });
     }
 
+    const updateOutput = () => {
+        const elCategory = document.getElementById('dev-category');
+        const catId = elCategory ? elCategory.value : '';
+
+        const elName = document.getElementById('dev-name');
+        const elDesc = document.getElementById('dev-desc');
+        const elX = document.getElementById('dev-x');
+        const elY = document.getElementById('dev-y');
+
+        const name = elName ? (elName.value || "New Item") : "New Item";
+        const desc = elDesc ? (elDesc.value || "") : "";
+        const x = elX ? elX.value : '';
+        const y = elY ? elY.value : '';
+
+        const itemId = editingItem ? editingItem.id : Date.now();
+
+        const newItem = {
+            id: itemId,
+            category_id: catId,
+            title: name,
+            description: desc,
+            latitude: x,
+            longitude: y,
+            regionId: 0,
+            images: uploadedImages.length > 0 ? uploadedImages : undefined
+        };
+
+        const jsonString = JSON.stringify(newItem, null, 4);
+        const outputArea = document.getElementById('dev-output');
+        if (outputArea) {
+            outputArea.value = jsonString + ",";
+        }
+        return jsonString;
+    };
+
+    const onMarkerClick = (e) => {
+        if (!state.isDevMode) return;
+
+        const marker = e.target;
+        marker.closePopup();
+
+        const item = state.allMarkers.find(m => m.marker === marker);
+        if (!item) return;
+
+        editingItem = item;
+        if (tempMarker) {
+            state.map.removeLayer(tempMarker);
+            tempMarker = null;
+        }
+
+        const originalItem = state.mapData.items.find(i => i.id === item.id);
+
+        const elName = document.getElementById('dev-name');
+        const elDesc = document.getElementById('dev-desc');
+        const elCategory = document.getElementById('dev-category');
+        const elX = document.getElementById('dev-x');
+        const elY = document.getElementById('dev-y');
+
+        if (elName) elName.value = originalItem ? originalItem.name : item.originalName;
+        if (elDesc) elDesc.value = originalItem ? (originalItem.description || "") : item.desc;
+        if (elCategory) elCategory.value = originalItem ? originalItem.category : item.category;
+        if (elX) elX.value = item.lat;
+        if (elY) elY.value = item.lng;
+
+        if (devModal) devModal.classList.remove('hidden');
+
+        updateOutput();
+        console.log(`%cEditing Item: ${item.originalName} (${item.id})`, "color: yellow");
+    };
+
+    const attachListeners = () => {
+        if (!state.allMarkers) return;
+        state.allMarkers.forEach(m => {
+            if (m.marker) {
+                m.marker.off('click', onMarkerClick);
+                m.marker.on('click', onMarkerClick);
+            }
+        });
+    };
+
+    subscribe('allMarkers', () => {
+        setTimeout(attachListeners, 500);
+    });
+
+    attachListeners();
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && editingItem) {
+            editingItem = null;
+            console.log("Edit mode cancelled");
+            alert("편집 모드가 취소되었습니다.");
+            const elName = document.getElementById('dev-name');
+            if (elName) elName.value = "";
+            const elDesc = document.getElementById('dev-desc');
+            if (elDesc) elDesc.value = "";
+            if (categorySelect) categorySelect.value = "";
+        }
+    });
+
     state.map.on('click', (e) => {
         if (!state.isDevMode) return;
 
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
 
-        if (tempMarker) state.map.removeLayer(tempMarker);
+        if (editingItem && editingItem.marker) {
+            editingItem.marker.setLatLng([lat, lng]);
+            editingItem.lat = lat;
+            editingItem.lng = lng;
 
-        const emojiIcon = L.divIcon({
-            className: '',
-            html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">📍</div>',
-            iconSize: [36, 36],
-            iconAnchor: [18, 36]
-        });
+            const elX = document.getElementById('dev-x');
+            const elY = document.getElementById('dev-y');
+            if (elX) elX.value = lat;
+            if (elY) elY.value = lng;
 
-        tempMarker = L.marker([lat, lng], { icon: emojiIcon, zIndexOffset: 1000 }).addTo(state.map);
+            updateOutput();
+        } else {
+            if (tempMarker) state.map.removeLayer(tempMarker);
 
-        document.getElementById('dev-x').value = lat;
-        document.getElementById('dev-y').value = lng;
-        document.getElementById('dev-output').value = '';
-        if (categorySelect) categorySelect.value = "";
+            const emojiIcon = L.divIcon({
+                className: '',
+                html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">📍</div>',
+                iconSize: [36, 36],
+                iconAnchor: [18, 36]
+            });
 
-        devModal.classList.remove('hidden');
+            tempMarker = L.marker([lat, lng], { icon: emojiIcon, zIndexOffset: 1000 }).addTo(state.map);
+
+            const elDevX = document.getElementById('dev-x');
+            const elDevY = document.getElementById('dev-y');
+            const elDevOutput = document.getElementById('dev-output');
+
+            if (elDevX) elDevX.value = lat;
+            if (elDevY) elDevY.value = lng;
+            if (elDevOutput) elDevOutput.value = '';
+
+            if (categorySelect) categorySelect.value = "";
+
+            if (devModal) devModal.classList.remove('hidden');
+        }
     });
 
     if (categorySelect) {
@@ -84,23 +203,9 @@ export const enableDevMode = () => {
     const dropZone = document.getElementById('dev-drop-zone');
     const imageInput = document.getElementById('dev-image-input');
     const previewContainer = document.getElementById('dev-image-preview');
-    let uploadedImages = [];
-
-    const handleFiles = (files) => {
-        Array.from(files).forEach(file => {
-            if (!file.type.startsWith('image/')) return;
-
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                const src = e.target.result;
-                uploadedImages.push(src);
-                renderPreviews();
-            };
-            reader.readAsDataURL(file);
-        });
-    };
 
     const renderPreviews = () => {
+        if (!previewContainer) return;
         previewContainer.innerHTML = '';
         uploadedImages.forEach((src, index) => {
             const div = document.createElement('div');
@@ -144,6 +249,20 @@ export const enableDevMode = () => {
         });
     };
 
+    const handleFiles = (files) => {
+        Array.from(files).forEach(file => {
+            if (!file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const src = e.target.result;
+                uploadedImages.push(src);
+                renderPreviews();
+            };
+            reader.readAsDataURL(file);
+        });
+    };
+
     if (dropZone) {
         dropZone.onclick = () => imageInput.click();
 
@@ -182,32 +301,21 @@ export const enableDevMode = () => {
     const genBtn = document.getElementById('btn-gen-json');
     if (genBtn) {
         genBtn.onclick = () => {
-            const catId = document.getElementById('dev-category').value;
+            const elCategory = document.getElementById('dev-category');
+            const catId = elCategory ? elCategory.value : '';
             if (!catId) { alert("카테고리를 선택해주세요!"); return; }
 
-            const name = document.getElementById('dev-name').value || "New Item";
-            const desc = document.getElementById('dev-desc').value || "";
-            const x = document.getElementById('dev-x').value;
-            const y = document.getElementById('dev-y').value;
-            const tempId = Date.now();
+            const jsonString = updateOutput();
 
-            const newItem = {
-                id: tempId,
-                category_id: catId,
-                title: name,
-                description: desc,
-                latitude: x,
-                longitude: y,
-                regionId: 0,
-                images: uploadedImages.length > 0 ? uploadedImages : undefined
-            };
-
-            const jsonString = JSON.stringify(newItem, null, 4);
             const outputArea = document.getElementById('dev-output');
-            outputArea.value = jsonString + ",";
-            outputArea.select();
-            document.execCommand('copy');
-            alert("JSON이 복사되었습니다!");
+            if (outputArea) {
+                outputArea.select();
+                document.execCommand('copy');
+                alert("JSON이 복사되었습니다!");
+            } else {
+                console.log(jsonString);
+                alert("JSON 생성됨 (콘솔 확인)");
+            }
         };
     }
 
@@ -215,6 +323,8 @@ export const enableDevMode = () => {
     if (reportBtn) {
         reportBtn.onclick = () => {
             const outputArea = document.getElementById('dev-output');
+            if (!outputArea) return;
+
             const jsonString = outputArea.value;
             if (!jsonString) {
                 alert("먼저 JSON을 생성해주세요.");

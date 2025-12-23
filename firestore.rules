@@ -27,6 +27,7 @@ service cloud.firestore {
       allow read: if true;
       allow create: if true;
       allow delete: if isAdmin(); // Only admin can delete comments
+      allow update: if isAdmin(); // Only admin can update comments
     }
 
     // System Updates
