@@ -387,7 +387,7 @@ export const renderModalList = (items) => {
         const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
 
         const catObj = state.mapData.categories.find(c => c.id === m.category);
-        const iconUrl = catObj ? catObj.image : './icons/marker.png';
+        const iconUrl = catObj ? catObj.image : './icons/17310010088.png';
 
         const li = document.createElement('li');
         li.className = 'modal-list-item';

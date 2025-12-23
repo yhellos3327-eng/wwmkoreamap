@@ -504,14 +504,21 @@ export const renderMapDataAndMarkers = () => {
 
         const categoryObj = state.mapData.categories.find(c => c.id === catId);
 
-        let iconUrl = './icons/marker.png';
+        let iconUrl = './icons/17310010088.png';
+        let isDefault = true;
+
         if (categoryObj && categoryObj.image) {
             iconUrl = categoryObj.image;
+            isDefault = false;
         }
 
         const w = item.imageSizeW || 44;
         const h = item.imageSizeH || 44;
-        const iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
+        let iconClass = isCompleted ? 'game-marker-icon completed-marker' : 'game-marker-icon';
+
+        if (isDefault) {
+            iconClass += ' blue-overlay';
+        }
 
         const customIcon = L.icon({
             iconUrl: iconUrl,
