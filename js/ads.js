@@ -1,32 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
     const adContainer = document.querySelector('.ad-container');
     if (!adContainer) return;
-
-    // 로컬 환경인지 확인 (localhost, 127.0.0.1, file://)
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
-
     const ads = [
         {
-            type: 'kakao',
-            weight: isLocal ? 0 : 100, // [심사 기간 임시 설정] 배포 환경에서는 카카오 광고만 100% 노출
+            type: 'google',
+            weight: 100,
             render: (container) => {
                 container.innerHTML = '';
+                if (!document.getElementById('google-adsense-script')) {
+                    const script = document.createElement('script');
+                    script.id = 'google-adsense-script';
+                    script.async = true;
+                    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6903444943515445';
+                    script.crossOrigin = 'anonymous';
+                    document.head.appendChild(script);
+                }
 
                 const ins = document.createElement('ins');
-                ins.className = 'kakao_ad_area cm_ad';
-                ins.style.display = 'block'; // 심사 봇 인식을 위해 block으로 변경
-                ins.style.width = '320px';
-                ins.style.height = '100px';
-                ins.setAttribute('data-ad-unit', 'DAN-sL10OTBFL3WHRTPY');
-                ins.setAttribute('data-ad-width', '320');
-                ins.setAttribute('data-ad-height', '100');
+                ins.className = 'adsbygoogle';
+                ins.style.display = 'block';
+                ins.setAttribute('data-ad-client', 'ca-pub-6903444943515445');
+                ins.setAttribute('data-ad-slot', 'REPLACE_WITH_YOUR_AD_SLOT_ID');
+                ins.setAttribute('data-ad-format', 'auto');
+                ins.setAttribute('data-full-width-responsive', 'true');
                 container.appendChild(ins);
 
-                const script = document.createElement('script');
-                script.type = 'text/javascript';
-                script.src = '//t1.daumcdn.net/kas/static/ba.min.js';
-                script.async = true;
-                container.appendChild(script);
+                const pushScript = document.createElement('script');
+                pushScript.textContent = '(adsbygoogle = window.adsbygoogle || []).push({});';
+                container.appendChild(pushScript);
             }
         },
         {
