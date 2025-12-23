@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const adContainer = document.querySelector('.ad-container');
     if (!adContainer) return;
     const ads = [
-        {
+        /*{
             type: 'google',
             weight: 100,
             render: (container) => {
@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 pushScript.textContent = '(adsbygoogle = window.adsbygoogle || []).push({});';
                 container.appendChild(pushScript);
             }
-        },
+        }*/,
         {
             type: 'public',
             weight: 0, // 심사 기간 동안 0으로 설정
