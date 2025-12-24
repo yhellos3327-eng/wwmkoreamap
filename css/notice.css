@@ -1,6 +1,4 @@
-﻿/* notice.css - 게시판 스타일 */
-
-@import 'notice/variables.css';
+﻿@import 'notice/variables.css';
 @import 'notice/base.css';
 @import 'notice/header.css';
 @import 'notice/tabs.css';

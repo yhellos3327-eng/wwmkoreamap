@@ -67,6 +67,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         const sidebar = document.getElementById('sidebar');
         if (sidebar) sidebar.classList.add('collapsed');
     }
+
+    // 오버레이 모드: 맵 선택 UI 숨김 (Electron 오버레이 앱에서 사용)
+    if (urlParams.get('overlay') === 'true') {
+        document.body.classList.add('overlay-mode');
+    }
     try {
         subscribe('loadingState', (loadingState) => {
             const loadingScreen = document.getElementById('loading-screen');

@@ -1,0 +1,31 @@
+.overlay-mode .map-selector-wrapper {
+    display: none !important;
+}
+
+.overlay-mode .custom-select,
+.overlay-mode #custom-map-select {
+    display: none !important;
+}
+
+.overlay-mode .map-toolbar .map-selector-wrapper,
+.overlay-mode .map-toolbar .custom-select,
+.overlay-mode .top-controls .map-selector-wrapper,
+.overlay-mode .top-controls .custom-select {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
+}
+
+.overlay-mode .toolbar-divider.embed-only {
+    display: none !important;
+}
+
+.overlay-mode .top-controls {
+    display: none !important;
+}
+
+.overlay-mode .map-toolbar {
+    border-radius: 8px;
+}
