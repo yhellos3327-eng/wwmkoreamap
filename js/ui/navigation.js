@@ -4,6 +4,7 @@ import { saveFilterState } from '../data.js';
 import { t } from '../utils.js';
 import { setAllRegions, updateToggleButtonsState } from './sidebar.js';
 import { renderFavorites } from './sidebar.js';
+import { logger } from '../logger.js';
 
 export const toggleCompleted = (id) => {
     const index = state.completedList.indexOf(id);
@@ -75,16 +76,16 @@ export const findItem = (id) => {
 
     if (target) {
         moveToLocation(target.marker.getLatLng(), target.marker, target.region);
-        console.log(`✅ [${target.name}] 마커로 이동했습니다.`);
+        logger.success('Navigation', `[${target.name}] 마커로 이동`);
         return;
     }
     const item = state.mapData.items.find(i => String(i.id) === targetId);
 
     if (!item) {
-        console.warn(`❌ ID [${targetId}]를 찾을 수 없습니다. 현재 지도 데이터에 없는 항목입니다.`);
+        logger.warn('Navigation', `ID [${targetId}]를 찾을 수 없음`);
         return;
     }
-    console.log(`🔍 숨겨진 항목 발견: ${t(item.name)} (ID: ${targetId}) - 필터를 활성화합니다.`);
+    logger.log('Navigation', `숨겨진 항목 발견: ${t(item.name)} (ID: ${targetId}) - 필터 활성화`);
     let filtersChanged = false;
     if (!state.activeCategoryIds.has(item.category)) {
         state.activeCategoryIds.add(item.category);
@@ -103,9 +104,9 @@ export const findItem = (id) => {
         target = state.allMarkers.find(m => String(m.id) === targetId);
         if (target) {
             moveToLocation(target.marker.getLatLng(), target.marker, target.region);
-            console.log(`🚀 [${target.name}] 위치로 이동 완료!`);
+            logger.success('Navigation', `[${target.name}] 위치로 이동 완료`);
         } else {
-            console.error("⚠️ 오류: 필터를 활성화했으나 마커를 생성하지 못했습니다.");
+            logger.error('Navigation', '필터 활성화 후 마커 생성 실패');
         }
     }, 100);
 };

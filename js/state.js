@@ -54,10 +54,14 @@ export const subscribe = (key, callback) => {
 };
 
 export const notify = (key, value, oldValue) => {
-    console.groupCollapsed(`%c[Pub/Sub] 상태 변경: ${key}`, "font-size: 12px; font-weight: bold; color: #4CAF50; background: #222; padding: 3px 6px; border-radius: 3px;");
-    console.log(`이전 값:`, oldValue);
-    console.log(`새로운 값:`, value);
-    console.groupEnd();
+    import('./logger.js').then(({ logger }) => {
+        logger.stateChange(key, oldValue, value);
+    }).catch(() => {
+        console.groupCollapsed(`%c🔄 [Pub/Sub] 상태 변경: ${key}`, "font-size: 12px; font-weight: bold; color: #4CAF50; background: #222; padding: 3px 6px; border-radius: 3px;");
+        console.log(`이전 값:`, oldValue);
+        console.log(`새로운 값:`, value);
+        console.groupEnd();
+    });
 
     if (listeners[key]) {
         listeners[key].forEach(callback => callback(value));

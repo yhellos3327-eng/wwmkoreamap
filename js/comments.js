@@ -1,5 +1,6 @@
 import { db, firebaseInitialized } from './firebase-config.js';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { logger } from './logger.js';
 
 const TTL_DAYS = 90;
 
@@ -27,12 +28,12 @@ const loadBadWords = async () => {
                 words.forEach(word => allWords.add(word.toLowerCase()));
             }
         } catch (e) {
-            console.warn(`[BadWords] 소스 로드 실패: ${source.url}`, e.message);
+            logger.warn('BadWords', `소스 로드 실패: ${source.url}`, e.message);
         }
     }
 
     badWordsList = [...allWords];
-    console.log(`[BadWords] ${badWordsList.length}개 비속어 로드 완료`);
+    logger.success('BadWords', `${badWordsList.length}개 비속어 로드 완료`);
 }
 
 const containsBadWord = (text) => {
@@ -58,14 +59,14 @@ const cleanupOldComments = async () => {
     const COOLDOWN_MS = 24 * 60 * 60 * 1000;
     const lastRun = localStorage.getItem(CLEANUP_COOLDOWN_KEY);
     if (lastRun && (Date.now() - parseInt(lastRun)) < COOLDOWN_MS) {
-        console.log('[Cleanup] 쿨다운 중 - 24시간 내 이미 실행됨');
+        logger.log('Cleanup', '쿨다운 중 - 24시간 내 이미 실행됨');
         return;
     }
 
     try {
         await firebaseInitialized;
         if (!db) {
-            console.warn("[Cleanup] Firebase DB not initialized, skipping cleanup.");
+            logger.warn('Cleanup', 'Firebase DB 초기화 실패, 정리 건너뛰');
             return;
         }
         const cutoffDate = new Date();
@@ -83,7 +84,7 @@ const cleanupOldComments = async () => {
             return;
         }
 
-        console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 중...`);
+        logger.log('Cleanup', `${snapshot.size}개 오래된 댓글 삭제 중...`);
 
         const deletePromises = [];
         snapshot.forEach((docSnap) => {
@@ -92,9 +93,9 @@ const cleanupOldComments = async () => {
 
         await Promise.all(deletePromises);
         localStorage.setItem(CLEANUP_COOLDOWN_KEY, Date.now().toString());
-        console.log(`[Cleanup] ${snapshot.size}개의 오래된 댓글 삭제 완료`);
+        logger.success('Cleanup', `${snapshot.size}개 오래된 댓글 삭제 완료`);
     } catch (error) {
-        console.warn("[Cleanup] 오래된 댓글 삭제 실패:", error.message);
+        logger.warn('Cleanup', '오래된 댓글 삭제 실패:', error.message);
     }
 }
 
@@ -108,7 +109,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
         await firebaseInitialized;
         if (!db) throw new Error("Firebase DB not initialized");
     } catch (e) {
-        console.error("[Comments] Failed to initialize Firebase:", e.message);
+        logger.error('Comments', 'Firebase 초기화 실패:', e.message);
         const container = document.getElementById(`comments-list-${itemId}`);
         if (container) container.innerHTML = '<div class="error-comments">서비스 연결 실패</div>';
         return;
@@ -117,7 +118,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
     const numericId = Number(itemId);
 
     if (!itemId || isNaN(numericId)) {
-        console.error("[Comments] Invalid itemId provided:", itemId);
+        logger.error('Comments', 'Invalid itemId:', itemId);
         return;
     }
 
@@ -127,7 +128,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
     const cacheKey = `comment_${numericId}`;
     const cached = commentsCache.get(cacheKey);
     if (!forceRefresh && cached && (Date.now() - cached.timestamp) < CACHE_TTL) {
-        console.log(`[Comments] 캐시에서 로드: ${numericId}`);
+        logger.log('Cache', `댓글 캐시 로드: ${numericId}`);
         container.innerHTML = cached.html;
         return;
     }
@@ -138,7 +139,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
         const cutoffDate = new Date();
         cutoffDate.setDate(cutoffDate.getDate() - TTL_DAYS);
 
-        console.log(`[Comments] Loading for itemId: ${numericId} (Type: ${typeof numericId})`);
+        logger.log('Comments', `댓글 로드: itemId=${numericId}`);
 
         const q = query(
             collection(db, "comments"),
@@ -193,7 +194,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
             const text = data.text || '';
 
             if (hasBlockedLink(text) || containsBadWord(text)) {
-                console.log(`[Filter] 부적절한 댓글 숨김 처리: ${docSnap.id}`);
+                logger.log('Filter', `부적절한 댓글 숨김: ${docSnap.id}`);
                 return;
             }
 

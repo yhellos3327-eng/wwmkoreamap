@@ -43,11 +43,8 @@ export const initMap = (mapKey) => {
         });
 
         map.on('movestart', () => {
-            if (!state.enableClustering && state.pendingMarkers) {
-                state.pendingMarkers.forEach(m => {
-                    if (!state.map.hasLayer(m)) state.map.addLayer(m);
-                });
-            }
+            // Lazy loading 모드에서는 이동 시작 시 특별한 처리 불필요
+            // 마커는 moveend에서 뷰포트 기반으로 관리됨
         });
 
         map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });

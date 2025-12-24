@@ -10,28 +10,36 @@ let db;
 let storage;
 let auth;
 
+const logStyle = (color) => `font-size: 12px; font-weight: bold; color: ${color}; background: #222; padding: 3px 6px; border-radius: 3px;`;
+
+const firebaseLog = {
+    log: (msg, ...args) => console.log(`%c🔥 [Firebase] ${msg}`, logStyle('#FFCA28'), ...args),
+    warn: (msg, ...args) => console.warn(`%c🔥 [Firebase] ${msg}`, logStyle('#FFCA28'), ...args),
+    error: (msg, ...args) => console.error(`%c🔥 [Firebase] ${msg}`, logStyle('#F44336'), ...args),
+    success: (msg, ...args) => console.log(`%c🔥 [Firebase] ✅ ${msg}`, logStyle('#4CAF50'), ...args),
+    debug: (msg, ...args) => console.log(`%c🔥 [Firebase] ${msg}`, logStyle('#FF9800'), ...args)
+};
+
 export const firebaseInitialized = (async () => {
     try {
         let config;
         const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-        // 모바일 환경일 경우 로컬 env.js 우선 시도 (포트 차단 대비)
         if (isMobile) {
-            console.log("[Firebase] Mobile environment detected. Attempting to load local config first...");
+            firebaseLog.log('모바일 환경 감지, 로컬 설정 우선 시도...');
             try {
                 const { FIREBASE_CONFIG } = await import('./env.js');
                 if (FIREBASE_CONFIG) {
                     config = {
                         firebaseConfig: FIREBASE_CONFIG
                     };
-                    console.log("[Firebase] Local config loaded from js/env.js (Mobile optimization)");
+                    firebaseLog.success('로컬 설정 로드 완료 (env.js)');
                 }
             } catch (envError) {
-                console.warn("[Firebase] Local config load failed on mobile, falling back to backend:", envError.message);
+                firebaseLog.warn('로컬 설정 실패, 백엔드로 폴백:', envError.message);
             }
         }
 
-        // 로컬 설정을 불러오지 못했거나 모바일이 아닐 경우 백엔드 시도
         if (!config) {
             let response;
             try {
@@ -40,23 +48,22 @@ export const firebaseInitialized = (async () => {
                     throw new Error(`Failed to fetch config: ${response.status} ${response.statusText}`);
                 }
                 config = await response.json();
-                console.log("[Firebase] Config loaded from backend");
+                firebaseLog.success('백엔드에서 설정 로드 완료');
             } catch (fetchError) {
-                console.error("[Firebase] Fetch failed for BACKEND_URL:", BACKEND_URL);
+                firebaseLog.error('백엔드 연결 실패:', BACKEND_URL);
 
-                // 모바일이 아니어서 위에서 시도하지 않았던 경우에만 여기서 최후의 수단으로 시도
                 if (!isMobile) {
-                    console.warn("[Firebase] Attempting to load fallback config from js/env.js...");
+                    firebaseLog.warn('폴백 설정 시도 (env.js)...');
                     try {
                         const { FIREBASE_CONFIG } = await import('./env.js');
                         if (FIREBASE_CONFIG) {
                             config = {
                                 firebaseConfig: FIREBASE_CONFIG
                             };
-                            console.log("[Firebase] Fallback config loaded from js/env.js");
+                            firebaseLog.success('폴백 설정 로드 완료 (env.js)');
                         }
                     } catch (envError) {
-                        console.error("[Firebase] Fallback also failed:", envError.message);
+                        firebaseLog.error('폴백 설정도 실패:', envError.message);
                         throw fetchError;
                     }
                 } else {
@@ -65,7 +72,7 @@ export const firebaseInitialized = (async () => {
             }
         }
 
-        console.log("[Firebase] Config initialized:", {
+        firebaseLog.log('초기화 완료', {
             source: config.firebaseConfig.apiKey ? "Valid Config" : "Invalid",
             hasFirebaseConfig: !!config.firebaseConfig,
             hostname: location.hostname
@@ -84,11 +91,11 @@ export const firebaseInitialized = (async () => {
         const isDebug = location.hostname === "localhost" || location.hostname === "127.0.0.1" || urlParams.get('debug') === 'true';
 
         if (isDebug) {
-            console.log("%c[Firebase] Debug Mode Active", "color: #ff9800; font-weight: bold;");
+            firebaseLog.debug('디버그 모드 활성화');
         }
 
     } catch (error) {
-        console.error("%c[Firebase] Critical Initialization Error:", "color: red; font-weight: bold;", error);
+        firebaseLog.error('치명적 초기화 오류:', error);
         throw error;
     }
 })();
