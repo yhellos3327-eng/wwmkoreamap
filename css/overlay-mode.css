@@ -18,11 +18,11 @@
     overflow: hidden !important;
 }
 
-.overlay-mode .toolbar-divider.embed-only {
+.overlay-mode .toolbar-divider {
     display: none !important;
 }
 
-.overlay-mode .top-controls {
+.overlay-mode .toolbar-divider.embed-only {
     display: none !important;
 }
 
