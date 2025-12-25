@@ -1,12 +1,22 @@
 import { logger } from './logger.js';
+import { DataParsingStrategy, FilteringStrategy } from './worker-strategies.js';
 
 let taskIdCounter = 0;
 const pendingTasks = new Map();
 
-class WorkerManager {
+class WebWorkerManager {
     constructor() {
         this.workers = {};
         this.isSupported = typeof Worker !== 'undefined';
+        this.strategies = new Map();
+
+        // Register default strategies
+        this.registerStrategy('data', new DataParsingStrategy());
+        this.registerStrategy('filter', new FilteringStrategy());
+    }
+
+    registerStrategy(name, strategy) {
+        this.strategies.set(name, strategy);
     }
 
     getWorker(name) {
@@ -32,12 +42,12 @@ class WorkerManager {
                 };
 
                 this.workers[name].onerror = (e) => {
-                    logger.error('WorkerManager', `Worker ${name} error:`, e);
+                    logger.error('WebWorkerManager', `Worker ${name} error:`, e);
                 };
 
-                logger.success('WorkerManager', `워커 생성: ${name}`);
+                logger.success('WebWorkerManager', `워커 생성: ${name}`);
             } catch (error) {
-                logger.warn('WorkerManager', `워커 생성 실패 ${name}:`, error);
+                logger.warn('WebWorkerManager', `워커 생성 실패 ${name}:`, error);
                 return null;
             }
         }
@@ -57,7 +67,7 @@ class WorkerManager {
         return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 pendingTasks.delete(taskId);
-                logger.warn('WorkerManager', `태스크 타임아웃, 동기 폴백: ${type}`);
+                logger.warn('WebWorkerManager', `태스크 타임아웃, 동기 폴백: ${type}`);
                 resolve(this.fallbackSync(workerName, type, payload));
             }, timeout);
 
@@ -68,7 +78,7 @@ class WorkerManager {
                 },
                 reject: (error) => {
                     clearTimeout(timeoutId);
-                    logger.warn('WorkerManager', `태스크 실패: ${type}`, error);
+                    logger.warn('WebWorkerManager', `태스크 실패: ${type}`, error);
                     resolve(this.fallbackSync(workerName, type, payload));
                 }
             });
@@ -78,111 +88,24 @@ class WorkerManager {
     }
 
     fallbackSync(workerName, type, payload) {
-        logger.log('WorkerManager', `동기 폴백 실행: ${type}`);
+        logger.log('WebWorkerManager', `동기 폴백 실행: ${type}`);
 
-        switch (type) {
-            case 'PARSE_JSON':
-                return JSON.parse(payload.jsonString);
+        // Map worker names to strategy names
+        // 'data-worker' -> 'data'
+        // 'filter-worker' -> 'filter'
+        const strategyName = workerName.replace('-worker', '');
+        const strategy = this.strategies.get(strategyName);
 
-            case 'PROCESS_CSV':
-                return this.processCSVSync(payload.csvText);
-
-            case 'FILTER_BY_BOUNDS':
-                return this.filterByBoundsSync(payload.items, payload.bounds, payload.padding);
-
-            case 'FILTER_BY_CATEGORY':
-                return payload.items.filter(item =>
-                    new Set(payload.activeCategoryIds).has(item.category)
-                );
-
-            case 'FILTER_BY_REGION':
-                return payload.items.filter(item => {
-                    const region = item.forceRegion || item.region || "알 수 없음";
-                    return new Set(payload.activeRegionNames).has(region);
-                });
-
-            case 'SEARCH':
-                const term = (payload.searchTerm || '').toLowerCase().trim();
-                if (!term) return payload.items;
-                return payload.items.filter(item => {
-                    const name = (item.name || '').toLowerCase();
-                    const desc = (item.description || '').toLowerCase();
-                    return name.includes(term) || desc.includes(term);
-                });
-
-            default:
-                logger.warn('WorkerManager', `폴백 없음: ${type}`);
-                return payload.items || payload;
-        }
-    }
-
-    filterByBoundsSync(items, bounds, padding = 0) {
-        const minLat = bounds.south - padding;
-        const maxLat = bounds.north + padding;
-        const minLng = bounds.west - padding;
-        const maxLng = bounds.east + padding;
-
-        return items.filter(item => {
-            const lat = parseFloat(item.x);
-            const lng = parseFloat(item.y);
-            return lat >= minLat && lat <= maxLat && lng >= minLng && lng <= maxLng;
-        });
-    }
-
-    processCSVSync(csvText) {
-        const koDict = {};
-        const categoryItemTranslations = {};
-        const parsedCSV = [];
-
-        const lines = csvText.split(/\r?\n/);
-        if (lines.length === 0) return { koDict, categoryItemTranslations, parsedCSV };
-
-        const headerLine = lines.shift();
-        const headers = this.parseCSVLine(headerLine);
-        parsedCSV.push(headers);
-
-        const typeIdx = headers.indexOf('Type');
-        const catIdx = headers.indexOf('Category');
-        const keyIdx = headers.indexOf('Key');
-        const valIdx = headers.indexOf('Korean');
-        const descIdx = headers.indexOf('Description');
-
-        lines.forEach(line => {
-            if (!line.trim()) return;
-            const parsed = this.parseCSVLine(line);
-            if (!parsed || parsed.length < 3) return;
-
-            parsedCSV.push(parsed);
-
-            const type = parsed[typeIdx]?.trim();
-            const key = parsed[keyIdx]?.trim();
-            if (!key) return;
-
-            if (type === 'Common') {
-                const val = parsed[valIdx];
-                if (val) koDict[key] = val;
+        if (strategy) {
+            try {
+                return strategy.execute(type, payload);
+            } catch (e) {
+                logger.warn('WebWorkerManager', `전략 실행 실패 (${type}):`, e);
             }
-        });
-
-        return { koDict, categoryItemTranslations, parsedCSV };
-    }
-
-    parseCSVLine(str) {
-        const arr = [];
-        let quote = false;
-        let value = '';
-
-        for (let i = 0; i < str.length; i++) {
-            const cc = str[i];
-            const nc = str[i + 1];
-
-            if (cc === '"' && quote && nc === '"') { value += cc; i++; }
-            else if (cc === '"') { quote = !quote; }
-            else if (cc === ',' && !quote) { arr.push(value); value = ''; }
-            else { value += cc; }
         }
-        arr.push(value);
-        return arr;
+
+        logger.warn('WebWorkerManager', `폴백 처리 불가: ${type}`);
+        return payload.items || payload;
     }
 
     terminateAll() {
@@ -191,7 +114,7 @@ class WorkerManager {
             delete this.workers[name];
         });
         pendingTasks.clear();
-        logger.log('WorkerManager', '모든 워커 종료됨');
+        logger.log('WebWorkerManager', '모든 워커 종료됨');
     }
 
     async parseJSON(jsonString) {
@@ -257,4 +180,4 @@ class WorkerManager {
     }
 }
 
-export const workerManager = new WorkerManager();
+export const webWorkerManager = new WebWorkerManager();

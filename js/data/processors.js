@@ -1,6 +1,6 @@
 import { state, setState } from '../state.js';
 import { t } from '../utils.js';
-import { workerManager } from '../worker-manager.js';
+import { webWorkerManager } from '../web-worker-manager.js';
 
 export const USE_WORKERS = true;
 
@@ -35,10 +35,49 @@ export const processRegionDataSync = (regionJson) => {
 };
 
 export const processRegionData = async (regionJson) => {
-    if (USE_WORKERS && workerManager.isSupported) {
-        return workerManager.processRegionData(regionJson, state.koDict);
+    if (USE_WORKERS && webWorkerManager.isSupported) {
+        return webWorkerManager.processRegionData(regionJson, state.koDict);
     }
     return processRegionDataSync(regionJson);
+};
+
+const applyTranslations = (item, reverseRegionMap) => {
+    const catTrans = state.categoryItemTranslations[item.category];
+    let commonDesc = null;
+
+    if (catTrans && catTrans._common_description) {
+        commonDesc = catTrans._common_description;
+    }
+
+    if (catTrans) {
+        let transData = catTrans[item.id];
+        if (!transData && item.name) {
+            transData = catTrans[item.name];
+        }
+
+        if (transData) {
+            if (transData.name) {
+                item.name = transData.name;
+                item.isTranslated = true;
+            }
+            if (transData.description) {
+                item.description = transData.description;
+            }
+            if (transData.region) {
+                item.forceRegion = reverseRegionMap[transData.region] || transData.region;
+            }
+            if (transData.image) {
+                item.images = Array.isArray(transData.image) ? transData.image : [transData.image];
+            }
+            if (transData.video) {
+                item.video_url = transData.video;
+            }
+        }
+    }
+
+    if ((!item.description || item.description.trim() === "") && commonDesc) {
+        item.description = commonDesc;
+    }
 };
 
 export const processMapDataSync = (rawItems, regionIdMap, missingItems, reverseRegionMap) => {
@@ -93,48 +132,9 @@ export const processMapDataSync = (rawItems, regionIdMap, missingItems, reverseR
     return { mapData, itemsByCategory };
 };
 
-const applyTranslations = (item, reverseRegionMap) => {
-    const catTrans = state.categoryItemTranslations[item.category];
-    let commonDesc = null;
-
-    if (catTrans && catTrans._common_description) {
-        commonDesc = catTrans._common_description;
-    }
-
-    if (catTrans) {
-        let transData = catTrans[item.id];
-        if (!transData && item.name) {
-            transData = catTrans[item.name];
-        }
-
-        if (transData) {
-            if (transData.name) {
-                item.name = transData.name;
-                item.isTranslated = true;
-            }
-            if (transData.description) {
-                item.description = transData.description;
-            }
-            if (transData.region) {
-                item.forceRegion = reverseRegionMap[transData.region] || transData.region;
-            }
-            if (transData.image) {
-                item.images = Array.isArray(transData.image) ? transData.image : [transData.image];
-            }
-            if (transData.video) {
-                item.video_url = transData.video;
-            }
-        }
-    }
-
-    if ((!item.description || item.description.trim() === "") && commonDesc) {
-        item.description = commonDesc;
-    }
-};
-
 export const processMapData = async (rawItems, regionIdMap, missingItems, reverseRegionMap) => {
-    if (USE_WORKERS && workerManager.isSupported) {
-        return workerManager.processMapData(
+    if (USE_WORKERS && webWorkerManager.isSupported) {
+        return webWorkerManager.processMapData(
             rawItems,
             regionIdMap,
             missingItems,
@@ -167,13 +167,13 @@ export const parseMissingItems = async (missingRes) => {
 };
 
 export const parseJSONData = async (dataBlob, regionBlob) => {
-    if (USE_WORKERS && workerManager.isSupported) {
+    if (USE_WORKERS && webWorkerManager.isSupported) {
         const dataText = await dataBlob.text();
         const regionText = await regionBlob.text();
 
         const [dataJson, regionJson] = await Promise.all([
-            workerManager.parseJSON(dataText),
-            workerManager.parseJSON(regionText)
+            webWorkerManager.parseJSON(dataText),
+            webWorkerManager.parseJSON(regionText)
         ]);
 
         return { dataJson, regionJson };

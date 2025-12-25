@@ -3,7 +3,7 @@ const LOG_STYLES = {
     'Worker': { color: '#2196F3', icon: '⚙️' },
     'Performance': { color: '#FF9800', icon: '⚡' },
     'LazyLoading': { color: '#9C27B0', icon: '🔮' },
-    'WorkerManager': { color: '#00BCD4', icon: '🛠️' },
+    'WebWorkerManager': { color: '#00BCD4', icon: '🛠️' },
     'Firebase': { color: '#FFCA28', icon: '🔥' },
     'Comments': { color: '#E91E63', icon: '💬' },
     'BadWords': { color: '#F44336', icon: '🚫' },
