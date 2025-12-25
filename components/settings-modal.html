@@ -1,0 +1,143 @@
+<div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>설정</h3>
+            <button id="close-settings" class="close-modal-btn">&times;</button>
+        </div>
+        <div class="modal-body settings-modal-body">
+            <div class="settings-group">
+
+
+                <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
+                        class="settings-subtitle">(AI 서비스 선택)</span></label>
+                <select id="api-provider-select" class="settings-input"
+                    style="background-color: var(--bg-dark); color: var(--text-main); margin-bottom: 15px;">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="openai">OpenAI (ChatGPT)</option>
+                    <option value="claude">Anthropic (Claude)</option>
+                </select>
+                <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의
+                        키)</span></label>
+                <input type="password" id="api-key-input" class="settings-input" placeholder="API Key 입력">
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label">AI Model <span class="settings-subtitle">(모델 선택)</span></label>
+
+                <select id="api-model-select" class="settings-input"
+                    style="background-color: var(--bg-dark); color: var(--text-main);">
+
+
+
+                </select>
+            </div>
+
+
+            <div class="settings-group settings-toggle-wrapper">
+                <div class="settings-label-container">
+                    <span class="settings-toggle-label">광고 표시</span>
+                    <span class="settings-subtitle">(화면 설정)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-ad" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-group settings-toggle-wrapper">
+                <div class="settings-label-container">
+                    <span class="settings-toggle-label">완료된 항목 숨기기</span>
+                    <span class="settings-subtitle">(필터링 옵션)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-hide-completed">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-group settings-toggle-wrapper">
+                <div class="settings-label-container">
+                    <span class="settings-toggle-label">마커 클러스터링</span>
+                    <span class="settings-subtitle">(최적화 옵션)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-cluster">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-group settings-toggle-wrapper">
+                <div class="settings-label-container">
+                    <span class="settings-toggle-label">이정표 표시</span>
+                    <span class="settings-subtitle">(팝업 옵션)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-comments" checked>
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-group settings-toggle-wrapper">
+                <div class="settings-label-container">
+                    <span class="settings-toggle-label">완료 체크 시 팝업 닫기</span>
+                    <span class="settings-subtitle">(팝업 옵션)</span>
+                </div>
+                <label class="switch">
+                    <input type="checkbox" id="toggle-close-on-complete">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label">지역 경계선 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
+                <div class="color-picker-wrapper">
+                    <div class="color-input-container">
+                        <input type="color" id="region-line-color" value="#242424" class="color-input">
+                        <span class="color-value" id="region-line-color-value">#242424</span>
+                    </div>
+                    <span class="color-label">기본값: #242424</span>
+                </div>
+            </div>
+
+            <div class="settings-group">
+                <label class="settings-label">지역 채우기 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
+                <div class="color-picker-wrapper">
+                    <div class="color-input-container">
+                        <input type="color" id="region-fill-color" value="#ffbd53" class="color-input">
+                        <span class="color-value" id="region-fill-color-value">#ffbd53</span>
+                    </div>
+                    <span class="color-label">기본값: #ffbd53</span>
+                </div>
+            </div>
+            <div class="settings-backup-section">
+                <h4>💾 데이터 백업 및 복구</h4>
+                <p>
+                    현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
+                    <span style="color: #d9534f; font-size: 0.8em;">
+                        <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>
+                    </span>
+                </p>
+
+                <div class="backup-buttons" style="display: flex; gap: 10px;">
+                    <button id="btn-backup-save" class="modal-btn save-btn"
+                        style="flex: 1; padding: 8px; cursor: pointer;">
+                        파일로 저장
+                    </button>
+
+                    <button id="btn-backup-load" class="modal-btn load-btn"
+                        style="flex: 1; padding: 8px; cursor: pointer;">
+                        파일 불러오기
+                    </button>
+
+                    <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
+                </div>
+            </div>
+            <button id="save-api-key" class="action-btn"
+                style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
+            <ul class="settings-note">
+                <li>API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.</li>
+                <li>미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.</li>
+            </ul>
+        </div>
+    </div>
+</div>

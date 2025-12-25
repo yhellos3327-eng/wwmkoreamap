@@ -31,5 +31,3 @@ export const moveToLocation = (latlng, marker = null, regionName = null) => {
         setTimeout(() => marker.openPopup(), 300);
     }
 };
-
-// initReportPage removed as it assigned to window. Use ui/navigation.js openReportPage instead.

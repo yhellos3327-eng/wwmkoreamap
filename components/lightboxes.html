@@ -1,0 +1,14 @@
+<div id="lightbox-modal" class="modal-overlay hidden" data-action="close-lightbox">
+    <span class="lightbox-close" data-action="close-lightbox">&times;</span>
+    <button class="lightbox-nav prev" data-action="switch-lightbox" data-dir="-1">❮</button>
+    <button class="lightbox-nav next" data-action="switch-lightbox" data-dir="1">❯</button>
+    <div id="lightbox-media-container" class="lightbox-content" data-action="stop-propagation"
+        style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></div>
+</div>
+
+<div id="video-lightbox-modal" class="modal-overlay hidden" data-action="close-video-lightbox">
+    <span class="lightbox-close" data-action="close-video-lightbox">&times;</span>
+    <div class="video-lightbox-content" data-action="stop-propagation">
+        <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
+    </div>
+</div>

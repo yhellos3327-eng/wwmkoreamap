@@ -9,8 +9,6 @@ class WebWorkerManager {
         this.workers = {};
         this.isSupported = typeof Worker !== 'undefined';
         this.strategies = new Map();
-
-        // Register default strategies
         this.registerStrategy('data', new DataParsingStrategy());
         this.registerStrategy('filter', new FilteringStrategy());
     }
@@ -90,9 +88,6 @@ class WebWorkerManager {
     fallbackSync(workerName, type, payload) {
         logger.log('WebWorkerManager', `동기 폴백 실행: ${type}`);
 
-        // Map worker names to strategy names
-        // 'data-worker' -> 'data'
-        // 'filter-worker' -> 'filter'
         const strategyName = workerName.replace('-worker', '');
         const strategy = this.strategies.get(strategyName);
 

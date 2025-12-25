@@ -78,10 +78,13 @@ const handleSharedLink = (urlParams) => {
     }
 };
 
+import { loadAllComponents } from './component-loader.js';
+
 document.addEventListener('DOMContentLoaded', async () => {
     const urlParams = handleUrlParams();
 
     try {
+        await loadAllComponents();
         setupLoadingSubscription();
         fetch('./translation.csv')
             .then(res => res.text())
