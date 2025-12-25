@@ -1,5 +1,3 @@
-// notice/comments.js - 댓글 관련 기능
-
 import { db } from '../firebase-config.js';
 import { collection, addDoc, getDocs, query, where, orderBy, serverTimestamp, doc, deleteDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { isAdmin } from './state.js';
@@ -61,8 +59,6 @@ export const renderComments = async (entityId, listElementId) => {
             `;
             listEl.appendChild(div);
         });
-
-        // Add event listeners for buttons
         if (isAdmin) {
             listEl.querySelectorAll('.btn-delete-comment').forEach(btn => {
                 btn.addEventListener('click', (e) => {

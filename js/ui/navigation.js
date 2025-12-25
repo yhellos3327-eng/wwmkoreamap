@@ -1,5 +1,5 @@
 import { state } from '../state.js';
-import { updateMapVisibility, moveToLocation, createPopupHtml } from '../map.js';
+import { updateMapVisibility, moveToLocation } from '../map.js';
 import { saveFilterState } from '../data.js';
 import { t } from '../utils.js';
 import { setAllRegions, updateToggleButtonsState } from './sidebar.js';
@@ -9,8 +9,9 @@ import { logger } from '../logger.js';
 export const toggleCompleted = (id) => {
     const index = state.completedList.indexOf(id);
     const target = state.allMarkers.find(m => m.id === id);
+    const isNowCompleted = index === -1;
 
-    if (index === -1) {
+    if (isNowCompleted) {
         state.completedList.push(id);
         if (target) {
             if (target.marker._icon) target.marker._icon.classList.add('completed-marker');
@@ -29,11 +30,17 @@ export const toggleCompleted = (id) => {
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
 
-    if (state.closeOnComplete && index === -1 && target && target.marker.isPopupOpen()) {
+    const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
+    if (popupContainer) {
+        const completeBtn = popupContainer.querySelector('.btn-complete');
+        if (completeBtn) {
+            completeBtn.classList.toggle('active', isNowCompleted);
+            completeBtn.textContent = isNowCompleted ? '완료됨' : '완료 체크';
+        }
+    }
+
+    if (state.closeOnComplete && isNowCompleted && target && target.marker.isPopupOpen()) {
         target.marker.closePopup();
-    } else if (target && target.marker.isPopupOpen()) {
-        const item = state.mapData.items.find(i => i.id === id);
-        target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
     }
     if (state.hideCompleted) updateMapVisibility();
 };
@@ -41,13 +48,19 @@ export const toggleCompleted = (id) => {
 export const toggleFavorite = (id) => {
     const index = state.favorites.indexOf(id);
     const target = state.allMarkers.find(m => m.id === id);
-    if (index === -1) state.favorites.push(id);
+    const isNowFavorite = index === -1;
+
+    if (isNowFavorite) state.favorites.push(id);
     else state.favorites.splice(index, 1);
     localStorage.setItem('wwm_favorites', JSON.stringify(state.favorites));
     renderFavorites();
-    if (target && target.marker.isPopupOpen()) {
-        const item = state.mapData.items.find(i => i.id === id);
-        target.marker.setPopupContent(createPopupHtml(item, target.marker.getLatLng().lat, target.marker.getLatLng().lng, target.region));
+    const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
+    if (popupContainer) {
+        const favBtn = popupContainer.querySelector('.btn-fav');
+        if (favBtn) {
+            favBtn.classList.toggle('active', isNowFavorite);
+            favBtn.textContent = isNowFavorite ? '★' : '☆';
+        }
     }
 };
 

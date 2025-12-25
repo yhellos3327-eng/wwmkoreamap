@@ -1,5 +1,3 @@
-// notice/updates.js - 시스템/번역 업데이트 관련 기능
-
 import { systemUpdates, translationUpdates } from '../config.js';
 import { db } from '../firebase-config.js';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, updateDoc, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";

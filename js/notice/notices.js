@@ -1,5 +1,3 @@
-// notice/notices.js - 공지사항 관련 기능
-
 import { noticeData } from '../config.js';
 import { db } from '../firebase-config.js';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";

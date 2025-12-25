@@ -1,5 +1,3 @@
-// notice/state.js - 상태 관리
-
 export let currentNoticeId = null;
 export let currentPostId = null;
 export let currentReportId = null;

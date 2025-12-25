@@ -3,6 +3,10 @@
     filter: grayscale(100%) !important;
 }
 
+.completed-marker.blue-overlay {
+    filter: grayscale(100%) !important;
+}
+
 .region-label {
     background: transparent;
     border: none;

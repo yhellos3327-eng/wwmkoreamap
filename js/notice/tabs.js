@@ -1,5 +1,3 @@
-// notice/tabs.js - 탭 관련 기능
-
 export const initTabs = () => {
     const tabs = document.querySelectorAll('.board-tab');
     const contents = document.querySelectorAll('.board-content');

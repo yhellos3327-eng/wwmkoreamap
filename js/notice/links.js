@@ -1,5 +1,3 @@
-// notice/links.js - 링크 관련 기능
-
 import { usefulLinks } from '../config.js';
 
 export const renderLinks = () => {

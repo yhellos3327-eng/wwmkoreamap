@@ -1,5 +1,3 @@
-// notice/freeboard.js - 자유게시판 관련 기능
-
 import { db } from '../firebase-config.js';
 import { collection, addDoc, getDocs, query, orderBy, serverTimestamp, doc, deleteDoc, limit } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { isAdmin, currentPostId, setCurrentPostId } from './state.js';
