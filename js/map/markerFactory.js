@@ -5,6 +5,8 @@ import { markerPool } from './MarkerPool.js';
 import { createPopupHtml } from './popup.js';
 import { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.js';
 import { logMarkerDebugInfo } from './markerDebug.js';
+import { toggleCompleted } from '../ui.js';
+import { loadComments } from '../comments.js';
 
 let regionPolygonsCache = [];
 
@@ -101,7 +103,7 @@ export const createMarkerForItem = (item) => {
     marker.on('contextmenu', (e) => {
         e.originalEvent.preventDefault();
         if (marker.isPopupOpen()) marker.closePopup();
-        window.toggleCompleted(item.id);
+        toggleCompleted(item.id);
     });
 
     if (isCompleted && completedItem.completedAt) {
@@ -115,7 +117,7 @@ export const createMarkerForItem = (item) => {
 
     marker.on('popupopen', () => {
         hideCompletedTooltip();
-        if (window.loadComments) window.loadComments(item.id);
+        if (loadComments) loadComments(item.id);
     });
 
     marker.bindPopup(() => createPopupHtml(item, lat, lng, finalRegionName));

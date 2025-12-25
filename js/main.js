@@ -17,26 +17,7 @@ import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
 import './comments.js';
 
-window.toggleSidebar = toggleSidebar;
-window.openLightbox = openLightbox;
-window.switchImage = switchImage;
-window.switchLightbox = switchLightbox;
-window.openVideoLightbox = openVideoLightbox;
-window.closeVideoLightbox = closeVideoLightbox;
-window.viewFullImage = viewFullImage;
-window.closeLightbox = closeLightbox;
-window.translateItem = translateItem;
-window.jumpToId = jumpToId;
-window.findItem = findItem;
-window.expandRelated = expandRelated;
-window.openRelatedModal = openRelatedModal;
-window.closeModal = closeModal;
-window.renderModalList = renderModalList;
-window.toggleCompleted = toggleCompleted;
-window.toggleFavorite = toggleFavorite;
-window.shareLocation = shareLocation;
-window.moveToLocation = moveToLocation;
-window.enableDevMode = enableDevMode;
+// Global assignments removed for modularity
 
 const handleUrlParams = () => {
     const urlParams = new URLSearchParams(window.location.search);

@@ -39,5 +39,8 @@ export {
     shareLocation,
     expandRelated,
     jumpToId,
-    findItem
+    findItem,
+    openReportPage
 } from './ui/navigation.js';
+
+export { translateItem } from './translation.js';

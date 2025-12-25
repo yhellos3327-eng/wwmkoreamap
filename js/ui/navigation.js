@@ -175,3 +175,24 @@ export const findItem = (id) => {
         }
     }, 100);
 };
+
+export const openReportPage = (itemId) => {
+    const item = state.allMarkers.find(m => m.id === itemId);
+    if (item) {
+        const reportData = {
+            id: item.id,
+            name: item.originalName,
+            category: item.category,
+            region: item.region,
+            description: item.desc,
+            lat: item.lat,
+            lng: item.lng,
+            map: state.currentMapKey
+        };
+        localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
+        window.open('notice.html#report', '_blank');
+    } else {
+        // Fallback if item not found in markers (e.g. direct call)
+        window.open(`report.html?id=${itemId}`, '_blank');
+    }
+};

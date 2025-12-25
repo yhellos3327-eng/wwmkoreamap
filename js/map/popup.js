@@ -1,6 +1,18 @@
 import { state } from '../state.js';
 import { t, getJosa } from '../utils.js';
 import { formatCompletedTime } from '../ui/navigation.js';
+import {
+    openLightbox,
+    openVideoLightbox,
+    switchImage,
+    translateItem,
+    openRelatedModal,
+    toggleFavorite,
+    toggleCompleted,
+    shareLocation,
+    openReportPage
+} from '../ui.js';
+import { toggleStickerModal, submitAnonymousComment } from '../comments.js';
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
@@ -243,41 +255,41 @@ export const initPopupEventDelegation = () => {
 
         switch (action) {
             case 'lightbox':
-                window.openLightbox(parseInt(itemId), parseInt(target.dataset.index));
+                openLightbox(parseInt(itemId), parseInt(target.dataset.index));
                 break;
             case 'video-lightbox':
-                window.openVideoLightbox(target.dataset.src);
+                openVideoLightbox(target.dataset.src);
                 break;
             case 'switch-image':
-                window.switchImage(target, parseInt(target.dataset.dir));
+                switchImage(target, parseInt(target.dataset.dir));
                 break;
             case 'translate':
-                window.translateItem(parseInt(itemId));
+                translateItem(parseInt(itemId));
                 break;
             case 'open-modal':
-                window.openRelatedModal(target.dataset.category);
+                openRelatedModal(target.dataset.category);
                 break;
             case 'toggle-guide':
                 document.getElementById(target.dataset.target)?.classList.toggle('hidden');
                 break;
             case 'toggle-sticker':
-                window.toggleStickerModal(parseInt(itemId));
+                toggleStickerModal(parseInt(itemId));
                 break;
             case 'toggle-fav':
-                window.toggleFavorite(parseInt(itemId));
+                toggleFavorite(parseInt(itemId));
                 break;
             case 'toggle-complete':
-                window.toggleCompleted(parseInt(itemId));
+                toggleCompleted(parseInt(itemId));
                 break;
             case 'share':
                 if (popupContainer) {
                     const lat = popupContainer.dataset.lat;
                     const lng = popupContainer.dataset.lng;
-                    window.shareLocation(parseInt(itemId), parseFloat(lat), parseFloat(lng));
+                    shareLocation(parseInt(itemId), parseFloat(lat), parseFloat(lng));
                 }
                 break;
             case 'report':
-                window.openReportPage(parseInt(itemId));
+                openReportPage(parseInt(itemId));
                 break;
         }
     });
@@ -288,8 +300,8 @@ export const initPopupEventDelegation = () => {
         if (form) {
             e.preventDefault();
             const itemId = form.dataset.itemId;
-            if (itemId && window.submitAnonymousComment) {
-                window.submitAnonymousComment(e, parseInt(itemId));
+            if (itemId && submitAnonymousComment) {
+                submitAnonymousComment(e, parseInt(itemId));
             }
         }
     });

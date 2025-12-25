@@ -1,3 +1,5 @@
+import { openLightbox } from './ui.js';
+
 export const loadExternalContent = async (url, container) => {
     if (!url || !container) return;
     container.innerHTML = `
@@ -147,6 +149,19 @@ const processJsonData = (data, id, container, origin) => {
     contentDiv.className = 'quest-detail-container';
     contentDiv.innerHTML = html;
 
+    // Attach click handlers to images
+    const images = contentDiv.querySelectorAll('img');
+    images.forEach(img => {
+        img.style.cursor = 'pointer';
+        img.onclick = () => {
+            if (openLightbox) {
+                openLightbox(img.src);
+            } else {
+                window.open(img.src, '_blank');
+            }
+        };
+    });
+
     const sourceDiv = document.createElement('div');
     sourceDiv.style.cssText = "margin-top:40px;padding-top:20px;border-top:1px dashed #444;display:flex;justify-content:space-between;align-items:center;color:var(--wuxia-text-sub);font-size:0.9em";
 
@@ -185,13 +200,13 @@ const formatChunjiItem = (item, origin) => {
         
         <h3>획득 방법</h3>
         <p>${item.get || '정보 없음'}</p>
-        ${getImg1 ? `<div class="wuxia-image-container"><img src="${getImg1}" onclick="window.openLightbox(this.src)"></div>` : ''}
-        ${getImg2 ? `<div class="wuxia-image-container"><img src="${getImg2}" onclick="window.openLightbox(this.src)"></div>` : ''}
+        ${getImg1 ? `<div class="wuxia-image-container"><img src="${getImg1}"></div>` : ''}
+        ${getImg2 ? `<div class="wuxia-image-container"><img src="${getImg2}"></div>` : ''}
 
         <h3>해독 방법</h3>
         <p>${item.dsec || '정보 없음'}</p>
-        ${dsecImg1 ? `<div class="wuxia-image-container"><img src="${dsecImg1}" onclick="window.openLightbox(this.src)"></div>` : ''}
-        ${dsecImg2 ? `<div class="wuxia-image-container"><img src="${dsecImg2}" onclick="window.openLightbox(this.src)"></div>` : ''}
+        ${dsecImg1 ? `<div class="wuxia-image-container"><img src="${dsecImg1}"></div>` : ''}
+        ${dsecImg2 ? `<div class="wuxia-image-container"><img src="${dsecImg2}"></div>` : ''}
     `;
 };
 
@@ -280,8 +295,8 @@ const parseAndInject = (htmlString, container, originalUrl) => {
 
         img.style.cursor = 'pointer';
         img.onclick = () => {
-            if (window.openLightbox) {
-                window.openLightbox(img.src);
+            if (openLightbox) {
+                openLightbox(img.src);
             } else {
                 window.open(img.src, '_blank');
             }

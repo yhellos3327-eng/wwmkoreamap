@@ -336,7 +336,7 @@ const STICKERS = [
     "https://cdn.discordapp.com/emojis/1448731853602291835.webp?size=256",
 ];
 
-const toggleStickerModal = (itemId) => {
+export const toggleStickerModal = (itemId) => {
     const modal = document.getElementById(`sticker-modal-${itemId}`);
     const grid = document.getElementById(`sticker-grid-${itemId}`);
 
@@ -471,10 +471,7 @@ const processCommentText = (text) => {
     return processed;
 }
 
-window.submitAnonymousComment = submitAnonymousComment;
-window.loadComments = loadComments;
-window.toggleStickerModal = toggleStickerModal;
-window.selectSticker = selectSticker;
+// Global assignments removed
 
 const showReplyForm = (itemId, parentId) => {
     document.querySelectorAll('.reply-form-container').forEach(el => {
