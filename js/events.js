@@ -1,9 +1,6 @@
 import { state } from './state.js';
 import { toggleSidebar, setAllCategories, setAllRegions, closeModal, closeLightbox, switchLightbox, renderContributionModal } from './ui.js';
 
-/**
- * 탭 전환 초기화
- */
 export const initTabs = () => {
     const tabs = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
@@ -21,9 +18,6 @@ export const initTabs = () => {
     });
 };
 
-/**
- * 토글 버튼 초기화 (카테고리/지역)
- */
 export const initToggleButtons = () => {
     const btnToggleCat = document.getElementById('btn-toggle-cat');
     const btnToggleReg = document.getElementById('btn-toggle-reg');
@@ -44,9 +38,6 @@ export const initToggleButtons = () => {
     }
 };
 
-/**
- * 사이드바 토글 초기화
- */
 export const initSidebarToggle = () => {
     const openBtn = document.getElementById('open-sidebar');
     const closeBtn = document.getElementById('toggle-sidebar');
@@ -67,9 +58,6 @@ export const initSidebarToggle = () => {
     });
 };
 
-/**
- * 관련 항목 모달 이벤트 초기화
- */
 export const initRelatedModal = () => {
     const relatedModal = document.getElementById('related-modal');
     if (relatedModal) {
@@ -79,9 +67,6 @@ export const initRelatedModal = () => {
     }
 };
 
-/**
- * GitHub 모달 초기화
- */
 export const initGithubModal = () => {
     const githubModal = document.getElementById('github-modal');
     const openGithubModalBtn = document.getElementById('open-github-modal');
@@ -94,9 +79,6 @@ export const initGithubModal = () => {
     }
 };
 
-/**
- * 키보드 이벤트 초기화
- */
 export const initKeyboardEvents = () => {
     document.addEventListener('keydown', (e) => {
         const lightbox = document.getElementById('lightbox-modal');
@@ -112,9 +94,6 @@ export const initKeyboardEvents = () => {
     });
 };
 
-/**
- * 전역 data-action 이벤트 위임 핸들러
- */
 export const initGlobalEventDelegation = () => {
     document.addEventListener('click', (e) => {
         const target = e.target.closest('[data-action]');
@@ -152,9 +131,6 @@ export const initGlobalEventDelegation = () => {
     });
 };
 
-/**
- * 모든 이벤트 핸들러 초기화
- */
 export const initAllEventHandlers = () => {
     initTabs();
     initToggleButtons();

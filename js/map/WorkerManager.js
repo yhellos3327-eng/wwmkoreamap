@@ -44,7 +44,6 @@ class MapWorkerManager {
 
     updateFilters(filters) {
         if (!this.worker) return;
-        // filters: { activeCategories, activeRegionNames, completedList, hideCompleted }
         const payload = {};
         if (filters.activeCategories) payload.activeCategories = Array.from(filters.activeCategories);
         if (filters.activeRegionNames) payload.activeRegionNames = Array.from(filters.activeRegionNames);

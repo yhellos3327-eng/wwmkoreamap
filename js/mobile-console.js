@@ -1,13 +1,7 @@
-/**
- * Mobile Console for Debugging
- * Activates when 'debug' parameter is present in URL
- */
-
 (function () {
     const urlParams = new URLSearchParams(window.location.search);
     if (!urlParams.has('debug')) return;
 
-    // Load CSS
     const link = document.createElement('link');
     link.rel = 'stylesheet';
     link.href = 'css/mobile-console.css';

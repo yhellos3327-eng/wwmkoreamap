@@ -18,16 +18,11 @@ export const initLazyLoading = async () => {
     const items = state.mapData.items;
 
     if (webWorkerManager.isSupported) {
-        // Use Transferable Objects for better performance
-        // Note: We can't transfer the items array directly as it's used elsewhere,
-        // so we rely on structured clone (default) or if we want to transfer, we need to copy.
-        // For now, let's just pass it.
         const result = await webWorkerManager.buildSpatialIndex(items);
         if (result && result.success) {
             logger.success('LazyLoading', `워커 공간 인덱스 생성 완료: ${result.count} items`);
         }
     } else {
-        // Fallback to main thread index
         spatialIndex.buildIndex(items);
         const stats = spatialIndex.getStats();
         logger.success('LazyLoading', `공간 인덱스 생성 (메인 스레드): ${stats.totalItems} items in ${stats.cellCount} cells`);
@@ -94,7 +89,7 @@ const renderAllMarkersForClustering = () => {
 };
 
 export const updateViewportMarkers = () => {
-    if (!state.map || state.enableClustering) return;
+    if (!state.map || state.enableClustering || state.isDragging) return;
 
     if (debounceTimer) clearTimeout(debounceTimer);
 
@@ -121,9 +116,15 @@ const performViewportUpdate = async () => {
         visibleItems = spatialIndex.getItemsInBounds(bounds, VIEWPORT_PADDING);
     }
 
-    let addedCount = 0;
+    renderMarkersInChunks(visibleItems, visibleMarkerIds, newVisibleIds, 0);
+};
 
-    visibleItems.forEach(item => {
+const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, startIndex) => {
+    let addedCount = 0;
+    let currentIndex = startIndex;
+
+    while (currentIndex < visibleItems.length && addedCount < MAX_MARKERS_PER_FRAME) {
+        const item = visibleItems[currentIndex];
         const existingMarker = state.allMarkers.find(m => m.id === item.id);
 
         if (existingMarker) {
@@ -132,33 +133,31 @@ const performViewportUpdate = async () => {
                 state.map.addLayer(existingMarker.marker);
             }
         } else {
-            if (addedCount < MAX_MARKERS_PER_FRAME) {
-                const markerData = createMarkerForItem(item);
-                if (markerData) {
-                    newVisibleIds.add(item.id);
-                    state.allMarkers.push(markerData.markerInfo);
-                    state.map.addLayer(markerData.marker);
-                    addedCount++;
+            const markerData = createMarkerForItem(item);
+            if (markerData) {
+                newVisibleIds.add(item.id);
+                state.allMarkers.push(markerData.markerInfo);
+                state.map.addLayer(markerData.marker);
+                addedCount++;
+            }
+        }
+        currentIndex++;
+    }
+
+    if (currentIndex < visibleItems.length) {
+        requestAnimationFrame(() => {
+            renderMarkersInChunks(visibleItems, oldVisibleIds, newVisibleIds, currentIndex);
+        });
+    } else {
+        oldVisibleIds.forEach(id => {
+            if (!newVisibleIds.has(id)) {
+                const markerInfo = state.allMarkers.find(m => m.id === id);
+                if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
+                    state.map.removeLayer(markerInfo.marker);
                 }
             }
-        }
-    });
-
-    visibleMarkerIds.forEach(id => {
-        if (!newVisibleIds.has(id)) {
-            const markerInfo = state.allMarkers.find(m => m.id === id);
-            if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
-                state.map.removeLayer(markerInfo.marker);
-            }
-        }
-    });
-
-    setState('visibleMarkerIds', newVisibleIds);
-
-    if (addedCount >= MAX_MARKERS_PER_FRAME) {
-        requestAnimationFrame(() => {
-            performViewportUpdate();
         });
+        setState('visibleMarkerIds', newVisibleIds);
     }
 };
 

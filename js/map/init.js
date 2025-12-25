@@ -26,15 +26,16 @@ export const initMap = (mapKey) => {
         setState('map', map);
         L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-        map.on('moveend', () => {
-            if (state.enableClustering) {
-                updateMapVisibility();
-            } else {
-                updateViewportMarkers();
-            }
-        });
-
         map.on('zoomend', () => {
+            const zoom = map.getZoom();
+            const mapContainer = map.getContainer();
+
+            if (zoom < 4) {
+                mapContainer.classList.add('low-quality-mode');
+            } else {
+                mapContainer.classList.remove('low-quality-mode');
+            }
+
             if (state.enableClustering) {
                 updateMapVisibility();
             } else {
@@ -43,8 +44,16 @@ export const initMap = (mapKey) => {
         });
 
         map.on('movestart', () => {
-            // Lazy loading 모드에서는 이동 시작 시 특별한 처리 불필요
-            // 마커는 moveend에서 뷰포트 기반으로 관리됨
+            setState('isDragging', true);
+        });
+
+        map.on('moveend', () => {
+            setState('isDragging', false);
+            if (state.enableClustering) {
+                updateMapVisibility();
+            } else {
+                updateViewportMarkers();
+            }
         });
 
         map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });

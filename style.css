@@ -7,3 +7,19 @@
 @import 'css/loading.css';
 @import 'css/responsive.css';
 @import 'css/overlay-mode.css';
+
+/* Low Quality Mode for Performance Optimization */
+.leaflet-container.low-quality-mode .game-marker-icon {
+    transform: scale(0.6) !important;
+    /* Scale down to 60% */
+    image-rendering: optimizeSpeed;
+    /* Prioritize speed over quality */
+    transition: transform 0.2s ease;
+    /* Smooth transition */
+}
+
+.leaflet-container.low-quality-mode .game-marker-icon:hover {
+    transform: scale(0.8) !important;
+    /* Slightly larger on hover */
+    z-index: 1000 !important;
+}
