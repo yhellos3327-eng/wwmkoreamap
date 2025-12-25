@@ -1,3 +1,6 @@
+import { logger } from './logger.js';
+import { ACTIONS } from './actions.js';
+
 const state = {
     currentMapKey: 'qinghe',
     currentTileLayer: null,
@@ -62,14 +65,7 @@ export const subscribe = (key, callback) => {
 };
 
 export const notify = (key, value, oldValue) => {
-    import('./logger.js').then(({ logger }) => {
-        logger.stateChange(key, oldValue, value);
-    }).catch(() => {
-        console.groupCollapsed(`%c🔄 [Pub/Sub] 상태 변경: ${key}`, "font-size: 12px; font-weight: bold; color: #4CAF50; background: #222; padding: 3px 6px; border-radius: 3px;");
-        console.log(`이전 값:`, oldValue);
-        console.log(`새로운 값:`, value);
-        console.groupEnd();
-    });
+    logger.stateChange(key, oldValue, value);
 
     if (listeners[key]) {
         listeners[key].forEach(callback => callback(value));
@@ -95,6 +91,47 @@ export const getState = (key) => {
 
 export const updateState = (updates) => {
     Object.assign(stateProxy, updates);
+};
+
+export const setDeep = (path, value) => {
+    const keys = path.split('.');
+    let current = stateProxy;
+    for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+    }
+    const lastKey = keys[keys.length - 1];
+    const oldValue = current[lastKey];
+    current[lastKey] = value;
+    notify(keys[0], stateProxy[keys[0]], stateProxy[keys[0]]);
+};
+
+export const dispatch = (actionType, payload) => {
+    logger.log('State', `Dispatching Action: ${actionType}`, payload);
+
+    switch (actionType) {
+        case ACTIONS.SET_MAP:
+            setState('currentMapKey', payload);
+            break;
+        case ACTIONS.SET_LOADING_STATE:
+            setState('loadingState', { ...state.loadingState, ...payload });
+            break;
+        case ACTIONS.UPDATE_FILTER:
+            if (payload.type === 'category') {
+                if (payload.active) state.activeCategoryIds.add(payload.id);
+                else state.activeCategoryIds.delete(payload.id);
+                notify('activeCategoryIds', state.activeCategoryIds, state.activeCategoryIds);
+            } else if (payload.type === 'region') {
+                if (payload.active) state.activeRegionNames.add(payload.id);
+                else state.activeRegionNames.delete(payload.id);
+                notify('activeRegionNames', state.activeRegionNames, state.activeRegionNames);
+            }
+            break;
+        case ACTIONS.SET_DEV_MODE:
+            setState('isDevMode', payload);
+            break;
+        default:
+            console.warn(`Unknown action type: ${actionType}`);
+    }
 };
 
 export { stateProxy as state };
