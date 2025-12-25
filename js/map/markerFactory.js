@@ -93,6 +93,7 @@ export const createMarkerForItem = (item) => {
     marker.off('contextmenu');
     marker.off('mouseover');
     marker.off('mouseout');
+    marker.off('popupopen');
     marker.unbindPopup();
 
     marker.on('click', (e) => {

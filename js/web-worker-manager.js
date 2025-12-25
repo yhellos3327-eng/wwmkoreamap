@@ -55,7 +55,7 @@ class WebWorkerManager {
         return this.workers[name];
     }
 
-    async runTask(workerName, type, payload, timeout = 30000) {
+    async runTask(workerName, type, payload, transferList = [], timeout = 30000) {
         const worker = this.getWorker(workerName);
 
         if (!worker) {
@@ -83,7 +83,7 @@ class WebWorkerManager {
                 }
             });
 
-            worker.postMessage({ type, payload, taskId });
+            worker.postMessage({ type, payload, taskId }, transferList);
         });
     }
 

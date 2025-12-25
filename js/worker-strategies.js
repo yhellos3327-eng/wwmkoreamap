@@ -72,9 +72,20 @@ export class DataParsingStrategy extends TaskStrategy {
 }
 
 export class FilteringStrategy extends TaskStrategy {
+    constructor() {
+        super();
+        this.spatialIndex = null;
+    }
+
     execute(type, payload) {
         switch (type) {
+            case 'BUILD_SPATIAL_INDEX':
+                this.buildSpatialIndex(payload.items, payload.cellSize);
+                return { success: true, count: payload.items.length };
             case 'FILTER_BY_BOUNDS':
+                if (this.spatialIndex) {
+                    return this.spatialIndex.getItemsInBounds(payload.bounds, payload.padding);
+                }
                 return this.filterByBounds(payload.items, payload.bounds, payload.padding);
             case 'FILTER_BY_CATEGORY':
                 return payload.items.filter(item =>
@@ -90,6 +101,11 @@ export class FilteringStrategy extends TaskStrategy {
             default:
                 throw new Error(`Unknown filtering task: ${type}`);
         }
+    }
+
+    buildSpatialIndex(items, cellSize = 0.05) {
+        this.spatialIndex = new SpatialIndex(cellSize);
+        this.spatialIndex.buildIndex(items);
     }
 
     filterByBounds(items, bounds, padding = 0) {
@@ -113,5 +129,65 @@ export class FilteringStrategy extends TaskStrategy {
             const desc = (item.description || '').toLowerCase();
             return name.includes(term) || desc.includes(term);
         });
+    }
+}
+
+class SpatialIndex {
+    constructor(cellSize = 0.05) {
+        this.cellSize = cellSize;
+        this.grid = new Map();
+    }
+
+    getCellKey(lat, lng) {
+        const cellX = Math.floor(lng / this.cellSize);
+        const cellY = Math.floor(lat / this.cellSize);
+        return `${cellX},${cellY}`;
+    }
+
+    add(item) {
+        const lat = parseFloat(item.x);
+        const lng = parseFloat(item.y);
+        if (isNaN(lat) || isNaN(lng)) return;
+
+        const key = this.getCellKey(lat, lng);
+        if (!this.grid.has(key)) {
+            this.grid.set(key, []);
+        }
+        this.grid.get(key).push(item);
+    }
+
+    buildIndex(items) {
+        this.grid.clear();
+        items.forEach(item => this.add(item));
+    }
+
+    getItemsInBounds(bounds, padding = 0) {
+        const swLat = bounds.south - padding;
+        const swLng = bounds.west - padding;
+        const neLat = bounds.north + padding;
+        const neLng = bounds.east + padding;
+
+        const minCellX = Math.floor(swLng / this.cellSize);
+        const maxCellX = Math.floor(neLng / this.cellSize);
+        const minCellY = Math.floor(swLat / this.cellSize);
+        const maxCellY = Math.floor(neLat / this.cellSize);
+
+        const items = [];
+        for (let x = minCellX; x <= maxCellX; x++) {
+            for (let y = minCellY; y <= maxCellY; y++) {
+                const cellKey = `${x},${y}`;
+                const cellItems = this.grid.get(cellKey);
+                if (cellItems) {
+                    for (const item of cellItems) {
+                        const lat = parseFloat(item.x);
+                        const lng = parseFloat(item.y);
+                        if (lat >= swLat && lat <= neLat && lng >= swLng && lng <= neLng) {
+                            items.push(item);
+                        }
+                    }
+                }
+            }
+        }
+        return items;
     }
 }

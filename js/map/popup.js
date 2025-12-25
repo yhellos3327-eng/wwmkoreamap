@@ -196,13 +196,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 
     const contentId = `popup-content-${item.id}`;
 
-    if (isExternalContent) {
-        setTimeout(() => {
-            const container = document.getElementById(contentId);
-            if (container) {
-            }
-        }, 100);
-    }
+
 
     const bodyContent = isExternalContent
         ? `<div id="${contentId}"></div>`
@@ -294,7 +288,6 @@ export const initPopupEventDelegation = () => {
         }
     });
 
-    // 폼 제출 이벤트 위임
     document.addEventListener('submit', (e) => {
         const form = e.target.closest('.comment-form');
         if (form) {

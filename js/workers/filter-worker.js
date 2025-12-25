@@ -26,7 +26,6 @@ const filterByRegion = (items, activeRegionNames) => {
 
 const filterCompleted = (items, completedList, hideCompleted) => {
     if (!hideCompleted) return items;
-    // completedList가 객체 배열일 수 있으므로 id 추출
     const completedIds = completedList.map(c => typeof c === 'object' ? c.id : c);
     const completedSet = new Set(completedIds);
     return items.filter(item => !completedSet.has(item.id));

@@ -5,6 +5,7 @@ import { renderRegionPolygons } from './regions.js';
 import { spatialIndex } from './SpatialIndex.js';
 import { logger } from '../logger.js';
 import { createMarkerForItem, setRegionPolygonsCache } from './markerFactory.js';
+import { webWorkerManager } from '../web-worker-manager.js';
 
 export { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.js';
 
@@ -13,9 +14,24 @@ const DEBOUNCE_DELAY = 100;
 const VIEWPORT_PADDING = 0.3;
 const MAX_MARKERS_PER_FRAME = 50;
 
-export const initLazyLoading = () => {
+export const initLazyLoading = async () => {
     const items = state.mapData.items;
-    spatialIndex.buildIndex(items);
+
+    if (webWorkerManager.isSupported) {
+        // Use Transferable Objects for better performance
+        // Note: We can't transfer the items array directly as it's used elsewhere,
+        // so we rely on structured clone (default) or if we want to transfer, we need to copy.
+        // For now, let's just pass it.
+        const result = await webWorkerManager.buildSpatialIndex(items);
+        if (result && result.success) {
+            logger.success('LazyLoading', `워커 공간 인덱스 생성 완료: ${result.count} items`);
+        }
+    } else {
+        // Fallback to main thread index
+        spatialIndex.buildIndex(items);
+        const stats = spatialIndex.getStats();
+        logger.success('LazyLoading', `공간 인덱스 생성 (메인 스레드): ${stats.totalItems} items in ${stats.cellCount} cells`);
+    }
 
     const filteredRegions = state.regionData;
     const regionPolygonsCache = renderRegionPolygons(filteredRegions);
@@ -26,12 +42,9 @@ export const initLazyLoading = () => {
         const region = item.forceRegion || item.region || "알 수 없음";
         state.uniqueRegions.add(region);
     });
-
-    const stats = spatialIndex.getStats();
-    logger.success('LazyLoading', `공간 인덱스 생성: ${stats.totalItems} items in ${stats.cellCount} cells`);
 };
 
-export const renderMapDataAndMarkers = () => {
+export const renderMapDataAndMarkers = async () => {
     if (state.markerClusterGroup) {
         state.markerClusterGroup.clearLayers();
     }
@@ -49,7 +62,7 @@ export const renderMapDataAndMarkers = () => {
     setState('pendingMarkers', []);
     setState('visibleMarkerIds', new Set());
 
-    initLazyLoading();
+    await initLazyLoading();
 
     if (state.enableClustering) {
         renderAllMarkersForClustering();
@@ -90,12 +103,23 @@ export const updateViewportMarkers = () => {
     }, DEBOUNCE_DELAY);
 };
 
-const performViewportUpdate = () => {
+const performViewportUpdate = async () => {
     const bounds = state.map.getBounds();
     const visibleMarkerIds = state.visibleMarkerIds || new Set();
     const newVisibleIds = new Set();
 
-    const visibleItems = spatialIndex.getItemsInBounds(bounds, VIEWPORT_PADDING);
+    let visibleItems = [];
+
+    if (webWorkerManager.isSupported) {
+        visibleItems = await webWorkerManager.filterByBounds(state.mapData.items, {
+            south: bounds.getSouth(),
+            north: bounds.getNorth(),
+            west: bounds.getWest(),
+            east: bounds.getEast()
+        }, VIEWPORT_PADDING);
+    } else {
+        visibleItems = spatialIndex.getItemsInBounds(bounds, VIEWPORT_PADDING);
+    }
 
     let addedCount = 0;
 
