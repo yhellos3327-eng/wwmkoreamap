@@ -273,8 +273,7 @@
         <div class="modal-content github-modal-content">
             <div class="modal-header">
                 <h3 id="github-modal-title">기여하기</h3>
-                <button class="close-modal-btn"
-                    onclick="document.getElementById('github-modal').classList.add('hidden')">&times;</button>
+                <button class="close-modal-btn" data-action="close-github-modal">&times;</button>
             </div>
             <div class="modal-body" style="padding: 30px;">
                 <div class="github-intro">
@@ -297,7 +296,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h3 id="modal-title">관련 항목</h3>
-                <button class="close-modal-btn" onclick="closeModal()">&times;</button>
+                <button class="close-modal-btn" data-action="close-related-modal">&times;</button>
             </div>
             <div class="modal-search">
                 <input type="text" id="modal-search-input" placeholder="리스트 내 검색...">
@@ -313,8 +312,7 @@
         <div class="modal-content">
             <div class="modal-header" style="border-bottom: 1px solid var(--accent);">
                 <h3 style="color: var(--accent);">🛠️ 데이터 추가 도구</h3>
-                <button class="close-modal-btn"
-                    onclick="document.getElementById('dev-modal').classList.add('hidden')">&times;</button>
+                <button class="close-modal-btn" data-action="close-dev-modal">&times;</button>
             </div>
             <div class="modal-body" style="padding: 20px;">
                 <form id="dev-form" style="display: flex; flex-direction: column; gap: 10px;">
@@ -384,17 +382,17 @@
         </div>
     </div>
 
-    <div id="lightbox-modal" class="modal-overlay hidden" onclick="closeLightbox()">
-        <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
-        <button class="lightbox-nav prev" onclick="event.stopPropagation(); switchLightbox(-1)">❮</button>
-        <button class="lightbox-nav next" onclick="event.stopPropagation(); switchLightbox(1)">❯</button>
-        <div id="lightbox-media-container" class="lightbox-content" onclick="event.stopPropagation()"
+    <div id="lightbox-modal" class="modal-overlay hidden" data-action="close-lightbox">
+        <span class="lightbox-close" data-action="close-lightbox">&times;</span>
+        <button class="lightbox-nav prev" data-action="switch-lightbox" data-dir="-1">❮</button>
+        <button class="lightbox-nav next" data-action="switch-lightbox" data-dir="1">❯</button>
+        <div id="lightbox-media-container" class="lightbox-content" data-action="stop-propagation"
             style="display: flex; justify-content: center; align-items: center; width: 100%; height: 100%;"></div>
     </div>
 
-    <div id="video-lightbox-modal" class="modal-overlay hidden" onclick="closeVideoLightbox()">
-        <span class="lightbox-close" onclick="closeVideoLightbox()">&times;</span>
-        <div class="video-lightbox-content" onclick="event.stopPropagation()">
+    <div id="video-lightbox-modal" class="modal-overlay hidden" data-action="close-video-lightbox">
+        <span class="lightbox-close" data-action="close-video-lightbox">&times;</span>
+        <div class="video-lightbox-content" data-action="stop-propagation">
             <iframe id="lightbox-video-frame" frameborder="0" allowfullscreen allow="autoplay"></iframe>
         </div>
     </div>

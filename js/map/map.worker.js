@@ -79,7 +79,10 @@ self.onmessage = function (e) {
         case 'UPDATE_FILTERS':
             if (payload.activeCategories) activeCategories = new Set(payload.activeCategories);
             if (payload.activeRegionNames) activeRegionNames = new Set(payload.activeRegionNames);
-            if (payload.completedList) completedList = new Set(payload.completedList);
+            if (payload.completedList) {
+                const ids = payload.completedList.map(c => typeof c === 'object' ? c.id : c);
+                completedList = new Set(ids);
+            }
             if (typeof payload.hideCompleted !== 'undefined') hideCompleted = payload.hideCompleted;
             break;
 

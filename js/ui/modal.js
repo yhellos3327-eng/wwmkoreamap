@@ -32,7 +32,7 @@ export const renderModalList = (items) => {
         const displayRegion = m.forceRegion || m.region;
         let displayName = t(m.originalName || m.name);
         if (displayName) displayName = displayName.replace(/{region}/g, displayRegion);
-        const isDone = currComp.includes(m.id);
+        const isDone = currComp.some(c => (typeof c === 'object' ? c.id : c) === m.id);
         const statusHtml = isDone ? '<span class="modal-item-status">완료</span>' : '';
 
         const catObj = state.mapData.categories.find(c => c.id === m.category);

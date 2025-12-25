@@ -32,6 +32,21 @@
     border-color: var(--accent);
 }
 
+/* 완료 버튼 - 시간 표시와 함께 세로 정렬 */
+.action-btn.btn-complete {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+}
+
+.action-btn .completed-time {
+    display: block;
+    font-size: 0.65rem;
+    opacity: 0.75;
+    font-weight: normal;
+    color: rgba(255, 189, 83, 0.85);
+}
+
 .btn-report-styled {
     background: #d9534f;
     border: none;

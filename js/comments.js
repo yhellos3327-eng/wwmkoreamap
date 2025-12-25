@@ -220,7 +220,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
         const renderComment = (data, isReply = false) => {
             const date = data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
-            const replyBtn = isReply ? '' : `<button class="btn-reply" onclick="showReplyForm('${itemId}', '${data.id}')">↩ 답글</button>`;
+            const replyBtn = isReply ? '' : `<button class="btn-reply" data-action="show-reply" data-item-id="${itemId}" data-parent-id="${data.id}">↩ 답글</button>`;
 
             return `
                 <div class="comment-item ${isReply ? 'comment-reply' : ''}" data-id="${data.id}">
@@ -487,12 +487,12 @@ const showReplyForm = (itemId, parentId) => {
 
     container.style.display = 'block';
     container.innerHTML = `
-        <form class="reply-form" onsubmit="submitReply(event, '${itemId}', '${parentId}')">
+        <form class="reply-form" data-item-id="${itemId}" data-parent-id="${parentId}">
             <div class="reply-input-group">
                 <input type="text" class="reply-nickname" placeholder="닉네임" maxlength="10">
                 <input type="text" class="reply-input" placeholder="답글 입력..." maxlength="200" required>
                 <button type="submit" class="reply-submit">답글</button>
-                <button type="button" class="reply-cancel" onclick="hideReplyForm('${parentId}')">취소</button>
+                <button type="button" class="reply-cancel" data-action="hide-reply" data-parent-id="${parentId}">취소</button>
             </div>
         </form>
     `;
@@ -569,3 +569,31 @@ const submitReply = async (event, itemId, parentId) => {
 window.showReplyForm = showReplyForm;
 window.hideReplyForm = hideReplyForm;
 window.submitReply = submitReply;
+
+// 이벤트 위임 핸들러
+document.addEventListener('click', (e) => {
+    const target = e.target.closest('[data-action]');
+    if (!target) return;
+
+    const action = target.dataset.action;
+
+    switch (action) {
+        case 'show-reply':
+            e.stopPropagation();
+            showReplyForm(target.dataset.itemId, target.dataset.parentId);
+            break;
+        case 'hide-reply':
+            e.stopPropagation();
+            hideReplyForm(target.dataset.parentId);
+            break;
+    }
+});
+
+// 답글 폼 제출 이벤트 위임
+document.addEventListener('submit', (e) => {
+    const form = e.target.closest('.reply-form');
+    if (form && form.dataset.itemId && form.dataset.parentId) {
+        e.preventDefault();
+        submitReply(e, form.dataset.itemId, form.dataset.parentId);
+    }
+});

@@ -5,19 +5,32 @@ import { t } from '../utils.js';
 import { setAllRegions, updateToggleButtonsState } from './sidebar.js';
 import { renderFavorites } from './sidebar.js';
 import { logger } from '../logger.js';
+import { showCompletedTooltip, hideCompletedTooltip } from '../map/markers.js';
 
 export const toggleCompleted = (id) => {
-    const index = state.completedList.indexOf(id);
+    const index = state.completedList.findIndex(item => item.id === id);
     const target = state.allMarkers.find(m => m.id === id);
     const isNowCompleted = index === -1;
+    const completedAt = Date.now();
 
     if (isNowCompleted) {
-        state.completedList.push(id);
+        state.completedList.push({ id, completedAt });
         if (target) {
             if (target.marker._icon) target.marker._icon.classList.add('completed-marker');
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className += ' completed-marker';
             }
+            // 마커에 mouseover 이벤트 추가
+            const mouseoverHandler = (e) => {
+                showCompletedTooltip(e, id, target.originalName || target.name, completedAt);
+            };
+            const mouseoutHandler = () => {
+                hideCompletedTooltip();
+            };
+            target.marker._completedMouseover = mouseoverHandler;
+            target.marker._completedMouseout = mouseoutHandler;
+            target.marker.on('mouseover', mouseoverHandler);
+            target.marker.on('mouseout', mouseoutHandler);
         }
     } else {
         state.completedList.splice(index, 1);
@@ -26,6 +39,14 @@ export const toggleCompleted = (id) => {
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(' completed-marker', '');
             }
+            // 마커에서 mouseover 이벤트 제거
+            if (target.marker._completedMouseover) {
+                target.marker.off('mouseover', target.marker._completedMouseover);
+                target.marker.off('mouseout', target.marker._completedMouseout);
+                delete target.marker._completedMouseover;
+                delete target.marker._completedMouseout;
+            }
+            hideCompletedTooltip();
         }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
@@ -35,7 +56,15 @@ export const toggleCompleted = (id) => {
         const completeBtn = popupContainer.querySelector('.btn-complete');
         if (completeBtn) {
             completeBtn.classList.toggle('active', isNowCompleted);
-            completeBtn.textContent = isNowCompleted ? '완료됨' : '완료 체크';
+            if (isNowCompleted) {
+                const completedItem = state.completedList.find(item => item.id === id);
+                const timeStr = completedItem && completedItem.completedAt
+                    ? formatCompletedTime(completedItem.completedAt)
+                    : '';
+                completeBtn.innerHTML = `완료됨${timeStr ? `<span class="completed-time">${timeStr}</span>` : ''}`;
+            } else {
+                completeBtn.textContent = '완료 체크';
+            }
         }
     }
 
@@ -44,6 +73,29 @@ export const toggleCompleted = (id) => {
     }
     if (state.hideCompleted) updateMapVisibility();
 };
+
+// 완료 시간 포맷팅 함수
+const formatCompletedTime = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+        // 오늘이면 시:분 표시
+        return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    } else if (diffDays < 7) {
+        // 7일 이내면 'N일 전' 표시
+        return `${diffDays}일 전`;
+    } else {
+        // 그 이상이면 날짜 표시
+        return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
+    }
+};
+
+// 헬퍼 함수 내보내기 (popup.js에서 사용)
+export { formatCompletedTime };
 
 export const toggleFavorite = (id) => {
     const index = state.favorites.indexOf(id);

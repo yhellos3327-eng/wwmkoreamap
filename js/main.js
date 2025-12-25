@@ -14,6 +14,7 @@ import { initSettingsModal, initAdToggle } from './settings.js';
 import { initBackupButtons } from './backup.js';
 import { initSearch, initModalSearch } from './search.js';
 import { initAllEventHandlers } from './events.js';
+import { initPopupEventDelegation } from './map/popup.js';
 import './comments.js';
 
 window.toggleSidebar = toggleSidebar;
@@ -137,6 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         initSearch();
         initModalSearch(renderModalList);
         initAllEventHandlers();
+        initPopupEventDelegation();
         initSettingsModal();
         initBackupButtons();
         initAdToggle();

@@ -1,0 +1,63 @@
+/* 완료 마커 호버 시 미니 모달 */
+.completed-marker-tooltip {
+    position: fixed;
+    z-index: 10000;
+    background: linear-gradient(135deg, rgba(40, 40, 40, 0.98), rgba(30, 30, 30, 0.98));
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 14px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 189, 83, 0.2);
+    pointer-events: none;
+    opacity: 0;
+    transform: translateX(-50%) translateY(-100%) scale(0.9);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    min-width: 150px;
+    max-width: 280px;
+    backdrop-filter: blur(8px);
+}
+
+.completed-marker-tooltip.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(-100%) scale(1);
+}
+
+.completed-marker-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px;
+    height: 10px;
+    background: rgba(35, 35, 35, 0.98);
+    border-right: 1px solid var(--accent);
+    border-bottom: 1px solid var(--accent);
+}
+
+.completed-marker-tooltip .tooltip-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.completed-marker-tooltip .tooltip-check {
+    color: #4caf50;
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+.completed-marker-tooltip .tooltip-title {
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.completed-marker-tooltip .tooltip-time {
+    color: #aaa;
+    font-size: 0.75rem;
+    margin-left: 22px;
+}

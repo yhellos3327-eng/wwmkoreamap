@@ -113,6 +113,46 @@ export const initKeyboardEvents = () => {
 };
 
 /**
+ * 전역 data-action 이벤트 위임 핸들러
+ */
+export const initGlobalEventDelegation = () => {
+    document.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.dataset.action;
+
+        switch (action) {
+            case 'close-github-modal':
+                e.stopPropagation();
+                document.getElementById('github-modal')?.classList.add('hidden');
+                break;
+            case 'close-related-modal':
+                e.stopPropagation();
+                closeModal();
+                break;
+            case 'close-dev-modal':
+                e.stopPropagation();
+                document.getElementById('dev-modal')?.classList.add('hidden');
+                break;
+            case 'close-lightbox':
+                closeLightbox();
+                break;
+            case 'switch-lightbox':
+                e.stopPropagation();
+                switchLightbox(parseInt(target.dataset.dir));
+                break;
+            case 'close-video-lightbox':
+                import('./ui.js').then(ui => ui.closeVideoLightbox());
+                break;
+            case 'stop-propagation':
+                e.stopPropagation();
+                break;
+        }
+    });
+};
+
+/**
  * 모든 이벤트 핸들러 초기화
  */
 export const initAllEventHandlers = () => {
@@ -122,4 +162,5 @@ export const initAllEventHandlers = () => {
     initRelatedModal();
     initGithubModal();
     initKeyboardEvents();
+    initGlobalEventDelegation();
 };

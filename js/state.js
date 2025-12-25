@@ -12,7 +12,15 @@ const state = {
     activeRegionNames: new Set(),
     uniqueRegions: new Set(),
     itemsByCategory: {},
-    completedList: JSON.parse(localStorage.getItem('wwm_completed')) || [],
+    completedList: (() => {
+        const stored = JSON.parse(localStorage.getItem('wwm_completed')) || [];
+        if (stored.length > 0 && typeof stored[0] !== 'object') {
+            const migrated = stored.map(id => ({ id, completedAt: null }));
+            localStorage.setItem('wwm_completed', JSON.stringify(migrated));
+            return migrated;
+        }
+        return stored;
+    })(),
     favorites: JSON.parse(localStorage.getItem('wwm_favorites')) || [],
     categoryItemTranslations: {},
     currentModalList: [],

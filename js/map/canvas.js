@@ -139,7 +139,7 @@ export const renderMarkersOnCanvas = async (items) => {
     }
 
     const markersToAdd = [];
-    const completedSet = new Set(state.completedList);
+    const completedIds = new Set(state.completedList.map(c => c.id));
     const itemsToAdd = items.filter(item => !renderedMarkers.has(item.id));
 
     if (itemsToAdd.length > 0) {
@@ -156,7 +156,7 @@ export const renderMarkersOnCanvas = async (items) => {
             if (isNaN(lat) || isNaN(lng)) return;
 
             const icon = getIconForCategory(item.category);
-            const isCompleted = completedSet.has(item.id);
+            const isCompleted = completedIds.has(item.id);
 
             const marker = L.marker([lat, lng], {
                 icon: icon,
