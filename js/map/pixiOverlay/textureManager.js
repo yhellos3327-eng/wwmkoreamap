@@ -1,21 +1,10 @@
-/**
- * Texture Manager Module
- * Handles texture loading and caching for PixiOverlay
- */
-
 import { state } from '../../state.js';
 import { logger } from '../../logger.js';
 import { ICON_MAPPING } from '../../config.js';
 import { DEFAULT_ICON_URL } from './config.js';
 
-// Texture cache
 const textureCache = new Map();
 
-/**
- * Get icon URL for a category
- * @param {string} categoryId - The category ID
- * @returns {string|null} - The icon URL or null
- */
 export const getIconUrl = (categoryId) => {
     let finalCatId = categoryId;
     if (ICON_MAPPING && ICON_MAPPING.hasOwnProperty(categoryId)) {
@@ -33,11 +22,6 @@ export const getIconUrl = (categoryId) => {
     return DEFAULT_ICON_URL;
 };
 
-/**
- * Load a texture asynchronously with caching
- * @param {string} iconUrl - The URL of the icon to load
- * @returns {Promise<PIXI.Texture|null>} - The loaded texture or null
- */
 export const loadTexture = async (iconUrl) => {
     if (textureCache.has(iconUrl)) {
         return textureCache.get(iconUrl);
@@ -49,7 +33,6 @@ export const loadTexture = async (iconUrl) => {
         return texture;
     } catch (error) {
         logger.warn('TextureManager', `Failed to load texture: ${iconUrl}`);
-        // Try loading default icon
         if (iconUrl !== DEFAULT_ICON_URL && !textureCache.has(DEFAULT_ICON_URL)) {
             try {
                 const defaultTexture = await PIXI.Assets.load(DEFAULT_ICON_URL);
@@ -63,10 +46,6 @@ export const loadTexture = async (iconUrl) => {
     }
 };
 
-/**
- * Preload all unique textures from items
- * @param {Array} items - Array of map items
- */
 export const preloadTextures = async (items) => {
     const uniqueUrls = new Set();
 
@@ -77,7 +56,6 @@ export const preloadTextures = async (items) => {
         }
     });
 
-    // Add default icon
     uniqueUrls.add(DEFAULT_ICON_URL);
 
     const loadPromises = Array.from(uniqueUrls).map(url => loadTexture(url));
@@ -86,26 +64,14 @@ export const preloadTextures = async (items) => {
     logger.success('TextureManager', `Preloaded ${uniqueUrls.size} textures`);
 };
 
-/**
- * Get a cached texture
- * @param {string} url - The texture URL
- * @returns {PIXI.Texture|undefined} - The cached texture
- */
 export const getCachedTexture = (url) => {
     return textureCache.get(url);
 };
 
-/**
- * Get the default texture
- * @returns {PIXI.Texture|undefined} - The default texture
- */
 export const getDefaultTexture = () => {
     return textureCache.get(DEFAULT_ICON_URL);
 };
 
-/**
- * Clear all cached textures
- */
 export const clearTextureCache = () => {
     textureCache.forEach((texture) => {
         texture.destroy(true);
@@ -113,10 +79,6 @@ export const clearTextureCache = () => {
     textureCache.clear();
 };
 
-/**
- * Get texture cache size
- * @returns {number} - Number of cached textures
- */
 export const getTextureCacheSize = () => {
     return textureCache.size;
 };

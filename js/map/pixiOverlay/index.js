@@ -1,14 +1,5 @@
-/**
- * PixiOverlay GPU Rendering Module
- * Uses WebGL via Pixi.js for high-performance marker rendering
- * 
- * This is the main entry point that re-exports all public APIs
- */
-
-// Re-export from renderModeIndicator
 export { showRenderModeIndicator } from './renderModeIndicator.js';
 
-// Re-export from overlayCore
 export {
     isGpuRenderingAvailable,
     initPixiOverlay,
@@ -22,7 +13,6 @@ export {
     getPixiContainer
 } from './overlayCore.js';
 
-// Re-export from textureManager (for external usage if needed)
 export {
     getIconUrl,
     loadTexture,
@@ -33,7 +23,6 @@ export {
     getTextureCacheSize
 } from './textureManager.js';
 
-// Re-export from spriteFactory (for external usage if needed)
 export {
     createSpriteForItem,
     showPopupForSprite,
@@ -41,10 +30,8 @@ export {
     clearSpriteDataMap
 } from './spriteFactory.js';
 
-// Re-export config
 export { ICON_SIZE, DEFAULT_ICON_URL } from './config.js';
 
-// Re-export from eventHandler
 export {
     attachEventHandlers,
     detachEventHandlers,

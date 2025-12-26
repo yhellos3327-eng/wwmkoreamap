@@ -1,18 +1,7 @@
-/**
- * Render Mode Indicator Module
- * Shows GPU/CPU mode indicator on the map
- */
-
-/**
- * Show render mode indicator on the map
- * @param {'GPU' | 'CPU'} mode - The rendering mode to display
- */
 export const showRenderModeIndicator = (mode) => {
-    // Remove existing indicator
     const existing = document.getElementById('render-mode-indicator');
     if (existing) existing.remove();
 
-    // Create indicator
     const indicator = document.createElement('div');
     indicator.id = 'render-mode-indicator';
     indicator.innerHTML = mode === 'GPU'
@@ -34,7 +23,6 @@ export const showRenderModeIndicator = (mode) => {
         animation: fadeInScale 0.3s ease;
     `;
 
-    // Add animation style
     if (!document.getElementById('render-mode-style')) {
         const style = document.createElement('style');
         style.id = 'render-mode-style';
@@ -49,7 +37,6 @@ export const showRenderModeIndicator = (mode) => {
 
     document.body.appendChild(indicator);
 
-    // Auto-hide after 5 seconds
     setTimeout(() => {
         indicator.style.transition = 'opacity 0.5s';
         indicator.style.opacity = '0';

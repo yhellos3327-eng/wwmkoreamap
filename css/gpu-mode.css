@@ -1,14 +1,7 @@
-/* GPU Mode Styles */
-
-/* 
-   Make PixiOverlay canvas non-interactive so clicks pass through to polygons below.
-   Markers are handled via Leaflet map events (eventHandler.js), so they don't need pointer-events.
-*/
 .leaflet-marker-pane canvas {
     pointer-events: none !important;
 }
 
-/* Ensure GPU mode indicator is visible */
 #render-mode-indicator {
     z-index: 9999;
     pointer-events: none;
