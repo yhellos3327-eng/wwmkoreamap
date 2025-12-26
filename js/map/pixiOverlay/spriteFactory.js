@@ -4,6 +4,7 @@ import { isPointInPolygon } from '../../utils.js';
 import { getRegionPolygonsCache } from '../markerFactory.js';
 import { createPopupHtml } from '../popup.js';
 import { getIconUrl, getCachedTexture, getDefaultTexture } from './textureManager.js';
+import { loadComments } from '../../comments.js';
 
 const spriteDataMap = new Map();
 
@@ -12,6 +13,8 @@ export const getSpriteDataMap = () => spriteDataMap;
 export const clearSpriteDataMap = () => {
     spriteDataMap.clear();
 };
+
+
 
 export const showPopupForSprite = (sprite) => {
     if (!sprite.markerData) return null;
@@ -28,6 +31,12 @@ export const showPopupForSprite = (sprite) => {
     popup.itemId = item.id;
 
     popup.openOn(state.map);
+
+    // Load comments (milestones) for this item
+    if (loadComments) {
+        loadComments(item.id);
+    }
+
     return popup;
 };
 
