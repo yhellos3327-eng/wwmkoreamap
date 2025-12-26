@@ -3,6 +3,7 @@ import { toggleCompleted } from '../../ui.js';
 import { showPopupForSprite } from './spriteFactory.js';
 import { showCompletedTooltip, hideCompletedTooltip } from '../completedTooltip.js';
 import { updatePixiMarkers } from './overlayCore.js';
+import { logMarkerDebugInfo } from '../markerDebug.js';
 
 let isEventHandlerAttached = false;
 let registeredHandlers = {
@@ -64,6 +65,14 @@ export const attachEventHandlers = (map, overlay, container) => {
             const itemId = sprite.markerData.item.id;
             const currentPopup = map._popup;
 
+            logMarkerDebugInfo(
+                sprite.markerData.item,
+                sprite.markerData.item.category,
+                sprite.markerData.region,
+                sprite.markerData.lat,
+                sprite.markerData.lng
+            );
+
             if (currentPopup && currentPopup.itemId === itemId && map.hasLayer(currentPopup)) {
                 map.closePopup();
             } else {
@@ -115,7 +124,6 @@ export const attachEventHandlers = (map, overlay, container) => {
                 sprite.markerData.isCompleted &&
                 isPointNearSprite(clickLat, clickLng, sprite, hitRadiusDeg)) {
 
-                // Check if popup is open for this item
                 const currentPopup = map._popup;
                 if (currentPopup && currentPopup.itemId === sprite.markerData.item.id && map.hasLayer(currentPopup)) {
                     hideCompletedTooltip();
