@@ -7,6 +7,8 @@ import { renderFavorites } from './sidebar.js';
 import { logger } from '../logger.js';
 import { showCompletedTooltip, hideCompletedTooltip } from '../map/markers.js';
 
+import { updateSinglePixiMarker } from '../map/pixiOverlay/overlayCore.js';
+
 export const toggleCompleted = (id) => {
     const index = state.completedList.findIndex(item => item.id === id);
     const target = state.allMarkers.find(m => m.id === id);
@@ -50,6 +52,11 @@ export const toggleCompleted = (id) => {
         }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
+
+    // Update GPU marker if active
+    if (state.gpuRenderMode) {
+        updateSinglePixiMarker(id);
+    }
 
     const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
     if (popupContainer) {

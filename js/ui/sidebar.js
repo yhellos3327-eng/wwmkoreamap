@@ -205,6 +205,33 @@ export const refreshSidebarLists = () => {
             </div>
         `;
 
+        // Add hover effect for map region
+        btn.addEventListener('mouseenter', () => {
+            if (state.regionLayerGroup) {
+                state.regionLayerGroup.eachLayer(layer => {
+                    if (layer.regionTitle === region) {
+                        layer.setStyle({
+                            weight: 2,
+                            fillOpacity: 0.4
+                        });
+                    }
+                });
+            }
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            if (state.regionLayerGroup) {
+                state.regionLayerGroup.eachLayer(layer => {
+                    if (layer.regionTitle === region) {
+                        layer.setStyle({
+                            weight: 1,
+                            fillOpacity: 0.1
+                        });
+                    }
+                });
+            }
+        });
+
         btn.addEventListener('click', (e) => {
             if (state.activeRegionNames.has(region)) {
                 state.activeRegionNames.delete(region);

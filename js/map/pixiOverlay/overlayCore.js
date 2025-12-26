@@ -112,7 +112,6 @@ export const renderMarkersWithPixi = async (items) => {
     if (state.map && !state.map.hasLayer(pixiOverlay)) {
         pixiOverlay.addTo(state.map);
 
-        // Disable default map click closing popup to prevent conflict with sprite clicks
         if (state.map.options) {
             state.map.options.closePopupOnClick = false;
         }
@@ -135,6 +134,34 @@ export const updatePixiMarkers = async () => {
     await renderMarkersWithPixi(items);
 };
 
+export const updateSinglePixiMarker = (itemId) => {
+    if (!state.gpuRenderMode || !pixiContainer) return;
+
+    const sprite = pixiContainer.children.find(s => s.markerData && s.markerData.item.id === itemId);
+
+    if (sprite) {
+        const completedItem = state.completedList.find(c => c.id === itemId);
+        const isCompleted = !!completedItem;
+
+        sprite.alpha = isCompleted ? 0.4 : 1.0;
+
+        if (isCompleted) {
+            const colorMatrix = new PIXI.ColorMatrixFilter();
+            colorMatrix.desaturate();
+            sprite.filters = [colorMatrix];
+        } else {
+            sprite.filters = null;
+        }
+
+        sprite.markerData.isCompleted = isCompleted;
+        sprite.markerData.completedAt = completedItem ? completedItem.completedAt : null;
+
+        if (pixiOverlay) pixiOverlay.redraw();
+
+        logger.log('PixiOverlay', `Updated visual state for marker ${itemId}`);
+    }
+};
+
 export const clearPixiOverlay = () => {
     if (pixiContainer) {
         pixiContainer.removeChildren();
@@ -145,7 +172,6 @@ export const clearPixiOverlay = () => {
         state.map.removeLayer(pixiOverlay);
         detachEventHandlers(state.map);
 
-        // Restore default map click behavior
         if (state.map.options) {
             state.map.options.closePopupOnClick = true;
         }
