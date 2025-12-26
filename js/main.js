@@ -17,7 +17,11 @@ import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
 import './comments.js';
 
-// Global assignments removed for modularity
+// Global assignments for console access and backward compatibility
+window.findItem = findItem;
+window.finditem = findItem;
+window.jumpToId = jumpToId;
+
 
 const handleUrlParams = () => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -68,7 +72,7 @@ const handleSharedLink = (urlParams) => {
     const sharedLng = parseFloat(urlParams.get('lng'));
 
     if (sharedId) {
-        setTimeout(() => jumpToId(sharedId), 1000);
+        setTimeout(() => findItem(sharedId), 1000);
     } else if (!isNaN(sharedLat) && !isNaN(sharedLng)) {
         setTimeout(() => {
             if (state.map) {

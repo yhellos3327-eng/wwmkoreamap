@@ -22,6 +22,8 @@ export const toggleSidebar = (action) => {
     const sidebar = document.getElementById('sidebar');
     const openBtn = document.getElementById('open-sidebar');
 
+    if (!sidebar) return;
+
     if (action === 'open') {
         sidebar.classList.add('open');
         sidebar.classList.remove('collapsed');
@@ -84,6 +86,7 @@ export const setAllRegions = (isActive) => {
 
 export const refreshCategoryList = () => {
     const categoryListEl = document.getElementById('category-list');
+    if (!categoryListEl) return;
     categoryListEl.innerHTML = '';
 
     const validCategories = state.mapData.categories;
@@ -163,6 +166,7 @@ export const refreshCategoryList = () => {
 
 export const refreshSidebarLists = () => {
     const regionListEl = document.getElementById('region-list');
+    if (!regionListEl) return;
     regionListEl.innerHTML = '';
 
     const sortedRegions = Array.from(state.uniqueRegions).sort((a, b) => t(a).localeCompare(t(b), 'ko'));
@@ -261,6 +265,7 @@ export const refreshSidebarLists = () => {
 
 export const renderFavorites = () => {
     const favListEl = document.getElementById('favorite-list');
+    if (!favListEl) return;
     favListEl.innerHTML = '';
     if (state.favorites.length === 0) {
         favListEl.innerHTML = '<p class="empty-msg">즐겨찾기한 항목이 없습니다.</p>';

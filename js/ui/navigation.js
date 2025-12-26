@@ -17,7 +17,7 @@ export const toggleCompleted = (id) => {
 
     if (isNowCompleted) {
         state.completedList.push({ id, completedAt });
-        if (target) {
+        if (target && target.marker) {
             if (target.marker._icon) target.marker._icon.classList.add('completed-marker');
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className += ' completed-marker';
@@ -36,7 +36,7 @@ export const toggleCompleted = (id) => {
         }
     } else {
         state.completedList.splice(index, 1);
-        if (target) {
+        if (target && target.marker) {
             if (target.marker._icon) target.marker._icon.classList.remove('completed-marker');
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(' completed-marker', '');
@@ -138,8 +138,11 @@ export const expandRelated = (btn) => {
 };
 
 export const jumpToId = (id) => {
-    const target = state.allMarkers.find(m => m.id === id);
-    if (target) moveToLocation(target.marker.getLatLng(), target.marker, target.region);
+    const target = state.allMarkers.find(m => String(m.id) === String(id));
+    if (target) {
+        const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
+        moveToLocation(latlng, target.marker || target.sprite, target.region, target.id);
+    }
 };
 
 export const findItem = (id) => {
@@ -147,7 +150,8 @@ export const findItem = (id) => {
     let target = state.allMarkers.find(m => String(m.id) === targetId);
 
     if (target) {
-        moveToLocation(target.marker.getLatLng(), target.marker, target.region);
+        const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
+        moveToLocation(latlng, target.marker || target.sprite, target.region, target.id);
         logger.success('Navigation', `[${target.name}] 마커로 이동`);
         return;
     }
@@ -175,7 +179,8 @@ export const findItem = (id) => {
     setTimeout(() => {
         target = state.allMarkers.find(m => String(m.id) === targetId);
         if (target) {
-            moveToLocation(target.marker.getLatLng(), target.marker, target.region);
+            const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
+            moveToLocation(latlng, target.marker || target.sprite, target.region, target.id);
             logger.success('Navigation', `[${target.name}] 위치로 이동 완료`);
         } else {
             logger.error('Navigation', '필터 활성화 후 마커 생성 실패');

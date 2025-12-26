@@ -14,7 +14,11 @@ export const initSearch = () => {
         const term = e.target.value.trim().toLowerCase();
 
         if (term === '') {
-            state.allMarkers.forEach(m => m.marker.setOpacity(1));
+            state.allMarkers.forEach(m => {
+                if (m.marker) m.marker.setOpacity(1);
+                else if (m.sprite) m.sprite.alpha = 1;
+            });
+            if (state.gpuRenderMode && state.pixiOverlay) state.pixiOverlay.redraw();
             if (searchResults) searchResults.classList.add('hidden');
             return;
         }
@@ -23,8 +27,14 @@ export const initSearch = () => {
             const regionName = t(m.region).toLowerCase();
             const categoryName = t(m.category).toLowerCase();
             const isMatch = m.name.includes(term) || m.desc.includes(term) || regionName.includes(term) || categoryName.includes(term);
-            m.marker.setOpacity(isMatch ? 1 : 0.1);
+
+            if (m.marker) {
+                m.marker.setOpacity(isMatch ? 1 : 0.1);
+            } else if (m.sprite) {
+                m.sprite.alpha = isMatch ? 1 : 0.1;
+            }
         });
+        if (state.gpuRenderMode && state.pixiOverlay) state.pixiOverlay.redraw();
 
         if (searchResults) {
             searchResults.innerHTML = '';

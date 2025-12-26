@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WWM MAP - Performance Benchmark v2.0</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="css/gpu-mode.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@300;500;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bench-bg: rgba(10, 12, 18, 0.85);
+            --bench-accent: #ffbd53;
+            --bench-accent-rgb: 255, 189, 83;
+            --bench-card: rgba(30, 35, 45, 0.6);
+            --bench-border: rgba(255, 189, 83, 0.3);
+            --bench-text: #e0e6ed;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #05070a;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        #map {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            background: #05070a;
+        }
+
+        .hud-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            pointer-events: none;
+            display: grid;
+            grid-template-columns: 350px 1fr 350px;
+            grid-template-rows: 100px 1fr 250px;
+            padding: 30px;
+            box-sizing: border-box;
+            gap: 20px;
+        }
+
+        .hud-container>* {
+            pointer-events: auto;
+        }
+
+        .hud-header {
+            grid-column: 1 / 4;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(90deg, transparent, var(--bench-bg), transparent);
+            border-bottom: 1px solid var(--bench-border);
+            padding: 0 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .hud-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--bench-accent);
+            text-shadow: 0 0 15px rgba(var(--bench-accent-rgb), 0.5);
+            letter-spacing: 4px;
+        }
+
+        .hud-status {
+            display: flex;
+            gap: 30px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .status-label {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .status-value {
+            color: var(--bench-text);
+            font-weight: 700;
+        }
+
+        .hud-left {
+            grid-row: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .glass-panel {
+            background: var(--bench-bg);
+            border: 1px solid var(--bench-border);
+            border-radius: 4px;
+            padding: 20px;
+            backdrop-filter: blur(15px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--bench-accent);
+        }
+
+        .panel-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 14px;
+            color: var(--bench-accent);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bench-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--bench-text);
+            padding: 12px;
+            font-family: 'Rajdhani', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            position: relative;
+        }
+
+        .bench-btn:hover {
+            background: rgba(var(--bench-accent-rgb), 0.1);
+            border-color: var(--bench-accent);
+            color: var(--bench-accent);
+            padding-left: 18px;
+        }
+
+        .bench-btn.active {
+            background: var(--bench-accent);
+            color: #000;
+            border-color: var(--bench-accent);
+        }
+
+        .bench-btn.primary {
+            background: linear-gradient(45deg, var(--bench-accent), #ff9800);
+            color: #000;
+            border: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .hud-right {
+            grid-row: 2 / 3;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .big-stat {
+            text-align: center;
+            padding: 20px;
+            background: rgba(var(--bench-accent-rgb), 0.05);
+            border: 1px solid var(--bench-border);
+        }
+
+        .big-stat-value {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--bench-accent);
+            line-height: 1;
+        }
+
+        .big-stat-label {
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+            letter-spacing: 2px;
+        }
+
+        .mini-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .mini-stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-align: center;
+        }
+
+        .hud-bottom {
+            grid-column: 1 / 4;
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 20px;
+        }
+
+        #fps-chart-container {
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            position: relative;
+            padding: 10px;
+        }
+
+        #fps-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        .terminal-log {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 12px;
+            color: #00ff41;
+            overflow-y: auto;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+        }
+
+        .log-time {
+            color: #888;
+            margin-right: 10px;
+        }
+
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #05070a;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.8s;
+        }
+
+        .loading-logo {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 40px;
+            color: var(--bench-accent);
+            margin-bottom: 20px;
+            letter-spacing: 10px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.5;
+                transform: scale(0.98);
+            }
+
+            50% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            100% {
+                opacity: 0.5;
+                transform: scale(0.98);
+            }
+        }
+
+        .loading-bar-outer {
+            width: 300px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .loading-bar-inner {
+            width: 0%;
+            height: 100%;
+            background: var(--bench-accent);
+            box-shadow: 0 0 10px var(--bench-accent);
+            transition: width 0.3s;
+        }
+
+        .hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 1000;
+            background: linear-gradient(0deg, rgba(0, 0, 0, 0) 0%, rgba(255, 255, 255, 0.02) 50%, rgba(0, 0, 0, 0) 100%);
+            opacity: 0.1;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% {
+                bottom: 100%;
+            }
+
+            100% {
+                bottom: -100px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading-screen" class="loading-screen">
+        <div class="loading-logo">WWM BENCHMARK</div>
+        <div class="loading-bar-outer">
+            <div id="loading-bar" class="loading-bar-inner"></div>
+        </div>
+        <div style="margin-top: 10px; color: #555; font-size: 12px; letter-spacing: 2px;">INITIALIZING HARDWARE
+            ACCELERATION</div>
+    </div>
+
+    <div class="scanline"></div>
+
+    <div class="hud-container">
+        <header class="hud-header">
+            <div class="hud-title">SYSTEM PERFORMANCE ANALYZER</div>
+            <div class="hud-status">
+                <div class="status-item">
+                    <span class="status-label">RENDERER</span>
+                    <span id="status-renderer" class="status-value">DETECTING...</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">MAP DATA</span>
+                    <span id="status-data" class="status-value">READY</span>
+                </div>
+                <div class="status-item">
+                    <span class="status-label">VERSION</span>
+                    <span class="status-value">v2.0.4-PRO</span>
+                </div>
+            </div>
+        </header>
+
+        <aside class="hud-left">
+            <section class="glass-panel">
+                <div class="panel-title"><span>01</span> MODE SELECTION</div>
+                <div class="control-group">
+                    <button id="mode-cpu" class="bench-btn active">CPU RENDERER (LEAFLET)</button>
+                    <button id="mode-gpu" class="bench-btn">GPU RENDERER (WEBGL)</button>
+                </div>
+            </section>
+
+            <section class="glass-panel">
+                <div class="panel-title"><span>02</span> TEST SUITE</div>
+                <div class="control-group">
+                    <button id="start-bench" class="bench-btn">FULL STRESS TEST</button>
+                    <button id="test-zoom" class="bench-btn">DYNAMIC ZOOM SEQUENCE</button>
+                    <button id="test-pan" class="bench-btn">PRECISION PANNING</button>
+                    <button id="compare-bench" class="bench-btn primary">RUN AUTO COMPARISON</button>
+                </div>
+            </section>
+        </aside>
+
+        <aside class="hud-right">
+            <section class="glass-panel">
+                <div class="panel-title"><span>03</span> LIVE TELEMETRY</div>
+                <div class="stat-grid">
+                    <div class="big-stat">
+                        <div id="stat-fps" class="big-stat-value">00</div>
+                        <div class="big-stat-label">FRAMES PER SECOND</div>
+                    </div>
+                    <div class="mini-stats">
+                        <div class="mini-stat-box">
+                            <div id="stat-avg" class="status-value">0</div>
+                            <div class="status-label">AVG FPS</div>
+                        </div>
+                        <div class="mini-stat-box">
+                            <div id="stat-low" class="status-value" style="color: #f44336;">0</div>
+                            <div class="status-label">1% LOW</div>
+                        </div>
+                        <div class="mini-stat-box">
+                            <div id="stat-time" class="status-value">0ms</div>
+                            <div class="status-label">FRAME TIME</div>
+                        </div>
+                        <div class="mini-stat-box">
+                            <div id="stat-markers" class="status-value">0</div>
+                            <div class="status-label">MARKERS</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </aside>
+
+        <footer class="hud-bottom">
+            <div id="fps-chart-container" class="glass-panel">
+                <div class="panel-title" style="margin-bottom: 5px;"><span>04</span> PERFORMANCE GRAPH</div>
+                <canvas id="fps-canvas"></canvas>
+            </div>
+            <div id="bench-log" class="terminal-log">
+                <div class="log-entry"><span class="log-time">[00:00:00]</span> Initializing benchmark kernel...</div>
+            </div>
+        </footer>
+    </div>
+
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-pixi-overlay@1.9.5/L.PixiOverlay.min.js"></script>
+    <script type="module" src="js/benchmark.js"></script>
+</body>
+
+</html>
