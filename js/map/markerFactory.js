@@ -108,8 +108,9 @@ export const createMarkerForItem = (item) => {
     });
 
     if (isCompleted && completedItem.completedAt) {
-        marker.on('mouseover', (e) => {
-            showCompletedTooltip(e, item.id, item.name, completedItem.completedAt);
+        marker.on('mouseover', () => {
+            if (marker.getPopup() && marker.getPopup().isOpen()) return;
+            showCompletedTooltip({ latlng: marker.getLatLng() }, item.id, item.name, completedItem.completedAt);
         });
         marker.on('mouseout', () => {
             hideCompletedTooltip();

@@ -56,6 +56,7 @@ export const attachEventHandlers = (map, overlay, container) => {
         const sprite = findSpriteAtPosition(container, clickLat, clickLng, hitRadiusDeg);
 
         if (sprite) {
+            hideCompletedTooltip();
             if (e.originalEvent) {
                 e.originalEvent.stopPropagation();
             }
@@ -112,11 +113,17 @@ export const attachEventHandlers = (map, overlay, container) => {
             const sprite = container.children[i];
             if (sprite.markerData &&
                 sprite.markerData.isCompleted &&
-                sprite.markerData.completedAt &&
                 isPointNearSprite(clickLat, clickLng, sprite, hitRadiusDeg)) {
 
+                // Check if popup is open for this item
+                const currentPopup = map._popup;
+                if (currentPopup && currentPopup.itemId === sprite.markerData.item.id && map.hasLayer(currentPopup)) {
+                    hideCompletedTooltip();
+                    return;
+                }
+
                 showCompletedTooltip(
-                    { originalEvent: e.originalEvent },
+                    { latlng: L.latLng(sprite.markerData.lat, sprite.markerData.lng) },
                     sprite.markerData.item.id,
                     sprite.markerData.item.name,
                     sprite.markerData.completedAt

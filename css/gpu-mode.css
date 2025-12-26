@@ -6,3 +6,8 @@
     z-index: 9999;
     pointer-events: none;
 }
+
+.gpu-mode-active .leaflet-marker-icon,
+.gpu-mode-active .leaflet-marker-shadow {
+    display: none !important;
+}

@@ -28,14 +28,18 @@ export const showCompletedTooltip = (e, itemId, name, timestamp) => {
     }
 
     const tooltip = createCompletedTooltip();
-    const date = new Date(timestamp);
-    const timeStr = date.toLocaleString('ko-KR', {
-        year: 'numeric', month: 'short', day: 'numeric',
-        hour: '2-digit', minute: '2-digit'
-    });
-
     tooltip.querySelector('.tooltip-title').textContent = name;
-    tooltip.querySelector('.tooltip-time').textContent = `완료: ${timeStr}`;
+
+    if (timestamp) {
+        const date = new Date(timestamp);
+        const timeStr = date.toLocaleString('ko-KR', {
+            year: 'numeric', month: 'short', day: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+        tooltip.querySelector('.tooltip-time').textContent = `완료: ${timeStr}`;
+    } else {
+        tooltip.querySelector('.tooltip-time').textContent = `완료됨`;
+    }
 
     const containerPoint = e.containerPoint || state.map.latLngToContainerPoint(e.latlng);
     const mapContainer = state.map.getContainer().getBoundingClientRect();

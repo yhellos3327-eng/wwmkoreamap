@@ -155,6 +155,37 @@ export const initSettingsModal = () => {
     let initialClusteringState = state.enableClustering;
     let initialGpuModeState = state.gpuRenderMode;
 
+    const updateClusteringToggleState = () => {
+        if (!clusterToggleInput) return;
+
+        if (state.gpuRenderMode) {
+            clusterToggleInput.disabled = true;
+            const wrapper = clusterToggleInput.closest('.settings-toggle-wrapper');
+            if (wrapper) {
+                wrapper.style.opacity = '0.5';
+                wrapper.style.cursor = 'not-allowed';
+                wrapper.title = "현재 GPU 모드에서는 클러스터링 설정을 변경할 수 없습니다.\n구현 예정입니다. 🙇‍♂️";
+
+                const slider = wrapper.querySelector('.slider');
+                if (slider) slider.style.cursor = 'not-allowed';
+                const switchLabel = wrapper.querySelector('.switch');
+                if (switchLabel) switchLabel.style.pointerEvents = 'none';
+            }
+        } else {
+            clusterToggleInput.disabled = false;
+            const wrapper = clusterToggleInput.closest('.settings-toggle-wrapper');
+            if (wrapper) {
+                wrapper.style.opacity = '1';
+                wrapper.style.cursor = 'default';
+                wrapper.title = "";
+                const slider = wrapper.querySelector('.slider');
+                if (slider) slider.style.cursor = 'pointer';
+                const switchLabel = wrapper.querySelector('.switch');
+                if (switchLabel) switchLabel.style.pointerEvents = 'auto';
+            }
+        }
+    };
+
     if (apiProviderSelect) {
         apiProviderSelect.addEventListener('change', (e) => {
             const provider = e.target.value;
@@ -192,6 +223,7 @@ export const initSettingsModal = () => {
                 const valDisplay = document.getElementById('region-fill-color-value');
                 if (valDisplay) valDisplay.textContent = state.savedRegionFillColor.toUpperCase();
             }
+            updateClusteringToggleState();
             settingsModal.classList.remove('hidden');
         });
 
@@ -223,12 +255,12 @@ export const initSettingsModal = () => {
         });
     }
 
-    // GPU Mode toggle (PixiOverlay)
     if (gpuModeToggleInput) {
         gpuModeToggleInput.checked = state.gpuRenderMode;
         gpuModeToggleInput.addEventListener('change', (e) => {
             setState('gpuRenderMode', e.target.checked);
             localStorage.setItem('wwm_gpu_render', e.target.checked);
+            updateClusteringToggleState();
         });
     }
 
