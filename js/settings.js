@@ -150,8 +150,10 @@ export const initSettingsModal = () => {
     const hideCompletedInput = document.getElementById('toggle-hide-completed');
     const commentsToggleInput = document.getElementById('toggle-comments');
     const closeOnCompleteInput = document.getElementById('toggle-close-on-complete');
+    const gpuModeToggleInput = document.getElementById('toggle-gpu-mode');
 
     let initialClusteringState = state.enableClustering;
+    let initialGpuModeState = state.gpuRenderMode;
 
     if (apiProviderSelect) {
         apiProviderSelect.addEventListener('change', (e) => {
@@ -196,8 +198,8 @@ export const initSettingsModal = () => {
         const closeSettingsBtn = document.getElementById('close-settings');
         if (closeSettingsBtn) {
             closeSettingsBtn.addEventListener('click', () => {
-                if (state.enableClustering !== initialClusteringState) {
-                    alert("마커 클러스터링 설정이 변경되었습니다. 적용을 위해 페이지를 새로고침합니다.");
+                if (state.enableClustering !== initialClusteringState || state.gpuRenderMode !== initialGpuModeState) {
+                    alert("렌더링 설정이 변경되었습니다. 적용을 위해 페이지를 새로고침합니다.");
                     location.reload();
                 } else {
                     settingsModal.classList.add('hidden');
@@ -218,6 +220,15 @@ export const initSettingsModal = () => {
         clusterToggleInput.addEventListener('change', (e) => {
             setState('enableClustering', e.target.checked);
             localStorage.setItem('wwm_enable_clustering', state.enableClustering);
+        });
+    }
+
+    // GPU Mode toggle (PixiOverlay)
+    if (gpuModeToggleInput) {
+        gpuModeToggleInput.checked = state.gpuRenderMode;
+        gpuModeToggleInput.addEventListener('change', (e) => {
+            setState('gpuRenderMode', e.target.checked);
+            localStorage.setItem('wwm_gpu_render', e.target.checked);
         });
     }
 

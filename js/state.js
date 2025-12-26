@@ -46,6 +46,10 @@ const state = {
     rawCSV: null,
     parsedCSV: null,
     isDevMode: false,
+    // GPU Rendering Mode (PixiOverlay)
+    gpuRenderMode: localStorage.getItem('wwm_gpu_render') === 'true',
+    pixiOverlay: null,
+    pixiContainer: null,
     loadingState: {
         csvProgress: 0,
         mapProgress: 0,

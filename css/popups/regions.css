@@ -20,6 +20,8 @@
 
 .region-polygon {
     transition: stroke-width 0.2s, fill-opacity 0.2s;
+    /* visibleFill allows both fill and stroke to be interactive */
+    pointer-events: visibleFill;
 }
 
 .region-label-icon {
