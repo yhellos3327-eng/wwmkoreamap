@@ -58,7 +58,6 @@ export const attachEventHandlers = (map, overlay, container) => {
         if (sprite) {
             if (e.originalEvent) {
                 e.originalEvent.stopPropagation();
-                e.originalEvent.preventDefault();
             }
 
             const itemId = sprite.markerData.item.id;
@@ -69,6 +68,8 @@ export const attachEventHandlers = (map, overlay, container) => {
             } else {
                 showPopupForSprite(sprite);
             }
+        } else {
+            map.closePopup();
         }
     };
 
@@ -84,11 +85,9 @@ export const attachEventHandlers = (map, overlay, container) => {
 
         if (sprite) {
             if (e.originalEvent) {
-                e.originalEvent.stopPropagation();
-                e.originalEvent.preventDefault();
+                L.DomEvent.preventDefault(e.originalEvent);
+                L.DomEvent.stopPropagation(e.originalEvent);
             }
-            L.DomEvent.preventDefault(e);
-            L.DomEvent.stop(e);
 
             toggleCompleted(sprite.markerData.item.id);
 

@@ -112,6 +112,11 @@ export const renderMarkersWithPixi = async (items) => {
     if (state.map && !state.map.hasLayer(pixiOverlay)) {
         pixiOverlay.addTo(state.map);
 
+        // Disable default map click closing popup to prevent conflict with sprite clicks
+        if (state.map.options) {
+            state.map.options.closePopupOnClick = false;
+        }
+
         attachEventHandlers(state.map, pixiOverlay, pixiContainer);
     }
 
@@ -139,6 +144,11 @@ export const clearPixiOverlay = () => {
     if (pixiOverlay && state.map && state.map.hasLayer(pixiOverlay)) {
         state.map.removeLayer(pixiOverlay);
         detachEventHandlers(state.map);
+
+        // Restore default map click behavior
+        if (state.map.options) {
+            state.map.options.closePopupOnClick = true;
+        }
     }
 
     logger.log('PixiOverlay', 'GPU overlay cleared');
