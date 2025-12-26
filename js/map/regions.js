@@ -71,6 +71,13 @@ export const renderRegionPolygons = (filteredRegions) => {
                         }
                     }
                 }
+
+                const isPopupOpen = state.map._popup && state.map.hasLayer(state.map._popup);
+
+                if (!isPopupOpen) {
+                    state.map.panTo(this.getBounds().getCenter());
+                    L.DomEvent.stopPropagation(e);
+                }
             });
 
             polygon.on('contextmenu', function (e) {
