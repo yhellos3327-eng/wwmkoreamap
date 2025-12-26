@@ -98,7 +98,7 @@ export const renderMarkersWithPixi = async (items) => {
 
     pixiContainer.removeChildren();
     clearSpriteDataMap();
-    state.allMarkers = []; // Reset allMarkers for GPU mode
+    state.allMarkers = new Map(); // Reset allMarkers for GPU mode
 
     let addedCount = 0;
     for (const item of items) {
@@ -108,7 +108,7 @@ export const renderMarkersWithPixi = async (items) => {
             addSpriteToDataMap(sprite, item);
 
             // Populate allMarkers for navigation support
-            state.allMarkers.push({
+            const markerInfo = {
                 id: item.id,
                 sprite: sprite,
                 name: item.name,
@@ -116,7 +116,8 @@ export const renderMarkersWithPixi = async (items) => {
                 region: sprite.markerData.region,
                 lat: sprite.markerData.lat,
                 lng: sprite.markerData.lng
-            });
+            };
+            state.allMarkers.set(item.id, markerInfo);
 
             addedCount++;
         }

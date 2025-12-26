@@ -73,7 +73,7 @@ export const enableDevMode = () => {
         const marker = e.target;
         marker.closePopup();
 
-        const item = state.allMarkers.find(m => m.marker === marker);
+        const item = Array.from(state.allMarkers.values()).find(m => m.marker === marker);
         if (!item) return;
 
         editingItem = item;
@@ -103,8 +103,8 @@ export const enableDevMode = () => {
     };
 
     const attachListeners = () => {
-        if (!state.allMarkers) return;
-        state.allMarkers.forEach(m => {
+        if (!state.allMarkers || state.allMarkers.size === 0) return;
+        state.allMarkers.forEach((m) => {
             if (m.marker) {
                 m.marker.off('click', onMarkerClick);
                 m.marker.on('click', onMarkerClick);

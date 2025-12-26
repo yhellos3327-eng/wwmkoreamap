@@ -178,7 +178,7 @@ export const refreshSidebarLists = () => {
         btn.className = state.activeRegionNames.has(region) ? 'cate-item active' : 'cate-item';
         btn.dataset.region = region;
 
-        const regionMarkers = state.allMarkers.filter(m => m.region === region);
+        const regionMarkers = Array.from(state.allMarkers.values()).filter(m => m.region === region);
         const count = regionMarkers.length;
 
         let translatedCount = 0;

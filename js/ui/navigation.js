@@ -11,7 +11,7 @@ import { updateSinglePixiMarker } from '../map/pixiOverlay/overlayCore.js';
 
 export const toggleCompleted = (id) => {
     const index = state.completedList.findIndex(item => item.id === id);
-    const target = state.allMarkers.find(m => m.id === id);
+    const target = state.allMarkers.get(id);
     const isNowCompleted = index === -1;
     const completedAt = Date.now();
 
@@ -112,7 +112,7 @@ export { formatCompletedTime };
 
 export const toggleFavorite = (id) => {
     const index = state.favorites.indexOf(id);
-    const target = state.allMarkers.find(m => m.id === id);
+    const target = state.allMarkers.get(id);
     const isNowFavorite = index === -1;
 
     if (isNowFavorite) state.favorites.push(id);
@@ -144,7 +144,7 @@ export const expandRelated = (btn) => {
 };
 
 export const jumpToId = (id) => {
-    const target = state.allMarkers.find(m => String(m.id) === String(id));
+    const target = state.allMarkers.get(id) || state.allMarkers.get(String(id));
     if (target) {
         const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
         moveToLocation(latlng, target.marker || target.sprite, target.region, target.id);
@@ -153,7 +153,7 @@ export const jumpToId = (id) => {
 
 export const findItem = (id) => {
     const targetId = String(id);
-    let target = state.allMarkers.find(m => String(m.id) === targetId);
+    let target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
 
     if (target) {
         const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
@@ -183,7 +183,7 @@ export const findItem = (id) => {
         saveFilterState();
     }
     setTimeout(() => {
-        target = state.allMarkers.find(m => String(m.id) === targetId);
+        target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
         if (target) {
             const latlng = target.marker ? target.marker.getLatLng() : [target.lat, target.lng];
             moveToLocation(latlng, target.marker || target.sprite, target.region, target.id);
@@ -195,7 +195,7 @@ export const findItem = (id) => {
 };
 
 export const openReportPage = (itemId) => {
-    const item = state.allMarkers.find(m => m.id === itemId);
+    const item = state.allMarkers.get(itemId);
     if (item) {
         const reportData = {
             id: item.id,

@@ -70,7 +70,7 @@ export const renderMapDataAndMarkers = async () => {
         }
 
         markerPool.clearAll();
-        state.allMarkers = [];
+        state.allMarkers = new Map();
         setState('pendingMarkers', []);
         setState('visibleMarkerIds', new Set());
 
@@ -105,7 +105,7 @@ export const renderMapDataAndMarkers = async () => {
     }
 
     markerPool.clearAll();
-    state.allMarkers = [];
+    state.allMarkers = new Map();
     setState('pendingMarkers', []);
     setState('visibleMarkerIds', new Set());
 
@@ -131,7 +131,7 @@ const renderAllMarkersForClustering = () => {
         const markerData = createMarkerForItem(item);
         if (markerData) {
             markersToAdd.push(markerData.marker);
-            state.allMarkers.push(markerData.markerInfo);
+            state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
         }
     });
 
@@ -182,7 +182,7 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
 
     while (currentIndex < visibleItems.length && addedCount < MAX_MARKERS_PER_FRAME) {
         const item = visibleItems[currentIndex];
-        const existingMarker = state.allMarkers.find(m => m.id === item.id);
+        const existingMarker = state.allMarkers.get(item.id);
 
         if (existingMarker) {
             newVisibleIds.add(item.id);
@@ -193,7 +193,7 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
             const markerData = createMarkerForItem(item);
             if (markerData) {
                 newVisibleIds.add(item.id);
-                state.allMarkers.push(markerData.markerInfo);
+                state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
                 state.map.addLayer(markerData.marker);
                 addedCount++;
             }
@@ -208,7 +208,7 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
     } else {
         oldVisibleIds.forEach(id => {
             if (!newVisibleIds.has(id)) {
-                const markerInfo = state.allMarkers.find(m => m.id === id);
+                const markerInfo = state.allMarkers.get(id);
                 if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
                     state.map.removeLayer(markerInfo.marker);
                 }
@@ -225,11 +225,11 @@ export const forceFullRender = () => {
 
     const allItems = state.mapData.items;
     allItems.forEach(item => {
-        const existingMarker = state.allMarkers.find(m => m.id === item.id);
+        const existingMarker = state.allMarkers.get(item.id);
         if (!existingMarker) {
             const markerData = createMarkerForItem(item);
             if (markerData) {
-                state.allMarkers.push(markerData.markerInfo);
+                state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
             }
         }
     });

@@ -6,7 +6,7 @@ const state = {
     currentTileLayer: null,
     regionLayerGroup: null,
     map: null,
-    allMarkers: [],
+    allMarkers: new Map(),
     pendingMarkers: [],
     regionData: [],
     koDict: {},

@@ -11,7 +11,7 @@ export const openRelatedModal = (catId) => {
     title.innerText = `${t(catId)} 전체 목록`;
     input.value = '';
     listEl.innerHTML = '';
-    const currentModalList = state.allMarkers.filter(m => m.category === catId);
+    const currentModalList = Array.from(state.allMarkers.values()).filter(m => m.category === catId);
     setState('currentModalList', currentModalList);
     renderModalList(currentModalList);
     modal.classList.remove('hidden');

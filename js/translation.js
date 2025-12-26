@@ -126,7 +126,7 @@ export const translateItem = async (itemId) => {
         item.description = result.description;
         item.isTranslated = true;
 
-        const markerObj = state.allMarkers.find(m => m.id === itemId);
+        const markerObj = state.allMarkers.get(itemId);
         if (markerObj) {
             if (state.gpuRenderMode && markerObj.sprite) {
                 // GPU Mode: Close existing map popup if it matches this itemId

@@ -227,7 +227,7 @@ export const switchToCanvasMode = () => {
     }
 
     if (state.allMarkers) {
-        state.allMarkers.forEach(item => {
+        state.allMarkers.forEach((item) => {
             if (item.marker && state.map.hasLayer(item.marker)) {
                 state.map.removeLayer(item.marker);
             }

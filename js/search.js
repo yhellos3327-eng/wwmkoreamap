@@ -14,7 +14,7 @@ export const initSearch = () => {
         const term = e.target.value.trim().toLowerCase();
 
         if (term === '') {
-            state.allMarkers.forEach(m => {
+            state.allMarkers.forEach((m) => {
                 if (m.marker) m.marker.setOpacity(1);
                 else if (m.sprite) m.sprite.alpha = 1;
             });
@@ -23,7 +23,7 @@ export const initSearch = () => {
             return;
         }
 
-        state.allMarkers.forEach(m => {
+        state.allMarkers.forEach((m) => {
             const regionName = t(m.region).toLowerCase();
             const categoryName = t(m.category).toLowerCase();
             const isMatch = m.name.includes(term) || m.desc.includes(term) || regionName.includes(term) || categoryName.includes(term);
