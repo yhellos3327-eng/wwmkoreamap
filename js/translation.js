@@ -128,9 +128,30 @@ export const translateItem = async (itemId) => {
 
         const markerObj = state.allMarkers.find(m => m.id === itemId);
         if (markerObj) {
-            markerObj.marker.closePopup();
-            markerObj.marker.bindPopup(() => createPopupHtml(item, markerObj.marker.getLatLng().lat, markerObj.marker.getLatLng().lng, item.region));
-            markerObj.marker.openPopup();
+            if (state.gpuRenderMode && markerObj.sprite) {
+                // GPU Mode: Close existing map popup if it matches this itemId
+                if (state.map) {
+                    state.map.closePopup();
+                }
+
+                // Re-open popup with updated content
+                const popupContent = createPopupHtml(item, markerObj.lat, markerObj.lng, item.region);
+                const popup = L.popup({ offset: L.point(0, -22) })
+                    .setLatLng([markerObj.lat, markerObj.lng])
+                    .setContent(popupContent);
+                popup.itemId = itemId;
+                popup.openOn(state.map);
+
+                // Load comments/milestones
+                import('./comments.js').then(module => {
+                    if (module.loadComments) module.loadComments(itemId);
+                });
+            } else if (markerObj.marker) {
+                // CPU Mode: Standard Leaflet marker
+                markerObj.marker.closePopup();
+                markerObj.marker.bindPopup(() => createPopupHtml(item, markerObj.marker.getLatLng().lat, markerObj.marker.getLatLng().lng, item.region));
+                markerObj.marker.openPopup();
+            }
         }
 
     } catch (error) {

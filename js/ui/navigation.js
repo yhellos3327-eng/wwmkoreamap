@@ -75,8 +75,14 @@ export const toggleCompleted = (id) => {
         }
     }
 
-    if (state.closeOnComplete && isNowCompleted && target && target.marker.isPopupOpen()) {
-        target.marker.closePopup();
+    if (state.closeOnComplete && isNowCompleted) {
+        if (state.gpuRenderMode) {
+            if (state.map && state.map._popup && state.map._popup.itemId === id) {
+                state.map.closePopup();
+            }
+        } else if (target && target.marker && target.marker.isPopupOpen()) {
+            target.marker.closePopup();
+        }
     }
     if (state.hideCompleted) updateMapVisibility();
 };

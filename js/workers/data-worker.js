@@ -19,12 +19,12 @@ const parseCSV = (str) => {
     return arr;
 };
 
-const processJSONData = (rawItems, regionIdMap, missingItems, categoryItemTranslations, reverseRegionMap) => {
+const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTranslations, reverseRegionMap) => {
     const mapData = { categories: [], items: [] };
     const itemsByCategory = {};
 
     mapData.items = rawItems
-        .filter(item => !missingItems.has(`${item.category_id}_${item.id}`))
+        .filter(item => !blacklistItems.has(`${item.category_id}_${item.id}`))
         .map(item => {
             const catId = String(item.category_id);
             const regionName = regionIdMap[item.regionId] || "알 수 없음";
