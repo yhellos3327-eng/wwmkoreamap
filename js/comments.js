@@ -592,10 +592,11 @@ const submitReply = async (event, itemId, parentId) => {
     }
 }
 
-// Delete comment with password verification
 const deleteComment = async (commentId, itemId) => {
-    const password = prompt('삭제하려면 작성 시 입력한 비밀번호를 입력하세요:');
-    if (!password) return;
+    const password = prompt('삭제하려면 작성 시 입력한 비밀번호를 입력하세요.');
+    if (!password || !password.trim()) return;
+
+    const trimmedPassword = password.trim();
 
     try {
         await firebaseInitialized;
@@ -610,7 +611,10 @@ const deleteComment = async (commentId, itemId) => {
         }
 
         const commentData = commentSnap.data();
-        const inputHash = await hashPassword(password);
+        const inputHash = await hashPassword(trimmedPassword);
+
+        logger.log('Delete', `저장된 해시: ${commentData.passwordHash?.substring(0, 16)}...`);
+        logger.log('Delete', `입력된 해시: ${inputHash.substring(0, 16)}...`);
 
         if (commentData.passwordHash !== inputHash) {
             alert('비밀번호가 일치하지 않습니다.');
