@@ -1,8 +1,38 @@
-import { db, firebaseInitialized } from './firebase-config.js';
+import { db, auth, firebaseInitialized } from './firebase-config.js';
 import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 import { logger } from './logger.js';
 
 const TTL_DAYS = 90;
+
+let isAdmin = false;
+firebaseInitialized.then(() => {
+    if (auth) {
+        onAuthStateChanged(auth, (user) => {
+            isAdmin = !!user;
+            logger.log('Auth', `관리자 상태: ${isAdmin ? '로그인됨' : '비로그인'}`);
+        });
+    }
+});
+
+const ENABLE_IP_DELETE = true;
+
+let currentUserIp = null;
+const fetchCurrentUserIp = async () => {
+    if (!ENABLE_IP_DELETE) return null;
+    if (currentUserIp) return currentUserIp;
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        currentUserIp = data.ip.split('.').slice(0, 2).join('.');
+        logger.log('IP', `현재 사용자 IP: ${currentUserIp}.*.*`);
+        return currentUserIp;
+    } catch (e) {
+        logger.warn('IP', 'IP 조회 실패');
+        return null;
+    }
+};
+if (ENABLE_IP_DELETE) fetchCurrentUserIp();
 
 const hashPassword = async (password) => {
     const encoder = new TextEncoder();
@@ -229,7 +259,9 @@ export const loadComments = async (itemId, forceRefresh = false) => {
             const date = data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
             const replyBtn = isReply ? '' : `<button class="btn-reply" data-action="show-reply" data-item-id="${itemId}" data-parent-id="${data.id}">↩ 답글</button>`;
-            const deleteBtn = data.passwordHash ? `<button class="btn-delete-comment" data-action="delete-comment" data-comment-id="${data.id}" data-item-id="${itemId}" title="삭제">🗑️</button>` : '';
+            const ipMatch = ENABLE_IP_DELETE && currentUserIp && data.ip === currentUserIp;
+            const canDelete = isAdmin || ipMatch || data.passwordHash;
+            const deleteBtn = canDelete ? `<button class="btn-delete-comment" data-action="delete-comment" data-comment-id="${data.id}" data-item-id="${itemId}" data-comment-ip="${data.ip || ''}" title="삭제">🗑️</button>` : '';
 
             return `
                 <div class="comment-item ${isReply ? 'comment-reply' : ''}" data-id="${data.id}">
@@ -491,8 +523,6 @@ const processCommentText = (text) => {
     return processed;
 }
 
-// Global assignments removed
-
 const showReplyForm = (itemId, parentId) => {
     document.querySelectorAll('.reply-form-container').forEach(el => {
         el.style.display = 'none';
@@ -593,7 +623,47 @@ const submitReply = async (event, itemId, parentId) => {
     }
 }
 
-const deleteComment = async (commentId, itemId) => {
+const deleteComment = async (commentId, itemId, commentIp) => {
+    if (isAdmin) {
+        if (!confirm('관리자 권한으로 이 댓글을 삭제하시겠습니까?')) return;
+
+        try {
+            await firebaseInitialized;
+            if (!db) throw new Error("Firebase DB not initialized");
+
+            const commentRef = doc(db, "comments", commentId);
+            await deleteDoc(commentRef);
+            commentsCache.delete(`comment_${Number(itemId)}`);
+            loadComments(itemId, true);
+            logger.success('Comments', `[관리자] 댓글 삭제 완료: ${commentId}`);
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            alert('댓글 삭제에 실패했습니다.');
+        }
+        return;
+    }
+
+    // IP 일치 시 비밀번호 없이 삭제 가능
+    if (ENABLE_IP_DELETE && commentIp && currentUserIp && commentIp === currentUserIp) {
+        if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+
+        try {
+            await firebaseInitialized;
+            if (!db) throw new Error("Firebase DB not initialized");
+
+            const commentRef = doc(db, "comments", commentId);
+            await deleteDoc(commentRef);
+            commentsCache.delete(`comment_${Number(itemId)}`);
+            loadComments(itemId, true);
+            logger.success('Comments', `[IP 일치] 댓글 삭제 완료: ${commentId}`);
+        } catch (error) {
+            console.error("Error deleting comment:", error);
+            alert('댓글 삭제에 실패했습니다.');
+        }
+        return;
+    }
+
+    // 일반 사용자: 비밀번호 확인
     const password = prompt('삭제하려면 작성 시 입력한 비밀번호를 입력하세요.');
     if (!password || !password.trim()) return;
 
@@ -612,12 +682,7 @@ const deleteComment = async (commentId, itemId) => {
         }
 
         const commentData = commentSnap.data();
-
-        logger.log('Delete', `입력 비밀번호 길이: ${trimmedPassword.length}, 첫글자 코드: ${trimmedPassword.charCodeAt(0)}`);
         const inputHash = await hashPassword(trimmedPassword);
-
-        logger.log('Delete', `저장된 해시: ${commentData.passwordHash?.substring(0, 16)}...`);
-        logger.log('Delete', `입력된 해시: ${inputHash.substring(0, 16)}...`);
 
         if (commentData.passwordHash !== inputHash) {
             alert('비밀번호가 일치하지 않습니다.');
@@ -657,7 +722,7 @@ document.addEventListener('click', (e) => {
             break;
         case 'delete-comment':
             e.stopPropagation();
-            deleteComment(target.dataset.commentId, target.dataset.itemId);
+            deleteComment(target.dataset.commentId, target.dataset.itemId, target.dataset.commentIp);
             break;
     }
 });

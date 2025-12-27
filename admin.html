@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 로그인 - 연운 지도</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+        }
+
+        .login-container {
+            background-color: #1e1e1e;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+
+        .login-title {
+            margin-bottom: 30px;
+            color: #daac71;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            border-radius: 4px;
+            color: #fff;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+
+        .form-control:focus {
+            border-color: #daac71;
+            outline: none;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background-color: #daac71;
+            color: #000;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: background-color 0.2s;
+        }
+
+        .btn-login:hover {
+            background-color: #c59b60;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 20px;
+            color: #888;
+            text-decoration: none;
+            font-size: 14px;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #daac71;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="login-container">
+        <div id="login-view">
+            <div class="login-title">관리자 로그인</div>
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" class="form-control" placeholder="admin@example.com">
+            </div>
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" class="form-control" placeholder="비밀번호">
+            </div>
+            <button id="btn-login" class="btn-login">로그인</button>
+        </div>
+
+        <div id="logout-view" style="display: none;">
+            <div class="login-title">관리자 접속 중</div>
+            <p style="color: #ccc; margin-bottom: 30px;">현재 관리자 계정으로 로그인되어 있습니다.</p>
+            <button id="btn-logout" class="btn-login" style="background-color: #ff5555; color: white;">로그아웃</button>
+        </div>
+
+        <a href="index.html" class="back-link">← 지도로 돌아가기</a>
+    </div>
+    <script type="module" src="js/admin-login.js"></script>
+</body>
+
+</html>
