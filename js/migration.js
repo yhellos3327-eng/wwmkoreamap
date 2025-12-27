@@ -187,6 +187,8 @@ export function handleMigrationComplete() {
 }
 
 function showMigrationWelcomeMessage(backupSection) {
+    addMigrationStyles();
+
     const welcomeMsg = document.createElement('div');
     welcomeMsg.className = 'migration-welcome-msg';
     welcomeMsg.innerHTML = `
