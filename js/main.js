@@ -15,9 +15,9 @@ import { initBackupButtons } from './backup.js';
 import { initSearch, initModalSearch } from './search.js';
 import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
+import { initMigration, isOldDomain } from './migration.js';
 import './comments.js';
 
-// Global assignments for console access and backward compatibility
 window.findItem = findItem;
 window.finditem = findItem;
 window.jumpToId = jumpToId;
@@ -85,6 +85,12 @@ const handleSharedLink = (urlParams) => {
 import { loadAllComponents } from './component-loader.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    initMigration();
+
+    if (isOldDomain()) {
+        return;
+    }
+
     const urlParams = handleUrlParams();
 
     try {
