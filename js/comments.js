@@ -313,12 +313,13 @@ export const submitAnonymousComment = async (event, itemId) => {
         }
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
-        // Get password from form
         const passwordInput = form.querySelector('.comment-password');
         const password = passwordInput ? passwordInput.value.trim() : '';
         let passwordHash = null;
         if (password) {
+            logger.log('Save', `저장 비밀번호 길이: ${password.length}, 첫글자 코드: ${password.charCodeAt(0)}`);
             passwordHash = await hashPassword(password);
+            logger.log('Save', `저장 해시: ${passwordHash.substring(0, 16)}...`);
         }
 
         await addDoc(collection(db, "comments"), {
@@ -611,6 +612,8 @@ const deleteComment = async (commentId, itemId) => {
         }
 
         const commentData = commentSnap.data();
+
+        logger.log('Delete', `입력 비밀번호 길이: ${trimmedPassword.length}, 첫글자 코드: ${trimmedPassword.charCodeAt(0)}`);
         const inputHash = await hashPassword(trimmedPassword);
 
         logger.log('Delete', `저장된 해시: ${commentData.passwordHash?.substring(0, 16)}...`);

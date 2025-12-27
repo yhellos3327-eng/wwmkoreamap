@@ -22,7 +22,7 @@ export const toggleCompleted = (id) => {
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className += ' completed-marker';
             }
-            // 마커에 mouseover 이벤트 추가
+
             const mouseoverHandler = (e) => {
                 showCompletedTooltip(e, id, target.originalName || target.name, completedAt);
             };
@@ -41,7 +41,7 @@ export const toggleCompleted = (id) => {
             if (target.marker.options.icon && target.marker.options.icon.options) {
                 target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(' completed-marker', '');
             }
-            // 마커에서 mouseover 이벤트 제거
+
             if (target.marker._completedMouseover) {
                 target.marker.off('mouseover', target.marker._completedMouseover);
                 target.marker.off('mouseout', target.marker._completedMouseout);
@@ -53,7 +53,6 @@ export const toggleCompleted = (id) => {
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
 
-    // Update GPU marker if active
     if (state.gpuRenderMode) {
         updateSinglePixiMarker(id);
     }
@@ -87,7 +86,6 @@ export const toggleCompleted = (id) => {
     if (state.hideCompleted) updateMapVisibility();
 };
 
-// 완료 시간 포맷팅 함수
 const formatCompletedTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
@@ -96,18 +94,14 @@ const formatCompletedTime = (timestamp) => {
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
     if (diffDays === 0) {
-        // 오늘이면 시:분 표시
         return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
     } else if (diffDays < 7) {
-        // 7일 이내면 'N일 전' 표시
         return `${diffDays}일 전`;
     } else {
-        // 그 이상이면 날짜 표시
         return date.toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' });
     }
 };
 
-// 헬퍼 함수 내보내기 (popup.js에서 사용)
 export { formatCompletedTime };
 
 export const toggleFavorite = (id) => {
@@ -207,10 +201,32 @@ export const openReportPage = (itemId) => {
             lng: item.lng,
             map: state.currentMapKey
         };
-        localStorage.setItem('wwm_report_target', JSON.stringify(reportData));
-        window.open('notice.html#report', '_blank');
+
+        const jsonStr = JSON.stringify(reportData, null, 4);
+        const mapNames = { qinghe: '청하', kaifeng: '개봉' };
+        const mapName = mapNames[state.currentMapKey] || state.currentMapKey;
+        const locationUrl = `https://wwmmap.kr/?map=${state.currentMapKey}&id=${item.id}`;
+
+        const template = `▶ 마커 정보
+• 지도: ${mapName}
+• ID: ${item.id}
+• 카테고리: ${item.category}
+• 지역: ${item.region}
+• 위치 확인: ${locationUrl}
+
+▶ 제보 내용
+(여기에 내용을 작성해주세요)
+
+`;
+
+        navigator.clipboard.writeText(template).then(() => {
+            alert('📋 마커 데이터가 클립보드에 복사되었습니다!\n\n아카라이브 글쓰기 페이지로 이동합니다.\n본문에 붙여넣기(Ctrl+V) 후 제보 내용을 작성해주세요.');
+            window.open('https://arca.live/b/wwmmap/write', '_blank');
+        }).catch(() => {
+            prompt('아래 데이터를 복사하세요:', template);
+            window.open('https://arca.live/b/wwmmap/write', '_blank');
+        });
     } else {
-        // Fallback if item not found in markers (e.g. direct call)
-        window.open(`report.html?id=${itemId}`, '_blank');
+        window.open('https://arca.live/b/wwmmap/write', '_blank');
     }
 };
