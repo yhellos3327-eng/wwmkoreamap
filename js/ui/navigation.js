@@ -215,7 +215,10 @@ export const openReportPage = (itemId) => {
 • 위치 확인: ${locationUrl}
 
 ▶ 제보 내용
-(여기에 내용을 작성해주세요)
+(여기에 내용을 작성해주세요.)
+
+▶ 이미지
+(이미지가 있다면 추가해주세요.)
 
 `;
 
