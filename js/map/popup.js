@@ -176,6 +176,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                 <form class="comment-form" data-item-id="${item.id}">
                     <div class="comment-input-group">
                         <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
+                        <input type="password" class="comment-password" placeholder="비밀번호" maxlength="16" title="삭제 시 필요">
                         <button type="button" class="btn-guide" data-action="toggle-guide" data-target="comment-guide-${item.id}" title="작성 가이드">?</button>
                     </div>
                     <div class="comment-input-wrapper" style="position: relative;">

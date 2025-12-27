@@ -1,8 +1,16 @@
 import { db, firebaseInitialized } from './firebase-config.js';
-import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
+import { collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp, Timestamp, deleteDoc, doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js";
 import { logger } from './logger.js';
 
 const TTL_DAYS = 90;
+
+const hashPassword = async (password) => {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password + 'wwm_salt_2024');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+};
 
 let badWordsList = [];
 const BADWORDS_SOURCES = [
@@ -221,6 +229,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
             const date = data.createdAt?.toDate ? new Date(data.createdAt.toDate()).toLocaleDateString() : '방금 전';
             const nickname = data.nickname || '익명';
             const replyBtn = isReply ? '' : `<button class="btn-reply" data-action="show-reply" data-item-id="${itemId}" data-parent-id="${data.id}">↩ 답글</button>`;
+            const deleteBtn = data.passwordHash ? `<button class="btn-delete-comment" data-action="delete-comment" data-comment-id="${data.id}" data-item-id="${itemId}" title="삭제">🗑️</button>` : '';
 
             return `
                 <div class="comment-item ${isReply ? 'comment-reply' : ''}" data-id="${data.id}">
@@ -228,6 +237,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
                         <span class="comment-author">${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${data.ip || '...'})</span></span>
                         <span class="comment-meta">
                             <span class="comment-date">${date}</span>
+                            ${deleteBtn}
                             ${replyBtn}
                         </span>
                     </div>
@@ -303,11 +313,20 @@ export const submitAnonymousComment = async (event, itemId) => {
         }
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
+        // Get password from form
+        const passwordInput = form.querySelector('.comment-password');
+        const password = passwordInput ? passwordInput.value.trim() : '';
+        let passwordHash = null;
+        if (password) {
+            passwordHash = await hashPassword(password);
+        }
+
         await addDoc(collection(db, "comments"), {
             itemId: numericId,
             text: text,
             nickname: nickname || '익명',
             ip: maskedIp,
+            passwordHash: passwordHash,
             createdAt: serverTimestamp(),
             expireAt: getExpireAt(),
             isAnonymous: true
@@ -487,6 +506,7 @@ const showReplyForm = (itemId, parentId) => {
         <form class="reply-form" data-item-id="${itemId}" data-parent-id="${parentId}">
             <div class="reply-input-group">
                 <input type="text" class="reply-nickname" placeholder="닉네임" maxlength="10">
+                <input type="password" class="reply-password" placeholder="비번" maxlength="16" title="삭제 시 필요">
                 <input type="text" class="reply-input" placeholder="답글 입력..." maxlength="200" required>
                 <button type="submit" class="reply-submit">답글</button>
                 <button type="button" class="reply-cancel" data-action="hide-reply" data-parent-id="${parentId}">취소</button>
@@ -544,12 +564,21 @@ const submitReply = async (event, itemId, parentId) => {
         }
         const maskedIp = ip.split('.').slice(0, 2).join('.');
 
+        // Get password from reply form
+        const passwordInput = form.querySelector('.reply-password');
+        const password = passwordInput ? passwordInput.value.trim() : '';
+        let passwordHash = null;
+        if (password) {
+            passwordHash = await hashPassword(password);
+        }
+
         await addDoc(collection(db, "comments"), {
             itemId: numericId,
             parentId: parentId,
             text: text,
             nickname: nickname || '익명',
             ip: maskedIp,
+            passwordHash: passwordHash,
             createdAt: serverTimestamp(),
             expireAt: getExpireAt(),
             isAnonymous: true
@@ -563,9 +592,45 @@ const submitReply = async (event, itemId, parentId) => {
     }
 }
 
+// Delete comment with password verification
+const deleteComment = async (commentId, itemId) => {
+    const password = prompt('삭제하려면 작성 시 입력한 비밀번호를 입력하세요:');
+    if (!password) return;
+
+    try {
+        await firebaseInitialized;
+        if (!db) throw new Error("Firebase DB not initialized");
+
+        const commentRef = doc(db, "comments", commentId);
+        const commentSnap = await getDoc(commentRef);
+
+        if (!commentSnap.exists()) {
+            alert('댓글을 찾을 수 없습니다.');
+            return;
+        }
+
+        const commentData = commentSnap.data();
+        const inputHash = await hashPassword(password);
+
+        if (commentData.passwordHash !== inputHash) {
+            alert('비밀번호가 일치하지 않습니다.');
+            return;
+        }
+
+        await deleteDoc(commentRef);
+        commentsCache.delete(`comment_${Number(itemId)}`);
+        loadComments(itemId, true);
+        logger.success('Comments', `댓글 삭제 완료: ${commentId}`);
+    } catch (error) {
+        console.error("Error deleting comment:", error);
+        alert('댓글 삭제에 실패했습니다.');
+    }
+};
+
 window.showReplyForm = showReplyForm;
 window.hideReplyForm = hideReplyForm;
 window.submitReply = submitReply;
+window.deleteComment = deleteComment;
 
 // 이벤트 위임 핸들러
 document.addEventListener('click', (e) => {
@@ -582,6 +647,10 @@ document.addEventListener('click', (e) => {
         case 'hide-reply':
             e.stopPropagation();
             hideReplyForm(target.dataset.parentId);
+            break;
+        case 'delete-comment':
+            e.stopPropagation();
+            deleteComment(target.dataset.commentId, target.dataset.itemId);
             break;
     }
 });
