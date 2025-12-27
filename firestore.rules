@@ -26,7 +26,7 @@ service cloud.firestore {
     match /comments/{commentId} {
       allow read: if true;
       allow create: if true;
-      allow delete: if isAdmin(); // Only admin can delete comments
+      allow delete: if true; // 클라이언트에서 비밀번호/IP 확인 후 삭제
       allow update: if isAdmin(); // Only admin can update comments
     }
 

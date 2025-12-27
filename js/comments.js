@@ -644,23 +644,30 @@ const deleteComment = async (commentId, itemId, commentIp) => {
     }
 
     // IP 일치 시 비밀번호 없이 삭제 가능
+    logger.log('Delete', `IP Check - Comment: ${commentIp}, Current: ${currentUserIp}, Enabled: ${ENABLE_IP_DELETE}`);
+
     if (ENABLE_IP_DELETE && commentIp && currentUserIp && commentIp === currentUserIp) {
-        if (!confirm('이 댓글을 삭제하시겠습니까?')) return;
+        if (confirm('작성자 IP가 일치합니다.\n비밀번호 없이 즉시 삭제하시겠습니까?\n(취소 시 비밀번호 입력)')) {
 
-        try {
-            await firebaseInitialized;
-            if (!db) throw new Error("Firebase DB not initialized");
+            try {
+                await firebaseInitialized;
+                if (!db) throw new Error("Firebase DB not initialized");
 
-            const commentRef = doc(db, "comments", commentId);
-            await deleteDoc(commentRef);
-            commentsCache.delete(`comment_${Number(itemId)}`);
-            loadComments(itemId, true);
-            logger.success('Comments', `[IP 일치] 댓글 삭제 완료: ${commentId}`);
-        } catch (error) {
-            console.error("Error deleting comment:", error);
-            alert('댓글 삭제에 실패했습니다.');
+                const commentRef = doc(db, "comments", commentId);
+                await deleteDoc(commentRef);
+                commentsCache.delete(`comment_${Number(itemId)}`);
+                loadComments(itemId, true);
+                logger.success('Comments', `[IP 일치] 댓글 삭제 완료: ${commentId}`);
+                return;
+            } catch (error) {
+                console.error("Error deleting comment:", error);
+                // 권한 오류 등으로 실패 시 비밀번호 입력으로 유도
+                if (!confirm('IP 인증 삭제에 실패했습니다. (권한 부족)\n비밀번호를 입력하여 삭제하시겠습니까?')) {
+                    return;
+                }
+                // 여기서 return 하지 않고 아래 비밀번호 로직으로 진행
+            }
         }
-        return;
     }
 
     // 일반 사용자: 비밀번호 확인
