@@ -159,6 +159,12 @@ function redirectToNewDomain(openSettings = false) {
 
 export function handleMigrationComplete() {
     if (!hasMigrationParam()) return;
+
+    // 마이그레이션 완료 시 메인 공지(도메인 변경 안내)를 자동으로 숨김
+    // 이미 마이그레이션을 완료했으므로 도메인 변경 공지는 불필요
+    const NOTICE_ID = '2025-12-20-domain-change-v2';
+    localStorage.setItem(`wwm_notice_hidden_${NOTICE_ID}`, 'true');
+
     const params = new URLSearchParams(window.location.search);
     params.delete('migrate');
     const newSearch = params.toString();
