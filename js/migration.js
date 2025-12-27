@@ -449,17 +449,27 @@ function addMigrationStyles() {
         }
         
         .migration-welcome-close {
-            background: transparent;
-            border: none;
-            color: #888;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            color: #aaa;
             cursor: pointer;
-            font-size: 1.2em;
-            padding: 4px;
+            font-size: 1em;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
             line-height: 1;
         }
         
         .migration-welcome-close:hover {
-            color: #fff;
+            background: rgba(255, 107, 107, 0.3);
+            border-color: rgba(255, 107, 107, 0.5);
+            color: #ff6b6b;
+            transform: scale(1.1);
         }
         
         @keyframes slideDown {
