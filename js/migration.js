@@ -202,7 +202,7 @@ function showMigrationWelcomeMessage(backupSection) {
             <span class="migration-welcome-icon">👋</span>
             <div class="migration-welcome-text">
                 <strong>기존 도메인에서 이동하셨군요!</strong>
-                <p>아래 "데이터 불러오기" 버튼을 클릭하여 방금 다운로드한 백업 파일을 선택해주세요.</p>
+                <p>아래 "파일 불러오기" 버튼을 클릭하여 방금 다운로드한 백업 파일을 선택해주세요.</p>
             </div>
             <button class="migration-welcome-close" id="btn-close-migration-welcome">✕</button>
         </div>
