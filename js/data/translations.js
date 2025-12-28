@@ -22,6 +22,7 @@ export const loadTranslations = async (mapKey) => {
         const regIdx = headers.indexOf('Region');
         const imgIdx = headers.indexOf('Image');
         const videoIdx = headers.indexOf('Video');
+        const posIdx = headers.indexOf('CustomPosition');
 
         chunkData.forEach(row => {
             if (row.length < 3) return;
@@ -37,7 +38,7 @@ export const loadTranslations = async (mapKey) => {
                     state.koDict[key.trim()] = val;
                 }
             } else if (type === 'Override') {
-                processOverrideRow(row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx);
+                processOverrideRow(row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx, posIdx);
             }
         });
     };
@@ -54,7 +55,7 @@ export const loadTranslations = async (mapKey) => {
     }
 };
 
-const processOverrideRow = (row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx) => {
+const processOverrideRow = (row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx, posIdx) => {
     const catId = row[catIdx]?.trim();
     const key = row[keyIdx]?.trim();
     if (!catId || !key) return;
@@ -75,13 +76,15 @@ const processOverrideRow = (row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx
 
     const imageData = parseImageField(row[imgIdx], key);
     const videoData = parseVideoField(row[videoIdx]);
+    const customPosition = parseCustomPosition(row[posIdx]);
 
     state.categoryItemTranslations[catId][key] = {
         name: row[valIdx],
         description: desc,
         region: row[regIdx],
         image: imageData,
-        video: videoData
+        video: videoData,
+        customPosition: customPosition
     };
 };
 
@@ -117,4 +120,24 @@ const parseVideoField = (videoUrl) => {
     } else {
         return trimmed;
     }
+};
+
+// Parse CustomPosition in [x|y] format
+const parseCustomPosition = (positionRaw) => {
+    if (!positionRaw) return null;
+
+    const trimmed = positionRaw.trim();
+    // Format: [x|y] e.g. [1.283662|-1.102238]
+    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+        const content = trimmed.slice(1, -1);
+        const parts = content.split('|');
+        if (parts.length === 2) {
+            const x = parseFloat(parts[0].trim());
+            const y = parseFloat(parts[1].trim());
+            if (!isNaN(x) && !isNaN(y)) {
+                return { x, y };
+            }
+        }
+    }
+    return null;
 };

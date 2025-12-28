@@ -1,4 +1,4 @@
-Type,"Category","Key","Korean","Description",Region,Image,Video
+Type,"Category","Key","Korean","Description",Region,Image,Video,CustomPosition
 Common,"","contribute_title","지도에 기여하기","",
 Common,"","contribute_description","이 지도는 커뮤니티의 도움으로 유지되고 있습니다. 오류 제보, 데이터 추가, 번역 개선 등 다양한 방법으로 기여하실 수 있습니다.","",
 Common,"","github_repository","GitHub 저장소","",

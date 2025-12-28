@@ -70,6 +70,20 @@ const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTran
             commonDesc = catTrans._common_description;
         }
 
+        // 카테고리별 기본 이름 설정 (번역 개별 오버라이드가 없으면 이 이름 사용)
+        const categoryDefaultNames = {
+            '17310010006': '상자 (지상)',
+            '17310010007': '상자 (지하)',
+            '17310010012': '곡경심유 (파랑나비)',
+            '17310010015': '만물의 울림 (노랑나비)',
+            '17310010090': '야외 제사 (빨간나비)'
+        };
+
+        if (categoryDefaultNames[item.category]) {
+            item.name = categoryDefaultNames[item.category];
+            item.isTranslated = true;
+        }
+
         if (catTrans) {
             let transData = catTrans[item.id];
             if (!transData && item.name) {
@@ -77,6 +91,7 @@ const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTran
             }
 
             if (transData) {
+                // 번역 데이터에 개별 이름이 있으면 오버라이드
                 if (transData.name) {
                     item.name = transData.name;
                     item.isTranslated = true;
@@ -92,6 +107,12 @@ const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTran
                 }
                 if (transData.video) {
                     item.video_url = transData.video;
+                }
+                // Apply custom position override [x|y] format
+                if (transData.customPosition) {
+                    item.x = transData.customPosition.x;
+                    item.y = transData.customPosition.y;
+                    item.hasCustomPosition = true;
                 }
             }
         }
@@ -129,6 +150,7 @@ const processCSVData = (csvText) => {
     const regIdx = headers.indexOf('Region');
     const imgIdx = headers.indexOf('Image');
     const videoIdx = headers.indexOf('Video');
+    const posIdx = headers.indexOf('CustomPosition');
 
     lines.forEach(line => {
         if (!line.trim()) return;
@@ -194,12 +216,31 @@ const processCSVData = (csvText) => {
                     }
                 }
 
+                // Parse CustomPosition in [x|y] format
+                let customPosition = null;
+                const posRaw = posIdx !== -1 ? parsed[posIdx] : null;
+                if (posRaw) {
+                    const trimmedPos = posRaw.trim();
+                    if (trimmedPos.startsWith('[') && trimmedPos.endsWith(']')) {
+                        const posContent = trimmedPos.slice(1, -1);
+                        const posParts = posContent.split('|');
+                        if (posParts.length === 2) {
+                            const x = parseFloat(posParts[0].trim());
+                            const y = parseFloat(posParts[1].trim());
+                            if (!isNaN(x) && !isNaN(y)) {
+                                customPosition = { x, y };
+                            }
+                        }
+                    }
+                }
+
                 categoryItemTranslations[catId][key] = {
                     name: parsed[valIdx],
                     description: desc,
                     region: parsed[regIdx],
                     image: imageData,
-                    video: videoData
+                    video: videoData,
+                    customPosition: customPosition
                 };
             }
         }

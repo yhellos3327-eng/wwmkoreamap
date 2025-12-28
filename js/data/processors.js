@@ -49,6 +49,20 @@ const applyTranslations = (item, reverseRegionMap) => {
         commonDesc = catTrans._common_description;
     }
 
+    // 카테고리별 기본 이름 설정 (번역 개별 오버라이드가 없으면 이 이름 사용)
+    const categoryDefaultNames = {
+        '17310010006': '상자 (지상)',
+        '17310010007': '상자 (지하)',
+        '17310010012': '곡경심유 (파랑나비)',
+        '17310010015': '만물의 울림 (노랑나비)',
+        '17310010090': '야외 제사 (빨간나비)'
+    };
+
+    if (categoryDefaultNames[item.category]) {
+        item.name = categoryDefaultNames[item.category];
+        item.isTranslated = true;
+    }
+
     if (catTrans) {
         let transData = catTrans[item.id];
         if (!transData && item.name) {
@@ -56,6 +70,7 @@ const applyTranslations = (item, reverseRegionMap) => {
         }
 
         if (transData) {
+            // 번역 데이터에 개별 이름이 있으면 오버라이드
             if (transData.name) {
                 item.name = transData.name;
                 item.isTranslated = true;
@@ -71,6 +86,12 @@ const applyTranslations = (item, reverseRegionMap) => {
             }
             if (transData.video) {
                 item.video_url = transData.video;
+            }
+            // Apply custom position override [x|y] format
+            if (transData.customPosition) {
+                item.x = transData.customPosition.x;
+                item.y = transData.customPosition.y;
+                item.hasCustomPosition = true;
             }
         }
     }

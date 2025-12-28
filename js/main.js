@@ -8,7 +8,7 @@ import {
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId, findItem
 } from './ui.js';
 import { translateItem } from './translation.js';
-import { enableDevMode } from './dev.js';
+import './dev-tools.js'; // 개발자 도구 (window.dev로 노출)
 import { initMainNotice } from './main-notice.js';
 import { initSettingsModal, initAdToggle } from './settings.js';
 import { initBackupButtons } from './backup.js';
