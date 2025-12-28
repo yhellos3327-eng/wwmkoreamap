@@ -7,13 +7,13 @@ export function initMainNotice() {
         return;
     }
 
-    createNoticeModal();
-    setTimeout(() => {
+    //createNoticeModal();
+    /*setTimeout(() => {
         const modal = document.getElementById('main-notice-overlay');
         if (modal) {
             modal.classList.add('active');
         }
-    }, 1000);
+    }, 1000);*/
 }
 
 function createNoticeModal() {
