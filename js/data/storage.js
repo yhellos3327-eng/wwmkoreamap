@@ -55,8 +55,18 @@ export const loadRegionFilters = (mapKey) => {
     state.activeRegionNames.clear();
 
     if (filteredSavedRegs.length > 0) {
+        // 저장된 지역 활성화
         filteredSavedRegs.forEach(r => state.activeRegionNames.add(r));
+
+        // 새로 추가된 지역도 기본 활성화 (저장 시점에 없던 지역)
+        const savedRegsSet = new Set(savedRegs);
+        state.uniqueRegions.forEach(r => {
+            if (!savedRegsSet.has(r)) {
+                state.activeRegionNames.add(r);
+            }
+        });
     } else {
+        // 저장된 필터가 없으면 모든 지역 활성화
         state.uniqueRegions.forEach(r => state.activeRegionNames.add(r));
     }
 };

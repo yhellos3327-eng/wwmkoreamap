@@ -131,6 +131,22 @@ export const initGlobalEventDelegation = () => {
     });
 };
 
+export const initRouteMode = () => {
+    const routeToggleBtn = document.getElementById('route-mode-toggle');
+
+    if (routeToggleBtn) {
+        routeToggleBtn.addEventListener('click', async () => {
+            try {
+                const routeModule = await import('./route/index.js');
+                const isActive = routeModule.toggleRouteMode();
+                routeToggleBtn.classList.toggle('active', isActive);
+            } catch (error) {
+                console.error('Failed to load route module:', error);
+            }
+        });
+    }
+};
+
 export const initAllEventHandlers = () => {
     initTabs();
     initToggleButtons();
@@ -139,4 +155,5 @@ export const initAllEventHandlers = () => {
     initGithubModal();
     initKeyboardEvents();
     initGlobalEventDelegation();
+    initRouteMode();
 };

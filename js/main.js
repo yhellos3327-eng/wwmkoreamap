@@ -70,6 +70,17 @@ const handleSharedLink = (urlParams) => {
     const sharedId = parseInt(urlParams.get('id'));
     const sharedLat = parseFloat(urlParams.get('lat'));
     const sharedLng = parseFloat(urlParams.get('lng'));
+    const routeParam = urlParams.get('route');
+
+    // Handle shared route
+    if (routeParam) {
+        import('./route/index.js').then(routeModule => {
+            routeModule.loadRouteFromUrl();
+        }).catch(err => {
+            console.error('Failed to load shared route:', err);
+        });
+        return; // Don't process other params if route is present
+    }
 
     if (sharedId) {
         setTimeout(() => findItem(sharedId), 1000);

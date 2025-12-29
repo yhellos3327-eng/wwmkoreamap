@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>로그인 처리 중... - WWM Map</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #fff;
+        }
+
+        .container {
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: #ffbd53;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .error.show {
+            display: block;
+        }
+
+        .error a {
+            color: #ffbd53;
+            text-decoration: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="spinner" id="spinner"></div>
+        <h1 id="title">로그인 처리 중...</h1>
+        <p id="message">잠시만 기다려 주세요.</p>
+        <div class="error" id="error">
+            <p>로그인에 실패했습니다. <a href="/">다시 시도</a></p>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            const params = new URLSearchParams(window.location.search);
+            const token = params.get('token');
+            const error = params.get('error');
+
+            if (error) {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('title').textContent = '로그인 실패';
+                document.getElementById('message').textContent = '';
+                document.getElementById('error').classList.add('show');
+                return;
+            }
+
+            if (!token) {
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('title').textContent = '잘못된 접근';
+                document.getElementById('message').textContent = '토큰이 없습니다.';
+                return;
+            }
+
+            localStorage.setItem('wwm_access_token', token);
+
+            document.getElementById('title').textContent = '로그인 완료!';
+            document.getElementById('message').textContent = '잠시 후 이동합니다...';
+
+            setTimeout(() => {
+                const returnUrl = localStorage.getItem('wwm_auth_return_url') || '/';
+                localStorage.removeItem('wwm_auth_return_url');
+                window.location.href = returnUrl;
+            }, 1000);
+        })();
+    </script>
+</body>
+
+</html>

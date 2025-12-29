@@ -22,12 +22,15 @@
 
 .leaflet-container a.leaflet-popup-close-button {
     color: var(--text-muted);
-    font-size: 18px;
-    padding: 8px 8px 0 0;
+    font-size: 20px;
+    padding: 6px 10px 0 0;
+    width: 28px;
+    height: 28px;
+    transition: all 0.2s;
 }
 
 .leaflet-container a.leaflet-popup-close-button:hover {
-    color: var(--text-main);
+    color: var(--accent);
 }
 
 .popup-container {
@@ -107,4 +110,35 @@
     padding: 2px 6px;
     border-radius: 4px;
     border: 1px solid #333;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.btn-footer-action {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-footer-action:hover {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.btn-footer-action.added {
+    background: var(--success);
+    border-color: var(--success);
+    color: white;
 }

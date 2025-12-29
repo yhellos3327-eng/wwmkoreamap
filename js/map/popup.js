@@ -220,6 +220,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         <div class="popup-actions">
             <button class="action-btn btn-fav ${isFav ? 'active' : ''}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
             <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">${isCompleted ? `완료됨${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ''}` : '완료 체크'}</button>
+            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${item.id}" title="경로에 추가">경로 추가</button>
             <button class="action-btn btn-share" data-action="share" data-item-id="${item.id}" title="위치 공유">📤</button>
         </div>
         <div class="popup-footer">
@@ -285,6 +286,22 @@ export const initPopupEventDelegation = () => {
                 break;
             case 'report':
                 openReportPage(parseInt(itemId));
+                break;
+            case 'add-to-route':
+                import('../route/index.js').then(routeModule => {
+                    if (routeModule.isManualRouteMode()) {
+                        const added = routeModule.addToManualRoute(itemId);
+                        if (added) {
+                            target.textContent = '✓';
+                            target.style.background = 'var(--success)';
+                            target.style.color = 'white';
+                        }
+                    } else {
+                        alert('수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.');
+                    }
+                }).catch(() => {
+                    alert('경로 모듈을 불러올 수 없습니다.');
+                });
                 break;
         }
     });
