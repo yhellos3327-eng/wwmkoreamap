@@ -8,10 +8,11 @@ import {
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId, findItem
 } from './ui.js';
 import { translateItem } from './translation.js';
-import './dev-tools.js'; // 개발자 도구 (window.dev로 노출)
+import './dev-tools.js';
 import { initMainNotice } from './main-notice.js';
 import { initSettingsModal, initAdToggle } from './settings.js';
 import { initBackupButtons } from './backup.js';
+import { initAuth } from './auth.js';
 import { initSearch, initModalSearch } from './search.js';
 import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
@@ -72,14 +73,13 @@ const handleSharedLink = (urlParams) => {
     const sharedLng = parseFloat(urlParams.get('lng'));
     const routeParam = urlParams.get('route');
 
-    // Handle shared route
     if (routeParam) {
         import('./route/index.js').then(routeModule => {
             routeModule.loadRouteFromUrl();
         }).catch(err => {
             console.error('Failed to load shared route:', err);
         });
-        return; // Don't process other params if route is present
+        return;
     }
 
     if (sharedId) {
@@ -107,6 +107,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadAllComponents();
         setupLoadingSubscription();
+        initAuth();
         fetch('./translation.csv')
             .then(res => res.text())
             .then(text => setState('rawCSV', text));

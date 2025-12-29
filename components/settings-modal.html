@@ -5,9 +5,51 @@
             <button id="close-settings" class="close-modal-btn">&times;</button>
         </div>
         <div class="modal-body settings-modal-body">
+            <!-- 로그인 섹션 (최상단) -->
+            <div class="settings-auth-section" id="auth-section">
+                <div class="auth-header">
+                    <span class="auth-icon">🔐</span>
+                    <span class="auth-title">로그인</span>
+                </div>
+
+                <!-- 로그아웃 상태 -->
+                <div id="auth-logged-out" class="auth-content">
+                    <p class="auth-description">로그인하면 진행 상황을 클라우드에 동기화할 수 있습니다.</p>
+                    <div class="auth-buttons">
+                        <button id="btn-kakao-login" class="auth-btn kakao-btn">
+                            <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png"
+                                alt="Kakao" class="auth-btn-icon">
+                            <span>카카오 로그인</span>
+                        </button>
+                        <button id="btn-google-login" class="auth-btn google-btn">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
+                                class="auth-btn-icon">
+                            <span>Google 로그인</span>
+                        </button>
+                    </div>
+                    <!-- 로컬 개발용 테스트 모드 -->
+                    <div id="local-dev-auth" class="local-dev-section" style="display: none;">
+                        <p class="local-dev-notice">🔧 로컬 개발 모드</p>
+                        <button id="btn-test-login" class="auth-btn test-btn">
+                            테스트 로그인
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 로그인 상태 -->
+                <div id="auth-logged-in" class="auth-content" style="display: none;">
+                    <div class="auth-user-info">
+                        <img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필">
+                        <div class="auth-user-details">
+                            <span id="auth-user-name" class="auth-user-name">사용자</span>
+                            <span id="auth-user-provider" class="auth-user-provider">Kakao</span>
+                        </div>
+                    </div>
+                    <button id="btn-logout" class="auth-btn logout-btn">로그아웃</button>
+                </div>
+            </div>
+
             <div class="settings-group">
-
-
                 <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
                         class="settings-subtitle">(AI 서비스 선택)</span></label>
                 <select id="api-provider-select" class="settings-input"

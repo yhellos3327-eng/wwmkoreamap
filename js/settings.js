@@ -1,5 +1,6 @@
 import { state, setState } from './state.js';
 import { renderMapDataAndMarkers } from './map.js';
+import { initAuth, updateAuthUI } from './auth.js';
 
 export const AI_MODELS = {
     gemini: [
@@ -137,6 +138,9 @@ export const saveSettings = (settingsModal) => {
 };
 
 export const initSettingsModal = () => {
+    // 인증 모듈 초기화
+    initAuth();
+
     const settingsModal = document.getElementById('settings-modal');
     const openSettingsBtn = document.getElementById('open-settings');
     const saveApiKeyBtn = document.getElementById('save-api-key');

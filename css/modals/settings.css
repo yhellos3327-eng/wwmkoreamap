@@ -165,3 +165,168 @@ input:checked+.slider:before {
     font-size: 0.8rem;
     line-height: 1.5;
 }
+
+.settings-auth-section {
+    background: linear-gradient(135deg, rgba(255, 189, 83, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    border: 1px solid rgba(255, 189, 83, 0.3);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 24px;
+}
+
+.auth-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.auth-icon {
+    font-size: 1.2rem;
+}
+
+.auth-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+.auth-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.auth-description {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.auth-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    border: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 140px;
+}
+
+.auth-btn-icon {
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+}
+
+/* Kakao Button */
+.kakao-btn {
+    background-color: #FEE500;
+    color: #000000;
+}
+
+.kakao-btn:hover {
+    background-color: #FADA0A;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3);
+}
+
+/* Google Button */
+.google-btn {
+    background-color: #ffffff;
+    color: #333333;
+    border: 1px solid #ddd;
+}
+
+.google-btn:hover {
+    background-color: #f8f8f8;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Logout Button */
+.logout-btn {
+    background-color: rgba(255, 82, 82, 0.15);
+    color: #ff5252;
+    border: 1px solid rgba(255, 82, 82, 0.3);
+}
+
+.logout-btn:hover {
+    background-color: rgba(255, 82, 82, 0.25);
+    border-color: #ff5252;
+}
+
+/* Test Login Button */
+.test-btn {
+    background-color: rgba(100, 181, 246, 0.15);
+    color: #64b5f6;
+    border: 1px solid rgba(100, 181, 246, 0.3);
+}
+
+.test-btn:hover {
+    background-color: rgba(100, 181, 246, 0.25);
+    border-color: #64b5f6;
+}
+
+/* Local Dev Section */
+.local-dev-section {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed rgba(255, 255, 255, 0.1);
+}
+
+.local-dev-notice {
+    font-size: 0.8rem;
+    color: #64b5f6;
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+/* User Info */
+.auth-user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.auth-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.auth-user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.auth-user-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-main);
+}
+
+.auth-user-provider {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}

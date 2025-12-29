@@ -216,3 +216,7 @@ export const DISCORD_TAGS = {
     TRANSLATION: "1450575407106490379",
     OTHER: "1450575468758827118"
 };
+
+export const BACKEND_URL = 'https://api.wwmmap.kr';
+
+
