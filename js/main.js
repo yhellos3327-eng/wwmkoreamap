@@ -107,6 +107,45 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         await loadAllComponents();
         setupLoadingSubscription();
+
+        window.addEventListener('syncDataLoaded', (e) => {
+            const cloudData = e.detail;
+            if (!cloudData) return;
+
+            console.log('[Main] Sync data loaded, updating state...', cloudData);
+
+            if (cloudData.completedMarkers) {
+                let markers = cloudData.completedMarkers;
+                if (markers.length > 0 && typeof markers[0] !== 'object') {
+                    markers = markers.map(id => ({ id, completedAt: null }));
+                }
+                setState('completedList', markers);
+            }
+
+            if (cloudData.favorites) {
+                setState('favorites', cloudData.favorites);
+            }
+
+            if (cloudData.settings) {
+                const s = cloudData.settings;
+                if (s.showComments !== undefined) setState('showComments', s.showComments === 'true' || s.showComments === true);
+                if (s.closeOnComplete !== undefined) setState('closeOnComplete', s.closeOnComplete === 'true' || s.closeOnComplete === true);
+                if (s.hideCompleted !== undefined) setState('hideCompleted', s.hideCompleted === 'true' || s.hideCompleted === true);
+                if (s.enableClustering !== undefined) setState('enableClustering', s.enableClustering === 'true' || s.enableClustering === true);
+                if (s.regionColor !== undefined) setState('savedRegionColor', s.regionColor);
+                if (s.regionFillColor !== undefined) setState('savedRegionFillColor', s.regionFillColor);
+                if (s.gpuMode !== undefined) setState('gpuRenderMode', s.gpuMode === 'true' || s.gpuMode === true);
+            }
+
+            renderMapDataAndMarkers();
+            renderFavorites();
+
+            const settingsModal = document.getElementById('settings-modal');
+            if (settingsModal && !settingsModal.classList.contains('hidden')) {
+                initSettingsModal();
+            }
+        });
+
         initAuth();
         fetch('./translation.csv')
             .then(res => res.text())
