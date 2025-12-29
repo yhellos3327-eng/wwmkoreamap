@@ -1,5 +1,7 @@
 import { BACKEND_URL } from './config.js';
 
+let currentUser = null;
+
 const isLocalDev = () => {
     const hostname = window.location.hostname;
     return hostname === 'localhost' ||
@@ -8,52 +10,44 @@ const isLocalDev = () => {
         hostname.includes('.local');
 };
 
-const getToken = () => localStorage.getItem('wwm_access_token');
-const setToken = (token) => localStorage.setItem('wwm_access_token', token);
-const removeToken = () => localStorage.removeItem('wwm_access_token');
-const getUserData = () => {
-    const data = localStorage.getItem('wwm_user_data');
-    return data ? JSON.parse(data) : null;
-};
-
-const setUserData = (user) => {
-    localStorage.setItem('wwm_user_data', JSON.stringify(user));
-};
-
-const removeUserData = () => {
-    localStorage.removeItem('wwm_user_data');
-};
-
 export const isLoggedIn = () => {
-    return !!getToken();
+    return currentUser !== null;
 };
 
 export const getCurrentUser = () => {
-    return getUserData();
+    return currentUser;
 };
 
-const fetchUserProfile = async () => {
-    const token = getToken();
-    if (!token) return null;
+const checkAuthStatus = async () => {
+    if (isLocalDev()) {
+        // In local dev, check localStorage for test login
+        const testData = localStorage.getItem('wwm_test_user');
+        if (testData) {
+            currentUser = JSON.parse(testData);
+        }
+        return;
+    }
 
     try {
-        const response = await fetch(`${BACKEND_URL}/auth/profile`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
+        const response = await fetch(`${BACKEND_URL}/auth/user`, {
+            credentials: 'include' // Important: send cookies
         });
 
-        if (!response.ok) {
-            throw new Error('Failed to fetch profile');
-        }
+        const data = await response.json();
 
-        const user = await response.json();
-        setUserData(user);
-        return user;
+        if (data.isAuthenticated && data.user) {
+            currentUser = {
+                id: data.user.id,
+                name: data.user.display_name || '사용자',
+                email: data.user.email,
+                provider: data.user.provider
+            };
+        } else {
+            currentUser = null;
+        }
     } catch (error) {
-        console.error('Failed to fetch user profile:', error);
-        logout();
-        return null;
+        console.error('Failed to check auth status:', error);
+        currentUser = null;
     }
 };
 
@@ -64,8 +58,10 @@ export const loginWithProvider = (provider) => {
         return;
     }
 
+    // Store current URL to return after login
     localStorage.setItem('wwm_auth_return_url', window.location.href);
 
+    // Redirect to backend OAuth
     window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
@@ -79,21 +75,26 @@ export const testLogin = () => {
         id: 'test-user-123',
         name: '테스트 사용자',
         email: 'test@example.com',
-        avatar: 'https://via.placeholder.com/40/FFB6C1/000000?text=T',
         provider: 'test'
     };
 
-    setToken('test-token-for-local-development');
-    setUserData(testUser);
+    localStorage.setItem('wwm_test_user', JSON.stringify(testUser));
+    currentUser = testUser;
 
     console.log('Test login successful:', testUser);
     updateAuthUI();
 };
 
-export const logout = () => {
-    removeToken();
-    removeUserData();
-    updateAuthUI();
+export const logout = async () => {
+    if (isLocalDev()) {
+        localStorage.removeItem('wwm_test_user');
+        currentUser = null;
+        updateAuthUI();
+        return;
+    }
+
+    // Redirect to backend logout
+    window.location.href = `${BACKEND_URL}/auth/logout`;
 };
 
 export const updateAuthUI = () => {
@@ -101,19 +102,32 @@ export const updateAuthUI = () => {
     const loggedInSection = document.getElementById('auth-logged-in');
     const localDevSection = document.getElementById('local-dev-auth');
 
-    if (!loggedOutSection || !loggedInSection) return;
+    // Also check for sidebar auth elements
+    const loggedOutView = document.getElementById('logged-out-view');
+    const loggedInView = document.getElementById('logged-in-view');
+    const userNameSpan = document.getElementById('user-name');
 
     const loggedIn = isLoggedIn();
     const user = getCurrentUser();
 
-    loggedOutSection.style.display = loggedIn ? 'none' : 'flex';
-    loggedInSection.style.display = loggedIn ? 'flex' : 'none';
+    // Settings modal auth UI
+    if (loggedOutSection && loggedInSection) {
+        loggedOutSection.style.display = loggedIn ? 'none' : 'flex';
+        loggedInSection.style.display = loggedIn ? 'flex' : 'none';
+    }
 
     if (localDevSection) {
         localDevSection.style.display = (isLocalDev() && !loggedIn) ? 'block' : 'none';
     }
 
+    // Sidebar auth UI
+    if (loggedOutView && loggedInView) {
+        loggedOutView.style.display = loggedIn ? 'none' : 'flex';
+        loggedInView.style.display = loggedIn ? 'block' : 'none';
+    }
+
     if (loggedIn && user) {
+        // Settings modal
         const avatarEl = document.getElementById('auth-user-avatar');
         const nameEl = document.getElementById('auth-user-name');
         const providerEl = document.getElementById('auth-user-provider');
@@ -133,14 +147,27 @@ export const updateAuthUI = () => {
             };
             providerEl.textContent = providerNames[user.provider] || user.provider || '';
         }
+
+        // Sidebar
+        if (userNameSpan) {
+            userNameSpan.textContent = user.name || '사용자';
+        }
     }
 };
 
-export const initAuth = () => {
+export const initAuth = async () => {
+    // Check auth status from server
+    await checkAuthStatus();
+
+    // Setup button listeners
     const kakaoBtn = document.getElementById('btn-kakao-login');
     const googleBtn = document.getElementById('btn-google-login');
     const testBtn = document.getElementById('btn-test-login');
     const logoutBtn = document.getElementById('btn-logout');
+
+    // Sidebar buttons
+    const sidebarGoogleBtn = document.getElementById('btn-login-google');
+    const sidebarKakaoBtn = document.getElementById('btn-login-kakao');
 
     if (kakaoBtn) {
         kakaoBtn.addEventListener('click', () => loginWithProvider('kakao'));
@@ -148,6 +175,14 @@ export const initAuth = () => {
 
     if (googleBtn) {
         googleBtn.addEventListener('click', () => loginWithProvider('google'));
+    }
+
+    if (sidebarGoogleBtn) {
+        sidebarGoogleBtn.addEventListener('click', () => loginWithProvider('google'));
+    }
+
+    if (sidebarKakaoBtn) {
+        sidebarKakaoBtn.addEventListener('click', () => loginWithProvider('kakao'));
     }
 
     if (testBtn) {
@@ -160,12 +195,9 @@ export const initAuth = () => {
 
     updateAuthUI();
 
-    if (isLoggedIn() && !isLocalDev()) {
-        fetchUserProfile().catch(console.error);
-    }
-
     console.log('[Auth] Initialized', {
         isLocalDev: isLocalDev(),
-        isLoggedIn: isLoggedIn()
+        isLoggedIn: isLoggedIn(),
+        user: getCurrentUser()
     });
 };
