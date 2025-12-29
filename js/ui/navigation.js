@@ -6,6 +6,7 @@ import { setAllRegions, updateToggleButtonsState } from './sidebar.js';
 import { renderFavorites } from './sidebar.js';
 import { logger } from '../logger.js';
 import { showCompletedTooltip, hideCompletedTooltip } from '../map/markers.js';
+import { triggerSync } from '../sync.js';
 
 import { updateSinglePixiMarker } from '../map/pixiOverlay/overlayCore.js';
 
@@ -52,6 +53,7 @@ export const toggleCompleted = (id) => {
         }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
+    triggerSync(); // Cloud sync
 
     if (state.gpuRenderMode) {
         updateSinglePixiMarker(id);
@@ -112,6 +114,7 @@ export const toggleFavorite = (id) => {
     if (isNowFavorite) state.favorites.push(id);
     else state.favorites.splice(index, 1);
     localStorage.setItem('wwm_favorites', JSON.stringify(state.favorites));
+    triggerSync(); // Cloud sync
     renderFavorites();
     const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
     if (popupContainer) {

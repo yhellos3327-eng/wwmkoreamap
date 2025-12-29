@@ -1,6 +1,7 @@
 import { state, setState } from './state.js';
 import { renderMapDataAndMarkers } from './map.js';
 import { initAuth, updateAuthUI } from './auth.js';
+import { triggerSync } from './sync.js';
 
 export const AI_MODELS = {
     gemini: [
@@ -38,6 +39,7 @@ export const initAdToggle = () => {
         const isChecked = e.target.checked;
         localStorage.setItem('wwm_show_ad', isChecked);
         adContainer.style.display = isChecked ? 'block' : 'none';
+        triggerSync();
     });
 };
 
@@ -127,6 +129,9 @@ export const saveSettings = (settingsModal) => {
         if (adToggleInput) {
             localStorage.setItem('wwm_show_ad', adToggleInput.checked);
         }
+
+        // Trigger cloud sync (except API keys which are local-only)
+        triggerSync();
 
         alert("설정이 저장되었습니다. 적용을 위해 페이지를 새로고침합니다.");
         if (settingsModal) settingsModal.classList.add('hidden');
@@ -256,6 +261,7 @@ export const initSettingsModal = () => {
         clusterToggleInput.addEventListener('change', (e) => {
             setState('enableClustering', e.target.checked);
             localStorage.setItem('wwm_enable_clustering', state.enableClustering);
+            triggerSync();
         });
     }
 
@@ -265,6 +271,7 @@ export const initSettingsModal = () => {
             setState('gpuRenderMode', e.target.checked);
             localStorage.setItem('wwm_gpu_render', e.target.checked);
             updateClusteringToggleState();
+            triggerSync();
         });
     }
 
@@ -272,6 +279,7 @@ export const initSettingsModal = () => {
         hideCompletedInput.addEventListener('change', (e) => {
             setState('hideCompleted', e.target.checked);
             localStorage.setItem('wwm_hide_completed', state.hideCompleted);
+            triggerSync();
             renderMapDataAndMarkers();
         });
     }
@@ -281,6 +289,7 @@ export const initSettingsModal = () => {
         commentsToggleInput.addEventListener('change', (e) => {
             setState('showComments', e.target.checked);
             localStorage.setItem('wwm_show_comments', e.target.checked);
+            triggerSync();
         });
     }
 
@@ -289,6 +298,7 @@ export const initSettingsModal = () => {
         closeOnCompleteInput.addEventListener('change', (e) => {
             setState('closeOnComplete', e.target.checked);
             localStorage.setItem('wwm_close_on_complete', e.target.checked);
+            triggerSync();
         });
     }
 

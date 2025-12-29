@@ -1,4 +1,5 @@
 import { BACKEND_URL } from './config.js';
+import { initSync } from './sync.js';
 
 let currentUser = null;
 
@@ -141,6 +142,11 @@ export const updateAuthUI = () => {
 export const initAuth = async () => {
     // Check auth status from server
     await checkAuthStatus();
+
+    // Initialize cloud sync if logged in
+    if (isLoggedIn()) {
+        await initSync();
+    }
 
     // Setup button listeners (Settings modal)
     const kakaoBtn = document.getElementById('btn-kakao-login');

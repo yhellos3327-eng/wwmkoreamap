@@ -1,2 +1,6 @@
 # env.js (contains secrets, generated during deployment)
 js/env.js
+
+# Backend (deployed separately to NAS)
+backend/
+docker-compose.yml
