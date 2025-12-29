@@ -102,17 +102,12 @@ export const updateAuthUI = () => {
     const loggedInSection = document.getElementById('auth-logged-in');
     const localDevSection = document.getElementById('local-dev-auth');
 
-    // Also check for sidebar auth elements
-    const loggedOutView = document.getElementById('logged-out-view');
-    const loggedInView = document.getElementById('logged-in-view');
-    const userNameSpan = document.getElementById('user-name');
-
     const loggedIn = isLoggedIn();
     const user = getCurrentUser();
 
     // Settings modal auth UI
     if (loggedOutSection && loggedInSection) {
-        loggedOutSection.style.display = loggedIn ? 'none' : 'flex';
+        loggedOutSection.style.display = loggedIn ? 'none' : 'block';
         loggedInSection.style.display = loggedIn ? 'flex' : 'none';
     }
 
@@ -120,14 +115,7 @@ export const updateAuthUI = () => {
         localDevSection.style.display = (isLocalDev() && !loggedIn) ? 'block' : 'none';
     }
 
-    // Sidebar auth UI
-    if (loggedOutView && loggedInView) {
-        loggedOutView.style.display = loggedIn ? 'none' : 'flex';
-        loggedInView.style.display = loggedIn ? 'block' : 'none';
-    }
-
     if (loggedIn && user) {
-        // Settings modal
         const avatarEl = document.getElementById('auth-user-avatar');
         const nameEl = document.getElementById('auth-user-name');
         const providerEl = document.getElementById('auth-user-provider');
@@ -147,11 +135,6 @@ export const updateAuthUI = () => {
             };
             providerEl.textContent = providerNames[user.provider] || user.provider || '';
         }
-
-        // Sidebar
-        if (userNameSpan) {
-            userNameSpan.textContent = user.name || '사용자';
-        }
     }
 };
 
@@ -159,15 +142,11 @@ export const initAuth = async () => {
     // Check auth status from server
     await checkAuthStatus();
 
-    // Setup button listeners
+    // Setup button listeners (Settings modal)
     const kakaoBtn = document.getElementById('btn-kakao-login');
     const googleBtn = document.getElementById('btn-google-login');
     const testBtn = document.getElementById('btn-test-login');
     const logoutBtn = document.getElementById('btn-logout');
-
-    // Sidebar buttons
-    const sidebarGoogleBtn = document.getElementById('btn-login-google');
-    const sidebarKakaoBtn = document.getElementById('btn-login-kakao');
 
     if (kakaoBtn) {
         kakaoBtn.addEventListener('click', () => loginWithProvider('kakao'));
@@ -175,14 +154,6 @@ export const initAuth = async () => {
 
     if (googleBtn) {
         googleBtn.addEventListener('click', () => loginWithProvider('google'));
-    }
-
-    if (sidebarGoogleBtn) {
-        sidebarGoogleBtn.addEventListener('click', () => loginWithProvider('google'));
-    }
-
-    if (sidebarKakaoBtn) {
-        sidebarKakaoBtn.addEventListener('click', () => loginWithProvider('kakao'));
     }
 
     if (testBtn) {
@@ -193,6 +164,7 @@ export const initAuth = async () => {
         logoutBtn.addEventListener('click', logout);
     }
 
+    // Update UI
     updateAuthUI();
 
     console.log('[Auth] Initialized', {
