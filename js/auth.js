@@ -21,7 +21,6 @@ export const getCurrentUser = () => {
 
 const checkAuthStatus = async () => {
     if (isLocalDev()) {
-        // In local dev, check localStorage for test login
         const testData = localStorage.getItem('wwm_test_user');
         if (testData) {
             currentUser = JSON.parse(testData);
@@ -31,7 +30,7 @@ const checkAuthStatus = async () => {
 
     try {
         const response = await fetch(`${BACKEND_URL}/auth/user`, {
-            credentials: 'include' // Important: send cookies
+            credentials: 'include'
         });
 
         const data = await response.json();
@@ -41,7 +40,8 @@ const checkAuthStatus = async () => {
                 id: data.user.id,
                 name: data.user.name || data.user.display_name || '사용자',
                 email: data.user.email,
-                provider: data.user.provider
+                provider: data.user.provider,
+                avatar: data.user.profileImage
             };
         } else {
             currentUser = null;
@@ -59,10 +59,7 @@ export const loginWithProvider = (provider) => {
         return;
     }
 
-    // Store current URL to return after login
     localStorage.setItem('wwm_auth_return_url', window.location.href);
-
-    // Redirect to backend OAuth
     window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
@@ -85,12 +82,10 @@ export const testLogin = async () => {
     console.log('Test login successful:', testUser);
     updateAuthUI();
 
-    // Initialize sync after test login
     await initSync();
 };
 
 export const logout = async () => {
-    // Cleanup real-time sync listeners before logout
     cleanupRealtimeSync();
 
     if (isLocalDev()) {
@@ -100,7 +95,6 @@ export const logout = async () => {
         return;
     }
 
-    // Redirect to backend logout
     window.location.href = `${BACKEND_URL}/auth/logout`;
 };
 
@@ -112,7 +106,6 @@ export const updateAuthUI = () => {
     const loggedIn = isLoggedIn();
     const user = getCurrentUser();
 
-    // Settings modal auth UI
     if (loggedOutSection && loggedInSection) {
         loggedOutSection.style.display = loggedIn ? 'none' : 'block';
         loggedInSection.style.display = loggedIn ? 'flex' : 'none';
@@ -146,15 +139,12 @@ export const updateAuthUI = () => {
 };
 
 export const initAuth = async () => {
-    // Check auth status from server
     await checkAuthStatus();
 
-    // Initialize cloud sync if logged in
     if (isLoggedIn()) {
         await initSync();
     }
 
-    // Setup button listeners (Settings modal)
     const kakaoBtn = document.getElementById('btn-kakao-login');
     const googleBtn = document.getElementById('btn-google-login');
     const testBtn = document.getElementById('btn-test-login');
@@ -176,7 +166,6 @@ export const initAuth = async () => {
         logoutBtn.addEventListener('click', logout);
     }
 
-    // Update UI
     updateAuthUI();
 
     console.log('[Auth] Initialized', {

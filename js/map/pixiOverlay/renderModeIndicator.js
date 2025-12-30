@@ -1,4 +1,9 @@
-export const showRenderModeIndicator = (mode) => {
+let lastMode = null;
+
+export const showRenderModeIndicator = (mode, force = false) => {
+    if (!force && lastMode === mode) return;
+    lastMode = mode;
+
     const existing = document.getElementById('render-mode-indicator');
     if (existing) existing.remove();
 
@@ -40,6 +45,8 @@ export const showRenderModeIndicator = (mode) => {
     setTimeout(() => {
         indicator.style.transition = 'opacity 0.5s';
         indicator.style.opacity = '0';
-        setTimeout(() => indicator.remove(), 500);
-    }, 5000);
+        setTimeout(() => {
+            indicator.remove();
+        }, 500);
+    }, 3000);
 };
