@@ -1,0 +1,185 @@
+import {
+    getSyncState, setSyncing, setLastSyncVersion,
+    getSyncTimeout, setSyncTimeout,
+    getPollingInterval, setPollingInterval,
+    SYNC_DELAY, POLLING_INTERVAL
+} from './state.js';
+import { showSyncTooltip, hideSyncTooltip, showSyncToast } from './ui.js';
+import { getLocalData, setLocalData } from './storage.js';
+import { mergeData, generateDataHash } from './merge.js';
+import { fetchCloudData, saveCloudData } from './api.js';
+
+let authModule = null;
+const getAuth = async () => {
+    if (!authModule) authModule = await import('../auth.js');
+    return authModule;
+};
+const isLoggedIn = () => authModule?.isLoggedIn?.() ?? false;
+
+export const saveToCloud = async (silent = false) => {
+    if (!isLoggedIn()) return false;
+    if (getSyncState().isSyncing) return false;
+
+    setSyncing(true);
+    if (!silent) showSyncTooltip('동기화중...');
+
+    try {
+        const data = getLocalData();
+        await saveCloudData(data);
+        setLastSyncVersion(generateDataHash(data));
+        if (!silent) {
+            showSyncTooltip('동기화 완료!', 'success');
+            hideSyncTooltip(1500);
+        }
+        return true;
+    } catch (error) {
+        console.error('[Sync] Save failed:', error);
+        if (!silent) {
+            showSyncTooltip('동기화 실패', 'error');
+            hideSyncTooltip(2000);
+        }
+        return false;
+    } finally {
+        setSyncing(false);
+    }
+};
+
+export const loadFromCloud = async (silent = false) => {
+    if (!isLoggedIn()) return null;
+    if (!silent) showSyncTooltip('데이터 불러오는 중...');
+
+    try {
+        const cloudData = await fetchCloudData();
+        if (cloudData) {
+            if (!silent) {
+                showSyncTooltip('데이터 불러오기 완료!', 'success');
+                hideSyncTooltip(1500);
+            }
+            return cloudData;
+        }
+        if (!silent) hideSyncTooltip(0);
+        return null;
+    } catch (error) {
+        console.error('[Sync] Load failed:', error);
+        if (!silent) {
+            showSyncTooltip('불러오기 실패', 'error');
+            hideSyncTooltip(2000);
+        }
+        return null;
+    }
+};
+
+export const performFullSync = async (silent = false) => {
+    if (!isLoggedIn()) return null;
+    if (getSyncState().isSyncing) return null;
+
+    setSyncing(true);
+
+    try {
+        const cloudData = await fetchCloudData();
+        const localData = getLocalData();
+        const mergedData = mergeData(localData, cloudData || {});
+        const newHash = generateDataHash(mergedData);
+        const dataChanged = newHash !== getSyncState().lastSyncVersion;
+
+        setLocalData(mergedData);
+
+        if (dataChanged) {
+            await saveCloudData(mergedData);
+            setLastSyncVersion(newHash);
+            window.dispatchEvent(new CustomEvent('syncDataLoaded', { detail: mergedData }));
+            if (!silent) showSyncToast('다른 기기의 변경사항이 동기화되었습니다', 'update');
+        }
+
+        return mergedData;
+    } catch (error) {
+        console.error('[Sync] Full sync failed:', error);
+        if (!silent) showSyncToast('동기화 실패: ' + error.message, 'error');
+        return null;
+    } finally {
+        setSyncing(false);
+    }
+};
+
+export const triggerSync = () => {
+    if (!isLoggedIn()) return;
+    const timeout = getSyncTimeout();
+    if (timeout) clearTimeout(timeout);
+    setSyncTimeout(setTimeout(() => saveToCloud(), SYNC_DELAY));
+};
+
+export const updateSettingWithTimestamp = (key, value) => {
+    localStorage.setItem(`wwm_${key}`, value);
+
+    let timestamps = {};
+    const stored = localStorage.getItem('wwm_settings_updated_at');
+    if (stored) {
+        try { timestamps = JSON.parse(stored); } catch (e) { }
+    }
+
+    timestamps[key] = new Date().toISOString();
+    localStorage.setItem('wwm_settings_updated_at', JSON.stringify(timestamps));
+    triggerSync();
+};
+
+const handleVisibilityChange = () => {
+    if (document.visibilityState === 'visible') performFullSync(true);
+};
+
+const handleWindowFocus = () => {
+    performFullSync(true);
+};
+
+const startPolling = () => {
+    const existing = getPollingInterval();
+    if (existing) clearInterval(existing);
+    setPollingInterval(setInterval(() => {
+        if (document.visibilityState === 'visible') performFullSync(true);
+    }, POLLING_INTERVAL));
+};
+
+const stopPolling = () => {
+    const interval = getPollingInterval();
+    if (interval) {
+        clearInterval(interval);
+        setPollingInterval(null);
+    }
+};
+
+const setupRealtimeSync = () => {
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+    startPolling();
+};
+
+export const cleanupRealtimeSync = () => {
+    document.removeEventListener('visibilitychange', handleVisibilityChange);
+    window.removeEventListener('focus', handleWindowFocus);
+    stopPolling();
+};
+
+export const initSync = async () => {
+    await getAuth();
+    if (!isLoggedIn()) return;
+
+    showSyncTooltip('데이터 동기화 중...');
+
+    try {
+        const mergedData = await performFullSync(true);
+        if (mergedData) {
+            window.dispatchEvent(new CustomEvent('syncDataLoaded', { detail: mergedData }));
+            showSyncTooltip('동기화 완료!', 'success');
+            hideSyncTooltip(1500);
+        } else {
+            hideSyncTooltip(0);
+        }
+        setupRealtimeSync();
+    } catch (error) {
+        console.error('[Sync] Init failed:', error);
+        showSyncTooltip('동기화 실패', 'error');
+        hideSyncTooltip(2000);
+    }
+};
+
+export { mergeData } from './merge.js';
+export { getLocalData, setLocalData } from './storage.js';

@@ -1,5 +1,5 @@
 import { BACKEND_URL } from './config.js';
-import { initSync } from './sync.js';
+import { initSync, cleanupRealtimeSync } from './sync.js';
 
 let currentUser = null;
 
@@ -66,7 +66,7 @@ export const loginWithProvider = (provider) => {
     window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
-export const testLogin = () => {
+export const testLogin = async () => {
     if (!isLocalDev()) {
         console.warn('Test login is only available in local development.');
         return;
@@ -84,9 +84,15 @@ export const testLogin = () => {
 
     console.log('Test login successful:', testUser);
     updateAuthUI();
+
+    // Initialize sync after test login
+    await initSync();
 };
 
 export const logout = async () => {
+    // Cleanup real-time sync listeners before logout
+    cleanupRealtimeSync();
+
     if (isLocalDev()) {
         localStorage.removeItem('wwm_test_user');
         currentUser = null;

@@ -102,6 +102,11 @@ document.addEventListener('DOMContentLoaded', async () => {
         return;
     }
 
+    console.log('[Main] Initial localStorage check:', {
+        completed: localStorage.getItem('wwm_completed'),
+        favorites: localStorage.getItem('wwm_favorites')
+    });
+
     const urlParams = handleUrlParams();
 
     try {
@@ -120,6 +125,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                     markers = markers.map(id => ({ id, completedAt: null }));
                 }
                 setState('completedList', markers);
+                console.log('[Main] State updated. LocalStorage check:', localStorage.getItem('wwm_completed'));
             }
 
             if (cloudData.favorites) {

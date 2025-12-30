@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Sync Logic Test</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #1a1a2e;
+            color: #eee;
+            padding: 20px;
+            margin: 0;
+        }
+
+        h1 {
+            color: #00d4ff;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #ffd700;
+            margin-top: 30px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .panel {
+            background: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #0f3460;
+        }
+
+        .panel h3 {
+            margin-top: 0;
+            color: #00d4ff;
+        }
+
+        pre {
+            background: #0d1b2a;
+            padding: 15px;
+            border-radius: 8px;
+            overflow: auto;
+            max-height: 300px;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #ff6b6b;
+        }
+
+        button.secondary {
+            background: #0f3460;
+        }
+
+        button.secondary:hover {
+            background: #1a4a7a;
+        }
+
+        button.success {
+            background: #28a745;
+        }
+
+        button.success:hover {
+            background: #34ce57;
+        }
+
+        .log {
+            background: #0d1b2a;
+            padding: 15px;
+            border-radius: 8px;
+            max-height: 400px;
+            overflow: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .log-entry {
+            margin: 3px 0;
+            padding: 3px 5px;
+            border-radius: 3px;
+        }
+
+        .log-info {
+            color: #00d4ff;
+        }
+
+        .log-success {
+            color: #28a745;
+        }
+
+        .log-error {
+            color: #e94560;
+        }
+
+        .log-warn {
+            color: #ffc107;
+        }
+
+        input,
+        textarea {
+            background: #0d1b2a;
+            border: 1px solid #0f3460;
+            color: #eee;
+            padding: 10px;
+            border-radius: 5px;
+            width: 100%;
+            margin: 5px 0;
+        }
+
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+
+        .test-pass {
+            background: rgba(40, 167, 69, 0.2);
+            border-left: 4px solid #28a745;
+        }
+
+        .test-fail {
+            background: rgba(233, 69, 96, 0.2);
+            border-left: 4px solid #e94560;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔄 Sync Logic Test Suite</h1>
+
+        <div class="section">
+            <h2>1. mergeData 함수 테스트</h2>
+            <button onclick="runMergeTests()">전체 병합 테스트 실행</button>
+            <button onclick="runSpecificTest('markers')" class="secondary">마커 병합 테스트</button>
+            <button onclick="runSpecificTest('favorites')" class="secondary">즐겨찾기 병합 테스트</button>
+            <button onclick="runSpecificTest('settings')" class="secondary">설정 병합 테스트</button>
+            <div id="merge-results"></div>
+        </div>
+
+        <div class="section">
+            <h2>2. 수동 병합 시뮬레이터</h2>
+            <div class="grid">
+                <div class="panel">
+                    <h3>📱 로컬 데이터 (기기 A)</h3>
+                    <textarea id="local-data" rows="10">{
+  "completedMarkers": [{"id": 1, "completedAt": "2025-12-30T10:00:00Z"}, {"id": 2, "completedAt": null}],
+  "favorites": [1, 3, 5],
+  "settings": {
+    "hideCompleted": "true",
+    "gpuMode": "false",
+    "_updatedAt": {"hideCompleted": "2025-12-30T10:00:00Z", "gpuMode": "2025-12-30T09:00:00Z"}
+  }
+}</textarea>
+                </div>
+                <div class="panel">
+                    <h3>☁️ 클라우드 데이터 (기기 B)</h3>
+                    <textarea id="cloud-data" rows="10">{
+  "completedMarkers": [{"id": 2, "completedAt": "2025-12-30T11:00:00Z"}, {"id": 3, "completedAt": null}],
+  "favorites": [2, 3, 7],
+  "settings": {
+    "hideCompleted": "false",
+    "gpuMode": "true",
+    "_updatedAt": {"hideCompleted": "2025-12-30T11:00:00Z", "gpuMode": "2025-12-30T08:00:00Z"}
+  }
+}</textarea>
+                </div>
+            </div>
+            <button onclick="runManualMerge()" class="success">🔀 병합 실행</button>
+            <div class="panel" style="margin-top: 15px;">
+                <h3>✅ 병합 결과</h3>
+                <pre id="merge-output">결과가 여기에 표시됩니다...</pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>3. 실행 로그</h2>
+            <button onclick="clearLog()" class="secondary">로그 지우기</button>
+            <div id="log" class="log"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // ===== sync.js의 핵심 로직만 추출 =====
+
+        const getMarkerId = (marker) => {
+            if (typeof marker === 'object' && marker !== null) {
+                return marker.id;
+            }
+            return marker;
+        };
+
+        const normalizeMarkers = (markers) => {
+            if (!Array.isArray(markers)) return [];
+            return markers.map(marker => {
+                if (typeof marker === 'object' && marker !== null) {
+                    return marker;
+                }
+                return { id: marker, completedAt: null };
+            });
+        };
+
+        const mergeArrays = (localArr, cloudArr) => {
+            const localNormalized = normalizeMarkers(localArr);
+            const cloudNormalized = normalizeMarkers(cloudArr);
+
+            const mergedMap = new Map();
+
+            // Add cloud items first
+            cloudNormalized.forEach(item => {
+                const id = getMarkerId(item);
+                mergedMap.set(id, item);
+            });
+
+            // Add/override with local items
+            localNormalized.forEach(item => {
+                const id = getMarkerId(item);
+                const existing = mergedMap.get(id);
+                if (existing) {
+                    if (item.completedAt && existing.completedAt) {
+                        const localTime = new Date(item.completedAt).getTime();
+                        const cloudTime = new Date(existing.completedAt).getTime();
+                        if (localTime >= cloudTime) {
+                            mergedMap.set(id, item);
+                        }
+                    } else if (item.completedAt) {
+                        mergedMap.set(id, item);
+                    }
+                } else {
+                    mergedMap.set(id, item);
+                }
+            });
+
+            return Array.from(mergedMap.values());
+        };
+
+        const mergeSettings = (localSettings, cloudSettings) => {
+            const merged = {};
+            const mergedTimestamps = {};
+
+            const localTimestamps = localSettings._updatedAt || {};
+            const cloudTimestamps = cloudSettings._updatedAt || {};
+
+            const allKeys = new Set([
+                ...Object.keys(localSettings).filter(k => k !== '_updatedAt'),
+                ...Object.keys(cloudSettings).filter(k => k !== '_updatedAt')
+            ]);
+
+            allKeys.forEach(key => {
+                const localValue = localSettings[key];
+                const cloudValue = cloudSettings[key];
+                const localTime = localTimestamps[key] ? new Date(localTimestamps[key]).getTime() : 0;
+                const cloudTime = cloudTimestamps[key] ? new Date(cloudTimestamps[key]).getTime() : 0;
+
+                if (localValue !== undefined && cloudValue !== undefined) {
+                    if (cloudTime > localTime) {
+                        merged[key] = cloudValue;
+                        mergedTimestamps[key] = cloudTimestamps[key];
+                    } else {
+                        merged[key] = localValue;
+                        mergedTimestamps[key] = localTimestamps[key] || new Date().toISOString();
+                    }
+                } else if (localValue !== undefined) {
+                    merged[key] = localValue;
+                    mergedTimestamps[key] = localTimestamps[key] || new Date().toISOString();
+                } else if (cloudValue !== undefined) {
+                    merged[key] = cloudValue;
+                    mergedTimestamps[key] = cloudTimestamps[key] || new Date().toISOString();
+                }
+            });
+
+            merged._updatedAt = mergedTimestamps;
+            return merged;
+        };
+
+        const mergeData = (local, cloud) => {
+            return {
+                completedMarkers: mergeArrays(
+                    local?.completedMarkers || [],
+                    cloud?.completedMarkers || []
+                ),
+                favorites: mergeArrays(
+                    local?.favorites || [],
+                    cloud?.favorites || []
+                ),
+                settings: mergeSettings(
+                    local?.settings || {},
+                    cloud?.settings || {}
+                )
+            };
+        };
+
+        // ===== 로깅 =====
+        function log(message, type = 'info') {
+            const logEl = document.getElementById('log');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            logEl.appendChild(entry);
+            logEl.scrollTop = logEl.scrollHeight;
+        }
+
+        window.clearLog = () => {
+            document.getElementById('log').innerHTML = '';
+        };
+
+        // ===== 테스트 케이스 =====
+        const testCases = {
+            markers: [
+                {
+                    name: "마커 합집합 (중복 없음)",
+                    local: { completedMarkers: [{ id: 1 }, { id: 2 }] },
+                    cloud: { completedMarkers: [{ id: 3 }, { id: 4 }] },
+                    expected: result => result.completedMarkers.length === 4,
+                    description: "로컬 [1,2] + 클라우드 [3,4] = [1,2,3,4]"
+                },
+                {
+                    name: "마커 합집합 (중복 있음)",
+                    local: { completedMarkers: [{ id: 1 }, { id: 2 }] },
+                    cloud: { completedMarkers: [{ id: 2 }, { id: 3 }] },
+                    expected: result => result.completedMarkers.length === 3,
+                    description: "로컬 [1,2] + 클라우드 [2,3] = [1,2,3] (중복 제거)"
+                },
+                {
+                    name: "타임스탬프 비교 (로컬 최신)",
+                    local: { completedMarkers: [{ id: 1, completedAt: "2025-12-30T12:00:00Z" }] },
+                    cloud: { completedMarkers: [{ id: 1, completedAt: "2025-12-30T10:00:00Z" }] },
+                    expected: result => {
+                        const marker = result.completedMarkers.find(m => m.id === 1);
+                        return marker && marker.completedAt === "2025-12-30T12:00:00Z";
+                    },
+                    description: "동일 ID에서 로컬 타임스탬프가 최신이면 로컬 값 유지"
+                },
+                {
+                    name: "타임스탬프 비교 (클라우드 최신)",
+                    local: { completedMarkers: [{ id: 1, completedAt: "2025-12-30T08:00:00Z" }] },
+                    cloud: { completedMarkers: [{ id: 1, completedAt: "2025-12-30T12:00:00Z" }] },
+                    expected: result => {
+                        const marker = result.completedMarkers.find(m => m.id === 1);
+                        return marker && marker.completedAt === "2025-12-30T12:00:00Z";
+                    },
+                    description: "동일 ID에서 클라우드 타임스탬프가 최신이면 클라우드 값 유지"
+                },
+                {
+                    name: "빈 데이터 처리",
+                    local: { completedMarkers: [] },
+                    cloud: { completedMarkers: [{ id: 1 }] },
+                    expected: result => result.completedMarkers.length === 1,
+                    description: "로컬이 비어있어도 클라우드 데이터 유지"
+                }
+            ],
+            favorites: [
+                {
+                    name: "즐겨찾기 합집합",
+                    local: { favorites: [1, 2, 3] },
+                    cloud: { favorites: [3, 4, 5] },
+                    expected: result => result.favorites.length === 5,
+                    description: "로컬 [1,2,3] + 클라우드 [3,4,5] = [1,2,3,4,5]"
+                }
+            ],
+            settings: [
+                {
+                    name: "설정 Last Write Wins (클라우드 최신)",
+                    local: {
+                        settings: {
+                            hideCompleted: "true",
+                            _updatedAt: { hideCompleted: "2025-12-30T08:00:00Z" }
+                        }
+                    },
+                    cloud: {
+                        settings: {
+                            hideCompleted: "false",
+                            _updatedAt: { hideCompleted: "2025-12-30T12:00:00Z" }
+                        }
+                    },
+                    expected: result => result.settings.hideCompleted === "false",
+                    description: "클라우드 타임스탬프가 최신이면 클라우드 값 사용"
+                },
+                {
+                    name: "설정 Last Write Wins (로컬 최신)",
+                    local: {
+                        settings: {
+                            gpuMode: "true",
+                            _updatedAt: { gpuMode: "2025-12-30T15:00:00Z" }
+                        }
+                    },
+                    cloud: {
+                        settings: {
+                            gpuMode: "false",
+                            _updatedAt: { gpuMode: "2025-12-30T10:00:00Z" }
+                        }
+                    },
+                    expected: result => result.settings.gpuMode === "true",
+                    description: "로컬 타임스탬프가 최신이면 로컬 값 유지"
+                },
+                {
+                    name: "설정 병합 (서로 다른 키)",
+                    local: {
+                        settings: { keyA: "valueA", _updatedAt: {} }
+                    },
+                    cloud: {
+                        settings: { keyB: "valueB", _updatedAt: {} }
+                    },
+                    expected: result => result.settings.keyA === "valueA" && result.settings.keyB === "valueB",
+                    description: "서로 다른 설정 키는 모두 병합"
+                }
+            ]
+        };
+
+        window.runMergeTests = () => {
+            const resultsEl = document.getElementById('merge-results');
+            resultsEl.innerHTML = '';
+            let passed = 0, failed = 0;
+
+            Object.entries(testCases).forEach(([category, tests]) => {
+                tests.forEach(test => {
+                    const result = mergeData(test.local, test.cloud);
+                    const success = test.expected(result);
+
+                    const div = document.createElement('div');
+                    div.className = `test-result ${success ? 'test-pass' : 'test-fail'}`;
+                    div.innerHTML = `
+                        <strong>${success ? '✅' : '❌'} ${test.name}</strong><br>
+                        <small>${test.description}</small>
+                    `;
+                    resultsEl.appendChild(div);
+
+                    if (success) {
+                        passed++;
+                        log(`✅ PASS: ${test.name}`, 'success');
+                    } else {
+                        failed++;
+                        log(`❌ FAIL: ${test.name}`, 'error');
+                        log(`   결과: ${JSON.stringify(result)}`, 'warn');
+                    }
+                });
+            });
+
+            log(`테스트 완료: ${passed} passed, ${failed} failed`, passed === passed + failed ? 'success' : 'error');
+        };
+
+        window.runSpecificTest = (category) => {
+            const tests = testCases[category];
+            if (!tests) {
+                log(`카테고리 '${category}' 없음`, 'error');
+                return;
+            }
+
+            tests.forEach(test => {
+                const result = mergeData(test.local, test.cloud);
+                const success = test.expected(result);
+                log(`${success ? '✅' : '❌'} ${test.name}: ${test.description}`, success ? 'success' : 'error');
+                if (!success) {
+                    log(`   결과: ${JSON.stringify(result, null, 2)}`, 'warn');
+                }
+            });
+        };
+
+        window.runManualMerge = () => {
+            try {
+                const localData = JSON.parse(document.getElementById('local-data').value);
+                const cloudData = JSON.parse(document.getElementById('cloud-data').value);
+
+                log('병합 시작...', 'info');
+                log(`로컬 마커: ${localData.completedMarkers?.length || 0}개`, 'info');
+                log(`클라우드 마커: ${cloudData.completedMarkers?.length || 0}개`, 'info');
+
+                const result = mergeData(localData, cloudData);
+
+                document.getElementById('merge-output').textContent = JSON.stringify(result, null, 2);
+
+                log(`병합 완료! 마커 ${result.completedMarkers.length}개, 즐겨찾기 ${result.favorites.length}개`, 'success');
+
+                // 설정 분석
+                if (result.settings) {
+                    Object.keys(result.settings).filter(k => k !== '_updatedAt').forEach(key => {
+                        const localVal = localData.settings?.[key];
+                        const cloudVal = cloudData.settings?.[key];
+                        const mergedVal = result.settings[key];
+                        if (localVal !== cloudVal) {
+                            log(`  설정 '${key}': 로컬(${localVal}) vs 클라우드(${cloudVal}) → ${mergedVal}`, 'warn');
+                        }
+                    });
+                }
+
+            } catch (e) {
+                log(`JSON 파싱 에러: ${e.message}`, 'error');
+                document.getElementById('merge-output').textContent = `에러: ${e.message}`;
+            }
+        };
+
+        // 페이지 로드시 초기 로그
+        log('테스트 페이지 로드 완료', 'success');
+        log('sync.js의 mergeData 로직을 독립적으로 테스트합니다.', 'info');
+    </script>
+</body>
+
+</html>

@@ -1,26 +1,26 @@
 import { state, setState } from './state.js';
 import { renderMapDataAndMarkers } from './map.js';
 import { initAuth, updateAuthUI } from './auth.js';
-import { triggerSync } from './sync.js';
+import { triggerSync, updateSettingWithTimestamp } from './sync.js';
 
 export const AI_MODELS = {
     gemini: [
-        { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro' },
-        { value: 'gemini-2.5-pro', label: 'Gemini 2 Pro' },
         { value: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash' },
         { value: 'gemini-2.5-flash-lite', label: 'Gemini 2.5 Flash-Lite' },
+        { value: 'gemini-3-pro-preview', label: 'Gemini 3 Pro' },
+        { value: 'gemini-2.5-pro', label: 'Gemini 2 Pro' },
     ],
     openai: [
-        { value: 'gpt-5.2-pro', label: 'GPT-5.2 pro' },
-        { value: 'gpt-5.2', label: 'GPT 5.2' },
         { value: 'gpt-5', label: 'GPT-5' },
         { value: 'gpt-5-mini', label: 'GPT-5 mini' },
-        { value: 'gpt-5-nano', label: 'GPT-5 nano' }
+        { value: 'gpt-5-nano', label: 'GPT-5 nano' },
+        { value: 'gpt-5.2-pro', label: 'GPT-5.2 pro' },
+        { value: 'gpt-5.2', label: 'GPT 5.2' },
     ],
     claude: [
-        { value: 'claude-opus-4-5-20251101', label: 'Claude Opus 4.5' },
         { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
         { value: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5' },
+        { value: 'claude-opus-4-5-20251101', label: 'Claude Opus 4.5' },
     ]
 };
 
@@ -260,8 +260,7 @@ export const initSettingsModal = () => {
         clusterToggleInput.checked = state.enableClustering;
         clusterToggleInput.addEventListener('change', (e) => {
             setState('enableClustering', e.target.checked);
-            localStorage.setItem('wwm_enable_clustering', state.enableClustering);
-            triggerSync();
+            updateSettingWithTimestamp('enable_clustering', e.target.checked);
         });
     }
 
@@ -269,17 +268,15 @@ export const initSettingsModal = () => {
         gpuModeToggleInput.checked = state.gpuRenderMode;
         gpuModeToggleInput.addEventListener('change', (e) => {
             setState('gpuRenderMode', e.target.checked);
-            localStorage.setItem('wwm_gpu_render', e.target.checked);
+            updateSettingWithTimestamp('gpu_render', e.target.checked);
             updateClusteringToggleState();
-            triggerSync();
         });
     }
 
     if (hideCompletedInput) {
         hideCompletedInput.addEventListener('change', (e) => {
             setState('hideCompleted', e.target.checked);
-            localStorage.setItem('wwm_hide_completed', state.hideCompleted);
-            triggerSync();
+            updateSettingWithTimestamp('hide_completed', e.target.checked);
             renderMapDataAndMarkers();
         });
     }
@@ -288,8 +285,7 @@ export const initSettingsModal = () => {
         commentsToggleInput.checked = state.showComments;
         commentsToggleInput.addEventListener('change', (e) => {
             setState('showComments', e.target.checked);
-            localStorage.setItem('wwm_show_comments', e.target.checked);
-            triggerSync();
+            updateSettingWithTimestamp('show_comments', e.target.checked);
         });
     }
 
@@ -297,8 +293,7 @@ export const initSettingsModal = () => {
         closeOnCompleteInput.checked = state.closeOnComplete;
         closeOnCompleteInput.addEventListener('change', (e) => {
             setState('closeOnComplete', e.target.checked);
-            localStorage.setItem('wwm_close_on_complete', e.target.checked);
-            triggerSync();
+            updateSettingWithTimestamp('close_on_complete', e.target.checked);
         });
     }
 
