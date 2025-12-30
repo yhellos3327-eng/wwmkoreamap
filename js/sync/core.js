@@ -8,6 +8,8 @@ import { showSyncTooltip, hideSyncTooltip, showSyncToast } from './ui.js';
 import { getLocalData, setLocalData } from './storage.js';
 import { mergeData, generateDataHash } from './merge.js';
 import { fetchCloudData, saveCloudData } from './api.js';
+import { initBroadcastChannel, broadcastSyncUpdate, closeBroadcastChannel } from './broadcast.js';
+import { connectWebSocket, sendSyncUpdate, disconnectWebSocket, isWebSocketConnected } from './websocket.js';
 
 let authModule = null;
 const getAuth = async () => {
@@ -15,8 +17,14 @@ const getAuth = async () => {
     return authModule;
 };
 const isLoggedIn = () => authModule?.isLoggedIn?.() ?? false;
+const getUserId = () => authModule?.getCurrentUser?.()?.id ?? null;
 
-export const saveToCloud = async (silent = false) => {
+const applyDataToUI = (data) => {
+    setLocalData(data);
+    window.dispatchEvent(new CustomEvent('syncDataLoaded', { detail: data }));
+};
+
+export const saveToCloud = async (silent = false, broadcast = true) => {
     if (!isLoggedIn()) return false;
     if (getSyncState().isSyncing) return false;
 
@@ -27,6 +35,12 @@ export const saveToCloud = async (silent = false) => {
         const data = getLocalData();
         await saveCloudData(data);
         setLastSyncVersion(generateDataHash(data));
+
+        if (broadcast) {
+            broadcastSyncUpdate(data);
+            sendSyncUpdate(data);
+        }
+
         if (!silent) {
             showSyncTooltip('동기화 완료!', 'success');
             hideSyncTooltip(1500);
@@ -69,7 +83,7 @@ export const loadFromCloud = async (silent = false) => {
     }
 };
 
-export const performFullSync = async (silent = false) => {
+export const performFullSync = async (silent = false, broadcast = true) => {
     if (!isLoggedIn()) return null;
     if (getSyncState().isSyncing) return null;
 
@@ -88,6 +102,12 @@ export const performFullSync = async (silent = false) => {
             await saveCloudData(mergedData);
             setLastSyncVersion(newHash);
             window.dispatchEvent(new CustomEvent('syncDataLoaded', { detail: mergedData }));
+
+            if (broadcast) {
+                broadcastSyncUpdate(mergedData);
+                sendSyncUpdate(mergedData);
+            }
+
             if (!silent) showSyncToast('다른 기기의 변경사항이 동기화되었습니다', 'update');
         }
 
@@ -133,9 +153,12 @@ const handleWindowFocus = () => {
 const startPolling = () => {
     const existing = getPollingInterval();
     if (existing) clearInterval(existing);
+
+    const interval = isWebSocketConnected() ? POLLING_INTERVAL * 3 : POLLING_INTERVAL;
+
     setPollingInterval(setInterval(() => {
         if (document.visibilityState === 'visible') performFullSync(true);
-    }, POLLING_INTERVAL));
+    }, interval));
 };
 
 const stopPolling = () => {
@@ -146,15 +169,46 @@ const stopPolling = () => {
     }
 };
 
+const handleRemoteData = (data) => {
+    if (!data) return;
+    const currentHash = generateDataHash(getLocalData());
+    const newHash = generateDataHash(data);
+
+    if (currentHash !== newHash) {
+        applyDataToUI(data);
+        setLastSyncVersion(newHash);
+        showSyncToast('다른 기기에서 변경사항이 동기화되었습니다', 'update');
+    }
+};
+
+const handleBroadcastData = (data) => {
+    if (!data) return;
+    const currentHash = generateDataHash(getLocalData());
+    const newHash = generateDataHash(data);
+
+    if (currentHash !== newHash) {
+        applyDataToUI(data);
+        setLastSyncVersion(newHash);
+        showSyncToast('다른 탭에서 변경사항이 동기화되었습니다', 'update');
+    }
+};
+
 const setupRealtimeSync = () => {
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleWindowFocus);
+    initBroadcastChannel(handleBroadcastData);
+
+    const userId = getUserId();
+    if (userId) connectWebSocket(userId, handleRemoteData);
+
     startPolling();
 };
 
 export const cleanupRealtimeSync = () => {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     window.removeEventListener('focus', handleWindowFocus);
+    closeBroadcastChannel();
+    disconnectWebSocket();
     stopPolling();
 };
 
@@ -165,7 +219,7 @@ export const initSync = async () => {
     showSyncTooltip('데이터 동기화 중...');
 
     try {
-        const mergedData = await performFullSync(true);
+        const mergedData = await performFullSync(true, false);
         if (mergedData) {
             window.dispatchEvent(new CustomEvent('syncDataLoaded', { detail: mergedData }));
             showSyncTooltip('동기화 완료!', 'success');
