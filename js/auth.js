@@ -39,7 +39,7 @@ const checkAuthStatus = async () => {
         if (data.isAuthenticated && data.user) {
             currentUser = {
                 id: data.user.id,
-                name: data.user.display_name || '사용자',
+                name: data.user.name || data.user.display_name || '사용자',
                 email: data.user.email,
                 provider: data.user.provider
             };
