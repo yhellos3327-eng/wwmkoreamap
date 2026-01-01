@@ -131,13 +131,34 @@ export const refreshCategoryList = () => {
             btn.innerHTML = `
                 <span class="cate-icon"><img src="${cat.image}" alt=""></span>
                 <div class="cate-info">
-                    <span class="cate-name">${t(cat.name)}</span>
+                    <div class="cate-name"><span>${t(cat.name)}</span></div>
                     <div class="cate-meta">
                         <span class="cate-count">${count}</span>
                         <span class="cate-trans-stat ${progressClass}">${percent}% 한글화</span>
                     </div>
                 </div>
             `;
+
+            btn.addEventListener('mouseenter', () => {
+                const nameWrapper = btn.querySelector('.cate-name');
+                const nameSpan = nameWrapper.querySelector('span');
+                if (nameWrapper && nameSpan) {
+                    const overflow = nameWrapper.scrollWidth - nameWrapper.clientWidth;
+                    if (overflow > 0) {
+                        nameSpan.style.setProperty('--scroll-dist', `-${overflow + 10}px`);
+                        nameWrapper.classList.add('is-long');
+                    } else {
+                        nameWrapper.classList.remove('is-long');
+                    }
+                }
+            });
+
+            btn.addEventListener('mouseleave', () => {
+                const nameWrapper = btn.querySelector('.cate-name');
+                if (nameWrapper) {
+                    nameWrapper.classList.remove('is-long');
+                }
+            });
 
             btn.addEventListener('click', () => {
                 if (state.activeCategoryIds.has(cat.id)) {
@@ -165,13 +186,25 @@ export const refreshCategoryList = () => {
 };
 
 export const refreshSidebarLists = () => {
-    const regionListEl = document.getElementById('region-list');
-    if (!regionListEl) return;
+    let regionListEl = document.getElementById('region-list');
+    if (!regionListEl) {
+        const regionTab = document.getElementById('region-tab');
+        if (regionTab) {
+            console.warn('region-list 요소가 없어 복구합니다.');
+            regionListEl = document.createElement('div');
+            regionListEl.id = 'region-list';
+            regionListEl.className = 'category-list region-grid';
+            regionTab.appendChild(regionListEl);
+        } else {
+            return;
+        }
+    }
+
     regionListEl.innerHTML = '';
 
     const sortedRegions = Array.from(state.uniqueRegions).sort((a, b) => t(a).localeCompare(t(b), 'ko'));
     const regionIconUrl = './icons/17310010083.png';
-    regionListEl.className = 'cate-list';
+    regionListEl.classList.add('cate-list');
 
     sortedRegions.forEach(region => {
         const btn = document.createElement('div');
@@ -201,15 +234,58 @@ export const refreshSidebarLists = () => {
         btn.innerHTML = `
             <span class="cate-icon"><img src="${regionIconUrl}" alt="Region"></span>
             <div class="cate-info">
-                <span class="cate-name">${translatedName}</span>
+                <div class="cate-name"><span>${translatedName}</span></div>
                 <div class="cate-meta">
                     <span class="cate-count">${count}</span>
                     <span class="cate-trans-stat ${progressClass}">${percentage}% 한글화</span>
                 </div>
             </div>
+            <button class="region-reset-btn" title="${translatedName} 초기화 (완료 기록 삭제)">↻</button>
         `;
 
-        // Add hover effect for map region
+        const resetBtn = btn.querySelector('.region-reset-btn');
+        resetBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (confirm(`${translatedName} 지역의 완료 기록을 모두 초기화하시겠습니까?`)) {
+                const { triggerSync } = await import('../sync.js');
+                const { updateSinglePixiMarker } = await import('../map/pixiOverlay/overlayCore.js');
+
+                const regionMarkerIds = new Set(regionMarkers.map(m => m.id));
+
+                const initialLength = state.completedList.length;
+                state.completedList = state.completedList.filter(item => !regionMarkerIds.has(item.id));
+
+                if (state.completedList.length !== initialLength) {
+                    localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
+                    triggerSync();
+
+                    regionMarkerIds.forEach(id => {
+                        const target = state.allMarkers.get(id);
+                        if (target && target.marker) {
+                            if (target.marker._icon) target.marker._icon.classList.remove('completed-marker');
+                            if (target.marker.options.icon && target.marker.options.icon.options) {
+                                target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(' completed-marker', '');
+                            }
+                            if (target.marker._completedMouseover) {
+                                target.marker.off('mouseover', target.marker._completedMouseover);
+                                target.marker.off('mouseout', target.marker._completedMouseout);
+                                delete target.marker._completedMouseover;
+                                delete target.marker._completedMouseout;
+                            }
+                        }
+                        if (state.gpuRenderMode) {
+                            updateSinglePixiMarker(id);
+                        }
+                    });
+
+                    updateMapVisibility();
+                    alert(`${translatedName} 지역의 완료 기록이 초기화되었습니다.`);
+                } else {
+                    alert(`${translatedName} 지역에 완료된 항목이 없습니다.`);
+                }
+            }
+        });
+
         btn.addEventListener('mouseenter', () => {
             if (state.regionLayerGroup) {
                 state.regionLayerGroup.eachLayer(layer => {
@@ -220,6 +296,18 @@ export const refreshSidebarLists = () => {
                         });
                     }
                 });
+            }
+
+            const nameWrapper = btn.querySelector('.cate-name');
+            const nameSpan = nameWrapper ? nameWrapper.querySelector('span') : null;
+            if (nameWrapper && nameSpan) {
+                const overflow = nameWrapper.scrollWidth - nameWrapper.clientWidth;
+                if (overflow > 0) {
+                    nameSpan.style.setProperty('--scroll-dist', `-${overflow + 10}px`);
+                    nameWrapper.classList.add('is-long');
+                } else {
+                    nameWrapper.classList.remove('is-long');
+                }
             }
         });
 
@@ -233,6 +321,11 @@ export const refreshSidebarLists = () => {
                         });
                     }
                 });
+            }
+
+            const nameWrapper = btn.querySelector('.cate-name');
+            if (nameWrapper) {
+                nameWrapper.classList.remove('is-long');
             }
         });
 
@@ -264,20 +357,66 @@ export const refreshSidebarLists = () => {
 };
 
 export const renderFavorites = () => {
-    const favListEl = document.getElementById('favorite-list');
-    if (!favListEl) return;
+    let favListEl = document.getElementById('favorite-list');
+
+    if (!favListEl) {
+        let favTab = document.getElementById('favorite-tab');
+        if (!favTab) {
+            const filterContainer = document.querySelector('.filter-container');
+            if (filterContainer) {
+                console.warn('favorite-tab 요소가 없어 복구합니다.');
+                favTab = document.createElement('div');
+                favTab.id = 'favorite-tab';
+                favTab.className = 'tab-content';
+                filterContainer.appendChild(favTab);
+            } else {
+                console.error('filter-container 요소도 없어 복구할 수 없습니다.');
+                return;
+            }
+        }
+
+        if (favTab) {
+            console.warn('favorite-list 요소가 없어 복구합니다.');
+            favListEl = document.createElement('div');
+            favListEl.id = 'favorite-list';
+            favListEl.className = 'favorite-list';
+            favTab.appendChild(favListEl);
+        }
+    }
+
     favListEl.innerHTML = '';
+    console.log('[Favorites] Rendering favorites:', state.favorites);
+
     if (state.favorites.length === 0) {
         favListEl.innerHTML = '<p class="empty-msg">즐겨찾기한 항목이 없습니다.</p>';
         return;
     }
     state.favorites.forEach(favId => {
-        const item = state.mapData.items.find(i => i.id === favId);
+        const item = state.mapData.items.find(i => String(i.id) === String(favId));
         if (item) {
             const div = document.createElement('div');
             div.className = 'fav-item';
             const rReg = item.region || "알 수 없음";
-            div.innerHTML = `<b>${t(item.name)}</b> <span style="font-size:0.8rem; color:#aaa;">(${rReg})</span><br><small>${t(item.category)}</small>`;
+
+            const iconWrapper = document.createElement('div');
+            iconWrapper.className = 'fav-icon-wrapper';
+            iconWrapper.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>`;
+
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'fav-info';
+            infoDiv.innerHTML = `
+                <div class="fav-name">${t(item.name)}</div>
+                <div class="fav-meta">
+                    <span class="fav-region">${rReg}</span>
+                    <span class="fav-category">${t(item.category)}</span>
+                </div>`;
+
+            div.appendChild(iconWrapper);
+            div.appendChild(infoDiv);
+
             div.addEventListener('click', async () => {
                 const { jumpToId } = await import('./navigation.js');
                 jumpToId(item.id);

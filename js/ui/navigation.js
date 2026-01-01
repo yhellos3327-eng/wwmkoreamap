@@ -53,7 +53,7 @@ export const toggleCompleted = (id) => {
         }
     }
     localStorage.setItem('wwm_completed', JSON.stringify(state.completedList));
-    triggerSync(); // Cloud sync
+    triggerSync();
 
     if (state.gpuRenderMode) {
         updateSinglePixiMarker(id);
@@ -107,14 +107,15 @@ const formatCompletedTime = (timestamp) => {
 export { formatCompletedTime };
 
 export const toggleFavorite = (id) => {
-    const index = state.favorites.indexOf(id);
-    const target = state.allMarkers.get(id);
+    const strId = String(id);
+    const index = state.favorites.findIndex(fav => String(fav) === strId);
+    const target = state.allMarkers.get(id) || state.allMarkers.get(strId);
     const isNowFavorite = index === -1;
 
-    if (isNowFavorite) state.favorites.push(id);
+    if (isNowFavorite) state.favorites.push(strId);
     else state.favorites.splice(index, 1);
     localStorage.setItem('wwm_favorites', JSON.stringify(state.favorites));
-    triggerSync(); // Cloud sync
+    triggerSync();
     renderFavorites();
     const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
     if (popupContainer) {

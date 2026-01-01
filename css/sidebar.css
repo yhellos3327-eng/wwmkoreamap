@@ -1,5 +1,6 @@
 @import 'sidebar/layout.css';
 @import 'sidebar/search.css';
+@import 'sidebar/search-modal.css';
 @import 'sidebar/tabs.css';
 @import 'sidebar/categories.css';
 @import 'sidebar/items.css';

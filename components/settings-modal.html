@@ -1,14 +1,25 @@
-<div id="settings-modal" class="modal-overlay hidden">
+﻿<div id="settings-modal" class="modal-overlay hidden">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>설정</h3>
-            <button id="close-settings" class="close-modal-btn">&times;</button>
+            <h3>
+                <div class="icon-mask"
+                    style="width: 22px; height: 22px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E&quot;);">
+                </div>
+                설정
+            </h3>
+            <button id="close-settings" class="close-modal-btn" title="닫기">
+                <div class="icon-mask"
+                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);">
+                </div>
+            </button>
         </div>
         <div class="modal-body settings-modal-body">
             <!-- 로그인 섹션 (최상단) -->
             <div class="settings-auth-section" id="auth-section">
                 <div class="auth-header">
-                    <span class="auth-icon">🔐</span>
+                    <div class="icon-mask auth-icon"
+                        style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E&quot;);">
+                    </div>
                     <span class="auth-title">로그인</span>
                 </div>
 
@@ -29,7 +40,11 @@
                     </div>
                     <!-- 로컬 개발용 테스트 모드 -->
                     <div id="local-dev-auth" class="local-dev-section" style="display: none;">
-                        <p class="local-dev-notice">🔧 로컬 개발 모드</p>
+                        <p class="local-dev-notice">
+                            <span class="icon-mask"
+                                style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E&quot;);"></span>
+                            로컬 개발 모드
+                        </p>
                         <button id="btn-test-login" class="auth-btn test-btn">
                             테스트 로그인
                         </button>
@@ -39,13 +54,39 @@
                 <!-- 로그인 상태 -->
                 <div id="auth-logged-in" class="auth-content" style="display: none;">
                     <div class="auth-user-info">
-                        <img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필">
+                        <div class="auth-avatar-wrapper"><img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필"><div class="auth-avatar-fallback"><div class="icon-mask" style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);"></div></div></div>
                         <div class="auth-user-details">
                             <span id="auth-user-name" class="auth-user-name">사용자</span>
                             <span id="auth-user-provider" class="auth-user-provider">Kakao</span>
                         </div>
                     </div>
-                    <button id="btn-logout" class="auth-btn logout-btn">로그아웃</button>
+                    <button id="btn-logout" class="auth-btn logout-btn">
+                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E&quot;);"></div>
+                        로그아웃
+                    </button>
+                                </div>
+            </div>
+            <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
+            <div id="sync-section" class="settings-group settings-card" style="display: none;">
+                <div class="card-header">
+                    <div class="icon-mask" style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);"></div>
+                    <span class="card-title">데이터 동기화</span>
+                </div>
+                <div class="card-body">
+                    <div class="sync-info-grid">
+                        <div class="sync-info-item">
+                            <span class="sync-info-label">상태</span>
+                            <span id="sync-status-text" class="sync-info-value status-online">연결됨</span>
+                        </div>
+                        <div class="sync-info-item">
+                            <span class="sync-info-label">마지막 동기화</span>
+                            <span id="last-sync-time" class="sync-info-value">-</span>
+                        </div>
+                    </div>
+                    <button id="btn-manual-sync" class="auth-btn sync-btn">
+                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);"></div>
+                        지금 동기화
+                    </button>
                 </div>
             </div>
 
@@ -61,8 +102,10 @@
                 <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의
                         키)</span></label>
                 <input type="password" id="api-key-input" class="settings-input" placeholder="API Key 입력">
-                <p style="font-size: 11px; color: #888; margin-top: 5px; margin-bottom: 0;">
-                    🔒 API 키는 보안을 위해 이 브라우저에만 저장되며, 클라우드에 동기화되지 않습니다.
+                <p class="settings-security-note">
+                    <span class="icon-mask"
+                        style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E&quot;);"></span>
+                    API 키는 보안을 위해 이 브라우저에만 저장되며, 클라우드에 동기화되지 않습니다.
                 </p>
             </div>
 
@@ -149,6 +192,29 @@
                         <span class="color-value" id="region-line-color-value">#242424</span>
                     </div>
                     <span class="color-label">기본값: #242424</span>
+                                </div>
+            </div>
+            <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
+            <div id="sync-section" class="settings-group settings-card" style="display: none;">
+                <div class="card-header">
+                    <div class="icon-mask" style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);"></div>
+                    <span class="card-title">데이터 동기화</span>
+                </div>
+                <div class="card-body">
+                    <div class="sync-info-grid">
+                        <div class="sync-info-item">
+                            <span class="sync-info-label">상태</span>
+                            <span id="sync-status-text" class="sync-info-value status-online">연결됨</span>
+                        </div>
+                        <div class="sync-info-item">
+                            <span class="sync-info-label">마지막 동기화</span>
+                            <span id="last-sync-time" class="sync-info-value">-</span>
+                        </div>
+                    </div>
+                    <button id="btn-manual-sync" class="auth-btn sync-btn">
+                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);"></div>
+                        지금 동기화
+                    </button>
                 </div>
             </div>
 
@@ -163,7 +229,11 @@
                 </div>
             </div>
             <div class="settings-backup-section">
-                <h4>💾 데이터 백업 및 복구</h4>
+                <h4>
+                    <span class="icon-mask"
+                        style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E&quot;);"></span>
+                    데이터 백업 및 복구
+                </h4>
                 <p>
                     현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
                     <span style="color: #d9534f; font-size: 0.8em;">

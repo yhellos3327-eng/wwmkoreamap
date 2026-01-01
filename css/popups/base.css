@@ -5,6 +5,7 @@
     border-radius: 8px;
     padding: 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
 }
 
 .leaflet-popup-content {
@@ -39,6 +40,7 @@
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    backdrop-filter: var(--glass-blur) saturate(180%);
 }
 
 .popup-container::-webkit-scrollbar {

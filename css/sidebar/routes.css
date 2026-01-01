@@ -20,7 +20,7 @@
     cursor: pointer;
     font-size: 0.8rem;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 6px;
     transition: background 0.2s;
 }
 
@@ -35,14 +35,14 @@
 }
 
 .route-item {
-    background: var(--bg-item);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 
 .route-item.empty {
@@ -65,13 +65,13 @@
 .route-index {
     background: var(--accent);
     color: black;
-    width: 20px;
-    height: 20px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 0.75rem;
+    font-size: 0.8rem;
     font-weight: bold;
     flex-shrink: 0;
 }
@@ -101,10 +101,10 @@
 
 .route-result {
     margin-top: 15px;
-    padding: 12px;
+    padding: 16px;
     background: rgba(218, 172, 113, 0.1);
-    border: 1px solid var(--accent);
-    border-radius: 6px;
+    border: 1px solid rgba(218, 172, 113, 0.3);
+    border-radius: 16px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -128,20 +128,19 @@
 .btn-add-route {
     width: 100%;
     margin-top: 6px;
-    padding: 6px;
-    background: #333;
-    border: 1px solid #555;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid transparent;
     color: #ccc;
-    border-radius: 4px;
+    border-radius: 12px;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     transition: all 0.2s;
 }
 
 .btn-add-route:hover {
-    background: #444;
+    background: rgba(255, 255, 255, 0.15);
     color: white;
-    border-color: #777;
 }
 
 .btn-add-route:disabled {
@@ -150,8 +149,8 @@
 }
 
 .route-item:hover {
-    background: var(--bg-item-hover);
-    border-color: #555;
+    background: rgba(255, 255, 255, 0.1);
+    transform: scale(1.02);
 }
 
 .route-item-info {
@@ -174,5 +173,6 @@
 }
 
 .btn-add-route.remove {
-    background: #d9534f;
+    background: rgba(217, 83, 79, 0.2);
+    color: #ff5252;
 }

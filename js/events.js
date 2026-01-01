@@ -12,7 +12,12 @@ export const initTabs = () => {
             const targetId = tab.getAttribute('data-tab');
             tabContents.forEach(c => {
                 c.classList.remove('active');
-                if (c.id === targetId) c.classList.add('active');
+                if (c.id === targetId) {
+                    c.classList.add('active');
+                    if (targetId === 'favorite-tab') {
+                        import('./ui.js').then(ui => ui.renderFavorites());
+                    }
+                }
             });
         });
     });

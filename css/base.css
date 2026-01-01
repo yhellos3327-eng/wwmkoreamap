@@ -1,22 +1,32 @@
 @import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
 
 :root {
-    --bg-dark: #121212;
-    --bg-panel: #1e1e1e;
-    --bg-item: #2a2a2a;
-    --bg-item-hover: #3a3a3a;
-    --text-main: #e0e0e0;
-    --text-muted: #888888;
+    --bg-dark: #000000;
+    --bg-panel: rgba(28, 28, 30, 0.7);
+    --bg-item: rgba(255, 255, 255, 0.05);
+    --bg-item-hover: rgba(255, 255, 255, 0.1);
+    --text-main: #f5f5f7;
+    --text-muted: #86868b;
     --accent: #daac71;
     --accent-bg: rgba(218, 172, 113, 0.15);
     --accent-hover: #e5b981;
-    --border: #333;
-    --success: #4caf50;
+    --border: rgba(255, 255, 255, 0.1);
+    --border-light: rgba(255, 255, 255, 0.05);
+    --success: #32d74b;
     --sidebar-width: 380px;
+
+    /* Glassmorphism Tokens */
+    --glass-bg: rgba(20, 20, 20, 0.6);
+    --glass-bg-hover: rgba(40, 40, 40, 0.7);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border-bright: rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(16px);
+    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --glass-shadow-hover: 0 12px 48px rgba(0, 0, 0, 0.5);
 }
 
 * {
-    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
     box-sizing: border-box;
     margin: 0;
     padding: 0;
@@ -24,9 +34,12 @@
 
 body {
     background-color: var(--bg-dark);
+    background-image: radial-gradient(circle at 50% 30%, #2c2c2e 0%, #000000 100%);
     color: var(--text-main);
     overflow: hidden;
     font-size: 14px;
+    height: 100vh;
+    width: 100vw;
 }
 
 ::-webkit-scrollbar {
@@ -39,10 +52,23 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-    background: #444;
-    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: #666;
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Global Border Animation Tokens */
+@property --border-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+}
+
+@keyframes rotate-border {
+    to {
+        --border-angle: 360deg;
+    }
 }

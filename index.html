@@ -43,7 +43,14 @@
             <div class="top-controls">
                 <div class="map-toolbar">
                     <button id="open-sidebar" class="toolbar-btn menu-trigger">
-                        <span class="icon">☰</span>
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="3" y1="12" x2="21" y2="12"></line>
+                                <line x1="3" y1="6" x2="21" y2="6"></line>
+                                <line x1="3" y1="18" x2="21" y2="18"></line>
+                            </svg>
+                        </span>
                         <span class="label">메뉴</span>
                     </button>
 
@@ -52,9 +59,23 @@
                     <div class="map-selector-wrapper">
                         <div class="custom-select" id="custom-map-select">
                             <div class="select-trigger">
-                                <span class="icon">🌍</span>
+                                <span class="icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="2" y1="12" x2="22" y2="12"></line>
+                                        <path
+                                            d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z">
+                                        </path>
+                                    </svg>
+                                </span>
                                 <span class="selected-text">청하</span>
-                                <span class="arrow">▼</span>
+                                <span class="arrow">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        stroke-linecap="round" stroke-linejoin="round">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                </span>
                             </div>
                             <div class="select-options">
                             </div>
@@ -62,12 +83,26 @@
                     </div>
                     <div class="toolbar-divider"></div>
                     <button id="route-mode-toggle" class="toolbar-btn" title="경로 모드">
-                        <span class="icon">🛤️</span>
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="6" cy="19" r="3"></circle>
+                                <path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path>
+                                <circle cx="18" cy="5" r="3"></circle>
+                            </svg>
+                        </span>
                         <span class="label">경로</span>
                     </button>
                     <div class="toolbar-divider embed-only"></div>
                     <a id="btn-open-original" class="toolbar-btn embed-only" href="#" title="새 탭에서 원본 지도 열기">
-                        <span class="icon">↗️</span>
+                        <span class="icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                        </span>
                     </a>
                 </div>
             </div>

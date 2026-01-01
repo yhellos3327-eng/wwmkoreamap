@@ -33,6 +33,7 @@
     overflow: hidden;
     transform: translateY(20px);
     transition: transform 0.3s ease;
+    backdrop-filter: var(--glass-blur) saturate(180%);
 }
 
 .modal-overlay:not(.hidden) .modal-content {

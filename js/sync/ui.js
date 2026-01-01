@@ -9,21 +9,24 @@ const createSyncTooltip = () => {
         `;
         tooltip.style.cssText = `
             position: fixed;
-            top: 20px;
+            top: 80px;
             left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.85);
+            transform: translateX(-50%) translateY(0);
+            background: var(--bg-panel);
+            backdrop-filter: var(--glass-blur) saturate(180%);
+            -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 25px;
+            padding: 12px 24px;
+            border-radius: 20px;
             font-size: 14px;
+            font-weight: 600;
             z-index: 10000;
             display: none;
             align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            backdrop-filter: blur(5px);
-            transition: opacity 0.3s ease;
+            gap: 12px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
+            transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
         `;
 
         const style = document.createElement('style');
@@ -33,13 +36,29 @@ const createSyncTooltip = () => {
                 to { transform: rotate(360deg); }
             }
             #sync-tooltip .sync-spinner {
-                display: inline-block;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                width: 18px;
+                height: 18px;
                 animation: sync-spin 1s linear infinite;
-                font-size: 16px;
+                font-size: 18px;
+                color: var(--accent);
             }
-            #sync-tooltip.sync-success { background: rgba(40, 167, 69, 0.9); }
-            #sync-tooltip.sync-error { background: rgba(220, 53, 69, 0.9); }
-            #sync-tooltip.sync-update { background: rgba(0, 123, 255, 0.9); }
+            #sync-tooltip.sync-success { border-color: rgba(50, 215, 75, 0.4); }
+            #sync-tooltip.sync-success .sync-spinner { color: var(--success); }
+            
+            #sync-tooltip.sync-error { border-color: rgba(255, 59, 48, 0.4); }
+            #sync-tooltip.sync-error .sync-spinner { color: #ff3b30; }
+            
+            #sync-tooltip.sync-update { border-color: rgba(0, 122, 255, 0.4); }
+            #sync-tooltip.sync-update .sync-spinner { color: #007aff; }
+
+            #sync-tooltip.hidden {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+                pointer-events: none;
+            }
         `;
         document.head.appendChild(style);
         document.body.appendChild(tooltip);
@@ -52,7 +71,8 @@ export const showSyncTooltip = (message = '동기화중...', type = 'syncing') =
     const spinner = tooltip.querySelector('.sync-spinner');
     const text = tooltip.querySelector('.sync-text');
 
-    tooltip.className = '';
+    tooltip.classList.remove('hidden', 'sync-success', 'sync-error', 'sync-update');
+
     if (type === 'success') {
         tooltip.classList.add('sync-success');
         spinner.textContent = '✓';
@@ -72,12 +92,23 @@ export const showSyncTooltip = (message = '동기화중...', type = 'syncing') =
 
     text.textContent = message;
     tooltip.style.display = 'flex';
+
+    // Force reflow
+    tooltip.offsetHeight;
+    tooltip.classList.remove('hidden');
 };
 
 export const hideSyncTooltip = (delay = 0) => {
     setTimeout(() => {
         const tooltip = document.getElementById('sync-tooltip');
-        if (tooltip) tooltip.style.display = 'none';
+        if (tooltip) {
+            tooltip.classList.add('hidden');
+            setTimeout(() => {
+                if (tooltip.classList.contains('hidden')) {
+                    tooltip.style.display = 'none';
+                }
+            }, 400); // Match transition duration
+        }
     }, delay);
 };
 
@@ -88,27 +119,30 @@ export const showSyncToast = (message, type = 'info') => {
         toast.id = 'sync-toast';
         toast.style.cssText = `
             position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: rgba(0, 0, 0, 0.85);
+            bottom: 24px;
+            right: 24px;
+            background: var(--bg-panel);
+            backdrop-filter: var(--glass-blur) saturate(180%);
+            -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
             color: #fff;
-            padding: 12px 20px;
-            border-radius: 8px;
-            font-size: 13px;
+            padding: 14px 24px;
+            border-radius: 16px;
+            font-size: 14px;
+            font-weight: 500;
             z-index: 10000;
             opacity: 0;
             transform: translateY(20px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            backdrop-filter: blur(5px);
-            max-width: 300px;
+            transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
+            max-width: 320px;
         `;
         document.body.appendChild(toast);
     }
 
-    if (type === 'success') toast.style.background = 'rgba(40, 167, 69, 0.9)';
-    else if (type === 'update') toast.style.background = 'rgba(0, 123, 255, 0.9)';
-    else toast.style.background = 'rgba(0, 0, 0, 0.85)';
+    if (type === 'success') toast.style.borderColor = 'rgba(50, 215, 75, 0.4)';
+    else if (type === 'update') toast.style.borderColor = 'rgba(0, 122, 255, 0.4)';
+    else toast.style.borderColor = 'var(--glass-border)';
 
     toast.textContent = message;
     toast.style.opacity = '1';

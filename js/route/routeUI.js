@@ -59,42 +59,61 @@ export const hideRouteUI = () => {
 const getRoutePanelHTML = () => {
     return `
         <div class="route-panel-header">
-            <h3>🛤️ 경로 모드</h3>
-            <button class="route-close-btn" id="route-close-btn">×</button>
+            <h3>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                경로 모드
+            </h3>
+            <button class="route-close-btn" id="route-close-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
         </div>
         
         <div class="route-panel-content">
             <!-- Mode Toggle -->
             <div class="route-mode-toggle">
                 <button class="route-mode-btn active" id="route-mode-auto" data-mode="auto">
-                    🤖 자동 생성
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>
+                    자동 생성
                 </button>
                 <button class="route-mode-btn" id="route-mode-manual" data-mode="manual">
-                    ✋ 직접 구성
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    직접 구성
                 </button>
             </div>
             
             <!-- Auto Route Section -->
             <div class="route-config-section" id="route-auto-section">
                 <div class="route-form-group">
-                    <label>지역 선택</label>
-                    <select id="route-region-select">
-                        <option value="">로딩 중...</option>
-                    </select>
+                    <label>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                        지역 선택
+                    </label>
+                    <div class="route-region-trigger" id="route-region-trigger">
+                        <span class="route-region-text" id="route-region-text">지역을 선택하세요</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                    </div>
+                    <input type="hidden" id="route-region-select" value="">
                 </div>
                 
                 <div class="route-form-group">
-                    <label>카테고리</label>
+                    <label>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                        카테고리
+                    </label>
                     <div id="route-category-list" class="route-category-list">
                         <!-- Categories will be populated here -->
                     </div>
                 </div>
                 
                 <div class="route-form-group">
-                    <label class="route-checkbox-label">
-                        <input type="checkbox" id="route-exclude-completed" checked>
+                    <div class="route-checkbox-label checked" id="route-exclude-completed-label">
+                        <input type="checkbox" id="route-exclude-completed" checked hidden>
+                        <span class="route-checkbox-icon">
+                            <svg class="checkbox-unchecked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>
+                            <svg class="checkbox-checked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor"></rect><polyline points="9 12 11 14 15 10" stroke="#000" stroke-width="2.5"></polyline></svg>
+                        </span>
                         완료된 항목 제외
-                    </label>
+                    </div>
                 </div>
                 
                 <div class="route-stats" id="route-stats">
@@ -102,22 +121,28 @@ const getRoutePanelHTML = () => {
                 </div>
                 
                 <button class="route-generate-btn" id="route-generate-btn">
-                    🚀 경로 생성
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                    경로 생성
                 </button>
             </div>
             
             <!-- Manual Route Section -->
             <div class="route-manual-section" id="route-manual-section" style="display: none;">
                 <div class="route-manual-info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     <p>맵에서 마커를 클릭하여 경로에 추가하세요.</p>
                 </div>
                 
                 <div class="route-manual-list" id="route-manual-list">
-                    <div class="no-manual-items">경로가 비어있습니다.</div>
+                    <div class="no-manual-items">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+                        경로가 비어있습니다.
+                    </div>
                 </div>
                 
                 <button class="route-generate-btn" id="route-apply-manual-btn" disabled>
-                    ✓ 경로 적용
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    경로 적용
                 </button>
             </div>
             
@@ -131,9 +156,18 @@ const getRoutePanelHTML = () => {
                 </div>
                 
                 <div class="route-navigation">
-                    <button class="route-nav-btn" id="route-prev-btn">◀ 이전</button>
-                    <button class="route-nav-btn route-complete-btn" id="route-complete-btn">✓ 완료</button>
-                    <button class="route-nav-btn" id="route-next-btn">다음 ▶</button>
+                    <button class="route-nav-btn" id="route-prev-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        이전
+                    </button>
+                    <button class="route-nav-btn route-complete-btn" id="route-complete-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        완료
+                    </button>
+                    <button class="route-nav-btn" id="route-next-btn">
+                        다음
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
                 </div>
                 
                 <div class="route-current-item" id="route-current-item">
@@ -141,22 +175,37 @@ const getRoutePanelHTML = () => {
                 </div>
                 
                 <div class="route-list-container">
-                    <h4>경로 목록</h4>
+                    <h4>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                        경로 목록
+                    </h4>
                     <div class="route-list" id="route-list">
                         <!-- Route items will be listed here -->
                     </div>
                 </div>
                 
                 <div class="route-actions">
-                    <button class="route-action-btn" id="route-save-btn">💾 저장</button>
-                    <button class="route-action-btn" id="route-share-btn">🔗 공유</button>
-                    <button class="route-action-btn" id="route-clear-btn">🗑️ 초기화</button>
+                    <button class="route-action-btn" id="route-save-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                        저장
+                    </button>
+                    <button class="route-action-btn" id="route-share-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        공유
+                    </button>
+                    <button class="route-action-btn" id="route-clear-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        초기화
+                    </button>
                 </div>
             </div>
             
             <!-- Saved Routes Section -->
             <div class="route-saved-section">
-                <h4>저장된 경로</h4>
+                <h4>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+                    저장된 경로
+                </h4>
                 <div class="saved-routes-list" id="saved-routes-list">
                     <!-- Saved routes will be listed here -->
                 </div>
@@ -165,16 +214,81 @@ const getRoutePanelHTML = () => {
     `;
 };
 
-const updateRegionSelector = () => {
-    const select = document.getElementById('route-region-select');
-    if (!select) return;
+let selectedRegion = '';
 
+const updateRegionSelector = () => {
     const regions = getAvailableRegions();
 
-    select.innerHTML = regions.map(r =>
-        `<option value="${r}">${t(r) || r}</option>`
-    ).join('');
+    // Set first region as default if none selected
+    if (!selectedRegion && regions.length > 0) {
+        selectedRegion = regions[0];
+        const hiddenInput = document.getElementById('route-region-select');
+        const textEl = document.getElementById('route-region-text');
+        if (hiddenInput) hiddenInput.value = selectedRegion;
+        if (textEl) textEl.textContent = t(selectedRegion) || selectedRegion;
+    }
+
     updateRouteStatsDisplay();
+};
+
+const openRegionModal = () => {
+    const regions = getAvailableRegions();
+
+    const modal = document.createElement('div');
+    modal.className = 'route-region-modal-overlay';
+    modal.id = 'route-region-modal';
+    modal.innerHTML = `
+        <div class="route-region-modal">
+            <div class="route-region-modal-header">
+                <h4>지역 선택</h4>
+                <button class="route-region-modal-close" id="route-region-modal-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="route-region-modal-list">
+                ${regions.map(r => `
+                    <div class="route-region-option ${selectedRegion === r ? 'selected' : ''}" data-region="${r}">
+                        <span class="route-region-option-name">${t(r) || r}</span>
+                        ${selectedRegion === r ? '<span class="route-region-check">✓</span>' : ''}
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    // Close on overlay click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeRegionModal();
+    });
+
+    // Close button
+    document.getElementById('route-region-modal-close')?.addEventListener('click', closeRegionModal);
+
+    // Region selection
+    modal.querySelectorAll('.route-region-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+            const region = opt.dataset.region;
+            selectedRegion = region;
+
+            const hiddenInput = document.getElementById('route-region-select');
+            const textEl = document.getElementById('route-region-text');
+            if (hiddenInput) hiddenInput.value = region;
+            if (textEl) textEl.textContent = t(region) || region;
+
+            updateRouteStatsDisplay();
+            closeRegionModal();
+        });
+    });
+};
+
+const closeRegionModal = () => {
+    const modal = document.getElementById('route-region-modal');
+    if (modal) {
+        modal.classList.add('closing');
+        setTimeout(() => modal.remove(), 200);
+    }
 };
 
 const updateCategorySelector = () => {
@@ -184,14 +298,23 @@ const updateCategorySelector = () => {
     const categories = state.mapData.categories || [];
 
     container.innerHTML = categories.map(cat => `
-        <label class="route-category-item">
-            <input type="checkbox" value="${cat.id}" class="route-category-checkbox" checked>
+        <div class="route-category-item checked" data-category="${cat.id}">
+            <input type="checkbox" value="${cat.id}" class="route-category-checkbox" checked hidden>
+            <span class="route-checkbox-icon">
+                <svg class="checkbox-unchecked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect></svg>
+                <svg class="checkbox-checked" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4" fill="currentColor"></rect><polyline points="9 12 11 14 15 10" stroke="#000" stroke-width="2.5"></polyline></svg>
+            </span>
             <span>${t(cat.id) || cat.name || cat.id}</span>
-        </label>
+        </div>
     `).join('');
 
-    container.querySelectorAll('.route-category-checkbox').forEach(cb => {
-        cb.addEventListener('change', updateRouteStatsDisplay);
+    container.querySelectorAll('.route-category-item').forEach(item => {
+        const checkbox = item.querySelector('.route-category-checkbox');
+        item.addEventListener('click', () => {
+            checkbox.checked = !checkbox.checked;
+            item.classList.toggle('checked', checkbox.checked);
+            updateRouteStatsDisplay();
+        });
     });
 };
 
@@ -383,14 +506,14 @@ const switchRouteMode = (mode) => {
     if (mode === 'auto') {
         autoBtn?.classList.add('active');
         manualBtn?.classList.remove('active');
-        if (autoSection) autoSection.style.display = 'block';
+        if (autoSection) autoSection.style.display = 'flex';
         if (manualSection) manualSection.style.display = 'none';
         toggleManualRouteMode(false);
     } else {
         autoBtn?.classList.remove('active');
         manualBtn?.classList.add('active');
         if (autoSection) autoSection.style.display = 'none';
-        if (manualSection) manualSection.style.display = 'block';
+        if (manualSection) manualSection.style.display = 'flex';
         toggleManualRouteMode(true);
     }
 };
@@ -399,7 +522,19 @@ const attachRouteEventListeners = () => {
     document.getElementById('route-close-btn')?.addEventListener('click', exitRouteMode);
     document.getElementById('route-mode-auto')?.addEventListener('click', () => switchRouteMode('auto'));
     document.getElementById('route-mode-manual')?.addEventListener('click', () => switchRouteMode('manual'));
-    document.getElementById('route-region-select')?.addEventListener('change', updateRouteStatsDisplay);
+    document.getElementById('route-region-trigger')?.addEventListener('click', openRegionModal);
+
+    // Exclude completed checkbox toggle
+    const excludeLabel = document.getElementById('route-exclude-completed-label');
+    const excludeCheckbox = document.getElementById('route-exclude-completed');
+    excludeLabel?.addEventListener('click', () => {
+        if (excludeCheckbox) {
+            excludeCheckbox.checked = !excludeCheckbox.checked;
+            excludeLabel.classList.toggle('checked', excludeCheckbox.checked);
+            updateRouteStatsDisplay();
+        }
+    });
+
     document.getElementById('route-generate-btn')?.addEventListener('click', () => {
         const region = document.getElementById('route-region-select')?.value;
         if (!region) {
