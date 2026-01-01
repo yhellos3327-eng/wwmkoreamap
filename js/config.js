@@ -181,6 +181,7 @@ export const MAP_CONFIGS = {
         name: "청하 (清河)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3000_v4_uN4cS8/{z}/{y}_{x}.png',
         dataFile: './data.json',
+        newDataFile: './data3.csv',
         regionFile: './regions.json',
         minZoom: 9,
         maxZoom: 14,
@@ -194,6 +195,7 @@ export const MAP_CONFIGS = {
         name: "개봉 (开封)",
         tileUrl: 'https://ue.17173cdn.com/a/terra/tiles/yysls/3003_v8_65jd2/{z}/{y}_{x}.png',
         dataFile: './data2.json',
+        newDataFile: './data4.csv',
         regionFile: './regions2.json',
         minZoom: 9,
         maxZoom: 14,
@@ -202,6 +204,7 @@ export const MAP_CONFIGS = {
         zoom: 11,
         tilePadding: 1.0
     }
+
 };
 
 export const ICON_MAPPING = {

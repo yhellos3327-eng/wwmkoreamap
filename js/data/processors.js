@@ -130,7 +130,8 @@ export const processMapDataSync = (rawItems, regionIdMap, missingItems, reverseR
                 images: imgList,
                 imageSizeW: 44,
                 imageSizeH: 44,
-                isTranslated: false
+                isTranslated: item.isTranslated || false
+
             };
         });
 
@@ -220,3 +221,64 @@ export const collectUniqueRegions = (regionData, mapDataItems) => {
     });
     return regions;
 };
+
+export const parseCSVData = async (csvRes) => {
+    if (!csvRes || !csvRes.ok) return [];
+    const text = await csvRes.text();
+    const lines = text.split(/\r?\n/);
+    if (lines.length <= 1) return [];
+
+    const headerLine = lines.shift();
+    const headers = headerLine.split(',').map(h => h.trim());
+
+    const items = [];
+    lines.forEach(line => {
+        if (!line.trim()) return;
+
+        // Simple CSV parse for markers
+        const parts = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            if (char === '"') inQuotes = !inQuotes;
+            else if (char === ',' && !inQuotes) {
+                parts.push(current);
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        parts.push(current);
+
+        if (parts.length < 6) return;
+
+        const item = {};
+        headers.forEach((h, idx) => {
+            item[h] = parts[idx]?.trim();
+        });
+
+        // Map CSV fields to JSON fields
+        const processedItem = {
+            id: item.id,
+            category_id: item.category_id,
+            title: item.title,
+            description: item.description || "",
+            latitude: parseFloat(item.latitude),
+            longitude: parseFloat(item.longitude),
+            regionId: parseInt(item.regionId) || 0,
+            image: item.image || "",
+            video_url: item.video_url || "",
+            images: item.image ? [item.image] : [],
+            isTranslated: true
+        };
+
+
+        if (!isNaN(processedItem.latitude) && !isNaN(processedItem.longitude)) {
+            items.push(processedItem);
+        }
+    });
+
+    return items;
+};
+

@@ -48,7 +48,8 @@ const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTran
                 images: imgList,
                 imageSizeW: 44,
                 imageSizeH: 44,
-                isTranslated: false
+                isTranslated: item.isTranslated || false
+
             };
 
             return processedItem;

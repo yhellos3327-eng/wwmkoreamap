@@ -4,6 +4,8 @@
  */
 
 import { state } from './state.js';
+import { t } from './utils.js';
+
 
 // 개발자 도구 상태
 const devState = {
@@ -12,8 +14,10 @@ const devState = {
     selectedMarker: null,
     selectedMarkerData: null,
     changes: new Map(), // id -> { original: {lat, lng}, modified: {lat, lng} }
+    newMarkers: [], // 신규 추가된 마커들
     originalPositions: new Map() // 백업용
 };
+
 
 // 스타일 정의
 const HIGHLIGHT_STYLE = 'filter: drop-shadow(0 0 8px #00ff00) drop-shadow(0 0 16px #00ff00); transform: scale(1.3);';
@@ -54,7 +58,12 @@ const createDevModal = () => {
                     <span class="dev-btn-icon">🔍</span>
                     <span class="dev-btn-text">마커 정보 보기</span>
                 </button>
+                <button class="dev-btn" id="dev-btn-add" title="맵 클릭시 새 마커 추가">
+                    <span class="dev-btn-icon">➕</span>
+                    <span class="dev-btn-text">새 마커 추가</span>
+                </button>
             </div>
+
             
             <div class="dev-tools-divider"></div>
             
@@ -97,6 +106,149 @@ const createDevModal = () => {
 
     return modal;
 };
+
+/**
+ * 새 마커 추가 모달 생성
+ */
+const createAddMarkerModal = (lat, lng) => {
+    let modal = document.getElementById('dev-add-marker-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'dev-add-marker-modal';
+        modal.className = 'dev-modal-overlay';
+        document.body.appendChild(modal);
+    }
+
+    const categories = state.mapData.categories || [];
+    // 카테고리 정렬 (이름순)
+    const sortedCategories = [...categories].sort((a, b) => t(a.name).localeCompare(t(b.name)));
+
+    const categoryItems = sortedCategories.map(cat => `
+        <div class="dev-cat-item ${cat.id === '17310010006' ? 'active' : ''}" data-id="${cat.id}" title="${t(cat.name)} (${cat.id})">
+            <img src="${cat.image}" onerror="this.src='./icons/default.png'">
+            <span class="dev-cat-name">${t(cat.name)}</span>
+        </div>
+    `).join('');
+
+    modal.innerHTML = `
+        <div class="dev-modal-content" style="width: 400px;">
+            <div class="dev-modal-header">
+                <span class="dev-modal-title">✨ 새 마커 추가</span>
+                <button class="dev-modal-close" id="dev-add-close">×</button>
+            </div>
+            <div class="dev-modal-body">
+                <div class="dev-form-group">
+                    <label>좌표</label>
+                    <div class="dev-coords-display">${lat}, ${lng}</div>
+                </div>
+                <div class="dev-form-group">
+                    <label>카테고리 선택</label>
+                    <div class="dev-cat-search-wrapper">
+                        <input type="text" id="dev-cat-search" placeholder="카테고리 검색...">
+                    </div>
+                    <div class="dev-cat-grid" id="dev-cat-grid">
+                        ${categoryItems}
+                    </div>
+                    <input type="hidden" id="dev-add-cat" value="17310010006">
+                </div>
+
+                <div class="dev-form-group">
+                    <label for="dev-add-title">마커 이름</label>
+                    <input type="text" id="dev-add-title" placeholder="마커 이름을 입력하세요" value="새 마커">
+                </div>
+                <div class="dev-form-group">
+                    <label for="dev-add-desc">설명 (선택)</label>
+                    <textarea id="dev-add-desc" placeholder="설명을 입력하세요"></textarea>
+                </div>
+            </div>
+            <div class="dev-modal-footer">
+                <button class="dev-modal-btn dev-btn-cancel" id="dev-add-cancel">취소</button>
+                <button class="dev-modal-btn dev-btn-save" id="dev-add-save">추가하기</button>
+            </div>
+        </div>
+    `;
+
+    modal.style.display = 'flex';
+
+    // 이벤트 바인딩
+    const close = () => modal.style.display = 'none';
+    document.getElementById('dev-add-close').onclick = close;
+    document.getElementById('dev-add-cancel').onclick = close;
+
+    const catGrid = document.getElementById('dev-cat-grid');
+    const catInput = document.getElementById('dev-add-cat');
+    const catSearch = document.getElementById('dev-cat-search');
+
+    // 카테고리 선택 이벤트
+    catGrid.addEventListener('click', (e) => {
+        const item = e.target.closest('.dev-cat-item');
+        if (!item) return;
+
+        catGrid.querySelectorAll('.dev-cat-item').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        catInput.value = item.dataset.id;
+    });
+
+    // 카테고리 검색 이벤트
+    catSearch.addEventListener('input', (e) => {
+        const term = e.target.value.toLowerCase();
+        catGrid.querySelectorAll('.dev-cat-item').forEach(item => {
+            const name = item.querySelector('.dev-cat-name').textContent.toLowerCase();
+            const id = item.dataset.id.toLowerCase();
+            const isMatch = name.includes(term) || id.includes(term);
+            item.style.display = isMatch ? 'flex' : 'none';
+        });
+    });
+
+    document.getElementById('dev-add-save').onclick = () => {
+        const catId = document.getElementById('dev-add-cat').value;
+        const title = document.getElementById('dev-add-title').value;
+        const desc = document.getElementById('dev-add-desc').value;
+
+        if (!catId || !title) {
+            alert("카테고리와 이름을 입력해주세요.");
+            return;
+        }
+
+        saveNewMarker(lat, lng, catId, title, desc);
+        close();
+    };
+};
+
+
+
+/**
+ * 신규 마커 저장 및 표시
+ */
+const saveNewMarker = (lat, lng, catId, title, desc) => {
+    const newId = Date.now();
+    const newMarker = {
+        id: newId,
+        category_id: catId,
+        title: title,
+        description: desc,
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+        regionId: 0
+    };
+
+    devState.newMarkers.push(newMarker);
+
+    // 임시 마커 표시
+    const emojiIcon = L.divIcon({
+        className: '',
+        html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">✨</div>',
+        iconSize: [36, 36],
+        iconAnchor: [18, 36]
+    });
+
+    L.marker([parseFloat(lat), parseFloat(lng)], { icon: emojiIcon }).addTo(state.map)
+        .bindPopup(`<b>신규 마커</b><br>ID: ${newId}<br>이름: ${title}<br>카테고리: ${catId}`);
+
+    addLog(`추가됨: ${title} (${newId})`, 'success');
+    updateUI();
+};
+
 
 /**
  * CSS 스타일 추가
@@ -340,7 +492,240 @@ const addDevStyles = () => {
         .dev-modified-marker {
             filter: drop-shadow(0 0 6px #ff9500) !important;
         }
+
+        /* 개발자 모드 활성화 시 맵 오버레이(지역 폴리곤) 클릭 방지 */
+        .dev-mode-active .region-polygon {
+            pointer-events: none !important;
+        }
+
+        /* 좌표 복사 및 마커 추가 모드에서는 기존 마커들도 클릭 방지 (맵 클릭 원활하게) */
+        body[data-dev-mode="coords"] .game-marker-icon,
+        body[data-dev-mode="add"] .game-marker-icon {
+            pointer-events: none !important;
+        }
+
+        /* 모달 스타일 */
+        .dev-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            backdrop-filter: blur(4px);
+        }
+
+        .dev-modal-content {
+            width: 320px;
+            background: #1a1a1f;
+            border: 1px solid #444;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            overflow: hidden;
+            animation: devModalFadeIn 0.3s ease;
+        }
+
+        @keyframes devModalFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dev-modal-header {
+            padding: 16px;
+            background: rgba(218, 172, 113, 0.1);
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dev-modal-title {
+            font-weight: 700;
+            color: #daac71;
+        }
+
+        .dev-modal-close {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .dev-modal-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .dev-form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .dev-form-group label {
+            font-size: 12px;
+            color: #888;
+            font-weight: 600;
+        }
+
+        .dev-coords-display {
+            font-family: monospace;
+            background: #000;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #4ade80;
+        }
+
+        .dev-form-group input, 
+        .dev-form-group select, 
+        .dev-form-group textarea {
+            background: #2a2a2f;
+            border: 1px solid #444;
+            border-radius: 6px;
+            padding: 10px;
+            color: #fff;
+            font-size: 14px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .dev-cat-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .dev-cat-preview {
+            width: 36px;
+            height: 36px;
+            background: #000;
+            border-radius: 6px;
+            border: 1px solid #444;
+            padding: 4px;
+            object-fit: contain;
+        }
+
+        .dev-cat-search-wrapper {
+            margin-bottom: 8px;
+        }
+
+        .dev-cat-search-wrapper input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #000;
+            border: 1px solid #444;
+            border-radius: 6px;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        .dev-cat-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            max-height: 240px;
+            overflow-y: auto;
+            background: #000;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #444;
+        }
+
+        .dev-cat-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 6px;
+            background: #1a1a1f;
+            border: 1px solid #333;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dev-cat-item:hover {
+            background: #25252a;
+            border-color: #555;
+        }
+
+        .dev-cat-item.active {
+            background: rgba(218, 172, 113, 0.2);
+            border-color: #daac71;
+        }
+
+        .dev-cat-item img {
+            width: 32px;
+            height: 32px;
+            object-fit: contain;
+        }
+
+        .dev-cat-name {
+            font-size: 10px;
+            color: #aaa;
+            text-align: center;
+            word-break: keep-all;
+            line-height: 1.2;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .dev-cat-item.active .dev-cat-name {
+            color: #daac71;
+            font-weight: 600;
+        }
+
+
+        .dev-form-group textarea {
+            height: 80px;
+            resize: none;
+        }
+
+        .dev-modal-footer {
+            padding: 16px;
+            background: #141419;
+            display: flex;
+            gap: 10px;
+        }
+
+        .dev-modal-btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dev-btn-cancel {
+            background: #333;
+            color: #ccc;
+        }
+
+        .dev-btn-save {
+            background: #daac71;
+            color: #000;
+        }
+
+        .dev-btn-save:hover {
+            background: #e5bc8a;
+            transform: translateY(-1px);
+        }
     `;
+
+
+
     document.head.appendChild(style);
 };
 
@@ -382,11 +767,13 @@ const updateUI = () => {
     // 변경 개수
     const changeCount = document.getElementById('dev-change-count');
     if (changeCount) {
-        changeCount.textContent = `${devState.changes.size}개`;
+        const total = devState.changes.size + devState.newMarkers.length;
+        changeCount.textContent = `${total}개 (수정:${devState.changes.size}, 추가:${devState.newMarkers.length})`;
     }
 
     // 버튼 active 상태
-    ['move', 'coords', 'inspect'].forEach(mode => {
+    ['move', 'coords', 'inspect', 'add'].forEach(mode => {
+
         const btn = document.getElementById(`dev-btn-${mode}`);
         if (btn) {
             btn.classList.toggle('active', devState.currentMode === mode);
@@ -421,12 +808,16 @@ const setMode = (mode) => {
         const modeMessages = {
             'move': '마커를 클릭하세요',
             'coords': '맵을 클릭하면 좌표가 복사됩니다',
-            'inspect': '마커를 클릭하면 정보가 출력됩니다'
+            'inspect': '마커를 클릭하면 정보가 출력됩니다',
+            'add': '맵을 클릭하여 새 마커를 추가하세요'
         };
+
         addLog(modeMessages[mode], 'info');
     }
+    document.body.setAttribute('data-dev-mode', devState.currentMode || 'none');
     updateUI();
 };
+
 
 /**
  * 선택 해제
@@ -553,8 +944,13 @@ const handleMapClick = (e) => {
         });
 
         clearSelection();
+    } else if (devState.currentMode === 'add') {
+        // 새 마커 추가 모달 표시
+        createAddMarkerModal(lat, lng);
     }
 };
+
+
 
 /**
  * 마우스 이동 핸들러 (좌표 표시)
@@ -612,7 +1008,23 @@ const exportChanges = () => {
         addLog(`${changesArray.length}개 마커 CSV 복사됨`, 'success');
     });
 
+    // 신규 마커 내보내기 (data3.csv / data4.csv 형식)
+    if (devState.newMarkers.length > 0) {
+        const newMarkersCsv = devState.newMarkers.map(m =>
+            `${m.id},${m.category_id},"${m.title}","${m.description}",${m.latitude},${m.longitude},${m.regionId},,""`
+        ).join('\n');
+
+        const currentMap = state.currentMapKey === 'qinghe' ? 'data3.csv' : 'data4.csv';
+
+        console.log(`%c📋 신규 마커 목록 (${currentMap}용)`, 'color: #daac71; font-size: 16px; font-weight: bold;');
+        console.log('id,category_id,title,description,latitude,longitude,regionId,image,video_url');
+        console.log(newMarkersCsv);
+
+        addLog(`${devState.newMarkers.length}개 신규 마커 콘솔 출력됨`, 'success');
+    }
+
     // JSON 파일 다운로드
+
     const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -649,13 +1061,15 @@ const resetAllChanges = () => {
         }
     });
 
-    const count = devState.changes.size;
+    const count = devState.changes.size + devState.newMarkers.length;
     devState.changes.clear();
+    devState.newMarkers.clear ? devState.newMarkers.clear() : devState.newMarkers = [];
     devState.originalPositions.clear();
 
-    addLog(`${count}개 마커 복원됨`, 'success');
+    addLog(`${count}개 변경사항 초기화됨`, 'success');
     updateUI();
 };
+
 
 /**
  * 이벤트 바인딩
@@ -670,6 +1084,8 @@ const bindDevEvents = () => {
     document.getElementById('dev-btn-move')?.addEventListener('click', () => setMode('move'));
     document.getElementById('dev-btn-coords')?.addEventListener('click', () => setMode('coords'));
     document.getElementById('dev-btn-inspect')?.addEventListener('click', () => setMode('inspect'));
+    document.getElementById('dev-btn-add')?.addEventListener('click', () => setMode('add'));
+
 
     // 액션 버튼들
     document.getElementById('dev-btn-export')?.addEventListener('click', exportChanges);
@@ -712,6 +1128,9 @@ const startDev = () => {
     }
 
     devState.isActive = true;
+    document.body.classList.add('dev-mode-active');
+    if (state.isDevMode === false) state.isDevMode = true;
+
 
     // 모달 생성 및 표시
     const modal = createDevModal();
@@ -738,6 +1157,11 @@ const startDev = () => {
  */
 const stopDev = () => {
     devState.isActive = false;
+    document.body.classList.remove('dev-mode-active');
+    document.body.removeAttribute('data-dev-mode');
+    state.isDevMode = false;
+
+
     devState.currentMode = null;
     clearSelection();
 

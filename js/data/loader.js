@@ -27,7 +27,7 @@ export const loadMapData = async (mapKey, onProgress) => {
         await loadTranslations(mapKey);
         initMap(mapKey);
 
-        const { dataBlob, regionBlob, missingRes } = await fetchAllData(config, onProgress);
+        const { dataBlob, regionBlob, missingRes, newDataRes } = await fetchAllData(config, onProgress);
 
         const jsonTimer = perfTimer.start('Worker', 'JSON Parsing');
         const { dataJson, regionJson } = await parseJSONData(dataBlob, regionBlob);
@@ -43,12 +43,22 @@ export const loadMapData = async (mapKey, onProgress) => {
 
         const mapTimer = perfTimer.start('Worker', 'Map Data Processing');
         const rawItems = dataJson.data || [];
+
+        // Add new markers from CSV if available
+        if (newDataRes && newDataRes.ok) {
+            const { parseCSVData } = await import('./processors.js');
+            const newDataItems = await parseCSVData(newDataRes);
+            rawItems.push(...newDataItems);
+            logger.log('Data', `신규 마커 로드됨: ${newDataItems.length} items`);
+        }
+
         const { mapData, itemsByCategory } = await processMapData(
             rawItems,
             regionResult.regionIdMap,
             missingItems,
             regionResult.reverseRegionMap
         );
+
         perfTimer.end(mapTimer);
 
         sortItemsByCategory(itemsByCategory);
@@ -107,14 +117,17 @@ const fetchAllData = async (config, onProgress) => {
     });
 
     const missingPromise = fetch('missing_data.csv').catch(e => ({ ok: false }));
+    const newDataPromise = config.newDataFile ? fetch(config.newDataFile).catch(e => ({ ok: false })) : Promise.resolve({ ok: false });
 
-    const [dataBlob, regionBlob, missingRes] = await Promise.all([
+    const [dataBlob, regionBlob, missingRes, newDataRes] = await Promise.all([
         dataBlobPromise,
         regionBlobPromise,
-        missingPromise
+        missingPromise,
+        newDataPromise
     ]);
 
-    return { dataBlob, regionBlob, missingRes };
+    return { dataBlob, regionBlob, missingRes, newDataRes };
+
 };
 
 const applyRegionData = (regionResult, config) => {
