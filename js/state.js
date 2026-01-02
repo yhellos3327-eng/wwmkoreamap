@@ -1,7 +1,6 @@
 import { logger } from './logger.js';
 import { ACTIONS } from './actions.js';
 
-// Helper to detect WebGL support for auto-selection
 const checkWebGL = (() => {
     let supported = null;
     return () => {
@@ -9,7 +8,6 @@ const checkWebGL = (() => {
         try {
             const canvas = document.createElement('canvas');
             supported = !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
-            // Lose context to free resources immediately if possible, though GC handles it eventually.
             if (supported) {
                 const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
                 if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();

@@ -31,24 +31,30 @@ export const loadFavorites = (mapKey) => {
 
 export const loadCategoryFilters = (mapKey) => {
     const validCategoryIds = new Set(state.mapData.categories.map(c => c.id));
-    const savedCats = JSON.parse(localStorage.getItem(`wwm_active_cats_${mapKey}`)) || [];
+    const storageKey = `wwm_active_cats_${mapKey}`;
+    const savedCatsRaw = localStorage.getItem(storageKey);
 
     state.activeCategoryIds.clear();
 
-    if (savedCats.length > 0) {
-        savedCats.forEach(id => {
-            if (validCategoryIds.has(id)) {
-                state.activeCategoryIds.add(id);
+    if (savedCatsRaw !== null) {
+        try {
+            const savedCats = JSON.parse(savedCatsRaw);
+            if (Array.isArray(savedCats)) {
+                savedCats.forEach(id => {
+                    if (validCategoryIds.has(id)) {
+                        state.activeCategoryIds.add(id);
+                    }
+                });
             }
-        });
-
-        const savedCatsSet = new Set(savedCats);
-        state.mapData.categories.forEach(cat => {
-            if (!savedCatsSet.has(cat.id)) {
-                state.activeCategoryIds.add(cat.id);
+        } catch (e) {
+            console.error("Failed to parse saved categories:", e);
+            // Fallback to default if parsing fails
+            if (validCategoryIds.has(DEFAULT_CAT_ID)) {
+                state.activeCategoryIds.add(DEFAULT_CAT_ID);
             }
-        });
+        }
     } else {
+        // No saved state, use defaults
         if (validCategoryIds.has(DEFAULT_CAT_ID)) {
             state.activeCategoryIds.add(DEFAULT_CAT_ID);
         } else if (state.mapData.categories.length > 0) {
