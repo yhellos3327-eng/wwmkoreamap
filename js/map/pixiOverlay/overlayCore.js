@@ -13,9 +13,23 @@ let firstDraw = true;
 let prevZoom = null;
 
 export const isGpuRenderingAvailable = () => {
-    const available = typeof window.PIXI !== 'undefined' && typeof L.pixiOverlay !== 'undefined';
-    console.log('%c[GPU Check] PIXI: ' + (typeof window.PIXI !== 'undefined') + ', L.pixiOverlay: ' + (typeof L.pixiOverlay !== 'undefined'),
-        'color: ' + (available ? '#4CAF50' : '#f44336') + '; font-weight: bold;');
+    const hasPixi = typeof window.PIXI !== 'undefined' && typeof L.pixiOverlay !== 'undefined';
+
+    // Check WebGL support
+    let hasWebGL = false;
+    try {
+        const canvas = document.createElement('canvas');
+        hasWebGL = !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+    } catch (e) {
+        hasWebGL = false;
+    }
+
+    const available = hasPixi && hasWebGL;
+
+    // Only log if status changes or on first check (optional, but keeping it simple)
+    // console.log('%c[GPU Check] PIXI: ' + hasPixi + ', WebGL: ' + hasWebGL,
+    //    'color: ' + (available ? '#4CAF50' : '#f44336') + '; font-weight: bold;');
+
     return available;
 };
 
@@ -98,7 +112,7 @@ export const renderMarkersWithPixi = async (items) => {
 
     pixiContainer.removeChildren();
     clearSpriteDataMap();
-    state.allMarkers = new Map(); // Reset allMarkers for GPU mode
+    state.allMarkers = new Map();
 
     let addedCount = 0;
     for (const item of items) {
@@ -107,7 +121,6 @@ export const renderMarkersWithPixi = async (items) => {
             pixiContainer.addChild(sprite);
             addSpriteToDataMap(sprite, item);
 
-            // Populate allMarkers for navigation support
             const markerInfo = {
                 id: item.id,
                 sprite: sprite,

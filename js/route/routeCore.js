@@ -138,28 +138,26 @@ export const displayRoute = () => {
         const isCompleted = appState.completedList.some(c => c.id === point.id);
         const isCurrent = index === state.currentStepIndex;
 
+        // Small badge positioned above the game icon
         const markerHtml = `
-            <div class="route-number-marker ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
+            <div class="route-badge-marker ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
                 ${point.order}
             </div>
         `;
 
         const icon = L.divIcon({
             html: markerHtml,
-            className: 'route-marker-container',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
+            className: 'route-badge-container',
+            iconSize: [16, 16],
+            iconAnchor: [8, 30]  // Positioned above the game icon
         });
 
         const marker = L.marker([point.lat, point.lng], {
             icon,
             pane: 'routePane',
-            zIndexOffset: isCurrent ? 1000 : 0
+            zIndexOffset: isCurrent ? 1000 : 100,
+            interactive: false  // Allow clicks to pass through to game markers
         }).addTo(appState.map);
-
-        marker.on('click', () => {
-            goToStep(index);
-        });
 
         markers.push(marker);
     });

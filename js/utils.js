@@ -104,3 +104,25 @@ export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgres
 
     if (onComplete) onComplete();
 };
+
+// IP utility with caching
+let cachedIp = null;
+let cachedMaskedIp = null;
+
+export const fetchUserIp = async (masked = true) => {
+    if (masked && cachedMaskedIp) return cachedMaskedIp;
+    if (!masked && cachedIp) return cachedIp;
+
+    try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        cachedIp = data.ip;
+        cachedMaskedIp = data.ip.split('.').slice(0, 2).join('.');
+        return masked ? cachedMaskedIp : cachedIp;
+    } catch (e) {
+        console.warn('Failed to get IP', e);
+        return 'unknown';
+    }
+};
+
+export const getCachedMaskedIp = () => cachedMaskedIp;

@@ -1,6 +1,26 @@
 import { logger } from './logger.js';
 import { ACTIONS } from './actions.js';
 
+// Helper to detect WebGL support for auto-selection
+const checkWebGL = (() => {
+    let supported = null;
+    return () => {
+        if (supported !== null) return supported;
+        try {
+            const canvas = document.createElement('canvas');
+            supported = !!(window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl')));
+            // Lose context to free resources immediately if possible, though GC handles it eventually.
+            if (supported) {
+                const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+                if (gl) gl.getExtension('WEBGL_lose_context')?.loseContext();
+            }
+        } catch (e) {
+            supported = false;
+        }
+        return supported;
+    };
+})();
+
 const state = {
     currentMapKey: 'qinghe',
     currentTileLayer: null,
@@ -46,8 +66,26 @@ const state = {
     rawCSV: null,
     parsedCSV: null,
     isDevMode: false,
-    // GPU Rendering Mode (PixiOverlay)
-    gpuRenderMode: localStorage.getItem('wwm_gpu_render') === 'true',
+    savedGpuSetting: (() => {
+        let setting = localStorage.getItem('wwm_gpu_setting');
+        if (!setting) {
+            const oldSetting = localStorage.getItem('wwm_gpu_render');
+            if (oldSetting !== null) {
+                setting = oldSetting === 'true' ? 'on' : 'auto';
+                localStorage.setItem('wwm_gpu_setting', setting);
+                localStorage.removeItem('wwm_gpu_render');
+            } else {
+                setting = 'auto';
+            }
+        }
+        return setting;
+    })(),
+
+    get gpuRenderMode() {
+        if (this.savedGpuSetting === 'on') return true;
+        if (this.savedGpuSetting === 'off') return false;
+        return checkWebGL();
+    },
     pixiOverlay: null,
     pixiContainer: null,
     loadingState: {
@@ -66,6 +104,19 @@ export const subscribe = (key, callback) => {
         listeners[key] = [];
     }
     listeners[key].push(callback);
+
+    return () => {
+        const index = listeners[key].indexOf(callback);
+        if (index > -1) {
+            listeners[key].splice(index, 1);
+        }
+    };
+};
+
+export const unsubscribeAll = (key) => {
+    if (listeners[key]) {
+        listeners[key] = [];
+    }
 };
 
 export const notify = (key, value, oldValue) => {

@@ -130,7 +130,11 @@ export const saveSettings = (settingsModal) => {
             localStorage.setItem('wwm_show_ad', adToggleInput.checked);
         }
 
-        // Trigger cloud sync (except API keys which are local-only)
+        const gpuSettingSelect = document.getElementById('gpu-setting-select');
+        if (gpuSettingSelect) {
+            localStorage.setItem('wwm_gpu_setting', gpuSettingSelect.value);
+        }
+
         triggerSync();
 
         alert("설정이 저장되었습니다. 적용을 위해 페이지를 새로고침합니다.");
@@ -143,7 +147,6 @@ export const saveSettings = (settingsModal) => {
 };
 
 export const initSettingsModal = () => {
-    // 인증 모듈 초기화
     initAuth();
 
     const settingsModal = document.getElementById('settings-modal');
@@ -159,10 +162,10 @@ export const initSettingsModal = () => {
     const hideCompletedInput = document.getElementById('toggle-hide-completed');
     const commentsToggleInput = document.getElementById('toggle-comments');
     const closeOnCompleteInput = document.getElementById('toggle-close-on-complete');
-    const gpuModeToggleInput = document.getElementById('toggle-gpu-mode');
+    const gpuSettingSelect = document.getElementById('gpu-setting-select');
 
     let initialClusteringState = state.enableClustering;
-    let initialGpuModeState = state.gpuRenderMode;
+    let initialGpuSetting = state.savedGpuSetting;
 
     const updateClusteringToggleState = () => {
         if (!clusterToggleInput) return;
@@ -206,6 +209,7 @@ export const initSettingsModal = () => {
     if (openSettingsBtn && settingsModal) {
         openSettingsBtn.addEventListener('click', () => {
             initialClusteringState = state.enableClustering;
+            initialGpuSetting = state.savedGpuSetting;
 
             if (apiProviderSelect) {
                 apiProviderSelect.value = state.savedAIProvider;
@@ -221,6 +225,7 @@ export const initSettingsModal = () => {
             }
             if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
             if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
+            if (gpuSettingSelect) gpuSettingSelect.value = state.savedGpuSetting;
 
             if (regionColorInput) {
                 regionColorInput.value = state.savedRegionColor;
@@ -239,7 +244,7 @@ export const initSettingsModal = () => {
         const closeSettingsBtn = document.getElementById('close-settings');
         if (closeSettingsBtn) {
             closeSettingsBtn.addEventListener('click', () => {
-                if (state.enableClustering !== initialClusteringState || state.gpuRenderMode !== initialGpuModeState) {
+                if (state.enableClustering !== initialClusteringState || state.savedGpuSetting !== initialGpuSetting) {
                     alert("렌더링 설정이 변경되었습니다. 적용을 위해 페이지를 새로고침합니다.");
                     location.reload();
                 } else {
@@ -264,11 +269,11 @@ export const initSettingsModal = () => {
         });
     }
 
-    if (gpuModeToggleInput) {
-        gpuModeToggleInput.checked = state.gpuRenderMode;
-        gpuModeToggleInput.addEventListener('change', (e) => {
-            setState('gpuRenderMode', e.target.checked);
-            updateSettingWithTimestamp('gpu_render', e.target.checked);
+    if (gpuSettingSelect) {
+        gpuSettingSelect.value = state.savedGpuSetting;
+        gpuSettingSelect.addEventListener('change', (e) => {
+            state.savedGpuSetting = e.target.value;
+            localStorage.setItem('wwm_gpu_setting', e.target.value);
             updateClusteringToggleState();
         });
     }

@@ -2,6 +2,7 @@ export class MarkerPool {
     constructor() {
         this.pool = [];
         this.activeMarkers = new Map();
+        this.MAX_POOL_SIZE = 200; // Limit pool size to prevent memory leak
     }
 
     getMarker(lat, lng, options) {
@@ -24,7 +25,10 @@ export class MarkerPool {
         const marker = this.activeMarkers.get(itemId);
         if (marker) {
             this.activeMarkers.delete(itemId);
-            this.pool.push(marker);
+            // Only add to pool if under limit
+            if (this.pool.length < this.MAX_POOL_SIZE) {
+                this.pool.push(marker);
+            }
             return marker;
         }
         return null;
@@ -32,9 +36,24 @@ export class MarkerPool {
 
     clearAll() {
         this.activeMarkers.forEach(marker => {
-            this.pool.push(marker);
+            if (this.pool.length < this.MAX_POOL_SIZE) {
+                this.pool.push(marker);
+            }
         });
         this.activeMarkers.clear();
+    }
+
+    // Full cleanup - use when switching render modes
+    destroy() {
+        this.activeMarkers.clear();
+        this.pool = [];
+    }
+
+    getStats() {
+        return {
+            poolSize: this.pool.length,
+            activeCount: this.activeMarkers.size
+        };
     }
 }
 

@@ -73,10 +73,25 @@ export const getDefaultTexture = () => {
 };
 
 export const clearTextureCache = () => {
-    textureCache.forEach((texture) => {
-        texture.destroy(true);
+    textureCache.forEach((texture, url) => {
+        try {
+            if (texture && !texture.destroyed) {
+                texture.destroy(true);
+            }
+        } catch (e) {
+            logger.warn('TextureManager', `Failed to destroy texture: ${url}`);
+        }
     });
     textureCache.clear();
+
+    if (typeof PIXI !== 'undefined' && PIXI.Assets) {
+        try {
+            PIXI.Assets.reset();
+        } catch (e) {
+        }
+    }
+
+    logger.log('TextureManager', 'Texture cache cleared');
 };
 
 export const getTextureCacheSize = () => {

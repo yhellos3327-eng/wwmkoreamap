@@ -54,22 +54,33 @@
                 <!-- 로그인 상태 -->
                 <div id="auth-logged-in" class="auth-content" style="display: none;">
                     <div class="auth-user-info">
-                        <div class="auth-avatar-wrapper"><img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필"><div class="auth-avatar-fallback"><div class="icon-mask" style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);"></div></div></div>
+                        <div class="auth-avatar-wrapper"><img id="auth-user-avatar" class="auth-avatar" src=""
+                                alt="프로필">
+                            <div class="auth-avatar-fallback">
+                                <div class="icon-mask"
+                                    style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);">
+                                </div>
+                            </div>
+                        </div>
                         <div class="auth-user-details">
                             <span id="auth-user-name" class="auth-user-name">사용자</span>
                             <span id="auth-user-provider" class="auth-user-provider">Kakao</span>
                         </div>
                     </div>
                     <button id="btn-logout" class="auth-btn logout-btn">
-                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E&quot;);"></div>
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E&quot;);">
+                        </div>
                         로그아웃
                     </button>
-                                </div>
+                </div>
             </div>
             <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
             <div id="sync-section" class="settings-group settings-card" style="display: none;">
                 <div class="card-header">
-                    <div class="icon-mask" style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);"></div>
+                    <div class="icon-mask"
+                        style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);">
+                    </div>
                     <span class="card-title">데이터 동기화</span>
                 </div>
                 <div class="card-body">
@@ -84,7 +95,9 @@
                         </div>
                     </div>
                     <button id="btn-manual-sync" class="auth-btn sync-btn">
-                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);"></div>
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);">
+                        </div>
                         지금 동기화
                     </button>
                 </div>
@@ -153,13 +166,15 @@
 
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
-                    <span class="settings-toggle-label">GPU 렌더링</span>
-                    <span class="settings-subtitle">(실험적 - WebGL 사용)</span>
+                    <span class="settings-toggle-label">GPU 렌더링 모드</span>
+                    <span class="settings-subtitle">(성능 옵션)</span>
                 </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-gpu-mode">
-                    <span class="slider round"></span>
-                </label>
+                <select id="gpu-setting-select" class="settings-input"
+                    style="background-color: var(--bg-dark); color: var(--text-main); width: auto; margin-left: auto;">
+                    <option value="auto">자동 (권장)</option>
+                    <option value="on">켜기 (GPU)</option>
+                    <option value="off">끄기 (CPU)</option>
+                </select>
             </div>
 
             <div class="settings-group settings-toggle-wrapper">
@@ -192,12 +207,14 @@
                         <span class="color-value" id="region-line-color-value">#242424</span>
                     </div>
                     <span class="color-label">기본값: #242424</span>
-                                </div>
+                </div>
             </div>
             <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
             <div id="sync-section" class="settings-group settings-card" style="display: none;">
                 <div class="card-header">
-                    <div class="icon-mask" style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);"></div>
+                    <div class="icon-mask"
+                        style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);">
+                    </div>
                     <span class="card-title">데이터 동기화</span>
                 </div>
                 <div class="card-body">
@@ -212,7 +229,9 @@
                         </div>
                     </div>
                     <button id="btn-manual-sync" class="auth-btn sync-btn">
-                        <div class="icon-mask" style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);"></div>
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);">
+                        </div>
                         지금 동기화
                     </button>
                 </div>

@@ -31,6 +31,39 @@ import {
 } from './routeManual.js';
 import { copyShareUrl } from './routeShare.js';
 
+// Helper function to open marker popup for a route item
+const openItemPopup = (itemId, lat, lng) => {
+    if (!state.map) return;
+
+    // Find the marker in allMarkers
+    const markerInfo = state.allMarkers?.get(itemId);
+
+    if (markerInfo && markerInfo.marker) {
+        // For CPU mode - open the existing marker's popup
+        state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
+        setTimeout(() => {
+            if (markerInfo.marker.openPopup) {
+                markerInfo.marker.openPopup();
+            }
+        }, 300);
+    } else {
+        // For GPU mode or if marker not found - create a temporary popup
+        const item = state.mapData?.items?.find(i => i.id === itemId);
+        if (item) {
+            import('../map/popup.js').then(({ createPopupHtml }) => {
+                const popupContent = createPopupHtml(item, lat, lng, item.region || '');
+                const popup = L.popup({ maxWidth: 350, className: 'custom-popup' })
+                    .setLatLng([lat, lng])
+                    .setContent(popupContent)
+                    .openOn(state.map);
+            }).catch(() => {
+                // Fallback: just pan to location
+                state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
+            });
+        }
+    }
+};
+
 let routePanel = null;
 
 export const renderRouteUI = () => {
@@ -416,8 +449,19 @@ export const updateRouteProgress = (route, currentIndex) => {
                 <span class="current-item-name ${isCompleted ? 'completed' : ''}">${t(current.name) || current.name}</span>
             </div>
             <div class="current-item-region">${t(current.region) || current.region}</div>
-            ${isCompleted ? '<div class="current-item-status">✓ 완료됨</div>' : ''}
+            <div class="current-item-actions">
+                ${isCompleted ? '<span class="current-item-status">✓ 완료됨</span>' : ''}
+                <button class="route-detail-btn" data-id="${current.id}" data-lat="${current.lat}" data-lng="${current.lng}" title="상세 정보 보기">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    상세보기
+                </button>
+            </div>
         `;
+
+        currentItemContainer.querySelector('.route-detail-btn')?.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openItemPopup(current.id, current.lat, current.lng);
+        });
     }
 
     if (routeList) {
@@ -430,15 +474,27 @@ export const updateRouteProgress = (route, currentIndex) => {
                      data-index="${index}">
                     <span class="route-item-order">${point.order}</span>
                     <span class="route-item-name">${t(point.name) || point.name}</span>
+                    <button class="route-item-detail-btn" data-id="${point.id}" data-lat="${point.lat}" data-lng="${point.lng}" title="상세 정보">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                    </button>
                     ${isCompleted ? '<span class="route-item-check">✓</span>' : ''}
                 </div>
             `;
         }).join('');
 
         routeList.querySelectorAll('.route-list-item').forEach(item => {
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                if (e.target.closest('.route-item-detail-btn')) return;
                 const index = parseInt(item.dataset.index);
                 goToStep(index);
+            });
+        });
+
+        routeList.querySelectorAll('.route-item-detail-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const { id, lat, lng } = btn.dataset;
+                openItemPopup(id, parseFloat(lat), parseFloat(lng));
             });
         });
 

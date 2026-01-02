@@ -21,20 +21,20 @@ export const goToStep = (stepIndex) => {
         const isCurrent = index === stepIndex;
 
         const markerHtml = `
-            <div class="route-number-marker ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
+            <div class="route-badge-marker ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
                 ${currentRoute.route[index].order}
             </div>
         `;
 
         const newIcon = L.divIcon({
             html: markerHtml,
-            className: 'route-marker-container',
-            iconSize: [28, 28],
-            iconAnchor: [14, 14]
+            className: 'route-badge-container',
+            iconSize: [16, 16],
+            iconAnchor: [8, 30]
         });
 
         marker.setIcon(newIcon);
-        marker.setZIndexOffset(isCurrent ? 1000 : 0);
+        marker.setZIndexOffset(isCurrent ? 1000 : 100);
     });
 
     updateRouteProgress(currentRoute, stepIndex);
