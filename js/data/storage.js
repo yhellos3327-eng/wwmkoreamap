@@ -48,13 +48,11 @@ export const loadCategoryFilters = (mapKey) => {
             }
         } catch (e) {
             console.error("Failed to parse saved categories:", e);
-            // Fallback to default if parsing fails
             if (validCategoryIds.has(DEFAULT_CAT_ID)) {
                 state.activeCategoryIds.add(DEFAULT_CAT_ID);
             }
         }
     } else {
-        // No saved state, use defaults
         if (validCategoryIds.has(DEFAULT_CAT_ID)) {
             state.activeCategoryIds.add(DEFAULT_CAT_ID);
         } else if (state.mapData.categories.length > 0) {
@@ -62,7 +60,6 @@ export const loadCategoryFilters = (mapKey) => {
         }
     }
 };
-
 
 export const loadRegionFilters = (mapKey) => {
     const storageKey = `wwm_active_regs_${mapKey}`;
@@ -83,8 +80,6 @@ export const loadRegionFilters = (mapKey) => {
         }
     });
 };
-
-
 
 export const initializeFiltersFromStorage = (mapKey) => {
     loadFavorites(mapKey);
