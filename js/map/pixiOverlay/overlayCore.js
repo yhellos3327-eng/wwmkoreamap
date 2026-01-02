@@ -182,8 +182,13 @@ export const clearPixiOverlay = () => {
         clearSpriteDataMap();
     }
 
-    if (pixiOverlay && state.map && state.map.hasLayer(pixiOverlay)) {
-        state.map.removeLayer(pixiOverlay);
+    if (pixiOverlay && state.map) {
+        try {
+            if (state.map.hasLayer(pixiOverlay)) {
+                state.map.removeLayer(pixiOverlay);
+            }
+        } catch (e) {
+        }
         detachEventHandlers(state.map);
 
         if (state.map.options) {

@@ -15,8 +15,7 @@ import {
 
 export { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.js';
 
-let debounceTimer = null;
-const DEBOUNCE_DELAY = 100;
+
 const VIEWPORT_PADDING = 0.3;
 const MAX_MARKERS_PER_FRAME = 50;
 
@@ -124,6 +123,14 @@ export const renderMapDataAndMarkers = async () => {
 };
 
 const renderAllMarkersForClustering = () => {
+    // Ensure GPU overlay is completely cleared when using CPU clustering
+    clearPixiOverlay();
+
+    // Clear any existing cluster markers first
+    if (state.markerClusterGroup) {
+        state.markerClusterGroup.clearLayers();
+    }
+
     const filteredItems = state.mapData.items;
     const markersToAdd = [];
 
@@ -148,11 +155,7 @@ export const updateViewportMarkers = () => {
     if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
     if (!state.map || state.enableClustering || state.isDragging) return;
 
-    if (debounceTimer) clearTimeout(debounceTimer);
-
-    debounceTimer = setTimeout(() => {
-        performViewportUpdate();
-    }, DEBOUNCE_DELAY);
+    performViewportUpdate();
 };
 
 const performViewportUpdate = async () => {

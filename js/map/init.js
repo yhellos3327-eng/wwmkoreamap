@@ -95,7 +95,11 @@ export const initMap = (mapKey) => {
         markerClusterGroup.on('clusterclick', function (a) {
             a.layer.spiderfy();
         });
-        state.map.addLayer(markerClusterGroup);
+
+        // Only add cluster group to map if not in GPU mode and clustering is enabled
+        if (!state.gpuRenderMode && state.enableClustering) {
+            state.map.addLayer(markerClusterGroup);
+        }
         setState('markerClusterGroup', markerClusterGroup);
     }
 };
