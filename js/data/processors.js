@@ -217,7 +217,9 @@ export const collectUniqueRegions = (regionData, mapDataItems) => {
     const regions = new Set();
     regionData.forEach(r => regions.add(r.title));
     mapDataItems.forEach(i => {
-        if (i.region) regions.add(i.region);
+        // forceRegion(번역 데이터에서 강제 할당된 지역)도 포함
+        const effectiveRegion = i.forceRegion || i.region;
+        if (effectiveRegion) regions.add(effectiveRegion);
     });
     return regions;
 };
