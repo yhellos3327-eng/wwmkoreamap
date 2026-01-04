@@ -10,60 +10,87 @@
 
 .spoiler {
     position: relative;
-    background: linear-gradient(90deg, #555555, #cccccc, #555555);
+    display: inline-block;
+    background: linear-gradient(90deg,
+            #3a3a3a 0%,
+            #4a4a4a 50%,
+            #3a3a3a 100%);
     background-size: 200% 100%;
-    animation: gradientMove 3s linear infinite;
+    animation: skeletonShimmer 1.5s ease-in-out infinite;
     color: transparent;
     cursor: pointer;
-    padding: 0 2px;
-    border-radius: 2px;
+    padding: 4px 8px;
+    border-radius: 4px;
+    user-select: none;
+    line-height: 1.4;
+}
+
+.spoiler::before {
+    content: "🔒";
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 0.9em;
+    opacity: 0.7;
+}
+
+.spoiler:hover {
+    box-shadow: 0 0 10px rgba(100, 100, 100, 0.5);
 }
 
 .spoiler.revealed {
-    animation: none;
+    animation: revealSpoiler 0.4s ease forwards;
     background: transparent;
-    color: inherit;
+    color: var(--text-secondary, #b0b0b0);
     pointer-events: none;
+    padding: 0;
 }
 
-.spoiler:hover::after {
-    content: "스포일러(정답)입니다. 보고싶으시다면 클릭해주세요.";
+.spoiler.revealed::before {
+    content: none;
+}
+
+.spoiler:not(.revealed):hover::after {
+    content: "🔒 클릭하여 스포일러 보기";
     position: absolute;
-    top: -1.5em;
-    left: 0;
-    background: rgba(0, 0, 0, 0.8);
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
     color: #fff;
-    padding: 2px 6px;
-    border-radius: 3px;
-    left: 0;
-    background: rgba(0, 0, 0, 0.85);
-    color: #fff;
-    padding: 2px 6px;
-    border-radius: 3px;
+    padding: 6px 12px;
+    border-radius: 6px;
     font-size: 11px;
     white-space: nowrap;
     z-index: 1000;
     pointer-events: none;
-    opacity: 0;
-    animation: tooltipFade 0.3s forwards;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
-@keyframes tooltipFade {
-    from {
-        opacity: 0;
-    }
-
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes gradientMove {
+@keyframes skeletonShimmer {
     0% {
-        background-position: 0% 0;
+        background-position: 200% 0;
     }
 
     100% {
-        background-position: 100% 0;
+        background-position: -200% 0;
+    }
+}
+
+@keyframes revealSpoiler {
+    0% {
+        background: #3a3a3a;
+        color: transparent;
+    }
+
+    50% {
+        background: var(--accent-primary, #4a9eff);
+        color: transparent;
+    }
+
+    100% {
+        background: transparent;
+        color: var(--text-secondary, #b0b0b0);
     }
 }
