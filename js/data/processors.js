@@ -261,6 +261,11 @@ export const parseCSVData = async (csvRes) => {
         });
 
         // Map CSV fields to JSON fields
+        // regionId can be numeric ID or string region name
+        const regionIdRaw = item.regionId;
+        const regionIdNum = parseInt(regionIdRaw);
+        const isNumericRegion = !isNaN(regionIdNum) && String(regionIdNum) === regionIdRaw;
+
         const processedItem = {
             id: item.id,
             category_id: item.category_id,
@@ -268,12 +273,17 @@ export const parseCSVData = async (csvRes) => {
             description: item.description || "",
             latitude: parseFloat(item.latitude),
             longitude: parseFloat(item.longitude),
-            regionId: parseInt(item.regionId) || 0,
+            regionId: isNumericRegion ? regionIdNum : 0,
             image: item.image || "",
             video_url: item.video_url || "",
             images: item.image ? [item.image] : [],
             isTranslated: true
         };
+
+        // If regionId is a string region name, set forceRegion
+        if (!isNumericRegion && regionIdRaw) {
+            processedItem.forceRegion = regionIdRaw;
+        }
 
 
         if (!isNaN(processedItem.latitude) && !isNaN(processedItem.longitude)) {
