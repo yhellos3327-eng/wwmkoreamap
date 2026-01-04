@@ -433,3 +433,10 @@ export const renderFavorites = () => {
         }
     });
 };
+
+document.addEventListener('click', function (e) {
+    const el = e.target;
+    if (el.classList && el.classList.contains('spoiler')) {
+        el.classList.toggle('revealed');
+    }
+});
