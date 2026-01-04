@@ -14,8 +14,6 @@ export const clearSpriteDataMap = () => {
     spriteDataMap.clear();
 };
 
-
-
 export const showPopupForSprite = (sprite) => {
     if (!sprite.markerData) return null;
 
@@ -32,7 +30,6 @@ export const showPopupForSprite = (sprite) => {
 
     popup.openOn(state.map);
 
-    // Load comments (milestones) for this item
     if (loadComments) {
         loadComments(item.id);
     }
@@ -54,6 +51,9 @@ export const createSpriteForItem = (item) => {
     if (isNaN(lat) || isNaN(lng)) return null;
 
     let finalRegionName = item.forceRegion || item.region || "알 수 없음";
+
+    finalRegionName = state.reverseRegionMap[finalRegionName] || finalRegionName;
+
     const regionPolygonsCache = getRegionPolygonsCache();
 
     if (!item.forceRegion && regionPolygonsCache.length > 0) {

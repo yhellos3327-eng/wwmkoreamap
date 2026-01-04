@@ -31,6 +31,8 @@ export const createMarkerForItem = (item) => {
 
     let finalRegionName = item.forceRegion || item.region || "알 수 없음";
 
+    finalRegionName = state.reverseRegionMap[finalRegionName] || finalRegionName;
+
     if (!item.forceRegion && regionPolygonsCache.length > 0) {
         for (const polyObj of regionPolygonsCache) {
             if (isPointInPolygon([lat, lng], polyObj.coords)) {

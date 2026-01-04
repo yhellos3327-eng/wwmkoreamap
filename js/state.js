@@ -51,6 +51,7 @@ const state = {
     showComments: localStorage.getItem('wwm_show_comments') !== 'false',
     closeOnComplete: localStorage.getItem('wwm_close_on_complete') === 'true',
     regionMetaInfo: {},
+    reverseRegionMap: {},
     savedAIProvider: localStorage.getItem('wwm_ai_provider') || "gemini",
     savedGeminiKey: localStorage.getItem('wwm_api_key') || "",
     savedOpenAIKey: localStorage.getItem('wwm_openai_key') || "",

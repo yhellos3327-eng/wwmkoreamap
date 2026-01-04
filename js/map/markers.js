@@ -39,20 +39,20 @@ export const initLazyLoading = async () => {
 
     state.uniqueRegions.clear();
     items.forEach(item => {
-        const region = item.forceRegion || item.region || "알 수 없음";
-        state.uniqueRegions.add(region);
+        const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
+
+        const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
+        state.uniqueRegions.add(normalizedRegion);
     });
 };
 
 export const renderMapDataAndMarkers = async () => {
     const isGpuMode = state.gpuRenderMode && isGpuRenderingAvailable();
 
-    // === GPU MODE ===
     if (isGpuMode) {
         console.log('%c[Markers] 🚀 GPU 모드로 렌더링 시작...', 'color: #4CAF50; font-weight: bold;');
         logger.log('Markers', 'Rendering with GPU mode (PixiOverlay)');
 
-        // Clear any existing CPU markers first
         if (state.markerClusterGroup) {
             state.markerClusterGroup.clearLayers();
             if (state.map.hasLayer(state.markerClusterGroup)) {
@@ -73,24 +73,19 @@ export const renderMapDataAndMarkers = async () => {
         setState('pendingMarkers', []);
         setState('visibleMarkerIds', new Set());
 
-        // Initialize lazy loading for region data
         await initLazyLoading();
 
-        // Render with GPU (createSpriteForItem is used internally)
         await renderMarkersWithPixi(state.mapData.items);
 
         refreshSidebarLists();
         return;
     }
 
-    // === CPU MODE ===
     console.log('%c[Markers] 🖥️ CPU 모드 렌더링', 'color: #2196F3; font-weight: bold;');
     logger.log('Markers', 'Rendering with CPU mode (Leaflet markers)');
 
-    // Clear PixiOverlay when in CPU mode
     clearPixiOverlay();
 
-    // Clear existing CPU markers
     if (state.markerClusterGroup) {
         state.markerClusterGroup.clearLayers();
     }
@@ -110,7 +105,6 @@ export const renderMapDataAndMarkers = async () => {
 
     await initLazyLoading();
 
-    // CPU mode uses createMarkerForItem
     if (state.enableClustering) {
         showRenderModeIndicator('CPU');
         renderAllMarkersForClustering();
@@ -123,10 +117,8 @@ export const renderMapDataAndMarkers = async () => {
 };
 
 const renderAllMarkersForClustering = () => {
-    // Ensure GPU overlay is completely cleared when using CPU clustering
     clearPixiOverlay();
 
-    // Clear any existing cluster markers first
     if (state.markerClusterGroup) {
         state.markerClusterGroup.clearLayers();
     }
@@ -151,7 +143,6 @@ const renderAllMarkersForClustering = () => {
 };
 
 export const updateViewportMarkers = () => {
-    // Skip in GPU mode - sprites are handled by PixiOverlay
     if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
     if (!state.map || state.enableClustering || state.isDragging) return;
 
@@ -222,7 +213,6 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
 };
 
 export const forceFullRender = () => {
-    // Skip in GPU mode - sprites are handled by PixiOverlay
     if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
     if (state.enableClustering) return;
 

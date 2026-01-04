@@ -213,13 +213,21 @@ export const sortItemsByCategory = (itemsByCategory) => {
     }
 };
 
-export const collectUniqueRegions = (regionData, mapDataItems) => {
+export const collectUniqueRegions = (regionData, mapDataItems, reverseRegionMap = {}) => {
     const regions = new Set();
+    
+    // regionData의 title(중국어 원본)을 기준으로 추가
     regionData.forEach(r => regions.add(r.title));
+    
     mapDataItems.forEach(i => {
         // forceRegion(번역 데이터에서 강제 할당된 지역)도 포함
         const effectiveRegion = i.forceRegion || i.region;
-        if (effectiveRegion) regions.add(effectiveRegion);
+        if (effectiveRegion) {
+            // reverseRegionMap을 사용하여 한국어 지역명을 중국어 원본으로 정규화
+            // 예: "개봉부" -> "开封府"
+            const normalizedRegion = reverseRegionMap[effectiveRegion] || effectiveRegion;
+            regions.add(normalizedRegion);
+        }
     });
     return regions;
 };

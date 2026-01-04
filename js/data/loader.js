@@ -66,7 +66,7 @@ export const loadMapData = async (mapKey, onProgress) => {
         setState('mapData', mapData);
         setState('itemsByCategory', itemsByCategory);
 
-        const uniqueRegions = collectUniqueRegions(regionResult.regionData, mapData.items);
+        const uniqueRegions = collectUniqueRegions(regionResult.regionData, mapData.items, regionResult.reverseRegionMap);
         setState('uniqueRegions', uniqueRegions);
 
         initializeFiltersFromStorage(mapKey);
@@ -131,10 +131,11 @@ const fetchAllData = async (config, onProgress) => {
 };
 
 const applyRegionData = (regionResult, config) => {
-    const { regionData, regionMetaInfo, boundsCoords } = regionResult;
+    const { regionData, regionMetaInfo, boundsCoords, reverseRegionMap } = regionResult;
 
     setState('regionData', regionData);
     setState('regionMetaInfo', regionMetaInfo);
+    setState('reverseRegionMap', reverseRegionMap);
 
     const totalBounds = L.latLngBounds(boundsCoords);
 
