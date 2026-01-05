@@ -65,20 +65,7 @@ const state = {
     rawCSV: null,
     parsedCSV: null,
     isDevMode: false,
-    savedGpuSetting: (() => {
-        let setting = localStorage.getItem('wwm_gpu_setting');
-        if (!setting) {
-            const oldSetting = localStorage.getItem('wwm_gpu_render');
-            if (oldSetting !== null) {
-                setting = oldSetting === 'true' ? 'on' : 'auto';
-                localStorage.setItem('wwm_gpu_setting', setting);
-                localStorage.removeItem('wwm_gpu_render');
-            } else {
-                setting = 'auto';
-            }
-        }
-        return setting;
-    })(),
+    savedGpuSetting: localStorage.getItem('wwm_gpu_setting') || 'auto',
     savedMenuPosition: localStorage.getItem('wwm_menu_position') || 'center',
 
     get gpuRenderMode() {

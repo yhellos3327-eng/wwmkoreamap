@@ -14,7 +14,7 @@
             </button>
         </div>
         <div class="modal-body settings-modal-body">
-            <!-- 로그인 섹션 (최상단) -->
+            <!-- 1. 로그인 섹션 -->
             <div class="settings-auth-section" id="auth-section">
                 <div class="auth-header">
                     <div class="icon-mask auth-icon"
@@ -75,7 +75,8 @@
                     </button>
                 </div>
             </div>
-            <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
+
+            <!-- 2. 데이터 동기화 섹션 (로그인 시에만 표시) -->
             <div id="sync-section" class="settings-group settings-card" style="display: none;">
                 <div class="card-header">
                     <div class="icon-mask"
@@ -103,6 +104,7 @@
                 </div>
             </div>
 
+            <!-- 3. AI 설정 -->
             <div class="settings-group">
                 <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
                         class="settings-subtitle">(AI 서비스 선택)</span></label>
@@ -124,13 +126,12 @@
 
             <div class="settings-group">
                 <label class="settings-label">AI Model <span class="settings-subtitle">(모델 선택)</span></label>
-
                 <select id="api-model-select" class="settings-input"
                     style="background-color: var(--bg-dark); color: var(--text-main);">
                 </select>
             </div>
 
-
+            <!-- 4. 화면 및 기능 설정 -->
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">광고 표시</span>
@@ -173,7 +174,7 @@
                     style="background-color: var(--bg-dark); color: var(--text-main); width: auto; margin-left: auto;">
                     <option value="auto">자동 (권장)</option>
                     <option value="on">켜기 (GPU)</option>
-                    <option value="off">끄기 (CPU)</option>
+                    <option value="off">저사양 모드 (CPU)</option>
                 </select>
             </div>
 
@@ -190,6 +191,7 @@
                 </select>
             </div>
 
+            <!-- 5. 팝업 설정 -->
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">이정표 표시</span>
@@ -212,6 +214,7 @@
                 </label>
             </div>
 
+            <!-- 6. 스타일 설정 -->
             <div class="settings-group">
                 <label class="settings-label">지역 경계선 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
                 <div class="color-picker-wrapper">
@@ -220,33 +223,6 @@
                         <span class="color-value" id="region-line-color-value">#242424</span>
                     </div>
                     <span class="color-label">기본값: #242424</span>
-                </div>
-            </div>
-            <!-- 데이터 동기화 섹션 (로그인 시에만 표시) -->
-            <div id="sync-section" class="settings-group settings-card" style="display: none;">
-                <div class="card-header">
-                    <div class="icon-mask"
-                        style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);">
-                    </div>
-                    <span class="card-title">데이터 동기화</span>
-                </div>
-                <div class="card-body">
-                    <div class="sync-info-grid">
-                        <div class="sync-info-item">
-                            <span class="sync-info-label">상태</span>
-                            <span id="sync-status-text" class="sync-info-value status-online">연결됨</span>
-                        </div>
-                        <div class="sync-info-item">
-                            <span class="sync-info-label">마지막 동기화</span>
-                            <span id="last-sync-time" class="sync-info-value">-</span>
-                        </div>
-                    </div>
-                    <button id="btn-manual-sync" class="auth-btn sync-btn">
-                        <div class="icon-mask"
-                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);">
-                        </div>
-                        지금 동기화
-                    </button>
                 </div>
             </div>
 
@@ -260,6 +236,8 @@
                     <span class="color-label">기본값: #ffbd53</span>
                 </div>
             </div>
+
+            <!-- 7. 백업 및 복구 -->
             <div class="settings-backup-section">
                 <h4>
                     <span class="icon-mask"
@@ -287,6 +265,8 @@
                     <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
                 </div>
             </div>
+
+            <!-- 8. 저장 버튼 -->
             <button id="save-api-key" class="action-btn"
                 style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
             <ul class="settings-note">

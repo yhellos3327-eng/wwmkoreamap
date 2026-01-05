@@ -167,6 +167,17 @@ export const initSettingsModal = () => {
     let initialClusteringState = state.enableClustering;
     let initialGpuSetting = state.savedGpuSetting;
 
+    const applyLowSpecMode = (isLowSpec) => {
+        if (isLowSpec) {
+            document.body.classList.add('low-spec-mode');
+        } else {
+            document.body.classList.remove('low-spec-mode');
+        }
+    };
+
+    // 초기 로드 시 저사양 모드 적용 (GPU 설정이 'off'일 때)
+    applyLowSpecMode(state.savedGpuSetting === 'off');
+
     const updateClusteringToggleState = () => {
         if (!clusterToggleInput) return;
 
@@ -274,6 +285,7 @@ export const initSettingsModal = () => {
         gpuSettingSelect.addEventListener('change', (e) => {
             state.savedGpuSetting = e.target.value;
             localStorage.setItem('wwm_gpu_setting', e.target.value);
+            applyLowSpecMode(e.target.value === 'off');
             updateClusteringToggleState();
         });
     }

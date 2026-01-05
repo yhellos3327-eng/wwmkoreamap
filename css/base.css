@@ -93,3 +93,41 @@ body {
     user-select: none;
     -webkit-user-select: none;
 }
+
+/* ========================================
+   Low Spec Mode (Performance Optimization)
+   ======================================== */
+
+body.low-spec-mode {
+    --glass-bg: #111;
+    --glass-bg-hover: #222;
+    --glass-border: #333;
+    --glass-shadow: none;
+    --glass-blur: none;
+}
+
+body.low-spec-mode * {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+    animation: none !important;
+    transition: none !important;
+    text-shadow: none !important;
+}
+
+body.low-spec-mode .sidebar,
+body.low-spec-mode .modal-content,
+body.low-spec-mode .map-toolbar,
+body.low-spec-mode .sidebar-toggle-btn,
+body.low-spec-mode .popup-container,
+body.low-spec-mode .custom-select .select-options {
+    background: #141414 !important;
+    border-color: #333 !important;
+}
+
+body.low-spec-mode .sidebar::after,
+body.low-spec-mode .modal-content::after,
+body.low-spec-mode .map-toolbar::after,
+body.low-spec-mode .sidebar-toggle-btn::after {
+    display: none !important;
+}
