@@ -18,6 +18,7 @@ import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
 import { initMigration, isOldDomain } from './migration.js';
 import './comments.js';
+import { initAds } from './ads.js';
 
 window.findItem = findItem;
 window.finditem = findItem;
@@ -193,6 +194,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         initSettingsModal();
         initBackupButtons();
         initAdToggle();
+        initAds();
         renderFavorites();
 
     } catch (error) {

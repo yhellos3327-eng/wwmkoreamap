@@ -1,38 +1,60 @@
-document.addEventListener('DOMContentLoaded', () => {
+export function initAds() {
     const adContainer = document.querySelector('.ad-container');
     if (!adContainer) return;
     const ads = [
-        /*{
+        {
             type: 'google',
             weight: 100,
             render: (container) => {
-                container.innerHTML = '';
-                if (!document.getElementById('google-adsense-script')) {
-                    const script = document.createElement('script');
-                    script.id = 'google-adsense-script';
-                    script.async = true;
-                    script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6903444943515445';
-                    script.crossOrigin = 'anonymous';
-                    document.head.appendChild(script);
-                }
-
-                const ins = document.createElement('ins');
-                ins.className = 'adsbygoogle';
-                ins.style.display = 'block';
-                ins.setAttribute('data-ad-client', 'ca-pub-6903444943515445');
-                ins.setAttribute('data-ad-slot', 'REPLACE_WITH_YOUR_AD_SLOT_ID');
-                ins.setAttribute('data-ad-format', 'auto');
-                ins.setAttribute('data-full-width-responsive', 'true');
-                container.appendChild(ins);
-
-                const pushScript = document.createElement('script');
-                pushScript.textContent = '(adsbygoogle = window.adsbygoogle || []).push({});';
-                container.appendChild(pushScript);
+                const script = document.createElement('script');
+                script.async = true;
+                script.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6903444943515445";
+                script.crossOrigin = "anonymous";
+                document.head.appendChild(script);
             }
-        }*/,
+        },
+        {
+            type: 'coffee',
+            weight: 0,
+            render: (container) => {
+                const el = createAdElement('☕ 커피 한잔 정도는?', '메가 커피 비용 후원', 'linear-gradient(135deg, #FFDD00 0%, #FBB03B 100%)', '#000000');
+
+                const title = el.querySelector('.ad-title');
+                const badge = el.querySelector('.ad-badge');
+                const shadow = '1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff';
+                if (title) title.style.textShadow = shadow;
+                if (badge) badge.style.textShadow = shadow;
+
+                const imgLayer = document.createElement('div');
+                imgLayer.style.position = 'absolute';
+                imgLayer.style.right = '0';
+                imgLayer.style.bottom = '0';
+                imgLayer.style.height = '100%';
+                imgLayer.style.width = '50%';
+                imgLayer.style.pointerEvents = 'none';
+                imgLayer.style.display = 'flex';
+                imgLayer.style.alignItems = 'flex-end';
+                imgLayer.style.justifyContent = 'flex-end';
+                imgLayer.style.overflow = 'hidden';
+                imgLayer.style.borderRadius = '16px';
+
+                const img = document.createElement('img');
+                img.src = 'image/coffee.png';
+                img.style.height = '110%';
+                img.style.objectFit = 'contain';
+                img.style.transform = 'translateY(10%) translateX(10%)';
+
+                imgLayer.appendChild(img);
+                el.style.position = 'relative';
+                el.insertBefore(imgLayer, el.firstChild);
+                el.onclick = () => window.open('https://buymeacoffee.com/wwmmap', '_blank');
+                container.innerHTML = '';
+                container.appendChild(el);
+            }
+        },
         {
             type: 'public',
-            weight: 0, // 심사 기간 동안 0으로 설정
+            weight: 0,
             render: (container) => {
                 const el = createAdElement('공익 광고 캠페인', '수익 미발생', '#2ecc71', '#ffffff');
                 container.innerHTML = '';
@@ -41,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         {
             type: 'alliance',
-            weight: 0, // 심사 기간 동안 0으로 설정
+            weight: 0,
             render: (container) => {
                 const el = createAdElement('자체 광고', '수익 미발생', '#3498db', '#ffffff');
                 container.innerHTML = '';
@@ -66,33 +88,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         selectedAd.render(adContainer);
-
-        // 심사 기간 안내 메시지 추가
-        const notice = document.createElement('h3');
-        notice.style.textAlign = 'center';
-        notice.style.fontSize = '0.8rem';
-        notice.style.color = '#888';
-        notice.style.marginTop = '8px';
-        notice.style.fontWeight = 'normal';
-        notice.innerHTML = '설정에서 끄실 수 있습니다.<br>심사 설정 때문에 임시로 광고 설정을 ON으로 조정하였습니다. 🙇‍♂️<br>이후 공익 광고등 랜덤으로 표시될 예정입니다. (수익 X)';
-        adContainer.appendChild(notice);
     }
 
     showRandomAd();
-    //setInterval(showRandomAd, 30000);
-});
+    setInterval(showRandomAd, 30000);
+}
 
-function createAdElement(title, badgeText, bgColor, textColor) {
+function createAdElement(title, badgeText, bgStyle, textColor) {
     const div = document.createElement('div');
     div.className = 'ad-placeholder';
-    div.style.backgroundColor = bgColor;
+
+    if (bgStyle.includes('gradient')) {
+        div.style.background = bgStyle;
+    } else {
+        div.style.backgroundColor = bgStyle;
+    }
+
     div.style.color = textColor;
     div.style.border = 'none';
     div.style.cursor = 'pointer';
 
     div.innerHTML = `
-        <span class="ad-title">${title}</span>
-        <span class="ad-badge">${badgeText}</span>
+        <span class="ad-title" style="z-index: 1;">${title}</span>
+        <span class="ad-badge" style="z-index: 1;">${badgeText}</span>
     `;
 
     return div;

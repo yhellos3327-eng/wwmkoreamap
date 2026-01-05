@@ -31,7 +31,7 @@ export const initAdToggle = () => {
     if (!adContainer || !toggleAd) return;
 
     const storedAd = localStorage.getItem('wwm_show_ad');
-    const showAd = storedAd === null ? false : storedAd === 'true';
+    const showAd = storedAd === null ? true : storedAd === 'true';
     toggleAd.checked = showAd;
     adContainer.style.display = showAd ? 'block' : 'none';
 

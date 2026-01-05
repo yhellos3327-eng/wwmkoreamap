@@ -50,13 +50,14 @@
     font-weight: 700;
     font-size: 1rem;
     letter-spacing: -0.3px;
-    color: #fff;
+    color: inherit;
 }
 
 .ad-badge {
     font-size: 0.7rem;
     background: rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.8);
+    color: inherit;
+    opacity: 0.8;
     padding: 2px 8px;
     border-radius: 6px;
     font-weight: 500;
