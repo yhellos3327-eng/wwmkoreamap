@@ -146,6 +146,19 @@ export const updateViewportMarkers = () => {
     if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
     if (!state.map || state.enableClustering || state.isDragging) return;
 
+    // Low Spec Mode Optimization: Hide markers at low zoom levels
+    if (!state.gpuRenderMode && state.map.getZoom() < 5) {
+        const visibleMarkerIds = state.visibleMarkerIds || new Set();
+        visibleMarkerIds.forEach(id => {
+            const markerInfo = state.allMarkers.get(id);
+            if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
+                state.map.removeLayer(markerInfo.marker);
+            }
+        });
+        setState('visibleMarkerIds', new Set());
+        return;
+    }
+
     performViewportUpdate();
 };
 

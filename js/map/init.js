@@ -36,9 +36,20 @@ export const initMap = (mapKey) => {
                 mapContainer.classList.remove('low-quality-mode');
             }
 
-            if (state.enableClustering) {
-                updateMapVisibility();
-            } else {
+            // Low Spec Mode Optimization: Hide markers at low zoom levels
+            if (!state.gpuRenderMode) {
+                if (zoom < 5) {
+                    if (state.markerClusterGroup && map.hasLayer(state.markerClusterGroup)) {
+                        map.removeLayer(state.markerClusterGroup);
+                    }
+                } else {
+                    if (state.enableClustering && state.markerClusterGroup && !map.hasLayer(state.markerClusterGroup)) {
+                        map.addLayer(state.markerClusterGroup);
+                    }
+                }
+            }
+
+            if (!state.enableClustering) {
                 updateViewportMarkers();
             }
 
@@ -52,7 +63,7 @@ export const initMap = (mapKey) => {
         map.on('moveend', () => {
             setState('isDragging', false);
             if (state.enableClustering) {
-                updateMapVisibility();
+                // updateMapVisibility(); // Clustering handles move automatically
             } else {
                 updateViewportMarkers();
             }
@@ -93,13 +104,15 @@ export const initMap = (mapKey) => {
             showCoverageOnHover: false,
             zoomToBoundsOnClick: false,
             disableClusteringAtZoom: 14,
-            spiderfyDistanceMultiplier: 2
+            spiderfyDistanceMultiplier: 2,
+            chunkedLoading: true
         });
 
         markerClusterGroup.on('clusterclick', function (a) {
             a.layer.spiderfy();
         });
 
+        // Only add cluster group to map if not in GPU mode and clustering is enabled
         if (!state.gpuRenderMode && state.enableClustering) {
             state.map.addLayer(markerClusterGroup);
         }
