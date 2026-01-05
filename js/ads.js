@@ -4,7 +4,7 @@ export function initAds() {
     const ads = [
         {
             type: 'google',
-            weight: 100,
+            weight: 0,
             render: (container) => {
                 const script = document.createElement('script');
                 script.async = true;
@@ -15,9 +15,9 @@ export function initAds() {
         },
         {
             type: 'coffee',
-            weight: 0,
+            weight: 100,
             render: (container) => {
-                const el = createAdElement('☕ 커피 한잔 정도는?', '메가 커피 비용 후원', 'linear-gradient(135deg, #FFDD00 0%, #FBB03B 100%)', '#000000');
+                const el = createAdElement('☕ 커피 한잔 정도는?', '커피 비용 후원', 'linear-gradient(135deg, #FFDD00 0%, #FBB03B 100%)', '#000000');
 
                 const title = el.querySelector('.ad-title');
                 const badge = el.querySelector('.ad-badge');
