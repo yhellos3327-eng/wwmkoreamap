@@ -1,10 +1,4 @@
-﻿/* ========================================
-   Settings Modal - Premium Glass Style
-   (Derived from Sidebar styles)
-   ======================================== */
-
-/* Modal Overlay */
-#settings-modal {
+﻿#settings-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -26,7 +20,6 @@
     pointer-events: none;
 }
 
-/* Modal Content - Sidebar Glass Style */
 #settings-modal .modal-content {
     width: 420px;
     max-width: 95vw;
@@ -41,16 +34,11 @@
     color: #fff;
     overflow: hidden;
     position: relative;
-
-    /* Base border for structure */
     border: 1px solid rgba(255, 255, 255, 0.1);
     background-clip: padding-box;
-
-    /* Entry animation */
     animation: modal-slide-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-
-    /* Fix for SVG mask rendering bug - prevents content from disappearing */
     isolation: isolate;
+    will-change: transform, opacity;
 }
 
 @keyframes modal-slide-in {
@@ -65,7 +53,6 @@
     }
 }
 
-/* Premium Rotating Silver Border - Same as Sidebar */
 #settings-modal .modal-content::after {
     content: '';
     position: absolute;
@@ -91,9 +78,9 @@
     pointer-events: none;
     animation: rotate-border 8s linear infinite;
     z-index: 10;
+    will-change: transform;
 }
 
-/* Modal Header - Sidebar Style */
 #settings-modal .modal-header {
     padding: 20px 24px;
     display: flex;
@@ -119,7 +106,6 @@
     gap: 10px;
 }
 
-/* Close Button - Sidebar Style */
 #settings-modal .close-modal-btn {
     background: rgba(255, 255, 255, 0.05);
     border: none;
@@ -147,15 +133,6 @@
     background: rgba(255, 255, 255, 0.2);
 }
 
-#settings-modal .close-modal-btn .icon-mask {
-    width: 18px;
-    height: 18px;
-    background-color: currentColor;
-    -webkit-mask: var(--mask-url) no-repeat center / contain;
-    mask: var(--mask-url) no-repeat center / contain;
-}
-
-/* Modal Body */
 #settings-modal .modal-body {
     padding: 24px;
     overflow-y: auto;
@@ -163,10 +140,6 @@
     position: relative;
     z-index: 1;
 }
-
-/* ========================================
-   Settings Groups - Card Style Layout
-   ======================================== */
 
 .settings-group {
     margin-bottom: 24px;
@@ -210,15 +183,10 @@
     color: var(--text-muted);
 }
 
-/* Select Dropdown */
 .settings-input option {
     background: var(--bg-dark);
     color: var(--text-main);
 }
-
-/* ========================================
-   Toggle Wrapper - Sidebar Style Cards
-   ======================================== */
 
 .settings-toggle-wrapper {
     display: flex;
@@ -250,7 +218,6 @@
     color: rgba(255, 255, 255, 0.9);
 }
 
-/* Toggle Switch */
 .switch {
     position: relative;
     display: inline-block;
@@ -306,10 +273,6 @@ input:checked+.slider:before {
 .slider.round:before {
     border-radius: 50%;
 }
-
-/* ========================================
-   Auth Section - Premium Card
-   ======================================== */
 
 .settings-auth-section {
     background: rgba(255, 255, 255, 0.03);
@@ -372,7 +335,6 @@ input:checked+.slider:before {
     z-index: 1;
 }
 
-/* Logged-in state layout */
 #auth-logged-in {
     display: flex;
     flex-direction: column;
@@ -448,7 +410,6 @@ input:checked+.slider:before {
     background: rgba(255, 59, 48, 0.2);
 }
 
-/* User Info */
 .auth-user-info {
     display: flex;
     align-items: center;
@@ -480,7 +441,6 @@ input:checked+.slider:before {
     color: var(--text-muted);
 }
 
-/* Local Dev Section */
 .local-dev-section {
     margin-top: 12px;
     padding-top: 12px;
@@ -498,10 +458,6 @@ input:checked+.slider:before {
     border-color: rgba(218, 172, 113, 0.3);
     color: var(--accent);
 }
-
-/* ========================================
-   Color Picker Section
-   ======================================== */
 
 .color-picker-wrapper {
     display: flex;
@@ -549,10 +505,6 @@ input:checked+.slider:before {
     font-size: 0.75rem;
     color: var(--text-muted);
 }
-
-/* ========================================
-   Backup Section
-   ======================================== */
 
 .settings-backup-section {
     background: rgba(255, 255, 255, 0.03);
@@ -623,7 +575,6 @@ input:checked+.slider:before {
     background: rgba(0, 122, 255, 0.2);
 }
 
-/* Backup Warning List */
 .settings-backup-section li {
     list-style: none;
     position: relative;
@@ -639,10 +590,6 @@ input:checked+.slider:before {
     left: 0;
     top: 0;
 }
-
-/* ========================================
-   Action Button (Save)
-   ======================================== */
 
 #settings-modal .action-btn {
     width: 100%;
@@ -667,10 +614,6 @@ input:checked+.slider:before {
 #settings-modal .action-btn:active {
     transform: translateY(0);
 }
-
-/* ========================================
-   Settings Note - Premium List Style
-   ======================================== */
 
 .settings-note {
     list-style: none;
@@ -719,7 +662,6 @@ input:checked+.slider:before {
     background-color: var(--accent);
 }
 
-/* Hide fallback when avatar loads successfully */
 .auth-avatar-wrapper .auth-avatar:not([src=""])+.auth-avatar-fallback {
     display: none;
 }
@@ -728,13 +670,11 @@ input:checked+.slider:before {
     opacity: 0;
 }
 
-/* Logout button spacing in logged-in state */
 #auth-logged-in .logout-btn {
     width: 100%;
     margin-top: 12px;
 }
 
-/* Data Sync Section - Glass Style */
 .settings-card {
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -834,7 +774,6 @@ input:checked+.slider:before {
     background-color: #fff;
 }
 
-/* Rotating animation for sync icon when active */
 .syncing .sync-btn .icon-mask {
     animation: rotate-sync 1s linear infinite;
 }

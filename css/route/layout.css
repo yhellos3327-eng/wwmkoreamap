@@ -115,7 +115,6 @@
     gap: 24px;
 }
 
-/* Route Panel Positioning based on Menu Position */
 .route-panel.pos-right {
     top: 90px;
 }
@@ -128,8 +127,6 @@
     top: 50px;
 }
 
-/* Adjust position when menu is on the right */
 body.menu-pos-right .route-panel {
-    top: 100px;
-    /* Push down to avoid overlapping with right-aligned menu */
+    top: 80px;
 }

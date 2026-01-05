@@ -41,6 +41,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     backdrop-filter: var(--glass-blur) saturate(180%);
+    overscroll-behavior: contain;
 }
 
 .popup-container::-webkit-scrollbar {

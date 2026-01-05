@@ -17,8 +17,10 @@
     top: 0;
     color: #fff;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--glass-border);
     background-clip: padding-box;
+    will-change: transform;
+    /* 성능 최적화 */
 }
 
 .sidebar.collapsed {
@@ -51,6 +53,8 @@
     pointer-events: none;
     animation: rotate-border 8s linear infinite;
     z-index: 10;
+    will-change: transform;
+    /* 애니메이션 최적화 */
 }
 
 .sidebar-header {
@@ -97,12 +101,4 @@
 .close-btn:active {
     transform: scale(0.95);
     background: rgba(255, 255, 255, 0.2);
-}
-
-.icon-mask {
-    width: 18px;
-    height: 18px;
-    background-color: currentColor;
-    -webkit-mask: var(--mask-url) no-repeat center / contain;
-    mask: var(--mask-url) no-repeat center / contain;
 }

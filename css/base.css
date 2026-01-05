@@ -14,8 +14,6 @@
     --border-light: rgba(255, 255, 255, 0.05);
     --success: #32d74b;
     --sidebar-width: 380px;
-
-    /* Glassmorphism Tokens */
     --glass-bg: rgba(20, 20, 20, 0.6);
     --glass-bg-hover: rgba(40, 40, 40, 0.7);
     --glass-border: rgba(255, 255, 255, 0.1);
@@ -30,6 +28,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
@@ -40,6 +39,9 @@ body {
     font-size: 14px;
     height: 100vh;
     width: 100vw;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 ::-webkit-scrollbar {
@@ -60,7 +62,6 @@ body {
     background: rgba(255, 255, 255, 0.3);
 }
 
-/* Global Border Animation Tokens */
 @property --border-angle {
     syntax: '<angle>';
     initial-value: 0deg;
@@ -71,4 +72,24 @@ body {
     to {
         --border-angle: 360deg;
     }
+}
+
+.icon-mask {
+    width: 18px;
+    height: 18px;
+    background-color: currentColor;
+    -webkit-mask: var(--mask-url) no-repeat center / contain;
+    mask: var(--mask-url) no-repeat center / contain;
+    display: inline-block;
+}
+
+.gpu-accelerated {
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
 }

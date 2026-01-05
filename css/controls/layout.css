@@ -63,6 +63,7 @@
     animation: rotate-border 8s linear infinite;
     z-index: 10;
     margin: -1px;
+    will-change: transform;
 }
 
 .map-toolbar:hover::before {

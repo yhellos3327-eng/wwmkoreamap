@@ -35,23 +35,6 @@
             rgba(255, 255, 255, 0.4) 55%,
             rgba(255, 255, 255, 0.05) 85%,
             transparent 100%);
-    -webkit-mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-    mask:
-        linear-gradient(#fff 0 0) content-box,
-        linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    animation: rotate-border 8s linear infinite;
-    z-index: 10;
-}
-
-.sidebar-toggle-btn:hover {
-    background: var(--glass-bg-hover);
-    transform: translateY(-2px);
-    box-shadow: var(--glass-shadow-hover);
 }
 
 .sidebar-toggle-btn:active {

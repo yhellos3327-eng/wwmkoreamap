@@ -9,6 +9,7 @@
     justify-content: center;
     align-items: center;
     transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+    will-change: opacity, visibility;
 }
 
 #loading-screen.hidden {
@@ -62,6 +63,7 @@
     box-shadow: 0 0 15px rgba(255, 189, 83, 0.6);
     border-radius: 6px;
     position: relative;
+    will-change: width;
 }
 
 .loading-bar::after {
@@ -76,6 +78,7 @@
             rgba(255, 255, 255, 0.3) 50%,
             rgba(255, 255, 255, 0) 100%);
     animation: shimmer 1.5s infinite;
+    will-change: transform;
 }
 
 @keyframes shimmer {
