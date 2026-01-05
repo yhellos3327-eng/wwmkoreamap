@@ -145,6 +145,9 @@ export const initRouteMode = () => {
                 const routeModule = await import('./route/index.js');
                 const isActive = routeModule.toggleRouteMode();
                 routeToggleBtn.classList.toggle('active', isActive);
+                // 사이드바 경로 버튼도 동기화
+                const sidebarRouteBtn = document.getElementById('sidebar-route-toggle');
+                if (sidebarRouteBtn) sidebarRouteBtn.classList.toggle('active', isActive);
             } catch (error) {
                 console.error('Failed to load route module:', error);
             }

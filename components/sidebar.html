@@ -31,6 +31,36 @@
         </div>
     </div>
 
+    <div class="sidebar-toolbar">
+        <div class="map-selector-wrapper">
+            <div class="custom-select" id="sidebar-map-select">
+                <div class="select-trigger">
+                    <span class="icon">
+                        <div class="icon-mask"
+                            style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
+                        </div>
+                    </span>
+                    <span class="selected-text">청하</span>
+                    <span class="arrow">
+                        <div class="icon-mask"
+                            style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); width: 12px; height: 12px;">
+                        </div>
+                    </span>
+                </div>
+                <div class="select-options"></div>
+            </div>
+        </div>
+        <div class="toolbar-divider"></div>
+        <button id="sidebar-route-toggle" class="toolbar-btn" title="경로 모드">
+            <span class="icon">
+                <div class="icon-mask"
+                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='6' cy='19' r='3'/%3E%3Cpath d='M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15'/%3E%3Ccircle cx='18' cy='5' r='3'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
+                </div>
+            </span>
+            <span class="label">경로</span>
+        </button>
+    </div>
+
     <div class="search-container">
         <div class="search-wrapper">
             <div class="icon-mask search-icon"
@@ -53,15 +83,9 @@
                 <div class="progress-header">
                     <span class="progress-title">
                         <span class="progress-title-icon">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <path d="m5 8 6 6" />
-                                <path d="m4 14 6-6 2-3" />
-                                <path d="M2 5h12" />
-                                <path d="M7 2h1" />
-                                <path d="m22 22-5-10-5 10" />
-                                <path d="M14 18h6" />
-                            </svg>
+                            <div class="icon-mask"
+                                style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m5 8 6 6'/%3E%3Cpath d='m4 14 6-6 2-3'/%3E%3Cpath d='M2 5h12'/%3E%3Cpath d='M7 2h1'/%3E%3Cpath d='m22 22-5-10-5 10'/%3E%3Cpath d='M14 18h6'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
+                            </div>
                         </span>
                         한글화 진행도
                     </span>

@@ -1,0 +1,133 @@
+/* Active Route Section */
+.route-active-section {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+}
+
+/* Progress Section */
+.route-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    margin-bottom: 8px;
+}
+
+.route-progress-bar {
+    height: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.route-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent) 0%, #32d74b 100%);
+    width: 0%;
+    transition: width 0.5s;
+    border-radius: 5px;
+}
+
+.route-progress-text {
+    font-size: 0.85rem;
+    text-align: right;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* Navigation Buttons */
+.route-navigation {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.route-nav-btn {
+    flex: 1;
+    padding: 14px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    color: #fff;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.route-nav-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.route-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.route-complete-btn {
+    background: rgba(50, 215, 75, 0.15);
+    color: #32d74b;
+    border-color: rgba(50, 215, 75, 0.25);
+}
+
+.route-complete-btn:hover {
+    background: #32d74b;
+    color: #000;
+}
+
+/* Current Item Display */
+.route-current-item {
+    background: linear-gradient(135deg, rgba(218, 172, 113, 0.1) 0%, rgba(218, 172, 113, 0.05) 100%);
+    border: 1px solid rgba(218, 172, 113, 0.2);
+    padding: 20px;
+    border-radius: 16px;
+}
+
+.current-item-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.current-item-order {
+    color: var(--accent);
+    font-weight: 800;
+    font-size: 1.1rem;
+}
+
+.current-item-name {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.current-item-name.completed {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.current-item-region {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.current-item-status {
+    margin-top: 12px;
+    padding: 6px 12px;
+    background: rgba(50, 215, 75, 0.15);
+    color: #32d74b;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}

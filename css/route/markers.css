@@ -1,0 +1,119 @@
+/* Map Markers */
+.route-marker-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.route-number-marker {
+    width: 22px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 10px;
+    box-shadow: 0 0 10px rgba(218, 172, 113, 0.4);
+}
+
+.route-number-marker.current {
+    background: var(--accent);
+    color: #000;
+    transform: scale(1.2);
+    box-shadow: 0 0 18px rgba(218, 172, 113, 0.7);
+    z-index: 1000 !important;
+    animation: pulse-marker 2s ease-in-out infinite;
+}
+
+@keyframes pulse-marker {
+
+    0%,
+    100% {
+        box-shadow: 0 0 25px rgba(218, 172, 113, 0.8);
+    }
+
+    50% {
+        box-shadow: 0 0 40px rgba(218, 172, 113, 1);
+    }
+}
+
+.route-number-marker.completed {
+    background: rgba(50, 215, 75, 0.2);
+    border-color: #32d74b;
+    color: #32d74b;
+    opacity: 0.7;
+    box-shadow: none;
+}
+
+.route-polyline {
+    filter: drop-shadow(0 0 6px rgba(218, 172, 113, 0.6));
+    stroke-dasharray: 10, 10;
+    animation: dash-flow 25s linear infinite;
+}
+
+@keyframes dash-flow {
+    to {
+        stroke-dashoffset: -1000;
+    }
+}
+
+/* Route Badge Markers */
+.route-badge-container {
+    pointer-events: none !important;
+}
+
+.route-badge-marker {
+    width: 18px;
+    height: 18px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 9px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8), 0 1px 2px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+.route-badge-marker.current {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, var(--accent) 0%, #c9995f 100%);
+    color: #000;
+    font-size: 11px;
+    border-color: #fff;
+    box-shadow: 0 2px 12px rgba(218, 172, 113, 0.9), 0 0 0 2px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes badge-pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 2px 12px rgba(218, 172, 113, 0.8);
+    }
+
+    50% {
+        transform: scale(1.1);
+        box-shadow: 0 2px 18px rgba(218, 172, 113, 1);
+    }
+}
+
+.route-badge-marker.completed {
+    background: rgba(50, 215, 75, 0.4);
+    border-color: #32d74b;
+    color: #32d74b;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    opacity: 0.9;
+}

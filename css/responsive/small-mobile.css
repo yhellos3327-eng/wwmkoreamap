@@ -1,0 +1,29 @@
+@media (max-width: 400px) {
+    .map-toolbar {
+        max-width: calc(100vw - 80px);
+        padding: 4px;
+    }
+
+    .toolbar-btn {
+        min-width: 40px;
+        min-height: 40px;
+        padding: 8px;
+    }
+
+    .leaflet-popup-content {
+        width: 280px !important;
+    }
+
+    .cate-item {
+        min-height: 52px;
+        padding: 10px 14px;
+    }
+
+    .sidebar-header h1 {
+        font-size: 1.1rem;
+    }
+
+    .popup-container {
+        padding: 12px;
+    }
+}

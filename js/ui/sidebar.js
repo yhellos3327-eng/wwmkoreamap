@@ -31,10 +31,12 @@ export const toggleSidebar = (action) => {
     if (action === 'open') {
         sidebar.classList.add('open');
         sidebar.classList.remove('collapsed');
+        document.body.classList.add('sidebar-open');
         if (openBtn) openBtn.classList.add('hidden-btn');
     } else {
         sidebar.classList.remove('open');
         sidebar.classList.add('collapsed');
+        document.body.classList.remove('sidebar-open');
         if (openBtn) openBtn.classList.remove('hidden-btn');
     }
 

@@ -1,0 +1,29 @@
+@media (hover: none) and (pointer: coarse) {
+
+    .cate-item,
+    .btn-footer-action,
+    .toolbar-btn,
+    .tab-btn,
+    .auth-btn,
+    .modal-btn {
+        min-height: 44px;
+    }
+
+    .cate-item:hover,
+    .toolbar-btn:hover {
+        transform: none;
+    }
+
+    .cate-item:active,
+    .toolbar-btn:active,
+    .tab-btn:active {
+        transform: scale(0.98);
+        opacity: 0.8;
+    }
+
+    .cate-item,
+    .toolbar-btn,
+    .tab-btn {
+        transition: transform 0.1s, opacity 0.1s;
+    }
+}

@@ -17,8 +17,6 @@
     top: 0;
     color: #fff;
     overflow: hidden;
-
-    /* Use a real border for the base structure */
     border: 1px solid rgba(255, 255, 255, 0.1);
     background-clip: padding-box;
 }
@@ -28,15 +26,12 @@
     margin-right: calc((var(--sidebar-width) + 32px) * -1);
 }
 
-/* Premium Rotating Silver Border - Fixed for overflow:hidden */
 .sidebar::after {
     content: '';
     position: absolute;
-    /* Position it exactly over the border area */
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    /* Match border thickness */
     background: conic-gradient(from var(--border-angle, 0deg),
             transparent 0%,
             rgba(255, 255, 255, 0.05) 15%,
@@ -55,7 +50,6 @@
     mask-composite: exclude;
     pointer-events: none;
     animation: rotate-border 8s linear infinite;
-    /* Ensure it's on top of the background but below content if needed */
     z-index: 10;
 }
 

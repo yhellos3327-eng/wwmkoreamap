@@ -1,0 +1,140 @@
+.sidebar-toolbar {
+    display: none;
+    align-items: center;
+    padding: 10px 16px;
+    gap: 8px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+body.menu-pos-left .sidebar-toolbar {
+    display: flex;
+}
+
+.sidebar-toolbar .map-selector-wrapper {
+    flex: 1;
+}
+
+.sidebar-toolbar .custom-select {
+    min-width: auto;
+}
+
+.sidebar-toolbar .select-trigger {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 8px 12px;
+    height: 38px;
+}
+
+.sidebar-toolbar .select-trigger:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-toolbar .toolbar-divider {
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-toolbar .toolbar-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    height: 38px;
+}
+
+.sidebar-toolbar .toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--accent);
+}
+
+.sidebar-toolbar .toolbar-btn .icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-toolbar .toolbar-btn .icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+body.menu-pos-left .top-controls {
+    display: none;
+}
+
+body.menu-pos-right .top-controls {
+    left: auto;
+    right: 20px;
+    transform: none;
+}
+
+body.menu-pos-center .top-controls {
+    left: 50%;
+    transform: translateX(-50%);
+    right: auto;
+}
+
+body.route-panel-open.menu-pos-right .top-controls {
+    right: 400px;
+    transition: right 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 768px) {
+    .top-controls {
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .sidebar-toggle-btn {
+        top: 16px;
+        left: 16px;
+        width: 44px;
+        height: 44px;
+    }
+
+    .map-toolbar {
+        padding: 4px;
+        border-radius: 14px;
+    }
+
+    .toolbar-btn .label {
+        display: none;
+    }
+
+    .toolbar-btn {
+        padding: 8px;
+        height: 36px;
+    }
+
+    .custom-select {
+        min-width: auto;
+    }
+
+    .select-trigger {
+        height: 36px;
+        padding: 0 10px;
+    }
+
+    .select-trigger .selected-text {
+        display: none;
+    }
+
+    body.menu-pos-left .top-controls {
+        display: flex;
+    }
+
+    body.menu-pos-left .sidebar-toolbar {
+        display: none;
+    }
+}

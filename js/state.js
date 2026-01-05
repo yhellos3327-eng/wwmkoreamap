@@ -79,6 +79,7 @@ const state = {
         }
         return setting;
     })(),
+    savedMenuPosition: localStorage.getItem('wwm_menu_position') || 'center',
 
     get gpuRenderMode() {
         if (this.savedGpuSetting === 'on') return true;

@@ -1,0 +1,135 @@
+.route-panel {
+    position: fixed;
+    top: 50px;
+    right: 20px;
+    width: 360px;
+    max-height: calc(100vh - 100px);
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1002;
+    box-shadow: var(--glass-shadow);
+    color: #fff;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-clip: padding-box;
+    animation: panel-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: top 0.3s ease, right 0.3s ease;
+}
+
+@keyframes panel-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(40px) scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0) scale(1);
+    }
+}
+
+/* Rotating Silver Border */
+.route-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 15%,
+            rgba(255, 255, 255, 0.4) 45%,
+            rgba(255, 255, 255, 0.9) 50%,
+            rgba(255, 255, 255, 0.4) 55%,
+            rgba(255, 255, 255, 0.05) 85%,
+            transparent 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+}
+
+/* Header */
+.route-panel-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+}
+
+.route-panel-header h3 {
+    font-size: 1.15rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+}
+
+.route-panel-header h3 svg {
+    width: 22px;
+    height: 22px;
+    color: var(--accent);
+}
+
+.route-close-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.route-close-btn svg {
+    width: 18px;
+    height: 18px;
+}
+
+.route-close-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.15);
+    transform: scale(1.05);
+}
+
+.route-panel-content {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* Route Panel Positioning based on Menu Position */
+.route-panel.pos-right {
+    top: 90px;
+}
+
+.route-panel.pos-center {
+    top: 50px;
+}
+
+.route-panel.pos-left {
+    top: 50px;
+}
+
+/* Adjust position when menu is on the right */
+body.menu-pos-right .route-panel {
+    top: 100px;
+    /* Push down to avoid overlapping with right-aligned menu */
+}

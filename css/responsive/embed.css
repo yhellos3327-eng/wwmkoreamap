@@ -1,0 +1,37 @@
+.embed-only {
+    display: none;
+}
+
+body.embed-mode .embed-only {
+    display: flex;
+}
+
+body.embed-mode .sidebar {
+    position: absolute;
+    z-index: 3000;
+    box-shadow: 5px 0 20px rgba(0, 0, 0, 0.5);
+}
+
+body.embed-mode .menu-trigger {
+    display: flex !important;
+}
+
+body.embed-mode .map-toolbar {
+    padding: 0 12px;
+}
+
+body.embed-mode .map-selector-wrapper,
+body.embed-mode .select-trigger {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+body.embed-mode #btn-open-original {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
+
+body.embed-mode #btn-open-original:hover {
+    background-color: var(--bg-item-hover);
+    color: var(--accent);
+}

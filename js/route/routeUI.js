@@ -31,15 +31,11 @@ import {
 } from './routeManual.js';
 import { copyShareUrl } from './routeShare.js';
 
-// Helper function to open marker popup for a route item
 const openItemPopup = (itemId, lat, lng) => {
     if (!state.map) return;
-
-    // Find the marker in allMarkers
     const markerInfo = state.allMarkers?.get(itemId);
 
     if (markerInfo && markerInfo.marker) {
-        // For CPU mode - open the existing marker's popup
         state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
         setTimeout(() => {
             if (markerInfo.marker.openPopup) {
@@ -47,7 +43,6 @@ const openItemPopup = (itemId, lat, lng) => {
             }
         }, 300);
     } else {
-        // For GPU mode or if marker not found - create a temporary popup
         const item = state.mapData?.items?.find(i => i.id === itemId);
         if (item) {
             import('../map/popup.js').then(({ createPopupHtml }) => {
@@ -57,7 +52,6 @@ const openItemPopup = (itemId, lat, lng) => {
                     .setContent(popupContent)
                     .openOn(state.map);
             }).catch(() => {
-                // Fallback: just pan to location
                 state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
             });
         }

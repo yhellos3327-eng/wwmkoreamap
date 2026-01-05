@@ -112,6 +112,11 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
         await loadAllComponents();
+
+        if (!document.body.classList.contains('embed-mode')) {
+            document.body.classList.add('sidebar-open');
+        }
+
         setupLoadingSubscription();
 
         window.addEventListener('syncDataLoaded', (e) => {

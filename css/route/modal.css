@@ -1,0 +1,170 @@
+/* Region Modal */
+.route-region-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: transparent;
+    z-index: 1999;
+}
+
+.route-region-modal {
+    position: fixed;
+    top: 52px;
+    right: 390px;
+    width: 280px;
+    max-height: calc(100vh - 100px);
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--glass-shadow);
+    animation: modal-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    background-clip: padding-box;
+}
+
+.route-region-modal::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 15%,
+            rgba(255, 255, 255, 0.4) 45%,
+            rgba(255, 255, 255, 0.9) 50%,
+            rgba(255, 255, 255, 0.4) 55%,
+            rgba(255, 255, 255, 0.05) 85%,
+            transparent 100%);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+}
+
+.route-region-modal-overlay.closing .route-region-modal {
+    animation: modal-slide-out 0.2s ease-out forwards;
+}
+
+@keyframes modal-slide-in {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes modal-slide-out {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+}
+
+.route-region-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.route-region-modal-header h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    margin: 0;
+}
+
+.route-region-modal-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: rgba(255, 255, 255, 0.6);
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.route-region-modal-close svg {
+    width: 16px;
+    height: 16px;
+}
+
+.route-region-modal-close:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+}
+
+.route-region-modal-list {
+    padding: 12px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.route-region-option {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid transparent;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.route-region-option:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.route-region-option.selected {
+    background: rgba(218, 172, 113, 0.12);
+    border-color: rgba(218, 172, 113, 0.25);
+}
+
+.route-region-option-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #fff;
+}
+
+.route-region-check {
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .route-region-modal {
+        position: fixed;
+        top: auto;
+        bottom: 20px;
+        left: 16px;
+        right: 16px;
+        width: auto;
+        max-height: 50vh;
+    }
+}

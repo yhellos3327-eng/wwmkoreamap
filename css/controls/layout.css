@@ -1,0 +1,74 @@
+.top-controls {
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    gap: 12px;
+    pointer-events: none;
+}
+
+.map-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 6px;
+    border-radius: 16px;
+    box-shadow: var(--glass-shadow);
+    gap: 6px;
+    pointer-events: auto;
+    transition: all 0.3s ease;
+    position: relative;
+    background: transparent;
+    border: 1px solid transparent;
+    isolation: isolate;
+}
+
+.map-toolbar::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--glass-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border-radius: inherit;
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background-clip: padding-box;
+}
+
+.map-toolbar::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 15%,
+            rgba(255, 255, 255, 0.4) 45%,
+            rgba(255, 255, 255, 0.9) 50%,
+            rgba(255, 255, 255, 0.4) 55%,
+            rgba(255, 255, 255, 0.05) 85%,
+            transparent 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+    margin: -1px;
+}
+
+.map-toolbar:hover::before {
+    background: var(--glass-bg-hover);
+}
+
+.map-toolbar:hover {
+    box-shadow: var(--glass-shadow-hover);
+}

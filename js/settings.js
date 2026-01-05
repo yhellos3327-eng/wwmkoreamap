@@ -314,4 +314,22 @@ export const initSettingsModal = () => {
             if (valDisplay) valDisplay.textContent = e.target.value.toUpperCase();
         });
     }
+
+    const menuPositionSelect = document.getElementById('menu-position-select');
+    if (menuPositionSelect) {
+        menuPositionSelect.value = state.savedMenuPosition;
+        applyMenuPosition(state.savedMenuPosition);
+
+        menuPositionSelect.addEventListener('change', (e) => {
+            const newPos = e.target.value;
+            state.savedMenuPosition = newPos;
+            localStorage.setItem('wwm_menu_position', newPos);
+            applyMenuPosition(newPos);
+        });
+    }
+};
+
+export const applyMenuPosition = (position) => {
+    document.body.classList.remove('menu-pos-left', 'menu-pos-center', 'menu-pos-right');
+    document.body.classList.add(`menu-pos-${position}`);
 };
