@@ -46,9 +46,17 @@ export const initToggleButtons = () => {
 export const initSidebarToggle = () => {
     const openBtn = document.getElementById('open-sidebar');
     const closeBtn = document.getElementById('toggle-sidebar');
+    const floatingOpenBtn = document.getElementById('floating-sidebar-toggle');
 
     if (openBtn) {
         openBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleSidebar('open');
+        });
+    }
+
+    if (floatingOpenBtn) {
+        floatingOpenBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             toggleSidebar('open');
         });

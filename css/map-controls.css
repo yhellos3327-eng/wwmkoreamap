@@ -2,3 +2,5 @@
 @import 'controls/buttons.css';
 @import 'controls/dropdown.css';
 @import 'controls/responsive.css';
+@import 'controls/region-overlay.css';
+@import 'controls/floating-toggle.css';

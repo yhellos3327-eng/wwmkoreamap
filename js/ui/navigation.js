@@ -86,6 +86,12 @@ export const toggleCompleted = (id) => {
         }
     }
     if (state.hideCompleted) updateMapVisibility();
+
+    // Update region progress tooltips
+    import('../map/regions.js').then(({ renderRegionPolygons, updateRegionOverlay }) => {
+        renderRegionPolygons(state.regionData);
+        updateRegionOverlay();
+    });
 };
 
 const formatCompletedTime = (timestamp) => {

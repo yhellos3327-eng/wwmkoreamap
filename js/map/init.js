@@ -41,6 +41,8 @@ export const initMap = (mapKey) => {
             } else {
                 updateViewportMarkers();
             }
+
+            import('./regions.js').then(({ updateRegionOverlay }) => updateRegionOverlay());
         });
 
         map.on('movestart', () => {
@@ -54,6 +56,8 @@ export const initMap = (mapKey) => {
             } else {
                 updateViewportMarkers();
             }
+
+            import('./regions.js').then(({ updateRegionOverlay }) => updateRegionOverlay());
         });
 
         map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });
@@ -96,7 +100,6 @@ export const initMap = (mapKey) => {
             a.layer.spiderfy();
         });
 
-        // Only add cluster group to map if not in GPU mode and clustering is enabled
         if (!state.gpuRenderMode && state.enableClustering) {
             state.map.addLayer(markerClusterGroup);
         }

@@ -1,0 +1,122 @@
+.floating-sidebar-toggle {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    height: 44px;
+    padding: 0 18px 0 14px;
+
+    /* Glassmorphism Style matching Sidebar */
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+
+    border-radius: 22px;
+    color: #fff;
+
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    z-index: 1000;
+
+    transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+    overflow: hidden;
+
+    /* Heartbeat Animation */
+    animation: heartbeat 2s infinite ease-in-out;
+}
+
+/* Rotating Border Animation */
+.floating-sidebar-toggle::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            rgba(255, 255, 255, 0.05) 15%,
+            rgba(255, 255, 255, 0.4) 45%,
+            rgba(255, 255, 255, 0.9) 50%,
+            rgba(255, 255, 255, 0.4) 55%,
+            rgba(255, 255, 255, 0.05) 85%,
+            transparent 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+}
+
+.floating-sidebar-toggle::after {
+    content: "메뉴";
+    font-size: 15px;
+    font-weight: 600;
+    color: #fff;
+    padding-top: 1px;
+    letter-spacing: -0.5px;
+    z-index: 20;
+}
+
+.floating-sidebar-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+    animation: none;
+    /* Stop heartbeat on hover */
+}
+
+.floating-sidebar-toggle:active {
+    transform: translateY(0);
+}
+
+.floating-sidebar-toggle svg {
+    width: 20px;
+    height: 20px;
+    opacity: 0.9;
+    z-index: 20;
+}
+
+/* Show only when menu is on left AND sidebar is closed */
+body.menu-pos-left:not(.sidebar-open) .floating-sidebar-toggle {
+    display: flex;
+}
+
+@keyframes floatIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes heartbeat {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.2);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+    }
+
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+}

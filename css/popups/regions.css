@@ -11,7 +11,33 @@
     font-weight: bold;
     font-size: 14px;
     text-align: center;
-    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 2));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.2;
+}
+
+.region-tooltip-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin-bottom: 2px;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+}
+
+.region-tooltip-progress {
+    font-size: 13px;
+    color: #fff;
+    font-weight: 600;
+    text-shadow:
+        -1px -1px 0 #000,
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
 }
 
 .region-polygon {
