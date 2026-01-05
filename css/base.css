@@ -112,7 +112,6 @@ body.low-spec-mode * {
     box-shadow: none !important;
     animation: none !important;
     transition: none !important;
-    text-shadow: none !important;
 }
 
 body.low-spec-mode .sidebar,
@@ -120,7 +119,8 @@ body.low-spec-mode .modal-content,
 body.low-spec-mode .map-toolbar,
 body.low-spec-mode .sidebar-toggle-btn,
 body.low-spec-mode .popup-container,
-body.low-spec-mode .custom-select .select-options {
+body.low-spec-mode .custom-select .select-options,
+body.low-spec-mode .floating-sidebar-toggle {
     background: #141414 !important;
     border-color: #333 !important;
 }
@@ -128,6 +128,7 @@ body.low-spec-mode .custom-select .select-options {
 body.low-spec-mode .sidebar::after,
 body.low-spec-mode .modal-content::after,
 body.low-spec-mode .map-toolbar::after,
-body.low-spec-mode .sidebar-toggle-btn::after {
+body.low-spec-mode .sidebar-toggle-btn::after,
+body.low-spec-mode .floating-sidebar-toggle::before {
     display: none !important;
 }
