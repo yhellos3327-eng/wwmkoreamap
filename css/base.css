@@ -94,10 +94,6 @@ body {
     -webkit-user-select: none;
 }
 
-/* ========================================
-   Low Spec Mode (Performance Optimization)
-   ======================================== */
-
 body.low-spec-mode {
     --glass-bg: #111;
     --glass-bg-hover: #222;

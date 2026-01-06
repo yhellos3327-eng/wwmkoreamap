@@ -17,7 +17,6 @@ export const handleMapSelection = async (key, config, customSelect, optionsConta
 
     customSelect.classList.remove('open');
 
-    // 양쪽 드롭다운 동기화
     syncDropdowns(key, config.name);
 
     await loadMapData(state.currentMapKey);
@@ -118,7 +117,6 @@ export const initSidebarDropdown = () => {
         sidebarRouteBtn.addEventListener('click', async () => {
             const { toggleRouteMode } = await import('../route/index.js');
             const isActive = toggleRouteMode();
-            // 양쪽 경로 버튼 상태 동기화
             sidebarRouteBtn.classList.toggle('active', isActive);
             const topRouteBtn = document.getElementById('route-mode-toggle');
             if (topRouteBtn) topRouteBtn.classList.toggle('active', isActive);

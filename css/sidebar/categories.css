@@ -23,6 +23,44 @@
     background: linear-gradient(90deg, rgba(255, 255, 255, 0.1), transparent);
 }
 
+/* 그룹별 토글 버튼 */
+.group-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 6px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.5);
+    transition: all 0.2s ease;
+    padding: 0;
+    flex-shrink: 0;
+    order: 1;
+}
+
+.group-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+}
+
+.group-toggle-btn.all-active {
+    color: var(--accent);
+    background: rgba(218, 172, 113, 0.15);
+}
+
+.group-toggle-btn.all-active:hover {
+    background: rgba(218, 172, 113, 0.25);
+}
+
+.group-toggle-btn svg {
+    width: 14px;
+    height: 14px;
+}
+
 .cate-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

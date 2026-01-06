@@ -7,7 +7,6 @@ import { renderFavorites } from './sidebar.js';
 import { logger } from '../logger.js';
 import { showCompletedTooltip, hideCompletedTooltip } from '../map/markers.js';
 import { triggerSync } from '../sync.js';
-
 import { updateSinglePixiMarker } from '../map/pixiOverlay/overlayCore.js';
 
 export const toggleCompleted = (id) => {
