@@ -44,6 +44,8 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             itemDescription = itemDescription.replace(/\n/g, '<br>');
             itemDescription = itemDescription.replace(/{name}/g, replaceName);
             itemDescription = itemDescription.replace(/{region}/g, displayRegion);
+            // 스포일러 처리: {spoiler}...{/spoiler} -> 클릭 가능한 스포일러 span
+            itemDescription = itemDescription.replace(/{spoiler}([\s\S]*?){\/spoiler}/g, '<span class="spoiler" data-action="reveal-spoiler">$1</span>');
         } else {
             itemDescription = '';
         }
@@ -284,6 +286,9 @@ export const initPopupEventDelegation = () => {
                 break;
             case 'toggle-guide':
                 document.getElementById(target.dataset.target)?.classList.toggle('hidden');
+                break;
+            case 'reveal-spoiler':
+                target.classList.add('revealed');
                 break;
             case 'toggle-sticker':
                 toggleStickerModal(parseInt(itemId));

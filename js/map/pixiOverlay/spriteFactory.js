@@ -21,7 +21,7 @@ export const showPopupForSprite = (sprite) => {
     const popupContent = createPopupHtml(item, lat, lng, region);
 
     const popup = L.popup({
-        offset: L.point(0, -22)
+        offset: L.point(0, 0)
     })
         .setLatLng([lat, lng])
         .setContent(popupContent);

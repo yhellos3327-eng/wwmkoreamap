@@ -136,7 +136,7 @@ export const translateItem = async (itemId) => {
 
                 // Re-open popup with updated content
                 const popupContent = createPopupHtml(item, markerObj.lat, markerObj.lng, item.region);
-                const popup = L.popup({ offset: L.point(0, -22) })
+                const popup = L.popup({ offset: L.point(0, 0) })
                     .setLatLng([markerObj.lat, markerObj.lng])
                     .setContent(popupContent);
                 popup.itemId = itemId;

@@ -70,7 +70,7 @@ export const createMarkerForItem = (item) => {
         iconUrl: iconUrl,
         iconSize: [w, h],
         iconAnchor: [w / 2, h / 2],
-        popupAnchor: [0, -h / 2],
+        popupAnchor: [0, 0],
         className: iconClass
     });
 
