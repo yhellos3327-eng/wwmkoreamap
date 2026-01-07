@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV 뷰어 - WWM Map</title>
+    <meta name="description" content="WWM Map CSV 데이터 뷰어">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0f0f23;
+            --bg-secondary: #1a1a2e;
+            --bg-card: rgba(26, 26, 46, 0.8);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --text-primary: #e8e8ff;
+            --text-secondary: #a0a0c0;
+            --accent: #6366f1;
+            --accent-hover: #818cf8;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        /* Background gradient animation */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .back-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--text-primary) 0%, var(--accent) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .file-name {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+            margin-left: 0.5rem;
+        }
+
+        /* Actions */
+        .actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px var(--accent-glow);
+        }
+
+        .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Stats bar */
+        .stats-bar {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Search */
+        .search-container {
+            margin-bottom: 1.5rem;
+        }
+
+        .search-input {
+            width: 100%;
+            max-width: 400px;
+            padding: 0.875rem 1.25rem;
+            padding-left: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 0.9375rem;
+            transition: all 0.2s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        .search-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .search-wrapper {
+            position: relative;
+            display: inline-block;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 18px;
+            height: 18px;
+            pointer-events: none;
+        }
+
+        /* Table container */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.1) 100%);
+            padding: 1rem 1.25rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background 0.2s ease;
+            user-select: none;
+        }
+
+        th:hover {
+            background: linear-gradient(180deg, rgba(99, 102, 241, 0.3) 0%, rgba(99, 102, 241, 0.2) 100%);
+        }
+
+        th .sort-indicator {
+            display: inline-block;
+            margin-left: 0.5rem;
+            opacity: 0.5;
+        }
+
+        th.sorted .sort-indicator {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        td {
+            padding: 0.875rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        tr:hover td {
+            background: rgba(99, 102, 241, 0.05);
+            color: var(--text-primary);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        /* Row number column */
+        .row-num {
+            color: var(--text-secondary);
+            font-weight: 500;
+            font-size: 0.75rem;
+            width: 50px;
+            text-align: center;
+        }
+
+        /* Loading state */
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Error state */
+        .error {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--error);
+            text-align: center;
+        }
+
+        .error svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 1rem;
+        }
+
+        /* Empty state */
+        .empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4rem;
+            color: var(--text-secondary);
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            h1 {
+                font-size: 1.25rem;
+            }
+
+            .stats-bar {
+                gap: 0.75rem;
+            }
+
+            .stat-item {
+                padding: 0.5rem 1rem;
+                font-size: 0.875rem;
+            }
+
+            th,
+            td {
+                padding: 0.75rem;
+            }
+        }
+
+        /* Highlight matched text */
+        .highlight {
+            background: rgba(99, 102, 241, 0.3);
+            border-radius: 2px;
+            padding: 0 2px;
+        }
+
+        /* Copy toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--success);
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            box-shadow: 0 4px 20px rgba(16, 185, 129, 0.3);
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+
+        /* Cell click effect */
+        td {
+            cursor: pointer;
+            position: relative;
+        }
+
+        td:active {
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        /* Tooltip for long content */
+        td[title] {
+            cursor: help;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-left">
+                <a href="/" class="back-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    맵으로 돌아가기
+                </a>
+                <h1>CSV 뷰어 <span class="file-name" id="fileName"></span></h1>
+            </div>
+            <div class="actions">
+                <button class="btn" id="copyBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    복사
+                </button>
+                <a class="btn btn-primary" id="downloadBtn" download>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
+                    다운로드
+                </a>
+            </div>
+        </header>
+
+        <div class="stats-bar" id="statsBar">
+            <div class="stat-item">
+                <span class="stat-label">행:</span>
+                <span class="stat-value" id="rowCount">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">열:</span>
+                <span class="stat-value" id="colCount">-</span>
+            </div>
+        </div>
+
+        <div class="search-container">
+            <div class="search-wrapper">
+                <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <input type="text" class="search-input" id="searchInput" placeholder="검색...">
+            </div>
+        </div>
+
+        <div class="table-container">
+            <div class="table-scroll" id="tableContainer">
+                <div class="loading" id="loadingState">
+                    <div class="spinner"></div>
+                    <span>CSV 파일을 불러오는 중...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">클립보드에 복사되었습니다!</div>
+
+    <script>
+        // Get file from URL parameter or path
+        function getFileName() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const fileParam = urlParams.get('file');
+            if (fileParam) {
+                return fileParam;
+            }
+            // Check if accessed directly via referrer or redirect
+            const path = window.location.pathname;
+            if (path.endsWith('.csv')) {
+                return path.split('/').pop();
+            }
+            return null;
+        }
+
+        // Parse CSV with proper handling of quotes and commas
+        function parseCSV(text) {
+            const lines = text.split('\n').filter(line => line.trim());
+            const result = [];
+
+            for (const line of lines) {
+                const row = [];
+                let cell = '';
+                let inQuotes = false;
+
+                for (let i = 0; i < line.length; i++) {
+                    const char = line[i];
+
+                    if (char === '"') {
+                        if (inQuotes && line[i + 1] === '"') {
+                            cell += '"';
+                            i++;
+                        } else {
+                            inQuotes = !inQuotes;
+                        }
+                    } else if (char === ',' && !inQuotes) {
+                        row.push(cell.trim());
+                        cell = '';
+                    } else {
+                        cell += char;
+                    }
+                }
+                row.push(cell.trim());
+                result.push(row);
+            }
+
+            return result;
+        }
+
+        // Escape HTML
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // Highlight search matches
+        function highlightText(text, query) {
+            if (!query) return escapeHTML(text);
+            const escaped = escapeHTML(text);
+            const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+            return escaped.replace(regex, '<span class="highlight">$1</span>');
+        }
+
+        // Render table
+        function renderTable(data, headers, searchQuery = '') {
+            const container = document.getElementById('tableContainer');
+
+            if (!data.length) {
+                container.innerHTML = '<div class="empty">데이터가 없습니다.</div>';
+                return;
+            }
+
+            let filteredData = data;
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                filteredData = data.filter(row =>
+                    row.some(cell => cell.toLowerCase().includes(query))
+                );
+            }
+
+            let html = '<table><thead><tr><th class="row-num">#</th>';
+            headers.forEach((header, i) => {
+                html += `<th data-col="${i}">${escapeHTML(header)}<span class="sort-indicator">↕</span></th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            filteredData.forEach((row, rowIndex) => {
+                html += '<tr>';
+                html += `<td class="row-num">${rowIndex + 1}</td>`;
+                row.forEach(cell => {
+                    const displayText = highlightText(cell, searchQuery);
+                    const title = cell.length > 50 ? cell : '';
+                    html += `<td ${title ? `title="${escapeHTML(title)}"` : ''} data-value="${escapeHTML(cell)}">${displayText}</td>`;
+                });
+                // Fill empty cells if row has fewer columns
+                for (let i = row.length; i < headers.length; i++) {
+                    html += '<td></td>';
+                }
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+
+            // Update filtered count
+            if (searchQuery && filteredData.length !== data.length) {
+                document.getElementById('rowCount').textContent = `${filteredData.length} / ${data.length}`;
+            }
+        }
+
+        // Show toast
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        }
+
+        // Main initialization
+        async function init() {
+            const fileName = getFileName();
+
+            if (!fileName) {
+                document.getElementById('tableContainer').innerHTML = `
+                    <div class="error">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                        <p>파일이 지정되지 않았습니다.</p>
+                        <p style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary);">
+                            사용법: /csv-viewer.html?file=파일명.csv
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            document.getElementById('fileName').textContent = `- ${fileName}`;
+            document.title = `${fileName} - CSV 뷰어`;
+
+            // Set download link
+            const downloadBtn = document.getElementById('downloadBtn');
+            downloadBtn.href = `/${fileName}?raw=1`;
+            downloadBtn.download = fileName;
+
+            try {
+                // Fetch CSV with raw parameter to get actual file
+                const response = await fetch(`/${fileName}?raw=1`);
+                if (!response.ok) {
+                    throw new Error(`파일을 찾을 수 없습니다: ${response.status}`);
+                }
+
+                const text = await response.text();
+                const parsed = parseCSV(text);
+
+                if (parsed.length === 0) {
+                    throw new Error('빈 파일입니다.');
+                }
+
+                const headers = parsed[0];
+                const data = parsed.slice(1);
+
+                // Update stats
+                document.getElementById('rowCount').textContent = data.length;
+                document.getElementById('colCount').textContent = headers.length;
+
+                // Initial render
+                renderTable(data, headers);
+
+                // Search functionality
+                let searchTimeout;
+                document.getElementById('searchInput').addEventListener('input', (e) => {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        renderTable(data, headers, e.target.value);
+                    }, 200);
+                });
+
+                // Sort functionality
+                let sortCol = -1;
+                let sortAsc = true;
+                document.getElementById('tableContainer').addEventListener('click', (e) => {
+                    const th = e.target.closest('th[data-col]');
+                    if (th) {
+                        const col = parseInt(th.dataset.col);
+                        if (sortCol === col) {
+                            sortAsc = !sortAsc;
+                        } else {
+                            sortCol = col;
+                            sortAsc = true;
+                        }
+
+                        data.sort((a, b) => {
+                            const valA = a[col] || '';
+                            const valB = b[col] || '';
+                            // Try numeric sort
+                            const numA = parseFloat(valA);
+                            const numB = parseFloat(valB);
+                            if (!isNaN(numA) && !isNaN(numB)) {
+                                return sortAsc ? numA - numB : numB - numA;
+                            }
+                            return sortAsc ? valA.localeCompare(valB) : valB.localeCompare(valA);
+                        });
+
+                        renderTable(data, headers, document.getElementById('searchInput').value);
+
+                        // Update sort indicators
+                        document.querySelectorAll('th').forEach(h => h.classList.remove('sorted'));
+                        th.classList.add('sorted');
+                        th.querySelector('.sort-indicator').textContent = sortAsc ? '↑' : '↓';
+                    }
+
+                    // Cell click to copy
+                    const td = e.target.closest('td[data-value]');
+                    if (td) {
+                        navigator.clipboard.writeText(td.dataset.value).then(() => {
+                            showToast('셀 내용이 복사되었습니다!');
+                        });
+                    }
+                });
+
+                // Copy all button
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    navigator.clipboard.writeText(text).then(() => {
+                        showToast('전체 CSV가 클립보드에 복사되었습니다!');
+                    });
+                });
+
+            } catch (error) {
+                document.getElementById('tableContainer').innerHTML = `
+                    <div class="error">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p>${escapeHTML(error.message)}</p>
+                    </div>
+                `;
+            }
+        }
+
+        init();
+    </script>
+</body>
+
+</html>
