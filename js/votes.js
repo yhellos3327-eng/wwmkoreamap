@@ -7,7 +7,7 @@ const getApiBaseUrl = () => {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:3000/api';
     }
-    return '/api';
+    return 'https://api.wwmmap.kr/api';
 };
 
 const API_BASE_URL = getApiBaseUrl();
