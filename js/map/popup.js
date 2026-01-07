@@ -156,7 +156,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         <div class="popup-related">
             <div class="popup-related-header">
                 <h5>
-                    <span style="flex:1">이정표</span>
+                    <span style="flex:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>이정표</span>
                     <button class="btn-search-modal" data-action="open-modal" data-category="${item.category}" title="전체 목록 검색">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                     </button>

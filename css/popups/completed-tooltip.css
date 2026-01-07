@@ -1,6 +1,3 @@
-/* ===== Completed Item Tooltip ===== */
-/* 완료된 마커 위 툴팁 스타일 */
-
 .completed-tooltip {
     background: linear-gradient(135deg,
             rgba(50, 215, 75, 0.95) 0%,
@@ -23,7 +20,6 @@
     font-size: 0.9rem;
 }
 
-/* Tooltip Arrow */
 .completed-tooltip::after {
     content: '';
     position: absolute;
@@ -35,7 +31,6 @@
     border-top: 6px solid rgba(40, 180, 60, 0.95);
 }
 
-/* Leaflet Tooltip Override for Completed Items */
 .leaflet-tooltip.completed-marker-tooltip {
     background: linear-gradient(135deg,
             rgba(50, 215, 75, 0.9) 0%,

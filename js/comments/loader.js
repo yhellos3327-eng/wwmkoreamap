@@ -148,7 +148,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
             return `
                 <div class="comment-item ${isReply ? 'comment-reply' : ''}" data-id="${data.id}">
                     <div class="comment-header">
-                        <span class="comment-author">${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${data.ip || '...'})</span></span>
+                        <span class="comment-author"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${data.ip || '...'})</span></span>
                         <span class="comment-meta">
                             <span class="comment-date">${date}</span>
                             ${deleteBtn}

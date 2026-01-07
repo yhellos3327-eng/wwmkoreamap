@@ -1,7 +1,3 @@
-/* ===== Leaflet Popup Base Styles ===== */
-/* 사이드바와 동일한 글래스모피즘 디자인 적용 */
-
-/* Popup wrapper - leaflet 기본 스타일 오버라이드 */
 .leaflet-popup-content-wrapper {
     background: linear-gradient(180deg,
             rgba(28, 28, 30, 0.85) 0%,
@@ -44,7 +40,6 @@
     border-radius: 4px;
 }
 
-/* Popup tip - 글래스모피즘과 그라데이션 연결 */
 .leaflet-popup-tip-container {
     position: relative;
     margin-top: -1px;
@@ -58,7 +53,6 @@
     border: none;
 }
 
-/* Close button */
 .leaflet-popup-close-button {
     width: 32px !important;
     height: 32px !important;
@@ -89,12 +83,10 @@
     background: rgba(255, 255, 255, 0.2) !important;
 }
 
-/* ===== Popup Container ===== */
 .popup-container {
     padding: 0;
 }
 
-/* ===== Popup Header ===== */
 .popup-header {
     display: flex;
     align-items: center;
@@ -127,7 +119,6 @@
     line-height: 1.3;
 }
 
-/* ===== Popup Body ===== */
 .popup-body {
     padding: 16px 20px;
 }
@@ -155,7 +146,6 @@
     text-decoration: underline;
 }
 
-/* ===== Popup Footer ===== */
 .popup-footer {
     display: flex;
     align-items: center;
@@ -188,7 +178,6 @@
     white-space: nowrap;
 }
 
-/* Report button */
 .btn-report-styled {
     display: inline-flex;
     align-items: center;
@@ -214,7 +203,6 @@
     flex-shrink: 0;
 }
 
-/* ===== Loading & Empty States ===== */
 .loading-comments,
 .no-comments,
 .error-comments {

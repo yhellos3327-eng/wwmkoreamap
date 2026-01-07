@@ -1,4 +1,3 @@
-/* ===== Sticker Button ===== */
 .btn-sticker {
     width: 32px;
     height: 32px;
@@ -37,9 +36,6 @@
     width: 18px;
     height: 18px;
 }
-
-/* ===== Sticker Modal ===== */
-/* 댓글 스티커 선택 모달 */
 
 .sticker-modal {
     position: absolute;
@@ -92,7 +88,6 @@
     border-radius: 3px;
 }
 
-/* Sticker Item - 더 크게 */
 .sticker-item {
     width: 100%;
     aspect-ratio: 1;
@@ -117,7 +112,6 @@
     transform: scale(0.95);
 }
 
-/* Sticker in Comment - 더 크게 */
 .comment-sticker,
 img.comment-sticker {
     display: inline-block;
@@ -130,7 +124,6 @@ img.comment-sticker {
     object-fit: contain;
 }
 
-/* Large sticker (단독 스티커) */
 .comment-text>.comment-sticker:only-child,
 .comment-text>img.comment-sticker:only-child {
     width: 96px;
