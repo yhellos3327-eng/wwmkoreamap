@@ -29,7 +29,7 @@ export const renderModalList = (items) => {
     }
     const currComp = JSON.parse(localStorage.getItem('wwm_completed')) || [];
     items.forEach(m => {
-        const displayRegion = m.forceRegion || m.region;
+        const displayRegion = t(m.forceRegion || m.region);
         let displayName = t(m.originalName || m.name);
         if (displayName) displayName = displayName.replace(/{region}/g, displayRegion);
         const isDone = currComp.some(c => (typeof c === 'object' ? c.id : c) === m.id);

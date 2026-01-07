@@ -49,7 +49,6 @@ const applyTranslations = (item, reverseRegionMap) => {
         commonDesc = catTrans._common_description;
     }
 
-    // 카테고리별 기본 이름 설정 (번역 개별 오버라이드가 없으면 이 이름 사용)
     const categoryDefaultNames = {
         '17310010006': '상자 (지상)',
         '17310010007': '상자 (지하)',
@@ -70,7 +69,6 @@ const applyTranslations = (item, reverseRegionMap) => {
         }
 
         if (transData) {
-            // 번역 데이터에 개별 이름이 있으면 오버라이드
             if (transData.name) {
                 item.name = transData.name;
                 item.isTranslated = true;
@@ -87,7 +85,6 @@ const applyTranslations = (item, reverseRegionMap) => {
             if (transData.video) {
                 item.video_url = transData.video;
             }
-            // Apply custom position override [x|y] format
             if (transData.customPosition) {
                 item.x = transData.customPosition.x;
                 item.y = transData.customPosition.y;
@@ -215,16 +212,12 @@ export const sortItemsByCategory = (itemsByCategory) => {
 
 export const collectUniqueRegions = (regionData, mapDataItems, reverseRegionMap = {}) => {
     const regions = new Set();
-    
-    // regionData의 title(중국어 원본)을 기준으로 추가
+
     regionData.forEach(r => regions.add(r.title));
-    
+
     mapDataItems.forEach(i => {
-        // forceRegion(번역 데이터에서 강제 할당된 지역)도 포함
         const effectiveRegion = i.forceRegion || i.region;
         if (effectiveRegion) {
-            // reverseRegionMap을 사용하여 한국어 지역명을 중국어 원본으로 정규화
-            // 예: "개봉부" -> "开封府"
             const normalizedRegion = reverseRegionMap[effectiveRegion] || effectiveRegion;
             regions.add(normalizedRegion);
         }
@@ -244,8 +237,6 @@ export const parseCSVData = async (csvRes) => {
     const items = [];
     lines.forEach(line => {
         if (!line.trim()) return;
-
-        // Simple CSV parse for markers
         const parts = [];
         let current = '';
         let inQuotes = false;
@@ -267,12 +258,40 @@ export const parseCSVData = async (csvRes) => {
         headers.forEach((h, idx) => {
             item[h] = parts[idx]?.trim();
         });
-
-        // Map CSV fields to JSON fields
-        // regionId can be numeric ID or string region name
         const regionIdRaw = item.regionId;
         const regionIdNum = parseInt(regionIdRaw);
         const isNumericRegion = !isNaN(regionIdNum) && String(regionIdNum) === regionIdRaw;
+        let imgList = [];
+        let mainImg = "";
+
+        if (item.image) {
+            let rawImg = item.image.trim();
+            if (rawImg.includes('{id}')) {
+                rawImg = rawImg.replace(/{id}/g, item.id);
+            }
+
+            if (rawImg.startsWith('[') && rawImg.endsWith(']')) {
+                const content = rawImg.slice(1, -1);
+                if (content.includes('|')) {
+                    imgList = content.split('|').map(s => s.trim()).filter(s => s !== "");
+                } else {
+                    try {
+                        const parsed = JSON.parse(rawImg);
+                        if (Array.isArray(parsed)) {
+                            imgList = parsed;
+                        } else {
+                            imgList = [content.trim()];
+                        }
+                    } catch (e) {
+                        imgList = [content.trim()];
+                    }
+                }
+            } else {
+                imgList = [rawImg];
+            }
+
+            if (imgList.length > 0) mainImg = imgList[0];
+        }
 
         const processedItem = {
             id: item.id,
@@ -282,13 +301,12 @@ export const parseCSVData = async (csvRes) => {
             latitude: parseFloat(item.latitude),
             longitude: parseFloat(item.longitude),
             regionId: isNumericRegion ? regionIdNum : 0,
-            image: item.image || "",
+            image: mainImg,
             video_url: item.video_url || "",
-            images: item.image ? [item.image] : [],
+            images: imgList,
             isTranslated: true
         };
 
-        // If regionId is a string region name, set forceRegion
         if (!isNumericRegion && regionIdRaw) {
             processedItem.forceRegion = regionIdRaw;
         }
