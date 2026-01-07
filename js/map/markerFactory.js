@@ -7,6 +7,7 @@ import { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.j
 import { logMarkerDebugInfo } from './markerDebug.js';
 import { toggleCompleted } from '../ui.js';
 import { loadComments } from '../comments.js';
+import { fetchVoteCounts } from '../votes.js';
 
 let regionPolygonsCache = [];
 
@@ -122,6 +123,7 @@ export const createMarkerForItem = (item) => {
     marker.on('popupopen', () => {
         hideCompletedTooltip();
         if (loadComments) loadComments(item.id);
+        fetchVoteCounts(item.id);
     });
 
     marker.bindPopup(() => createPopupHtml(item, lat, lng, finalRegionName));

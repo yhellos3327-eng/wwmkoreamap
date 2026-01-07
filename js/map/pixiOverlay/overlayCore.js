@@ -65,6 +65,11 @@ export const initPixiOverlay = async () => {
                 const targetSize = ICON_SIZE / scale;
                 sprite.width = targetSize;
                 sprite.height = targetSize;
+
+                // 필터 상태 보장 - WebGL 상태 오염 방지
+                if (sprite.filters === undefined || sprite.filters === null) {
+                    sprite.filters = [];
+                }
             }
         });
 
@@ -177,7 +182,7 @@ export const updateSinglePixiMarker = (itemId) => {
             colorMatrix.desaturate();
             sprite.filters = [colorMatrix];
         } else {
-            sprite.filters = null;
+            sprite.filters = [];
         }
 
         sprite.markerData.isCompleted = isCompleted;

@@ -13,6 +13,7 @@ import {
     openReportPage
 } from '../ui.js';
 import { toggleStickerModal, submitAnonymousComment } from '../comments.js';
+import { renderVoteButtons, toggleVote } from '../votes.js';
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
     const isFav = state.favorites.includes(item.id);
@@ -224,6 +225,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             ${mediaHtml}
             ${bodyContent}
             ${translateBtnHtml}
+            ${renderVoteButtons(item.id)}
         </div>
         ${relatedHtml}
         <div class="popup-actions">
@@ -324,6 +326,25 @@ export const initPopupEventDelegation = () => {
                 }).catch(() => {
                     alert('경로 모듈을 불러올 수 없습니다.');
                 });
+                break;
+            case 'vote':
+                const type = target.dataset.type;
+                const result = toggleVote(itemId, type);
+
+                // UI 즉시 업데이트
+                const voteContainer = target.closest('.vote-container');
+                if (voteContainer) {
+                    const upBtn = voteContainer.querySelector('.btn-up');
+                    const downBtn = voteContainer.querySelector('.btn-down');
+                    const upCount = upBtn.querySelector('.vote-count');
+                    const downCount = downBtn.querySelector('.vote-count');
+
+                    upCount.textContent = result.counts.up;
+                    downCount.textContent = result.counts.down;
+
+                    upBtn.classList.toggle('active', result.userVote === 'up');
+                    downBtn.classList.toggle('active', result.userVote === 'down');
+                }
                 break;
         }
     });

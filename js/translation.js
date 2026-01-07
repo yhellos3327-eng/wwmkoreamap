@@ -146,11 +146,17 @@ export const translateItem = async (itemId) => {
                 import('./comments.js').then(module => {
                     if (module.loadComments) module.loadComments(itemId);
                 });
+                import('./votes.js').then(module => {
+                    if (module.fetchVoteCounts) module.fetchVoteCounts(itemId);
+                });
             } else if (markerObj.marker) {
                 // CPU Mode: Standard Leaflet marker
                 markerObj.marker.closePopup();
                 markerObj.marker.bindPopup(() => createPopupHtml(item, markerObj.marker.getLatLng().lat, markerObj.marker.getLatLng().lng, item.region));
                 markerObj.marker.openPopup();
+                import('./votes.js').then(module => {
+                    if (module.fetchVoteCounts) module.fetchVoteCounts(itemId);
+                });
             }
         }
 

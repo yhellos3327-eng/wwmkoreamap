@@ -5,6 +5,7 @@ import { getRegionPolygonsCache } from '../markerFactory.js';
 import { createPopupHtml } from '../popup.js';
 import { getIconUrl, getCachedTexture, getDefaultTexture } from './textureManager.js';
 import { loadComments } from '../../comments.js';
+import { fetchVoteCounts } from '../../votes.js';
 
 const spriteDataMap = new Map();
 
@@ -33,6 +34,7 @@ export const showPopupForSprite = (sprite) => {
     if (loadComments) {
         loadComments(item.id);
     }
+    fetchVoteCounts(item.id);
 
     return popup;
 };
@@ -85,10 +87,13 @@ export const createSpriteForItem = (item) => {
 
     sprite.alpha = isCompleted ? 0.4 : 1.0;
 
+    // 명시적으로 필터 초기화 - 의도치 않은 색상 변화 방지
     if (isCompleted) {
         const colorMatrix = new PIXI.ColorMatrixFilter();
         colorMatrix.desaturate();
         sprite.filters = [colorMatrix];
+    } else {
+        sprite.filters = [];
     }
 
     sprite.markerData = {
