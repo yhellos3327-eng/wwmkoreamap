@@ -127,11 +127,11 @@ export const renderVoteButtons = (itemId) => {
         <div class="vote-container" data-item-id="${itemId}">
             <span class="vote-label">이 정보가 유용한가요?</span>
             <div class="vote-buttons">
-                <button class="btn-vote btn-up ${userVote === 'up' ? 'active' : ''}" data-action="vote" data-type="up">
+                <button class="btn-vote btn-up ${userVote === 'up' ? 'active' : ''}" data-action="vote" data-type="up" data-item-id="${itemId}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                     <span class="vote-count">${counts.up}</span>
                 </button>
-                <button class="btn-vote btn-down ${userVote === 'down' ? 'active' : ''}" data-action="vote" data-type="down">
+                <button class="btn-vote btn-down ${userVote === 'down' ? 'active' : ''}" data-action="vote" data-type="down" data-item-id="${itemId}">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
                     <span class="vote-count">${counts.down}</span>
                 </button>

@@ -323,28 +323,26 @@ export const initPopupEventDelegation = () => {
                     } else {
                         alert('수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.');
                     }
-                }).catch(() => {
                     alert('경로 모듈을 불러올 수 없습니다.');
                 });
                 break;
             case 'vote':
                 const type = target.dataset.type;
-                const result = toggleVote(itemId, type);
+                toggleVote(itemId, type).then(result => {
+                    const voteContainer = target.closest('.vote-container');
+                    if (voteContainer && result && result.counts) {
+                        const upBtn = voteContainer.querySelector('.btn-up');
+                        const downBtn = voteContainer.querySelector('.btn-down');
+                        const upCount = upBtn.querySelector('.vote-count');
+                        const downCount = downBtn.querySelector('.vote-count');
 
-                // UI 즉시 업데이트
-                const voteContainer = target.closest('.vote-container');
-                if (voteContainer) {
-                    const upBtn = voteContainer.querySelector('.btn-up');
-                    const downBtn = voteContainer.querySelector('.btn-down');
-                    const upCount = upBtn.querySelector('.vote-count');
-                    const downCount = downBtn.querySelector('.vote-count');
+                        if (upCount) upCount.textContent = result.counts.up;
+                        if (downCount) downCount.textContent = result.counts.down;
 
-                    upCount.textContent = result.counts.up;
-                    downCount.textContent = result.counts.down;
-
-                    upBtn.classList.toggle('active', result.userVote === 'up');
-                    downBtn.classList.toggle('active', result.userVote === 'down');
-                }
+                        if (upBtn) upBtn.classList.toggle('active', result.userVote === 'up');
+                        if (downBtn) downBtn.classList.toggle('active', result.userVote === 'down');
+                    }
+                });
                 break;
         }
     });
