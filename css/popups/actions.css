@@ -1,77 +1,169 @@
+/* ===== Popup Action Buttons ===== */
+/* 팝업 하단 액션 버튼 그룹 */
+
 .popup-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 12px;
-    border-top: 1px solid #333;
+    gap: 6px;
+    padding: 0px 12px 8px;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.02) 0%,
+            transparent 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    flex-shrink: 0;
+    flex-wrap: wrap;
 }
 
+/* Action Button Base */
 .action-btn {
     flex: 1;
-    padding: 8px;
-    border: 1px solid #444;
-    background: #2a2a2a;
-    color: #ccc;
-    border-radius: 4px;
+    min-width: 50px;
+    padding: 7px 10px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 0.75rem;
+    font-weight: 500;
     cursor: pointer;
-    font-size: 0.85rem;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 3px;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .action-btn:hover {
-    background: #3a3a3a;
-    color: white;
-    border-color: #666;
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-1px);
 }
 
-.action-btn.active {
-    background: var(--accent-bg);
-    color: var(--accent);
-    border-color: var(--accent);
+.action-btn:active {
+    transform: translateY(0);
+    background: rgba(255, 255, 255, 0.15);
 }
 
-/* 완료 버튼 - 시간 표시와 함께 세로 정렬 */
-.action-btn.btn-complete {
-    flex-direction: column;
-    gap: 2px;
-    padding: 6px 8px;
+/* Favorite Button */
+.btn-fav {
+    flex: 0 0 auto;
+    min-width: 36px;
+    padding: 7px 10px;
+    font-size: 1rem;
 }
 
-.action-btn .completed-time {
+.btn-fav.active {
+    background: rgba(255, 215, 0, 0.15);
+    border-color: rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+}
+
+.btn-fav:hover {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: rgba(255, 215, 0, 0.4);
+}
+
+/* Complete Button */
+.btn-complete {
+    position: relative;
+    flex: 1.5;
+}
+
+.btn-complete.active {
+    background: linear-gradient(135deg,
+            rgba(50, 215, 75, 0.15) 0%,
+            rgba(50, 215, 75, 0.1) 100%);
+    border-color: rgba(50, 215, 75, 0.3);
+    color: var(--success);
+}
+
+.btn-complete:hover:not(.active) {
+    background: rgba(50, 215, 75, 0.1);
+    border-color: rgba(50, 215, 75, 0.2);
+}
+
+.btn-complete .completed-time {
     display: block;
     font-size: 0.65rem;
-    opacity: 0.75;
-    font-weight: normal;
-    color: rgba(255, 189, 83, 0.85);
+    font-weight: 400;
+    color: rgba(50, 215, 75, 0.7);
+    margin-top: 2px;
 }
 
-.btn-report-styled {
-    background: #d9534f;
-    border: none;
-    color: white;
-    font-size: 0.75rem;
+/* Route Button */
+.btn-route {
+    flex: 1;
+}
+
+.btn-route:hover {
+    background: rgba(100, 180, 255, 0.12);
+    border-color: rgba(100, 180, 255, 0.25);
+    color: #64b4ff;
+}
+
+/* Share Button */
+.btn-share {
+    flex: 0 0 auto;
+    min-width: 36px;
+    padding: 7px 10px;
+    font-size: 0.9rem;
+}
+
+.btn-share:hover {
+    background: rgba(100, 180, 255, 0.15);
+    border-color: rgba(100, 180, 255, 0.3);
+}
+
+/* Footer Action Buttons (버튼 스타일 통일) */
+.btn-footer-action {
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: var(--text-main);
+    font-size: 0.8rem;
+    font-weight: 500;
     cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 4px;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+}
+
+.btn-footer-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Translate Button */
+.btn-translate {
+    width: 100%;
+    margin-top: 12px;
+    padding: 10px 16px;
+    background: var(--accent-bg);
+    border: 1px solid rgba(218, 172, 113, 0.3);
+    border-radius: 12px;
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
-    gap: 4px;
+    justify-content: center;
+    gap: 6px;
 }
 
-.btn-report-styled:hover {
-    background: #c9302c;
-    color: white;
-    text-decoration: none;
+.btn-translate:hover {
+    background: rgba(218, 172, 113, 0.2);
+    border-color: var(--accent);
+    transform: translateY(-1px);
 }
 
-/* Legacy support */
-.related-list {
-    display: none;
+.btn-translate:active {
+    transform: translateY(0);
 }
 
-.btn-expand {
-    display: none;
+.btn-translate:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
 }

@@ -1,108 +1,226 @@
+/* ===== Popup Media Styles ===== */
+/* 이미지 및 비디오 슬라이드 */
+
 .popup-image-container {
     position: relative;
     width: 100%;
-    margin-bottom: 10px;
-    background: #222;
-    border-radius: 4px;
+    aspect-ratio: 16 / 9;
+    border-radius: 12px;
     overflow: hidden;
-    min-height: 150px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.popup-image {
-    width: 100%;
-    height: auto;
-    max-height: 200px;
-    object-fit: contain;
-    display: none;
-    cursor: pointer;
-}
-
-.popup-image.active {
-    display: block;
+    background: rgba(0, 0, 0, 0.3);
+    margin-bottom: 12px;
 }
 
 .popup-media {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    display: none;
-    cursor: pointer;
-}
-
-.popup-media.active {
-    display: block;
-}
-
-.popup-video-wrapper {
-    position: relative;
-    background: #000;
-}
-
-.video-thumb-cover {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 2;
+    object-fit: cover;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.video-play-icon {
-    width: 0;
-    height: 0;
-    border-top: 15px solid transparent;
-    border-bottom: 15px solid transparent;
-    border-left: 25px solid rgba(255, 255, 255, 0.9);
-    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
+.popup-media.active {
+    opacity: 1;
+    z-index: 1;
 }
 
+/* Navigation Buttons */
 .img-nav-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    width: 36px;
+    height: 36px;
     background: rgba(0, 0, 0, 0.5);
-    color: white;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-    z-index: 10;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 50%;
-    width: 24px;
-    height: 24px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: background 0.2s;
-    font-size: 12px;
+    z-index: 5;
+    transition: all 0.2s ease;
+    opacity: 0.7;
 }
 
 .img-nav-btn:hover {
-    background: rgba(0, 0, 0, 0.8);
+    background: rgba(0, 0, 0, 0.7);
+    opacity: 1;
+    transform: translateY(-50%) scale(1.05);
 }
 
 .img-nav-btn.prev {
-    left: 5px;
+    left: 8px;
 }
 
 .img-nav-btn.next {
-    right: 5px;
+    right: 8px;
 }
 
+/* Image Counter */
 .img-counter {
     position: absolute;
-    bottom: 5px;
-    right: 5px;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
     background: rgba(0, 0, 0, 0.6);
-    color: white;
-    padding: 2px 6px;
-    border-radius: 4px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 12px;
     font-size: 0.75rem;
-    pointer-events: none;
+    color: rgba(255, 255, 255, 0.9);
+    z-index: 5;
+}
+
+/* ===== Video Wrapper ===== */
+.popup-video-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.popup-video-wrapper iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+.video-thumb-cover {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.popup-video-wrapper:hover .video-thumb-cover {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.video-play-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    transition: all 0.2s ease;
+}
+
+.video-play-icon::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 55%;
+    transform: translate(-50%, -50%);
+    border-style: solid;
+    border-width: 12px 0 12px 20px;
+    border-color: transparent transparent transparent #000;
+}
+
+.popup-video-wrapper:hover .video-play-icon {
+    transform: scale(1.1);
+    box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Lightbox Styles ===== */
+.lightbox-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+}
+
+.lightbox-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.lightbox-content {
+    position: relative;
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+.lightbox-content img,
+.lightbox-content iframe {
+    max-width: 90vw;
+    max-height: 90vh;
+    border-radius: 12px;
+    box-shadow: 0 8px 48px rgba(0, 0, 0, 0.6);
+}
+
+.lightbox-close {
+    position: absolute;
+    top: -40px;
+    right: -40px;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.lightbox-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: scale(1.1);
+}
+
+/* Lightbox Navigation */
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1.3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.lightbox-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-nav.prev {
+    left: -70px;
+}
+
+.lightbox-nav.next {
+    right: -70px;
 }

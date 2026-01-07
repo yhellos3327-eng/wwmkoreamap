@@ -1,52 +1,86 @@
+/* ===== Sticker Button ===== */
 .btn-sticker {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    color: #ccc;
     width: 32px;
     height: 32px;
+    min-width: 32px;
     border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
-    font-size: 1.2rem;
+    transition: all 0.25s ease;
+    flex-shrink: 0;
 }
 
 .btn-sticker:hover {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    transform: scale(1.1);
+    background: rgba(255, 200, 0, 0.15);
+    border-color: rgba(255, 200, 0, 0.4);
+    color: var(--accent, #ffc800);
+    transform: scale(1.08);
 }
+
+.btn-sticker:active {
+    transform: scale(0.95);
+}
+
+.btn-sticker.active {
+    background: rgba(255, 200, 0, 0.2);
+    border-color: var(--accent, #ffc800);
+    color: var(--accent, #ffc800);
+    box-shadow: 0 0 12px rgba(255, 200, 0, 0.3);
+}
+
+.btn-sticker svg {
+    width: 18px;
+    height: 18px;
+}
+
+/* ===== Sticker Modal ===== */
+/* 댓글 스티커 선택 모달 */
 
 .sticker-modal {
     position: absolute;
-    bottom: 45px;
-    right: 0;
-    width: 280px;
-    background: rgba(20, 20, 20, 0.95);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    bottom: 100%;
+    left: 0;
+    width: 100%;
+    min-width: 280px;
+    max-height: 240px;
+    margin-bottom: 10px;
+    background: rgba(20, 20, 22, 0.98);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
     padding: 12px;
+    box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.5);
     z-index: 100;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateY(8px) scale(0.95);
+    transition: all 0.2s ease;
 }
 
 .sticker-modal.active {
-    display: block;
-    animation: fadeIn 0.2s ease-out;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateY(0) scale(1);
 }
 
+/* Sticker Grid */
 .sticker-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
-    max-height: 200px;
+    gap: 10px;
+    max-height: 212px;
     overflow-y: auto;
-    padding-right: 4px;
+    overflow-x: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
 .sticker-grid::-webkit-scrollbar {
@@ -54,34 +88,55 @@
 }
 
 .sticker-grid::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
 }
 
+/* Sticker Item - 더 크게 */
 .sticker-item {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    object-fit: contain;
+    min-width: 56px;
+    min-height: 56px;
     background: rgba(255, 255, 255, 0.05);
-    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    padding: 8px;
+    transition: all 0.15s ease;
+    object-fit: contain;
 }
 
 .sticker-item:hover {
     background: rgba(255, 255, 255, 0.15);
-    transform: scale(1.05);
+    border-color: rgba(255, 255, 255, 0.25);
+    transform: scale(1.08);
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
+.sticker-item:active {
+    transform: scale(0.95);
+}
 
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Sticker in Comment - 더 크게 */
+.comment-sticker,
+img.comment-sticker {
+    display: inline-block;
+    width: 64px;
+    height: 64px;
+    max-width: 64px;
+    max-height: 64px;
+    vertical-align: middle;
+    margin: 3px;
+    object-fit: contain;
+}
+
+/* Large sticker (단독 스티커) */
+.comment-text>.comment-sticker:only-child,
+.comment-text>img.comment-sticker:only-child {
+    width: 96px;
+    height: 96px;
+    max-width: 96px;
+    max-height: 96px;
+    display: block;
+    margin: 8px 0;
 }

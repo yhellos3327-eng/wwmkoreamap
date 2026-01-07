@@ -1,147 +1,229 @@
+/* ===== Leaflet Popup Base Styles ===== */
+/* 사이드바와 동일한 글래스모피즘 디자인 적용 */
+
+/* Popup wrapper - leaflet 기본 스타일 오버라이드 */
 .leaflet-popup-content-wrapper {
-    background: var(--bg-panel);
+    background: linear-gradient(180deg,
+            rgba(28, 28, 30, 0.85) 0%,
+            rgba(28, 28, 30, 0.90) 85%,
+            rgba(28, 28, 30, 0.95) 100%);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 20px;
+    border: 1px solid var(--glass-border);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
     color: var(--text-main);
-    border: 1px solid var(--border);
-    border-radius: 8px;
     padding: 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     overflow: hidden;
 }
 
 .leaflet-popup-content {
     margin: 0;
-    width: 360px !important;
-    max-width: 80vw !important;
-}
-
-.leaflet-popup-tip {
-    background: var(--bg-panel);
-    border: 1px solid var(--border);
-    border-top: none;
-    border-left: none;
-}
-
-.leaflet-container a.leaflet-popup-close-button {
-    color: var(--text-muted);
-    font-size: 20px;
-    padding: 6px 10px 0 0;
-    width: 28px;
-    height: 28px;
-    transition: all 0.2s;
-}
-
-.leaflet-container a.leaflet-popup-close-button:hover {
-    color: var(--accent);
-}
-
-.popup-container {
-    padding: 16px;
-    max-height: 75vh;
+    width: 340px !important;
+    max-width: 90vw !important;
+    line-height: 1.5;
+    max-height: 55vh;
     overflow-y: auto;
+    overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
-    backdrop-filter: var(--glass-blur) saturate(180%);
-    overscroll-behavior: contain;
 }
 
-.popup-container::-webkit-scrollbar {
-    width: 6px;
+.leaflet-popup-content::-webkit-scrollbar {
+    width: 5px;
 }
 
-.popup-container::-webkit-scrollbar-track {
+.leaflet-popup-content::-webkit-scrollbar-track {
     background: transparent;
 }
 
-.popup-container::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.2);
+.leaflet-popup-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 4px;
 }
 
+/* Popup tip - 글래스모피즘과 그라데이션 연결 */
+.leaflet-popup-tip-container {
+    position: relative;
+    margin-top: -1px;
+}
+
+.leaflet-popup-tip {
+    background: linear-gradient(180deg,
+            rgba(28, 28, 30, 0.95) 0%,
+            rgba(28, 28, 30, 0.80) 100%);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    border: none;
+}
+
+/* Close button */
+.leaflet-popup-close-button {
+    width: 32px !important;
+    height: 32px !important;
+    top: 12px !important;
+    right: 12px !important;
+    font-size: 18px !important;
+    font-weight: 400 !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    padding: 0 !important;
+    line-height: 32px !important;
+    text-align: center !important;
+}
+
+.leaflet-popup-close-button:hover {
+    color: #fff !important;
+    background: rgba(255, 255, 255, 0.15) !important;
+    transform: scale(1.05);
+}
+
+.leaflet-popup-close-button:active {
+    transform: scale(0.95);
+    background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ===== Popup Container ===== */
+.popup-container {
+    padding: 0;
+}
+
+/* ===== Popup Header ===== */
 .popup-header {
     display: flex;
     align-items: center;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 10px;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    padding: 16px 20px;
+    padding-right: 48px;
+    background: linear-gradient(180deg,
+            rgba(255, 255, 255, 0.08) 0%,
+            rgba(255, 255, 255, 0.03) 100%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .popup-icon {
     width: 40px;
     height: 40px;
+    border-radius: 12px;
     margin-right: 12px;
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: 6px;
-    padding: 4px;
+    object-fit: contain;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 6px;
+    flex-shrink: 0;
 }
 
 .popup-header h4 {
-    color: var(--accent);
     margin: 0;
-    font-size: 1.1rem;
+    font-size: 1.05rem;
     font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: -0.3px;
+    line-height: 1.3;
 }
 
+/* ===== Popup Body ===== */
 .popup-body {
-    max-height: none !important;
-    overflow-y: visible !important;
-    margin-bottom: 12px;
+    padding: 16px 20px;
 }
 
 .popup-body p {
-    font-size: 0.9rem;
-    line-height: 1.5;
-    color: #ddd;
     margin: 0;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    color: var(--text-main);
+    word-break: keep-all;
 }
 
+.popup-body p:empty {
+    display: none;
+}
+
+.popup-body a {
+    color: var(--accent);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.popup-body a:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
+}
+
+/* ===== Popup Footer ===== */
 .popup-footer {
-    margin-top: 10px;
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: linear-gradient(0deg,
+            rgba(0, 0, 0, 0.3) 0%,
+            rgba(0, 0, 0, 0.1) 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    gap: 10px;
 }
 
 .footer-badges {
     display: flex;
-    gap: 5px;
+    gap: 6px;
+    flex-wrap: wrap;
+    flex: 1;
 }
 
 .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
     font-size: 0.75rem;
-    color: #666;
-    background: #111;
-    padding: 2px 6px;
-    border-radius: 4px;
-    border: 1px solid #333;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    color: var(--text-muted);
+    white-space: nowrap;
 }
 
-.footer-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.btn-footer-action {
-    display: flex;
+/* Report button */
+.btn-report-styled {
+    display: inline-flex;
     align-items: center;
     gap: 4px;
-    padding: 4px 8px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
+    padding: 5px 10px;
+    font-size: 0.7rem;
     background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 4px;
+    border: 1px solid rgba(255, 100, 100, 0.2);
+    border-radius: 8px;
+    color: rgba(255, 100, 100, 0.6);
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
 }
 
-.btn-footer-action:hover {
-    background: var(--accent-bg);
-    border-color: var(--accent);
-    color: var(--accent);
+.btn-report-styled:hover {
+    background: rgba(255, 100, 100, 0.1);
+    border-color: rgba(255, 100, 100, 0.4);
+    color: rgba(255, 120, 120, 0.9);
 }
 
-.btn-footer-action.added {
-    background: var(--success);
-    border-color: var(--success);
-    color: white;
+.btn-report-styled svg {
+    flex-shrink: 0;
+}
+
+/* ===== Loading & Empty States ===== */
+.loading-comments,
+.no-comments,
+.error-comments {
+    padding: 16px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.error-comments {
+    color: rgba(255, 100, 100, 0.8);
 }

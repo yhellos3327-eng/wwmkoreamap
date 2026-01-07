@@ -1,18 +1,20 @@
 export const processCommentText = (text) => {
     if (!text) return text;
 
-    let processed = text
+    // 스티커를 먼저 추출 (이스케이프 전에)
+    const stickers = [];
+    let processed = text.replace(/\[sticker:(.*?)\]/g, (match, url) => {
+        stickers.push(`<img src="${url}" class="comment-sticker" alt="sticker">`);
+        return `[[STICKER_${stickers.length - 1}]]`;
+    });
+
+    // HTML 이스케이프 (스티커 플레이스홀더 제외)
+    processed = processed
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
-
-    const stickers = [];
-    processed = processed.replace(/\[sticker:(.*?)\]/g, (match, url) => {
-        stickers.push(`<img src="${url}" class="comment-sticker" alt="sticker">`);
-        return `[[STICKER_${stickers.length - 1}]]`;
-    });
 
     processed = processed.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     processed = processed.replace(/\*(.*?)\*/g, '<em>$1</em>');

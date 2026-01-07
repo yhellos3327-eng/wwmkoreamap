@@ -1,63 +1,54 @@
-/* 완료 마커 호버 시 미니 모달 */
-.completed-marker-tooltip {
-    position: fixed;
-    z-index: 10000;
-    background: linear-gradient(135deg, rgba(40, 40, 40, 0.98), rgba(30, 30, 30, 0.98));
-    border: 1px solid var(--accent);
-    border-radius: 8px;
-    padding: 10px 14px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5), 0 0 10px rgba(255, 189, 83, 0.2);
-    pointer-events: none;
-    opacity: 0;
-    transform: translateX(-50%) translateY(-100%) scale(0.9);
-    transition: opacity 0.15s ease, transform 0.15s ease;
-    min-width: 150px;
-    max-width: 280px;
-    backdrop-filter: blur(8px);
+/* ===== Completed Item Tooltip ===== */
+/* 완료된 마커 위 툴팁 스타일 */
+
+.completed-tooltip {
+    background: linear-gradient(135deg,
+            rgba(50, 215, 75, 0.95) 0%,
+            rgba(40, 180, 60, 0.95) 100%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    padding: 8px 14px;
+    box-shadow: 0 4px 20px rgba(50, 215, 75, 0.3);
+    color: #fff;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-align: center;
+    white-space: nowrap;
 }
 
-.completed-marker-tooltip.visible {
-    opacity: 1;
-    transform: translateX(-50%) translateY(-100%) scale(1);
+.completed-tooltip::before {
+    content: '✓ ';
+    font-size: 0.9rem;
 }
 
-.completed-marker-tooltip::after {
+/* Tooltip Arrow */
+.completed-tooltip::after {
     content: '';
     position: absolute;
     bottom: -6px;
     left: 50%;
-    transform: translateX(-50%) rotate(45deg);
-    width: 10px;
-    height: 10px;
-    background: rgba(35, 35, 35, 0.98);
-    border-right: 1px solid var(--accent);
-    border-bottom: 1px solid var(--accent);
+    transform: translateX(-50%);
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid rgba(40, 180, 60, 0.95);
 }
 
-.completed-marker-tooltip .tooltip-header {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    margin-bottom: 4px;
-}
-
-.completed-marker-tooltip .tooltip-check {
-    color: #4caf50;
-    font-size: 1rem;
-    font-weight: bold;
-}
-
-.completed-marker-tooltip .tooltip-title {
-    color: var(--accent);
-    font-size: 0.85rem;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.completed-marker-tooltip .tooltip-time {
-    color: #aaa;
+/* Leaflet Tooltip Override for Completed Items */
+.leaflet-tooltip.completed-marker-tooltip {
+    background: linear-gradient(135deg,
+            rgba(50, 215, 75, 0.9) 0%,
+            rgba(40, 180, 60, 0.9) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: #fff;
     font-size: 0.75rem;
-    margin-left: 22px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(50, 215, 75, 0.25);
+}
+
+.leaflet-tooltip.completed-marker-tooltip::before {
+    border-top-color: rgba(40, 180, 60, 0.9);
 }

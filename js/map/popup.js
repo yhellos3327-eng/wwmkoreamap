@@ -144,7 +144,8 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     if (!item.isTranslated && item.description && item.description.trim() !== "" && !isExternalContent) {
         translateBtnHtml = `
             <button class="btn-translate" data-action="translate" data-item-id="${item.id}" style="width:100%; margin-top:10px; padding:6px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">
-                ✨ AI 번역 (Chinese -> Korean)
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"></path><path d="M4 14l6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="M22 22l-5-10-5 10"></path><path d="M14 18h6"></path></svg>
+                AI 번역 (Chinese -> Korean)
             </button>
         `;
     }
@@ -156,7 +157,9 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             <div class="popup-related-header">
                 <h5>
                     <span style="flex:1">이정표</span>
-                    <button class="btn-search-modal" data-action="open-modal" data-category="${item.category}" title="전체 목록 검색">🔍</button>
+                    <button class="btn-search-modal" data-action="open-modal" data-category="${item.category}" title="전체 목록 검색">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
                 </h5>
             </div>
             <div class="popup-comments-container">
@@ -177,7 +180,9 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                     <div class="comment-input-group">
                         <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
                         <input type="password" class="comment-password" placeholder="비밀번호" maxlength="16" title="삭제 시 필요">
-                        <button type="button" class="btn-guide" data-action="toggle-guide" data-target="comment-guide-${item.id}" title="작성 가이드">?</button>
+                        <button type="button" class="btn-guide" data-action="toggle-guide" data-target="comment-guide-${item.id}" title="작성 가이드">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                        </button>
                     </div>
                     <div class="comment-input-wrapper" style="position: relative;">
                         <div id="sticker-modal-${item.id}" class="sticker-modal">
@@ -185,7 +190,9 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                                 <!-- Stickers will be loaded here -->
                             </div>
                         </div>
-                        <button type="button" class="btn-sticker" data-action="toggle-sticker" data-item-id="${item.id}" title="스티커">😊</button>
+                        <button type="button" class="btn-sticker" data-action="toggle-sticker" data-item-id="${item.id}" title="스티커">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
+                        </button>
                         <input type="text" class="comment-input" placeholder="정보 공유하기..." required>
                         <button type="submit" class="comment-submit">등록</button>
                     </div>
@@ -218,10 +225,20 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         </div>
         ${relatedHtml}
         <div class="popup-actions">
-            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">${isFav ? '★' : '☆'}</button>
-            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">${isCompleted ? `완료됨${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ''}` : '완료 체크'}</button>
-            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${item.id}" title="경로에 추가">경로 추가</button>
-            <button class="action-btn btn-share" data-action="share" data-item-id="${item.id}" title="위치 공유">📤</button>
+            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </button>
+            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                ${isCompleted ? `완료${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ''}` : '완료'}
+            </button>
+            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${item.id}" title="경로에 추가">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
+                경로
+            </button>
+            <button class="action-btn btn-share" data-action="share" data-item-id="${item.id}" title="위치 공유">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
         </div>
         <div class="popup-footer">
             <div class="footer-badges">
