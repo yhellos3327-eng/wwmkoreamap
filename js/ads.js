@@ -17,36 +17,22 @@ export function initAds() {
             type: 'coffee',
             weight: 100,
             render: (container) => {
-                const el = createAdElement('☕ 커피 한잔 정도는?', '커피 비용 후원', 'linear-gradient(135deg, #FFDD00 0%, #FBB03B 100%)', '#000000');
-
-                const title = el.querySelector('.ad-title');
-                const badge = el.querySelector('.ad-badge');
-                const shadow = '1px 1px 0 #fff, -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff';
-                if (title) title.style.textShadow = shadow;
-                if (badge) badge.style.textShadow = shadow;
-
-                const imgLayer = document.createElement('div');
-                imgLayer.style.position = 'absolute';
-                imgLayer.style.right = '0';
-                imgLayer.style.bottom = '0';
-                imgLayer.style.height = '100%';
-                imgLayer.style.width = '50%';
-                imgLayer.style.pointerEvents = 'none';
-                imgLayer.style.display = 'flex';
-                imgLayer.style.alignItems = 'flex-end';
-                imgLayer.style.justifyContent = 'flex-end';
-                imgLayer.style.overflow = 'hidden';
-                imgLayer.style.borderRadius = '16px';
+                const el = document.createElement('div');
+                el.className = 'ad-placeholder';
+                el.style.background = '#ffffff';
+                el.style.border = 'none';
+                el.style.cursor = 'pointer';
+                el.style.position = 'relative';
+                el.style.display = 'flex';
+                el.style.alignItems = 'center';
+                el.style.justifyContent = 'center';
+                el.style.overflow = 'hidden';
 
                 const img = document.createElement('img');
-                img.src = 'image/coffee.png';
-                img.style.height = '110%';
-                img.style.objectFit = 'contain';
-                img.style.transform = 'translateY(10%) translateX(10%)';
+                img.src = 'image/coffee2.png';
+                img.style.width = '120%';
 
-                imgLayer.appendChild(img);
-                el.style.position = 'relative';
-                el.insertBefore(imgLayer, el.firstChild);
+                el.appendChild(img);
                 el.onclick = () => window.open('https://buymeacoffee.com/wwmmap', '_blank');
                 container.innerHTML = '';
                 container.appendChild(el);
