@@ -431,23 +431,6 @@ const fetchAllData = async () => {
                                 count++;
                             }
                         });
-                    }
-                    consoleLog(`  - ${file}: 마커 ${count}개 로드`, 'info');
-                }
-            } catch (e) {
-                console.warn(`Failed to load ${file}:`, e);
-            }
-        }
-
-        const csvFiles = ['./data3.csv', './data4.csv'];
-        for (const file of csvFiles) {
-            try {
-                const res = await fetch(file);
-                if (res.ok) {
-                    const text = await res.text();
-                    const lines = text.split('\n');
-                    let count = 0;
-                    for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (line) {
                             const parts = line.split(',');
