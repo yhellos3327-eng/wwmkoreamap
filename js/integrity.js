@@ -417,6 +417,7 @@ const fetchAllData = async () => {
     consoleLog('> 전체 데이터 파일 로드 중...', 'info');
 
     try {
+        // 1. JSON 데이터 로드 (data.json, data2.json)
         const jsonFiles = ['./data.json', './data2.json'];
         for (const file of jsonFiles) {
             try {
@@ -431,6 +432,24 @@ const fetchAllData = async () => {
                                 count++;
                             }
                         });
+                    }
+                    consoleLog(`  - ${file}: 마커 ${count}개 로드`, 'info');
+                }
+            } catch (e) {
+                console.warn(`Failed to load ${file}:`, e);
+            }
+        }
+
+        // 2. CSV 데이터 로드 (data3.csv, data4.csv)
+        const csvFiles = ['./data3.csv', './data4.csv'];
+        for (const file of csvFiles) {
+            try {
+                const res = await fetch(file);
+                if (res.ok) {
+                    const text = await res.text();
+                    const lines = text.split('\n');
+                    let count = 0;
+                    for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (line) {
                             const parts = line.split(',');
@@ -450,6 +469,7 @@ const fetchAllData = async () => {
             }
         }
 
+        // 3. 지역 데이터 로드 (regions.json, regions2.json)
         const regionFiles = ['./regions.json', './regions2.json'];
         for (const file of regionFiles) {
             try {
