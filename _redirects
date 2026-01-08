@@ -1,0 +1,6 @@
+# CSV 파일 접근 시 뷰어로 리다이렉트
+/missing_data.csv /csv-viewer.html?file=missing_data.csv 302
+/data3.csv /csv-viewer.html?file=data3.csv 302
+/data4.csv /csv-viewer.html?file=data4.csv 302
+/translation.csv /csv-viewer.html?file=translation.csv 302
+/translation2.csv /csv-viewer.html?file=translation2.csv 302
