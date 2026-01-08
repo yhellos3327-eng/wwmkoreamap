@@ -55,7 +55,8 @@
     gap: 12px;
 }
 
-.route-form-group>label:not(.route-checkbox-label):not(.route-category-item) {
+.route-form-group>label:not(.route-checkbox-label):not(.route-category-item),
+.route-category-header>label {
     font-size: 0.8rem;
     color: var(--text-muted);
     font-weight: 600;
@@ -66,10 +67,58 @@
     gap: 8px;
 }
 
-.route-form-group>label svg {
+.route-form-group>label svg,
+.route-category-header>label svg {
     width: 14px;
     height: 14px;
     color: var(--accent);
+}
+
+/* Category Header & Actions */
+.route-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.route-category-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.route-cat-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.route-cat-action-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.route-cat-action-btn svg {
+    width: 12px;
+    height: 12px;
+}
+
+.route-cat-action-btn .btn-text {
+    font-weight: 600;
+}
+
+.route-cat-action-btn.all-active {
+    background: rgba(218, 172, 113, 0.15);
+    color: var(--accent);
+    border-color: rgba(218, 172, 113, 0.3);
 }
 
 /* Region Trigger */

@@ -18,6 +18,8 @@ import {
     loadRoute,
     deleteRoute
 } from './routeCore.js';
+
+const HIDDEN_ROUTE_CATEGORIES = ["173100100592", "17310010091", "17310013036"];
 import {
     goToStep,
     nextStep,
@@ -123,10 +125,19 @@ const getRoutePanelHTML = () => {
                 </div>
                 
                 <div class="route-form-group">
-                    <label>
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
-                        카테고리
-                    </label>
+                    <div class="route-category-header">
+                        <label>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            카테고리
+                        </label>
+                        <div class="route-category-actions">
+                            <button id="route-cat-toggle" class="route-cat-action-btn all-active" title="전체 토글">
+                                <svg class="icon-all" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                                <svg class="icon-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: none;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>
+                                <span class="btn-text">모두 해제</span>
+                            </button>
+                        </div>
+                    </div>
                     <div id="route-category-list" class="route-category-list">
                         <!-- Categories will be populated here -->
                     </div>
@@ -322,7 +333,7 @@ const updateCategorySelector = () => {
     const container = document.getElementById('route-category-list');
     if (!container || !state.mapData) return;
 
-    const categories = state.mapData.categories || [];
+    const categories = (state.mapData.categories || []).filter(c => !HIDDEN_ROUTE_CATEGORIES.includes(String(c.id)));
 
     container.innerHTML = categories.map(cat => `
         <div class="route-category-item checked" data-category="${cat.id}">
@@ -341,8 +352,36 @@ const updateCategorySelector = () => {
             checkbox.checked = !checkbox.checked;
             item.classList.toggle('checked', checkbox.checked);
             updateRouteStatsDisplay();
+            updateCategoryToggleBtn();
         });
     });
+
+    updateCategoryToggleBtn();
+};
+
+const updateCategoryToggleBtn = () => {
+    const btn = document.getElementById('route-cat-toggle');
+    if (!btn) return;
+
+    const items = document.querySelectorAll('.route-category-item');
+    const checkedItems = document.querySelectorAll('.route-category-item.checked');
+    const allChecked = items.length > 0 && items.length === checkedItems.length;
+
+    const iconAll = btn.querySelector('.icon-all');
+    const iconNone = btn.querySelector('.icon-none');
+    const text = btn.querySelector('.btn-text');
+
+    if (allChecked) {
+        btn.classList.add('all-active');
+        if (iconAll) iconAll.style.display = 'block';
+        if (iconNone) iconNone.style.display = 'none';
+        if (text) text.textContent = '모두 해제';
+    } else {
+        btn.classList.remove('all-active');
+        if (iconAll) iconAll.style.display = 'none';
+        if (iconNone) iconNone.style.display = 'block';
+        if (text) text.textContent = '모두 선택';
+    }
 };
 
 const getSelectedCategories = () => {
@@ -573,6 +612,23 @@ const attachRouteEventListeners = () => {
     document.getElementById('route-mode-auto')?.addEventListener('click', () => switchRouteMode('auto'));
     document.getElementById('route-mode-manual')?.addEventListener('click', () => switchRouteMode('manual'));
     document.getElementById('route-region-trigger')?.addEventListener('click', openRegionModal);
+
+    // Category Toggle
+    document.getElementById('route-cat-toggle')?.addEventListener('click', () => {
+        const items = document.querySelectorAll('.route-category-item');
+        const checkedItems = document.querySelectorAll('.route-category-item.checked');
+        const allChecked = items.length > 0 && items.length === checkedItems.length;
+
+        items.forEach(item => {
+            const checkbox = item.querySelector('.route-category-checkbox');
+            if (checkbox) {
+                checkbox.checked = !allChecked;
+                item.classList.toggle('checked', !allChecked);
+            }
+        });
+        updateRouteStatsDisplay();
+        updateCategoryToggleBtn();
+    });
 
     // Exclude completed checkbox toggle
     const excludeLabel = document.getElementById('route-exclude-completed-label');
