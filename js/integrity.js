@@ -417,7 +417,6 @@ const fetchAllData = async () => {
     consoleLog('> 전체 데이터 파일 로드 중...', 'info');
 
     try {
-        // 1. JSON 데이터 로드 (data.json, data2.json)
         const jsonFiles = ['./data.json', './data2.json'];
         for (const file of jsonFiles) {
             try {
@@ -440,7 +439,6 @@ const fetchAllData = async () => {
             }
         }
 
-        // 2. CSV 데이터 로드 (data3.csv, data4.csv)
         const csvFiles = ['./data3.csv', './data4.csv'];
         for (const file of csvFiles) {
             try {
@@ -448,7 +446,12 @@ const fetchAllData = async () => {
                 if (res.ok) {
                     const text = await res.text();
                     const lines = text.split('\n');
-                    let count = 0;
+                    let markerCount = 0;
+                    let regionCount = 0;
+
+                    const headers = lines[0] ? lines[0].split(',').map(h => h.trim().toLowerCase()) : [];
+                    const regionIdIndex = headers.findIndex(h => h === 'regionid');
+
                     for (let i = 1; i < lines.length; i++) {
                         const line = lines[i].trim();
                         if (line) {
@@ -457,19 +460,26 @@ const fetchAllData = async () => {
                                 const id = parts[0].trim();
                                 if (/^\d+$/.test(id)) {
                                     allMarkerIds.add(id);
-                                    count++;
+                                    markerCount++;
+                                }
+
+                                if (regionIdIndex !== -1 && parts[regionIdIndex]) {
+                                    const regionName = parts[regionIdIndex].trim();
+                                    if (regionName && !allRegionNames.has(regionName)) {
+                                        allRegionNames.add(regionName);
+                                        regionCount++;
+                                    }
                                 }
                             }
                         }
                     }
-                    consoleLog(`  - ${file}: 마커 ${count}개 로드`, 'info');
+                    consoleLog(`  - ${file}: 마커 ${markerCount}개, 지역 ${regionCount}개 로드`, 'info');
                 }
             } catch (e) {
                 console.warn(`Failed to load ${file}:`, e);
             }
         }
 
-        // 3. 지역 데이터 로드 (regions.json, regions2.json)
         const regionFiles = ['./regions.json', './regions2.json'];
         for (const file of regionFiles) {
             try {
@@ -493,6 +503,62 @@ const fetchAllData = async () => {
         }
 
         allRegionNames.add('알 수 없음');
+
+        const translationFiles = ['./translation.csv', './translation2.csv'];
+        for (const file of translationFiles) {
+            try {
+                const res = await fetch(file);
+                if (res.ok) {
+                    const text = await res.text();
+                    const lines = text.split('\n');
+                    let regionCount = 0;
+
+                    const headers = lines[0] ? lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '').toLowerCase()) : [];
+                    const koreanIndex = headers.findIndex(h => h === 'korean');
+                    const regionIndex = headers.findIndex(h => h === 'region');
+
+                    for (let i = 1; i < lines.length; i++) {
+                        const line = lines[i].trim();
+                        if (!line) continue;
+                        const parts = [];
+                        let current = '';
+                        let inQuotes = false;
+                        for (let j = 0; j < line.length; j++) {
+                            const char = line[j];
+                            if (char === '"') {
+                                inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                                parts.push(current.trim().replace(/^"|"$/g, ''));
+                                current = '';
+                            } else {
+                                current += char;
+                            }
+                        }
+                        parts.push(current.trim().replace(/^"|"$/g, ''));
+                        if (parts[0] === 'Common' && koreanIndex !== -1 && parts[koreanIndex]) {
+                            const koreanName = parts[koreanIndex];
+                            if (koreanName && !allRegionNames.has(koreanName)) {
+                                allRegionNames.add(koreanName);
+                                regionCount++;
+                            }
+                        }
+
+                        if (regionIndex !== -1 && parts[regionIndex]) {
+                            const regionName = parts[regionIndex];
+                            if (regionName && !allRegionNames.has(regionName)) {
+                                allRegionNames.add(regionName);
+                                regionCount++;
+                            }
+                        }
+                    }
+                    if (regionCount > 0) {
+                        consoleLog(`  - ${file}: 번역 지역 ${regionCount}개 로드`, 'info');
+                    }
+                }
+            } catch (e) {
+                console.warn(`Failed to load translation file ${file}:`, e);
+            }
+        }
 
         consoleLog(`> 데이터 로드 완료: 총 마커 ${allMarkerIds.size}개, 총 지역 ${allRegionNames.size}개`, 'success');
         cachedAllData = { allMarkerIds, allRegionNames };
