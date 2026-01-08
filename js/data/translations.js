@@ -6,8 +6,11 @@ export const loadTranslations = async (mapKey) => {
     state.categoryItemTranslations = {};
     state.parsedCSV = [];
 
-    const processCSVChunk = (chunkData, headers) => {
-        if (!headers) return;
+    const processCSVChunk = (chunkData, rawHeaders) => {
+        if (!rawHeaders) return;
+
+        // 헤더 공백 제거
+        const headers = rawHeaders.map(h => h.trim());
 
         if (state.parsedCSV.length === 0) {
             state.parsedCSV.push(headers);
@@ -23,6 +26,10 @@ export const loadTranslations = async (mapKey) => {
         const imgIdx = headers.indexOf('Image');
         const videoIdx = headers.indexOf('Video');
         const posIdx = headers.indexOf('CustomPosition');
+
+        if (typeIdx === -1) {
+            console.warn('Translation CSV: "Type" header not found. Headers:', headers);
+        }
 
         chunkData.forEach(row => {
             if (row.length < 3) return;

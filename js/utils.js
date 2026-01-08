@@ -50,7 +50,12 @@ export const parseCSV = (str) => {
 };
 
 export const fetchWithProgress = async (url, onProgress) => {
-    const response = await fetch(url);
+    // Cloudflare Pages Functions 우회를 위해 csv 파일은 raw 파라미터 추가
+    let fetchUrl = url;
+    if (typeof url === 'string' && url.toLowerCase().endsWith('.csv') && !url.includes('raw=')) {
+        fetchUrl += (url.includes('?') ? '&' : '?') + 'raw=true';
+    }
+    const response = await fetch(fetchUrl);
     if (!response.ok) throw new Error(`${url} 로드 실패: ${response.statusText}`);
 
     const contentLength = response.headers.get('content-length');
@@ -78,7 +83,11 @@ export const fetchWithProgress = async (url, onProgress) => {
 export const fetchAndParseCSVChunks = async (url, onChunk, onComplete, onProgress) => {
     const blob = await fetchWithProgress(url, onProgress);
 
-    const text = await blob.text();
+    let text = await blob.text();
+    // Remove BOM if present
+    if (text.charCodeAt(0) === 0xFEFF) {
+        text = text.slice(1);
+    }
     const lines = text.split(/\r?\n/);
     let headers = null;
 
