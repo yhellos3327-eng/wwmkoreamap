@@ -406,8 +406,40 @@ const renderBackupList = (backups) => {
                     btn.textContent = '복원';
                     btn.disabled = false;
 
+                    // 데이터 정규화 (이전 버전 호환성: 문자열로 저장된 불리언/배열 변환)
+                    const normalizeData = (data) => {
+                        if (!data || !data.settings) return data;
+                        const s = data.settings;
+
+                        // 불리언 필드 변환
+                        const boolFields = ['showAd', 'showComments', 'hideCompleted', 'enableClustering', 'closeOnComplete'];
+                        boolFields.forEach(key => {
+                            if (typeof s[key] === 'string') {
+                                s[key] = s[key] === 'true';
+                            }
+                        });
+
+                        // 배열 필드 변환 (JSON 문자열인 경우)
+                        const arrayFields = [
+                            'activeCatsQinghe', 'activeCatsKaifeng',
+                            'activeRegsQinghe', 'activeRegsKaifeng',
+                            'favoritesQinghe', 'favoritesKaifeng'
+                        ];
+                        arrayFields.forEach(key => {
+                            if (typeof s[key] === 'string') {
+                                try {
+                                    const parsed = JSON.parse(s[key]);
+                                    if (Array.isArray(parsed)) s[key] = parsed;
+                                } catch (e) { }
+                            }
+                        });
+                        return data;
+                    };
+
+                    const normalizedData = normalizeData(result.data);
+
                     // 무결성 검사 실행 (콜백으로 실제 복원 수행)
-                    runIntegrityCheck(result.data, async (validatedData) => {
+                    runIntegrityCheck(normalizedData, async (validatedData) => {
                         try {
                             setLocalData(validatedData);
                             await showResultAlert('success', '복원 완료', '백업이 성공적으로 복원되었습니다. 페이지를 새로고침합니다.', true);

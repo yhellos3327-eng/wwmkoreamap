@@ -46,12 +46,9 @@ export const loadBackup = (file) => {
                 throw new Error('잘못된 JSON 형식');
             }
 
-            // 백업 파일은 localStorage 형식 (키-값 쌍)이므로 변환 필요
             const dataForCheck = convertLocalStorageToSyncFormat(parsedData);
 
-            // 무결성 검사 실행
             runIntegrityCheck(dataForCheck, async () => {
-                // 검사 통과 시 복원 진행
                 localStorage.clear();
                 for (const key in parsedData) {
                     if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
@@ -81,14 +78,12 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
         settings: {}
     };
 
-    // wwm_completed 파싱
     if (localStorageData.wwm_completed) {
         try {
             const completed = JSON.parse(localStorageData.wwm_completed);
             if (Array.isArray(completed)) {
                 result.completedMarkers = completed;
             } else if (typeof completed === 'object') {
-                // 객체 형식인 경우 배열로 변환
                 result.completedMarkers = Object.keys(completed);
             }
         } catch (e) {
@@ -96,7 +91,6 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
         }
     }
 
-    // wwm_favorites 파싱
     if (localStorageData.wwm_favorites) {
         try {
             const favorites = JSON.parse(localStorageData.wwm_favorites);
@@ -108,7 +102,6 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
         }
     }
 
-    // 설정 관련 항목들 수집
     const settingKeys = [
         'wwm_settings', 'wwm_show_ad', 'wwm_hide_completed',
         'wwm_enable_clustering', 'wwm_show_comments',
@@ -120,11 +113,7 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
 
     settingKeys.forEach(key => {
         if (localStorageData[key]) {
-            // 키에서 'wwm_' 접두사 제거하여 settings 객체에 저장 (integrity.js와 맞춤)
             const shortKey = key.replace(/^wwm_/, '');
-            // activeCats/Regs 등은 카멜케이스로 변환 필요할 수 있음
-            // 하지만 integrity.js에서는 activeCatsQinghe 등을 기대하므로 매핑 필요
-
             let targetKey = shortKey;
             if (key === 'wwm_active_cats_qinghe') targetKey = 'activeCatsQinghe';
             else if (key === 'wwm_active_cats_kaifeng') targetKey = 'activeCatsKaifeng';
@@ -142,7 +131,6 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
             try {
                 result.settings[targetKey] = JSON.parse(localStorageData[key]);
             } catch {
-                // JSON 파싱 실패 시 원본 문자열 저장 (integrity.js에서 검증)
                 result.settings[targetKey] = localStorageData[key];
             }
         }
@@ -161,7 +149,6 @@ export const initBackupButtons = () => {
     saveBtn.addEventListener('click', saveBackup);
 
     loadBtn.addEventListener('click', () => {
-        // confirm 대신 안내 후 바로 파일 선택
         fileInput.click();
     });
 

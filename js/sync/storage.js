@@ -21,26 +21,43 @@ export const getLocalData = () => {
         try { settingsTimestamps = JSON.parse(settingsUpdatedAt) || {}; } catch (e) { }
     }
 
+    // Helper to get boolean with default
+    const getBool = (key, defaultVal) => {
+        const val = localStorage.getItem(key);
+        if (val === null) return defaultVal;
+        return val === 'true';
+    };
+
+    // Helper to get JSON with default
+    const getJson = (key, defaultVal = []) => {
+        const val = localStorage.getItem(key);
+        if (!val) return defaultVal;
+        try { return JSON.parse(val); } catch { return defaultVal; }
+    };
+
     settings = {
-        showComments: localStorage.getItem('wwm_show_comments'),
-        closeOnComplete: localStorage.getItem('wwm_close_on_complete'),
-        hideCompleted: localStorage.getItem('wwm_hide_completed'),
-        enableClustering: localStorage.getItem('wwm_enable_clustering'),
-        showAd: localStorage.getItem('wwm_show_ad'),
+        showComments: getBool('wwm_show_comments', true),
+        closeOnComplete: getBool('wwm_close_on_complete', false),
+        hideCompleted: getBool('wwm_hide_completed', false),
+        enableClustering: getBool('wwm_enable_clustering', true),
+        showAd: getBool('wwm_show_ad', true),
         regionColor: localStorage.getItem('wwm_region_color'),
         regionFillColor: localStorage.getItem('wwm_region_fill_color'),
-        gpuMode: localStorage.getItem('wwm_gpu_mode'),
-        activeCatsQinghe: localStorage.getItem('wwm_active_cats_qinghe'),
-        activeCatsKaifeng: localStorage.getItem('wwm_active_cats_kaifeng'),
-        activeRegsQinghe: localStorage.getItem('wwm_active_regs_qinghe'),
-        activeRegsKaifeng: localStorage.getItem('wwm_active_regs_kaifeng'),
-        favoritesQinghe: localStorage.getItem('wwm_favorites_qinghe'),
-        favoritesKaifeng: localStorage.getItem('wwm_favorites_kaifeng'),
+        gpuMode: localStorage.getItem('wwm_gpu_setting') || localStorage.getItem('wwm_gpu_mode'), // Handle both keys if needed, but settings.js uses wwm_gpu_setting
+        activeCatsQinghe: getJson('wwm_active_cats_qinghe'),
+        activeCatsKaifeng: getJson('wwm_active_cats_kaifeng'),
+        activeRegsQinghe: getJson('wwm_active_regs_qinghe'),
+        activeRegsKaifeng: getJson('wwm_active_regs_kaifeng'),
+        favoritesQinghe: getJson('wwm_favorites_qinghe'),
+        favoritesKaifeng: getJson('wwm_favorites_kaifeng'),
         _updatedAt: settingsTimestamps
     };
 
+    // Remove null/undefined values (except _updatedAt which is always object)
     Object.keys(settings).forEach(key => {
-        if (settings[key] === null && key !== '_updatedAt') delete settings[key];
+        if (settings[key] === null || settings[key] === undefined) {
+            if (key !== '_updatedAt') delete settings[key];
+        }
     });
 
     return { completedMarkers, favorites, settings };
@@ -66,13 +83,21 @@ export const setLocalData = (data) => {
         if (s.showAd !== undefined) localStorage.setItem('wwm_show_ad', s.showAd);
         if (s.regionColor !== undefined) localStorage.setItem('wwm_region_color', s.regionColor);
         if (s.regionFillColor !== undefined) localStorage.setItem('wwm_region_fill_color', s.regionFillColor);
-        if (s.gpuMode !== undefined) localStorage.setItem('wwm_gpu_mode', s.gpuMode);
-        if (s.activeCatsQinghe !== undefined) localStorage.setItem('wwm_active_cats_qinghe', s.activeCatsQinghe);
-        if (s.activeCatsKaifeng !== undefined) localStorage.setItem('wwm_active_cats_kaifeng', s.activeCatsKaifeng);
-        if (s.activeRegsQinghe !== undefined) localStorage.setItem('wwm_active_regs_qinghe', s.activeRegsQinghe);
-        if (s.activeRegsKaifeng !== undefined) localStorage.setItem('wwm_active_regs_kaifeng', s.activeRegsKaifeng);
-        if (s.favoritesQinghe !== undefined) localStorage.setItem('wwm_favorites_qinghe', s.favoritesQinghe);
-        if (s.favoritesKaifeng !== undefined) localStorage.setItem('wwm_favorites_kaifeng', s.favoritesKaifeng);
+
+        // Handle GPU setting key consistency
+        if (s.gpuMode !== undefined) {
+            localStorage.setItem('wwm_gpu_setting', s.gpuMode);
+            localStorage.setItem('wwm_gpu_mode', s.gpuMode); // Keep legacy for safety
+        }
+
+        // Use JSON.stringify for arrays
+        if (s.activeCatsQinghe !== undefined) localStorage.setItem('wwm_active_cats_qinghe', JSON.stringify(s.activeCatsQinghe));
+        if (s.activeCatsKaifeng !== undefined) localStorage.setItem('wwm_active_cats_kaifeng', JSON.stringify(s.activeCatsKaifeng));
+        if (s.activeRegsQinghe !== undefined) localStorage.setItem('wwm_active_regs_qinghe', JSON.stringify(s.activeRegsQinghe));
+        if (s.activeRegsKaifeng !== undefined) localStorage.setItem('wwm_active_regs_kaifeng', JSON.stringify(s.activeRegsKaifeng));
+        if (s.favoritesQinghe !== undefined) localStorage.setItem('wwm_favorites_qinghe', JSON.stringify(s.favoritesQinghe));
+        if (s.favoritesKaifeng !== undefined) localStorage.setItem('wwm_favorites_kaifeng', JSON.stringify(s.favoritesKaifeng));
+
         if (s._updatedAt) localStorage.setItem('wwm_settings_updated_at', JSON.stringify(s._updatedAt));
     }
 };
