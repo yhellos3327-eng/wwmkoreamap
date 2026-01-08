@@ -3,4 +3,5 @@ js/env.js
 
 # Backend (deployed separately to NAS)
 backend/
+backup/
 docker-compose.yml

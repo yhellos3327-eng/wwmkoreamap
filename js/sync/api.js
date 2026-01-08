@@ -19,3 +19,34 @@ export const saveCloudData = async (data) => {
     if (!response.ok) throw new Error(`Failed to save: ${response.status}`);
     return await response.json();
 };
+
+// ============== BACKUP HISTORY API ==============
+
+export const fetchBackupList = async () => {
+    const response = await fetch(`${BACKEND_URL}/api/backup/list`, {
+        credentials: 'include'
+    });
+    if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
+    const result = await response.json();
+    return result.success ? result.backups : [];
+};
+
+export const saveCloudBackup = async (label = null) => {
+    const response = await fetch(`${BACKEND_URL}/api/backup/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ label })
+    });
+    if (!response.ok) throw new Error(`Failed to save: ${response.status}`);
+    return await response.json();
+};
+
+export const restoreFromBackup = async (backupId) => {
+    const response = await fetch(`${BACKEND_URL}/api/backup/restore/${backupId}`, {
+        method: 'POST',
+        credentials: 'include'
+    });
+    if (!response.ok) throw new Error(`Failed to restore: ${response.status}`);
+    return await response.json();
+};

@@ -1,11 +1,10 @@
-/**
- * 백업 데이터 저장
- */
+import { runIntegrityCheck, showResultAlert } from './integrity.js';
+
 export const saveBackup = () => {
     try {
         const data = { ...localStorage };
         if (Object.keys(data).length === 0) {
-            alert('저장할 데이터가 없습니다.');
+            showResultAlert('warning', '저장할 데이터 없음', '저장할 데이터가 없습니다.');
             return;
         }
         const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -22,48 +21,136 @@ export const saveBackup = () => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
+        showResultAlert('success', '백업 완료', '파일로 데이터가 저장되었습니다.');
+
     } catch (err) {
         console.error('백업 실패:', err);
-        alert('데이터 저장 중 오류가 발생했습니다.');
+        showResultAlert('error', '백업 실패', '데이터 저장 중 오류가 발생했습니다.');
     }
 };
 
 /**
- * 백업 파일 로드 및 복구
+ * 로컬 파일에서 백업 복원 (무결성 검사 포함)
  */
 export const loadBackup = (file) => {
     if (!file) return;
 
     const reader = new FileReader();
 
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
         try {
             const fileContent = event.target.result;
             const parsedData = JSON.parse(fileContent);
+
             if (typeof parsedData !== 'object' || parsedData === null) {
                 throw new Error('잘못된 JSON 형식');
             }
-            localStorage.clear();
-            for (const key in parsedData) {
-                if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
-                    localStorage.setItem(key, parsedData[key]);
-                }
-            }
 
-            alert('✅ 데이터 복구가 완료되었습니다.\n적용을 위해 페이지를 새로고침합니다.');
-            location.reload();
+            // 백업 파일은 localStorage 형식 (키-값 쌍)이므로 변환 필요
+            const dataForCheck = convertLocalStorageToSyncFormat(parsedData);
+
+            // 무결성 검사 실행
+            runIntegrityCheck(dataForCheck, async () => {
+                // 검사 통과 시 복원 진행
+                localStorage.clear();
+                for (const key in parsedData) {
+                    if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
+                        localStorage.setItem(key, parsedData[key]);
+                    }
+                }
+                localStorage.setItem('wwm_backup_restored', Date.now().toString());
+
+                await showResultAlert('success', '복원 완료', '데이터 복구가 완료되었습니다. 페이지를 새로고침합니다.', true);
+            });
 
         } catch (err) {
             console.error('복구 실패:', err);
-            alert('파일을 읽는 데 실패했습니다. 올바른 백업 파일인지 확인해 주세요.');
+            showResultAlert('error', '복원 실패', '파일을 읽는 데 실패했습니다. 올바른 백업 파일인지 확인해 주세요.');
         }
     };
     reader.readAsText(file);
 };
 
 /**
- * 백업 버튼 초기화
+ * localStorage 형식의 백업 데이터를 무결성 검사 형식으로 변환
  */
+const convertLocalStorageToSyncFormat = (localStorageData) => {
+    const result = {
+        completedMarkers: [],
+        favorites: [],
+        settings: {}
+    };
+
+    // wwm_completed 파싱
+    if (localStorageData.wwm_completed) {
+        try {
+            const completed = JSON.parse(localStorageData.wwm_completed);
+            if (Array.isArray(completed)) {
+                result.completedMarkers = completed;
+            } else if (typeof completed === 'object') {
+                // 객체 형식인 경우 배열로 변환
+                result.completedMarkers = Object.keys(completed);
+            }
+        } catch (e) {
+            throw new Error('완료 목록 데이터(wwm_completed)가 손상되었습니다.');
+        }
+    }
+
+    // wwm_favorites 파싱
+    if (localStorageData.wwm_favorites) {
+        try {
+            const favorites = JSON.parse(localStorageData.wwm_favorites);
+            if (Array.isArray(favorites)) {
+                result.favorites = favorites;
+            }
+        } catch (e) {
+            throw new Error('즐겨찾기 데이터(wwm_favorites)가 손상되었습니다.');
+        }
+    }
+
+    // 설정 관련 항목들 수집
+    const settingKeys = [
+        'wwm_settings', 'wwm_show_ad', 'wwm_hide_completed',
+        'wwm_enable_clustering', 'wwm_show_comments',
+        'wwm_close_on_complete', 'wwm_gpu_setting',
+        'wwm_cleanup_last_run', 'wwm_region_color', 'wwm_region_fill_color',
+        'wwm_active_cats_qinghe', 'wwm_active_cats_kaifeng',
+        'wwm_active_regs_qinghe', 'wwm_active_regs_kaifeng'
+    ];
+
+    settingKeys.forEach(key => {
+        if (localStorageData[key]) {
+            // 키에서 'wwm_' 접두사 제거하여 settings 객체에 저장 (integrity.js와 맞춤)
+            const shortKey = key.replace(/^wwm_/, '');
+            // activeCats/Regs 등은 카멜케이스로 변환 필요할 수 있음
+            // 하지만 integrity.js에서는 activeCatsQinghe 등을 기대하므로 매핑 필요
+
+            let targetKey = shortKey;
+            if (key === 'wwm_active_cats_qinghe') targetKey = 'activeCatsQinghe';
+            else if (key === 'wwm_active_cats_kaifeng') targetKey = 'activeCatsKaifeng';
+            else if (key === 'wwm_active_regs_qinghe') targetKey = 'activeRegsQinghe';
+            else if (key === 'wwm_active_regs_kaifeng') targetKey = 'activeRegsKaifeng';
+            else if (key === 'wwm_show_ad') targetKey = 'showAd';
+            else if (key === 'wwm_hide_completed') targetKey = 'hideCompleted';
+            else if (key === 'wwm_enable_clustering') targetKey = 'enableClustering';
+            else if (key === 'wwm_show_comments') targetKey = 'showComments';
+            else if (key === 'wwm_close_on_complete') targetKey = 'closeOnComplete';
+            else if (key === 'wwm_gpu_setting') targetKey = 'gpuMode';
+            else if (key === 'wwm_region_color') targetKey = 'regionColor';
+            else if (key === 'wwm_region_fill_color') targetKey = 'regionFillColor';
+
+            try {
+                result.settings[targetKey] = JSON.parse(localStorageData[key]);
+            } catch {
+                // JSON 파싱 실패 시 원본 문자열 저장 (integrity.js에서 검증)
+                result.settings[targetKey] = localStorageData[key];
+            }
+        }
+    });
+
+    return result;
+};
+
 export const initBackupButtons = () => {
     const saveBtn = document.getElementById('btn-backup-save');
     const loadBtn = document.getElementById('btn-backup-load');
@@ -74,9 +161,8 @@ export const initBackupButtons = () => {
     saveBtn.addEventListener('click', saveBackup);
 
     loadBtn.addEventListener('click', () => {
-        if (confirm('⚠️ 주의!\n파일을 불러오면 현재 저장된 지도의 마커나 설정이 모두 사라지고 파일의 내용으로 교체됩니다.\n계속하시겠습니까?')) {
-            fileInput.click();
-        }
+        // confirm 대신 안내 후 바로 파일 선택
+        fileInput.click();
     });
 
     fileInput.addEventListener('change', (e) => {

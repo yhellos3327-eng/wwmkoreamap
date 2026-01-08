@@ -1,0 +1,93 @@
+<div id="integrity-check-modal" class="modal-overlay hidden">
+    <div class="modal-content integrity-modal">
+        <div class="integrity-header">
+            <div class="integrity-icon">
+                <div class="icon-mask"
+                    style="width: 32px; height: 32px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z'/%3E%3C/svg%3E&quot;);">
+                </div>
+            </div>
+            <h3>데이터 무결성 검사</h3>
+        </div>
+
+        <div class="integrity-body">
+            <div class="integrity-status" id="integrity-status">
+                <div class="status-spinner"></div>
+                <span class="status-text">검사 준비 중...</span>
+            </div>
+
+            <div class="integrity-steps" id="integrity-steps">
+                <div class="step" data-step="structure">
+                    <div class="step-icon pending">
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                    </div>
+                    <span class="step-text">JSON 구조 검사</span>
+                    <span class="step-status"></span>
+                </div>
+                <div class="step" data-step="completed">
+                    <div class="step-icon pending">
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                    </div>
+                    <span class="step-text">완료 목록 검증</span>
+                    <span class="step-status"></span>
+                </div>
+                <div class="step" data-step="favorites">
+                    <div class="step-icon pending">
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                    </div>
+                    <span class="step-text">즐겨찾기 검증</span>
+                    <span class="step-status"></span>
+                </div>
+                <div class="step" data-step="settings">
+                    <div class="step-icon pending">
+                        <div class="icon-mask"
+                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                    </div>
+                    <span class="step-text">설정 데이터 검증</span>
+                    <span class="step-status"></span>
+                </div>
+            </div>
+
+            <!-- 터미널 로그 창 -->
+            <div class="integrity-console">
+                <div class="console-header">
+                    <span class="console-title">
+                        <span class="console-dot red"></span>
+                        <span class="console-dot yellow"></span>
+                        <span class="console-dot green"></span>
+                        검사 로그
+                    </span>
+                </div>
+                <div class="console-body" id="integrity-console-log">
+                    <div class="console-line">> 검사 모듈 초기화...</div>
+                </div>
+            </div>
+
+            <div class="integrity-result hidden" id="integrity-result">
+                <div class="result-summary">
+                    <div class="result-icon success">
+                        <div class="icon-mask"
+                            style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/%3E%3Cpolyline points='22 4 12 14.01 9 11.01'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                    </div>
+                    <div class="result-text">
+                        <span class="result-title">검사 완료</span>
+                        <span class="result-desc" id="result-desc"></span>
+                    </div>
+                </div>
+                <div class="result-details" id="result-details"></div>
+            </div>
+        </div>
+
+        <div class="integrity-footer">
+            <button id="integrity-cancel-btn" class="modal-btn">취소</button>
+            <button id="integrity-proceed-btn" class="modal-btn primary" disabled>복원 진행</button>
+        </div>
+    </div>
+</div>

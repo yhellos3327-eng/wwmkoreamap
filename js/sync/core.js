@@ -216,6 +216,35 @@ export const initSync = async () => {
     await getAuth();
     if (!isLoggedIn()) return;
 
+    // 백업 복원 플래그 확인
+    const backupRestoredFlag = localStorage.getItem('wwm_backup_restored');
+    if (backupRestoredFlag) {
+        // 플래그 제거 (한 번만 실행)
+        localStorage.removeItem('wwm_backup_restored');
+
+        console.log('[Sync] Backup restore detected, pushing local data to cloud...');
+        showSyncTooltip('백업 데이터 동기화 중...');
+
+        try {
+            // 로컬 데이터를 클라우드로 강제 푸시 (병합 없이)
+            const saved = await saveToCloud(true, true);
+            if (saved) {
+                showSyncTooltip('백업 데이터 동기화 완료!', 'success');
+                hideSyncTooltip(1500);
+            } else {
+                showSyncTooltip('동기화 실패', 'error');
+                hideSyncTooltip(2000);
+            }
+        } catch (error) {
+            console.error('[Sync] Backup sync failed:', error);
+            showSyncTooltip('동기화 실패', 'error');
+            hideSyncTooltip(2000);
+        }
+
+        setupRealtimeSync();
+        return;
+    }
+
     showSyncTooltip('데이터 동기화 중...');
 
     try {

@@ -30,6 +30,8 @@ export const loadAllComponents = async () => {
         loadComponent('components/github-modal.html'),
         loadComponent('components/related-modal.html'),
         loadComponent('components/dev-modal.html'),
-        loadComponent('components/lightboxes.html')
+        loadComponent('components/lightboxes.html'),
+        loadComponent('components/integrity-check-modal.html'),
+        loadComponent('components/result-alert-modal.html')
     ]);
 };
