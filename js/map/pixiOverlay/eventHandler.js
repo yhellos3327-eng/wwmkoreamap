@@ -9,7 +9,8 @@ let isEventHandlerAttached = false;
 let registeredHandlers = {
     click: null,
     contextmenu: null,
-    mousemove: null
+    mousemove: null,
+    mousedown: null
 };
 
 export const calculateHitRadius = (lat, zoom) => {
@@ -143,13 +144,47 @@ export const attachEventHandlers = (map, overlay, container) => {
         hideCompletedTooltip();
     };
 
+    const handleMouseDown = (e) => {
+        if (!state.gpuRenderMode || !container || container.children.length === 0) return;
+
+        // Check for middle click (button 1)
+        if (e.originalEvent.button !== 1) return;
+
+        const clickLat = e.latlng.lat;
+        const clickLng = e.latlng.lng;
+        const zoom = map.getZoom();
+        const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
+
+        const sprite = findSpriteAtPosition(container, clickLat, clickLng, hitRadiusDeg);
+
+        if (sprite) {
+            if (e.originalEvent) {
+                e.originalEvent.preventDefault();
+                e.originalEvent.stopPropagation();
+            }
+
+            const item = sprite.markerData.item;
+            const catId = item.category;
+            const itemId = item.id;
+            const textToCopy = `Override,"${catId}","${itemId}"`;
+
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                console.log('Copied to clipboard (GPU):', textToCopy);
+            }).catch(err => {
+                console.error('Failed to copy (GPU):', err);
+            });
+        }
+    };
+
     registeredHandlers.click = handleClick;
     registeredHandlers.contextmenu = handleContextMenu;
     registeredHandlers.mousemove = handleMouseMove;
+    registeredHandlers.mousedown = handleMouseDown;
 
     map.on('click', handleClick);
     map.on('contextmenu', handleContextMenu);
     map.on('mousemove', handleMouseMove);
+    map.on('mousedown', handleMouseDown);
 
     isEventHandlerAttached = true;
     console.log('%c[GPU Events] ✓ Event handlers attached', 'color: #4CAF50;');
@@ -167,8 +202,11 @@ export const detachEventHandlers = (map) => {
     if (registeredHandlers.mousemove) {
         map.off('mousemove', registeredHandlers.mousemove);
     }
+    if (registeredHandlers.mousedown) {
+        map.off('mousedown', registeredHandlers.mousedown);
+    }
 
-    registeredHandlers = { click: null, contextmenu: null, mousemove: null };
+    registeredHandlers = { click: null, contextmenu: null, mousemove: null, mousedown: null };
     isEventHandlerAttached = false;
 
     console.log('%c[GPU Events] ✓ Event handlers detached', 'color: #FFA500;');
@@ -178,5 +216,5 @@ export const isEventHandlersAttached = () => isEventHandlerAttached;
 
 export const resetEventHandlers = () => {
     isEventHandlerAttached = false;
-    registeredHandlers = { click: null, contextmenu: null, mousemove: null };
+    registeredHandlers = { click: null, contextmenu: null, mousemove: null, mousedown: null };
 };

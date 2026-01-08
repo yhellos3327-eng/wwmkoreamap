@@ -49,7 +49,7 @@ export const createMarkerForItem = (item) => {
 
     if (!isCatActive || !isRegActive) return null;
 
-    const completedItem = state.completedList.find(c => c.id === item.id);
+    const completedItem = state.completedList.find(c => String(c.id) === String(item.id));
     const isCompleted = !!completedItem;
     if (state.hideCompleted && isCompleted) return null;
 
@@ -102,6 +102,19 @@ export const createMarkerForItem = (item) => {
     marker.on('click', (e) => {
         if (e && e.originalEvent) e.originalEvent.stopPropagation();
         logMarkerDebugInfo(item, catId, finalRegionName, lat, lng);
+    });
+
+    marker.on('mousedown', (e) => {
+        if (e.originalEvent.button === 1) { // Middle click (Mouse wheel)
+            e.originalEvent.preventDefault();
+            const textToCopy = `Override,"${catId}","${item.id}"`;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                console.log('Copied to clipboard:', textToCopy);
+                // Optional: Visual feedback could be added here
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+            });
+        }
     });
 
     marker.on('contextmenu', (e) => {

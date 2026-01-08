@@ -169,10 +169,10 @@ export const updatePixiMarkers = async () => {
 export const updateSinglePixiMarker = (itemId) => {
     if (!state.gpuRenderMode || !pixiContainer) return;
 
-    const sprite = pixiContainer.children.find(s => s.markerData && s.markerData.item.id === itemId);
+    const sprite = pixiContainer.children.find(s => s.markerData && String(s.markerData.item.id) === String(itemId));
 
     if (sprite) {
-        const completedItem = state.completedList.find(c => c.id === itemId);
+        const completedItem = state.completedList.find(c => String(c.id) === String(itemId));
         const isCompleted = !!completedItem;
 
         sprite.alpha = isCompleted ? 0.4 : 1.0;

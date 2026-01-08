@@ -215,3 +215,9 @@
 .error-comments {
     color: rgba(255, 100, 100, 0.8);
 }
+
+.popup-body hr {
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 10px 0;
+}

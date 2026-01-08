@@ -16,8 +16,8 @@ import { toggleStickerModal, submitAnonymousComment } from '../comments.js';
 import { renderVoteButtons, toggleVote } from '../votes.js';
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
-    const isFav = state.favorites.includes(item.id);
-    const completedItem = state.completedList.find(c => c.id === item.id);
+    const isFav = state.favorites.includes(String(item.id)) || state.favorites.includes(item.id);
+    const completedItem = state.completedList.find(c => String(c.id) === String(item.id));
     const isCompleted = !!completedItem;
     const completedTimeStr = completedItem && completedItem.completedAt
         ? formatCompletedTime(completedItem.completedAt)
@@ -299,7 +299,7 @@ export const initPopupEventDelegation = () => {
                 toggleFavorite(parseInt(itemId));
                 break;
             case 'toggle-complete':
-                toggleCompleted(parseInt(itemId));
+                toggleCompleted(itemId);
                 break;
             case 'share':
                 if (popupContainer) {

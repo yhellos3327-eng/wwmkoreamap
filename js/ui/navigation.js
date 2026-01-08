@@ -10,13 +10,15 @@ import { triggerSync } from '../sync.js';
 import { updateSinglePixiMarker } from '../map/pixiOverlay/overlayCore.js';
 
 export const toggleCompleted = (id) => {
-    const index = state.completedList.findIndex(item => item.id === id);
-    const target = state.allMarkers.get(id);
+    const strId = String(id);
+    const numId = Number(id);
+    const index = state.completedList.findIndex(item => String(item.id) === strId);
+    const target = state.allMarkers.get(id) || state.allMarkers.get(strId) || state.allMarkers.get(numId);
     const isNowCompleted = index === -1;
     const completedAt = Date.now();
 
     if (isNowCompleted) {
-        state.completedList.push({ id, completedAt });
+        state.completedList.push({ id: strId, completedAt });
         if (target && target.marker) {
             if (target.marker._icon) target.marker._icon.classList.add('completed-marker');
             if (target.marker.options.icon && target.marker.options.icon.options) {
@@ -24,7 +26,7 @@ export const toggleCompleted = (id) => {
             }
 
             const mouseoverHandler = (e) => {
-                showCompletedTooltip(e, id, target.originalName || target.name, completedAt);
+                showCompletedTooltip(e, strId, target.originalName || target.name, completedAt);
             };
             const mouseoutHandler = () => {
                 hideCompletedTooltip();
@@ -55,7 +57,7 @@ export const toggleCompleted = (id) => {
     triggerSync();
 
     if (state.gpuRenderMode) {
-        updateSinglePixiMarker(id);
+        updateSinglePixiMarker(strId);
     }
 
     const popupContainer = document.querySelector(`.popup-container[data-id="${id}"]`);
@@ -64,7 +66,7 @@ export const toggleCompleted = (id) => {
         if (completeBtn) {
             completeBtn.classList.toggle('active', isNowCompleted);
             if (isNowCompleted) {
-                const completedItem = state.completedList.find(item => item.id === id);
+                const completedItem = state.completedList.find(item => String(item.id) === strId);
                 const timeStr = completedItem && completedItem.completedAt
                     ? formatCompletedTime(completedItem.completedAt)
                     : '';

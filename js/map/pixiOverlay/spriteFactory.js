@@ -72,7 +72,7 @@ export const createSpriteForItem = (item) => {
     const isRegActive = state.activeRegionNames.has(finalRegionName);
     if (!isCatActive || !isRegActive) return null;
 
-    const completedItem = state.completedList.find(c => c.id === item.id);
+    const completedItem = state.completedList.find(c => String(c.id) === String(item.id));
     const isCompleted = !!completedItem;
     if (state.hideCompleted && isCompleted) return null;
 

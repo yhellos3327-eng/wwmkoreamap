@@ -21,7 +21,7 @@ const createCompletedTooltip = () => {
 };
 
 export const showCompletedTooltip = (e, itemId, name, timestamp) => {
-    const completedItem = state.completedList.find(c => c.id === itemId);
+    const completedItem = state.completedList.find(c => String(c.id) === String(itemId));
     if (!completedItem) {
         hideCompletedTooltip();
         return;
