@@ -835,7 +835,7 @@ const clearSelection = () => {
 };
 
 /**
- * 마커 클릭 핸들러
+ * 마커 클릭 핸들러 (CPU 모드 Leaflet 마커용)
  */
 const handleMarkerClick = (e) => {
     if (!devState.isActive || !devState.currentMode) return;
@@ -848,18 +848,46 @@ const handleMarkerClick = (e) => {
     // 팝업 닫기
     marker.closePopup();
 
+    handleMarkerAction(markerData, marker);
+
+    e.originalEvent?.stopPropagation();
+};
+
+/**
+ * GPU 모드 마커 클릭 핸들러 (ID 기반)
+ */
+const handleGpuMarkerClick = (markerId) => {
+    if (!devState.isActive || !devState.currentMode) return;
+
+    const markerData = state.allMarkers.get(markerId) || state.allMarkers.get(String(markerId));
+    if (!markerData) return;
+
+    // GPU 모드에서는 팝업을 맵에서 닫음
+    if (state.map && state.map._popup) {
+        state.map.closePopup();
+    }
+
+    handleMarkerAction(markerData, null);
+};
+
+/**
+ * 마커 액션 처리 (공통)
+ */
+const handleMarkerAction = (markerData, leafletMarker) => {
     if (devState.currentMode === 'move') {
         // 이미 선택된 마커가 있으면 해제
         clearSelection();
 
         // 새 마커 선택
-        devState.selectedMarker = marker;
+        devState.selectedMarker = leafletMarker;
         devState.selectedMarkerData = markerData;
 
-        // 하이라이트
-        const icon = marker.getElement?.();
-        if (icon) {
-            icon.classList.add('dev-selected-marker');
+        // 하이라이트 (CPU 모드만)
+        if (leafletMarker) {
+            const icon = leafletMarker.getElement?.();
+            if (icon) {
+                icon.classList.add('dev-selected-marker');
+            }
         }
 
         addLog(`선택: ${markerData.originalName || markerData.id}`, 'info');
@@ -881,8 +909,6 @@ const handleMarkerClick = (e) => {
 
         addLog(`정보 출력: ${markerData.originalName || markerData.id}`, 'success');
     }
-
-    e.originalEvent?.stopPropagation();
 };
 
 /**
@@ -903,7 +929,7 @@ const handleMapClick = (e) => {
             addLog(`좌표: ${coordsText}`, 'info');
         });
 
-    } else if (devState.currentMode === 'move' && devState.selectedMarker) {
+    } else if (devState.currentMode === 'move' && devState.selectedMarkerData) {
         // 마커 이동
         const markerData = devState.selectedMarkerData;
         const originalLat = markerData.lat;
@@ -915,7 +941,13 @@ const handleMapClick = (e) => {
         }
 
         // 마커 위치 변경
-        devState.selectedMarker.setLatLng([parseFloat(lat), parseFloat(lng)]);
+        if (devState.selectedMarker && typeof devState.selectedMarker.setLatLng === 'function') {
+            devState.selectedMarker.setLatLng([parseFloat(lat), parseFloat(lng)]);
+        }
+
+        if (state.gpuRenderMode) {
+            import('./map/pixiOverlay/overlayCore.js').then(m => m.updatePixiMarkers());
+        }
         markerData.lat = parseFloat(lat);
         markerData.lng = parseFloat(lng);
 
@@ -1189,6 +1221,7 @@ dev.stop = stopDev;
 dev.export = exportChanges;
 dev.reset = resetAllChanges;
 dev.changes = () => devState.changes;
+dev.handleGpuClick = handleGpuMarkerClick;
 dev.help = () => {
     console.log(`
 %c🔧 개발자 도구 도움말

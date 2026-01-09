@@ -79,7 +79,7 @@ export const toggleCompleted = (id) => {
 
     if (state.closeOnComplete && isNowCompleted) {
         if (state.gpuRenderMode) {
-            if (state.map && state.map._popup && state.map._popup.itemId === id) {
+            if (state.map && state.map._popup && String(state.map._popup.itemId) === strId) {
                 state.map.closePopup();
             }
         } else if (target && target.marker && target.marker.isPopupOpen()) {

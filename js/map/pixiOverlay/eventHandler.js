@@ -48,6 +48,23 @@ export const attachEventHandlers = (map, overlay, container) => {
     }
 
     const handleClick = (e) => {
+        // 개발자 도구 모드 처리
+        if (state.isDevMode && window.dev && window.dev.handleGpuClick) {
+            const clickLat = e.latlng.lat;
+            const clickLng = e.latlng.lng;
+            const zoom = map.getZoom();
+            const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
+            const sprite = findSpriteAtPosition(container, clickLat, clickLng, hitRadiusDeg);
+
+            if (sprite) {
+                window.dev.handleGpuClick(sprite.markerData.item.id);
+                if (e.originalEvent) {
+                    e.originalEvent.stopPropagation();
+                }
+                return;
+            }
+        }
+
         if (!state.gpuRenderMode || !container || container.children.length === 0) return;
 
         const clickLat = e.latlng.lat;
