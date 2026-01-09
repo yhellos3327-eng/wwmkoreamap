@@ -1,12 +1,43 @@
 import { state } from './state.js';
-import { createPopupHtml } from './map.js';
+import { t } from './utils.js';
 
-export const translateItem = async (itemId) => {
+/**
+ * Chrome 내장 번역 사용하여 아이템 번역
+ */
+const translateWithChromeBuiltin = async (item, btn) => {
+    try {
+        const { translateGameItem, isChromeBuiltinTranslationSupported } = await import('./chromeTranslator.js');
+
+        if (!isChromeBuiltinTranslationSupported()) {
+            throw new Error('Chrome 내장 번역이 지원되지 않습니다. Chrome 138 이상이 필요합니다.');
+        }
+
+        // 진행률 표시
+        const onProgress = (loaded, total) => {
+            if (btn) {
+                const percent = total > 0 ? Math.round((loaded / total) * 100) : 0;
+                btn.textContent = `모델 다운로드 중... ${percent}%`;
+            }
+        };
+
+        const result = await translateGameItem(item, onProgress);
+        return result;
+    } catch (error) {
+        console.error('Chrome 내장 번역 실패:', error);
+        throw error;
+    }
+};
+
+/**
+ * 외부 AI API를 사용하여 아이템 번역
+ */
+const translateWithExternalAI = async (item, btn) => {
     const provider = state.savedAIProvider || 'gemini';
-    let key = '';
+    const model = state.savedApiModel || 'gemini-1.5-flash';
 
+    let key = '';
     if (provider === 'gemini') {
-        key = state.savedGeminiKey;
+        key = state.savedGeminiKey || state.savedApiKey;
     } else if (provider === 'openai') {
         key = state.savedOpenAIKey;
     } else if (provider === 'claude') {
@@ -14,17 +45,7 @@ export const translateItem = async (itemId) => {
     }
 
     if (!key) {
-        alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
-        return;
-    }
-
-    const item = state.mapData.items.find(i => i.id === itemId);
-    if (!item) return;
-
-    const btn = document.querySelector(`.popup-container[data-id="${itemId}"] .btn-translate`);
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = "번역 중...";
+        throw new Error("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
     }
 
     const categoryTrans = state.categoryItemTranslations[item.category] || {};
@@ -52,121 +73,181 @@ export const translateItem = async (itemId) => {
     Provide the response in JSON format only: {"name": "Korean Name", "description": "Korean Description"}
     `;
 
+    let result = null;
+
+    if (provider === 'gemini') {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        const text = data.candidates[0].content.parts[0].text;
+        result = JSON.parse(text.replace(/```json|```/g, '').trim());
+
+    } else if (provider === 'openai') {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${key}`
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: "system", content: "You are a helpful assistant that outputs JSON only." },
+                    { role: "user", content: prompt }
+                ],
+                response_format: { type: "json_object" }
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        result = JSON.parse(data.choices[0].message.content);
+
+    } else if (provider === 'claude') {
+        const response = await fetch('https://api.anthropic.com/v1/messages', {
+            method: 'POST',
+            headers: {
+                'x-api-key': key,
+                'anthropic-version': '2023-06-01',
+                'content-type': 'application/json',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: model,
+                max_tokens: 1024,
+                messages: [{ role: "user", content: prompt }]
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        const text = data.content[0].text;
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        const jsonStr = jsonMatch ? jsonMatch[0] : text;
+        result = JSON.parse(jsonStr);
+    }
+
+    return result;
+};
+
+/**
+ * 아이템 번역
+ * @param {number|string} itemId - 아이템 ID
+ * @param {string} translateType - 번역 타입: 'chrome' 또는 'ai'
+ */
+export const translateItem = async (itemId, translateType = 'ai') => {
+    const item = state.mapData.items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const popupContainer = document.querySelector(`.popup-container[data-id="${itemId}"]`);
+    const btn = popupContainer?.querySelector(translateType === 'chrome' ? '.btn-translate-chrome' : '.btn-translate-ai');
+    const allBtns = popupContainer?.querySelectorAll('.btn-translate');
+
+    // 버튼 텍스트 업데이트 헬퍼 함수 (아이콘 유지)
+    const updateBtnText = (button, text) => {
+        if (!button) return;
+        const textSpan = button.querySelector('.btn-text');
+        if (textSpan) {
+            textSpan.textContent = text;
+        }
+    };
+
+    // 모든 버튼 비활성화
+    if (allBtns) {
+        allBtns.forEach(b => {
+            b.disabled = true;
+            b.style.opacity = '0.6';
+        });
+    }
+
+    if (btn) {
+        updateBtnText(btn, "번역 중...");
+    }
+
     try {
-        const provider = state.savedAIProvider || 'gemini';
-        const model = state.savedApiModel || 'gemini-1.5-flash';
-        let result = null;
+        let result;
 
-        if (provider === 'gemini') {
-            const key = state.savedGeminiKey || state.savedApiKey;
-            if (!key) throw new Error("Google Gemini API Key가 설정되지 않았습니다.");
+        if (translateType === 'chrome') {
+            result = await translateWithChromeBuiltin(item, btn);
+        } else {
+            // 외부 AI API 사용 - API 키 확인
+            const provider = state.savedAIProvider || 'gemini';
+            let key = '';
+            if (provider === 'gemini') {
+                key = state.savedGeminiKey;
+            } else if (provider === 'openai') {
+                key = state.savedOpenAIKey;
+            } else if (provider === 'claude') {
+                key = state.savedClaudeKey;
+            }
 
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
-                })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            const text = data.candidates[0].content.parts[0].text;
-            result = JSON.parse(text.replace(/```json|```/g, '').trim());
+            if (!key) {
+                alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
+                if (allBtns) {
+                    allBtns.forEach(b => {
+                        b.disabled = false;
+                        b.style.opacity = '1';
+                    });
+                }
+                updateBtnText(btn, "AI");
+                return;
+            }
 
-        } else if (provider === 'openai') {
-            const key = state.savedOpenAIKey;
-            if (!key) throw new Error("OpenAI API Key가 설정되지 않았습니다.");
-
-            const response = await fetch('https://api.openai.com/v1/chat/completions', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${key}`
-                },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [
-                        { role: "system", content: "You are a helpful assistant that outputs JSON only." },
-                        { role: "user", content: prompt }
-                    ],
-                    response_format: { type: "json_object" }
-                })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            result = JSON.parse(data.choices[0].message.content);
-
-        } else if (provider === 'claude') {
-            const key = state.savedClaudeKey;
-            if (!key) throw new Error("Anthropic API Key가 설정되지 않았습니다.");
-
-            const response = await fetch('https://api.anthropic.com/v1/messages', {
-                method: 'POST',
-                headers: {
-                    'x-api-key': key,
-                    'anthropic-version': '2023-06-01',
-                    'content-type': 'application/json',
-                    'anthropic-dangerous-direct-browser-access': 'true'
-                },
-                body: JSON.stringify({
-                    model: model,
-                    max_tokens: 1024,
-                    messages: [{ role: "user", content: prompt }]
-                })
-            });
-            const data = await response.json();
-            if (data.error) throw new Error(data.error.message);
-            const text = data.content[0].text;
-            const jsonMatch = text.match(/\{[\s\S]*\}/);
-            const jsonStr = jsonMatch ? jsonMatch[0] : text;
-            result = JSON.parse(jsonStr);
+            result = await translateWithExternalAI(item, btn);
         }
 
+        // 아이템 데이터 업데이트
         item.name = result.name;
         item.description = result.description;
         item.isTranslated = true;
 
-        const markerObj = state.allMarkers.get(itemId);
-        if (markerObj) {
-            if (state.gpuRenderMode && markerObj.sprite) {
-                // GPU Mode: Close existing map popup if it matches this itemId
-                if (state.map) {
-                    state.map.closePopup();
-                }
+        // 팝업 내용 직접 업데이트 (팝업을 닫지 않고 내용만 갱신하여 이정표 유지)
+        if (popupContainer) {
+            // 제목 업데이트
+            const titleEl = popupContainer.querySelector('.popup-header h4');
+            if (titleEl) {
+                titleEl.textContent = t(result.name) || result.name;
+            }
 
-                // Re-open popup with updated content
-                const popupContent = createPopupHtml(item, markerObj.lat, markerObj.lng, item.region);
-                const popup = L.popup({ offset: L.point(0, 0) })
-                    .setLatLng([markerObj.lat, markerObj.lng])
-                    .setContent(popupContent);
-                popup.itemId = itemId;
-                popup.openOn(state.map);
+            // 본문 업데이트
+            const bodyEl = popupContainer.querySelector('.popup-body p');
+            if (bodyEl) {
+                let desc = result.description || '';
+                desc = desc.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>');
+                desc = desc.replace(/\n/g, '<br>');
+                desc = desc.replace(/{spoiler}([\s\S]*?){\/spoiler}/g, '<span class="spoiler" data-action="reveal-spoiler">$1</span>');
+                bodyEl.innerHTML = desc;
+            }
 
-                // Load comments/milestones
-                import('./comments.js').then(module => {
-                    if (module.loadComments) module.loadComments(itemId);
-                });
-                import('./votes.js').then(module => {
-                    if (module.fetchVoteCounts) module.fetchVoteCounts(itemId);
-                });
-            } else if (markerObj.marker) {
-                // CPU Mode: Standard Leaflet marker
-                markerObj.marker.closePopup();
-                markerObj.marker.bindPopup(() => createPopupHtml(item, markerObj.marker.getLatLng().lat, markerObj.marker.getLatLng().lng, item.region));
-                markerObj.marker.openPopup();
-                import('./votes.js').then(module => {
-                    if (module.fetchVoteCounts) module.fetchVoteCounts(itemId);
-                });
+            // 번역 버튼 영역 숨기기
+            const translateBtnsContainer = popupContainer.querySelector('.translate-buttons');
+            if (translateBtnsContainer) {
+                translateBtnsContainer.style.display = 'none';
             }
         }
 
     } catch (error) {
         console.error("Translation failed:", error);
-        alert("번역 실패: " + error.message);
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = "✨ AI 번역 재시도";
+
+        // 에러 메시지
+        if (translateType === 'chrome') {
+            alert(`Chrome 내장 번역 실패: ${error.message}\n\n가능한 원인:\n- Chrome 138 미만 버전 사용\n- 번역 모델 미다운로드\n- GenAILocalFoundationalModelSettings 정책에 의해 차단됨`);
+        } else {
+            alert("번역 실패: " + error.message);
         }
+
+        // 버튼 복구
+        if (allBtns) {
+            allBtns.forEach(b => {
+                b.disabled = false;
+                b.style.opacity = '1';
+            });
+        }
+        updateBtnText(btn, translateType === 'chrome' ? "내장" : "AI");
     }
 };
 

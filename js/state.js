@@ -68,6 +68,7 @@ const state = {
     isDevMode: false,
     savedGpuSetting: localStorage.getItem('wwm_gpu_setting') || 'auto',
     savedMenuPosition: localStorage.getItem('wwm_menu_position') || 'center',
+    useChromeTranslator: localStorage.getItem('wwm_use_chrome_translator') === 'true',
 
     get gpuRenderMode() {
         if (this.savedGpuSetting === 'on') return true;

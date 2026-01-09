@@ -71,6 +71,95 @@ export const initToggles = () => {
 
     applyLowSpecMode(state.savedGpuSetting === 'off');
 
+    // Chrome 내장 번역 상태 카드 (토글 없이 상태만 표시)
+    const chromeTranslatorStatus = document.getElementById('chrome-translator-status');
+
+    if (chromeTranslatorStatus) {
+        // 상태 카드 항상 표시
+        chromeTranslatorStatus.style.display = 'block';
+
+        // Chrome 상태 UI 업데이트 헬퍼 함수
+        const updateChromeStatusUI = (status) => {
+            const badge = document.getElementById('chrome-badge');
+            const translatorStatusEl = document.getElementById('translator-status');
+            const detectorStatusEl = document.getElementById('detector-status');
+
+            const getStatusText = (s) => {
+                switch (s) {
+                    case 'available': return '준비됨';
+                    case 'downloadable': return '다운로드 필요';
+                    case 'downloading': return '다운로드 중...';
+                    case 'unavailable': return '사용 불가';
+                    default: return s || '알 수 없음';
+                }
+            };
+
+            const getStatusClass = (s) => {
+                if (s === 'available') return 'available';
+                if (s === 'downloadable' || s === 'downloading') return 'downloadable';
+                return 'unavailable';
+            };
+
+            if (!status.supported) {
+                if (badge) {
+                    badge.className = 'chrome-badge unavailable';
+                    badge.querySelector('span').textContent = '미지원';
+                }
+                if (translatorStatusEl) {
+                    translatorStatusEl.textContent = '미지원';
+                    translatorStatusEl.className = 'chrome-status-value unavailable';
+                }
+                if (detectorStatusEl) {
+                    detectorStatusEl.textContent = '미지원';
+                    detectorStatusEl.className = 'chrome-status-value unavailable';
+                }
+            } else {
+                // 전체 상태 뱃지
+                let overallStatus = 'available';
+                if (status.translatorStatus !== 'available' || status.detectorStatus !== 'available') {
+                    overallStatus = (status.translatorStatus === 'downloadable' || status.detectorStatus === 'downloadable')
+                        ? 'downloadable' : 'unavailable';
+                }
+
+                const badgeTexts = {
+                    available: '사용 가능',
+                    downloadable: '다운로드 필요',
+                    unavailable: '사용 불가'
+                };
+
+                if (badge) {
+                    badge.className = `chrome-badge ${overallStatus}`;
+                    badge.querySelector('span').textContent = badgeTexts[overallStatus];
+                }
+
+                if (translatorStatusEl) {
+                    translatorStatusEl.textContent = getStatusText(status.translatorStatus);
+                    translatorStatusEl.className = `chrome-status-value ${getStatusClass(status.translatorStatus)}`;
+                }
+                if (detectorStatusEl) {
+                    detectorStatusEl.textContent = getStatusText(status.detectorStatus);
+                    detectorStatusEl.className = `chrome-status-value ${getStatusClass(status.detectorStatus)}`;
+                }
+            }
+        };
+
+        // 설정 모달 열릴 때 상태 확인
+        setTimeout(async () => {
+            try {
+                const { checkStatus } = await import('../chromeTranslator.js');
+                const status = await checkStatus();
+                updateChromeStatusUI(status);
+            } catch (err) {
+                console.error('Chrome 번역 상태 확인 실패:', err);
+                const badge = document.getElementById('chrome-badge');
+                if (badge) {
+                    badge.className = 'chrome-badge unavailable';
+                    badge.querySelector('span').textContent = '확인 실패';
+                }
+            }
+        }, 100);
+    }
+
     if (clusterToggleInput) {
         clusterToggleInput.checked = state.enableClustering;
         clusterToggleInput.addEventListener('change', (e) => {
@@ -122,11 +211,13 @@ export const initToggles = () => {
             if (clusterToggleInput) clusterToggleInput.checked = state.enableClustering;
             if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
             if (gpuSettingSelect) gpuSettingSelect.value = state.savedGpuSetting;
+
             updateClusteringToggleState();
         },
         getInitialState: () => ({
             clustering: state.enableClustering,
-            gpuSetting: state.savedGpuSetting
+            gpuSetting: state.savedGpuSetting,
+            useChromeTranslator: state.useChromeTranslator
         })
     };
 };

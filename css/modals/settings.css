@@ -787,6 +787,7 @@ input:checked+.slider:before {
         transform: rotate(360deg);
     }
 }
+
 /* 클라우드 백업 리스트 */
 .cloud-backup-list {
     display: flex;
@@ -923,4 +924,204 @@ input:checked+.slider:before {
 
 #btn-cloud-backup-save .icon-mask {
     background-color: var(--success);
+}
+
+/* ============================================
+   Chrome 내장 번역 상태 카드 스타일
+   ============================================ */
+.chrome-translator-card {
+    background: linear-gradient(145deg, rgba(66, 133, 244, 0.08), rgba(52, 168, 83, 0.05));
+    border: 1px solid rgba(66, 133, 244, 0.2);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chrome-translator-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle at top right, rgba(66, 133, 244, 0.1), transparent 70%);
+    pointer-events: none;
+}
+
+.chrome-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 1;
+}
+
+.chrome-card-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #fff;
+}
+
+.chrome-card-title .icon-mask {
+    background-color: #4285f4;
+}
+
+.chrome-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.chrome-badge.available {
+    background: rgba(50, 215, 75, 0.15);
+    border-color: rgba(50, 215, 75, 0.3);
+    color: #32d74b;
+}
+
+.chrome-badge.available .icon-mask {
+    background-color: #32d74b;
+}
+
+.chrome-badge.downloadable {
+    background: rgba(255, 204, 0, 0.15);
+    border-color: rgba(255, 204, 0, 0.3);
+    color: #ffcc00;
+}
+
+.chrome-badge.downloadable .icon-mask {
+    background-color: #ffcc00;
+}
+
+.chrome-badge.unavailable {
+    background: rgba(255, 69, 58, 0.15);
+    border-color: rgba(255, 69, 58, 0.3);
+    color: #ff453a;
+}
+
+.chrome-badge.unavailable .icon-mask {
+    background-color: #ff453a;
+}
+
+.chrome-status-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.chrome-status-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    background: rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    transition: all 0.2s ease;
+}
+
+.chrome-status-item:hover {
+    background: rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.chrome-status-icon {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.chrome-status-icon.translator-icon {
+    background: linear-gradient(135deg, rgba(66, 133, 244, 0.2), rgba(66, 133, 244, 0.05));
+    color: #4285f4;
+}
+
+.chrome-status-icon.detector-icon {
+    background: linear-gradient(135deg, rgba(251, 188, 5, 0.2), rgba(251, 188, 5, 0.05));
+    color: #fbbc05;
+}
+
+.chrome-status-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.chrome-status-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.chrome-status-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chrome-status-value.available {
+    color: #32d74b;
+}
+
+.chrome-status-value.downloadable {
+    color: #ffcc00;
+}
+
+.chrome-status-value.unavailable {
+    color: #ff453a;
+}
+
+.chrome-info-box {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 10px;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    line-height: 1.5;
+}
+
+.chrome-info-box .icon-mask {
+    flex-shrink: 0;
+    margin-top: 2px;
+    background-color: #4285f4;
+}
+
+.chrome-info-box strong {
+    color: #fff;
+    font-weight: 600;
+}
+
+/* 반응형: 작은 화면에서 그리드를 1열로 */
+@media (max-width: 420px) {
+    .chrome-status-grid {
+        grid-template-columns: 1fr;
+    }
 }

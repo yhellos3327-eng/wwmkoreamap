@@ -146,10 +146,31 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     let translateBtnHtml = '';
     if (!item.isTranslated && item.description && item.description.trim() !== "" && !isExternalContent) {
         translateBtnHtml = `
-            <button class="btn-translate" data-action="translate" data-item-id="${item.id}" style="width:100%; margin-top:10px; padding:6px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:4px; cursor:pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 8l6 6"></path><path d="M4 14l6-6 2-3"></path><path d="M2 5h12"></path><path d="M7 2h1"></path><path d="M22 22l-5-10-5 10"></path><path d="M14 18h6"></path></svg>
-                AI 번역 (Chinese -> Korean)
-            </button>
+            <div class="translate-buttons" style="display: flex; gap: 8px;">
+                <button class="btn-translate btn-translate-chrome" data-action="translate" data-translate-type="chrome" data-item-id="${item.id}" 
+                    title="Chrome 내장 번역&#10;• 무료, 빠름&#10;• 단순 번역만 가능&#10;• 게임 용어 인식 불가"
+                    style="flex:1; padding:6px 8px; background:rgba(66,133,244,0.1); border:1px solid rgba(66,133,244,0.4); color:#4285f4; border-radius:6px; cursor:pointer; font-size: 0.8em; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                        <rect x="9" y="9" width="6" height="6"></rect>
+                        <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"></path>
+                    </svg>
+                    <span class="btn-text">내장</span>
+                </button>
+                <button class="btn-translate btn-translate-ai" data-action="translate" data-translate-type="ai" data-item-id="${item.id}"
+                    title="AI 번역 (권장)&#10;• API 키 필요&#10;• 게임 용어 사전 참조&#10;• 문맥 인식, 정확한 번역"
+                    style="flex:1; padding:6px 8px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:6px; cursor:pointer; font-size: 0.8em; display:flex; align-items:center; justify-content:center; gap:5px;">
+                    <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="8.5" cy="15.5" r="1.5"></circle>
+                        <circle cx="15.5" cy="15.5" r="1.5"></circle>
+                        <path d="M8.5 11V7a3.5 3.5 0 0 1 7 0v4"></path>
+                        <path d="M12 3v2"></path>
+                        <path d="M3 15h-2M23 15h-2"></path>
+                    </svg>
+                    <span class="btn-text">AI</span>
+                </button>
+            </div>
         `;
     }
 
@@ -281,7 +302,8 @@ export const initPopupEventDelegation = () => {
                 switchImage(target, parseInt(target.dataset.dir));
                 break;
             case 'translate':
-                translateItem(parseInt(itemId));
+                const translateType = target.dataset.translateType || 'ai';
+                translateItem(parseInt(itemId), translateType);
                 break;
             case 'open-modal':
                 openRelatedModal(target.dataset.category);
