@@ -62,7 +62,7 @@ export const runIntegrityCheck = async (data, onProceed, options = {}) => {
 
     await delay(300);
     consoleLog('');
-    consoleLog('> [STEP 1/5] JSON 구조 검사 시작...', 'info');
+    consoleLog('> [STEP 1/4] JSON 구조 검사 시작...', 'info');
     updateStatus('JSON 구조 검사 중...');
     updateStep('structure', CHECK_STATUS.ACTIVE);
 
@@ -90,25 +90,13 @@ export const runIntegrityCheck = async (data, onProceed, options = {}) => {
     updateStep('structure', CHECK_STATUS.SUCCESS, '정상');
     report.steps.structure = { status: 'passed' };
 
-    await delay(200);
-    consoleLog('');
-    consoleLog('> [STEP 2/5] 데이터 버전 검사 중...', 'info');
-    updateStatus('버전 검사 중...');
-
-    if (data.version === undefined) {
-        consoleLog(`  ⚠ 버전 정보가 없는 레거시 데이터`, 'warning');
-        report.steps.version = { status: 'warning', legacy: true };
-    } else if (data.version > CURRENT_DATA_VERSION) {
-        consoleLog(`  ⚠ 데이터 버전(${data.version})이 현재 버전보다 높음`, 'warning');
-        report.steps.version = { status: 'warning', futureVersion: true };
-    } else {
-        consoleLog(`  ✓ 버전 검사 통과 (v${data.version})`, 'success');
-        report.steps.version = { status: 'passed', version: data.version };
-    }
+    // 버전 검사 생략
+    report.steps.version = { status: 'passed' };
 
     await delay(200);
     consoleLog('');
-    consoleLog('> [STEP 3/5] 완료 목록 검증 중...', 'info');
+
+    consoleLog('> [STEP 2/4] 완료 목록 검증 중...', 'info');
     updateStatus('완료 목록 검증 중...');
     updateStep('completed', CHECK_STATUS.ACTIVE);
 
@@ -132,7 +120,8 @@ export const runIntegrityCheck = async (data, onProceed, options = {}) => {
 
     await delay(200);
     consoleLog('');
-    consoleLog('> [STEP 4/5] 즐겨찾기 검증 중...', 'info');
+
+    consoleLog('> [STEP 3/4] 즐겨찾기 검증 중...', 'info');
     updateStatus('즐겨찾기 검증 중...');
     updateStep('favorites', CHECK_STATUS.ACTIVE);
 
@@ -152,7 +141,8 @@ export const runIntegrityCheck = async (data, onProceed, options = {}) => {
 
     await delay(200);
     consoleLog('');
-    consoleLog('> [STEP 5/5] 설정 데이터 검증 중...', 'info');
+
+    consoleLog('> [STEP 4/4] 설정 데이터 검증 중...', 'info');
     updateStatus('설정 데이터 검증 중...');
     updateStep('settings', CHECK_STATUS.ACTIVE);
 

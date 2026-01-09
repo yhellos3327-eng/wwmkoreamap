@@ -4,7 +4,8 @@ import {
     isRouteModeActive,
     isManualRouteMode,
     getCurrentRoute,
-    getManualRouteItems
+    getManualRouteItems,
+    getRouteState
 } from './routeState.js';
 import {
     generateRoute,
@@ -76,6 +77,15 @@ export const renderRouteUI = () => {
     updateRegionSelector();
     updateCategorySelector();
     updateSavedRoutesList();
+
+    const currentRoute = getCurrentRoute();
+    if (currentRoute) {
+        const state = getRouteState();
+        updateRouteProgress(currentRoute, state.currentStepIndex || 0);
+
+        const activeSection = document.getElementById('route-active-section');
+        if (activeSection) activeSection.style.display = 'block';
+    }
 };
 
 export const hideRouteUI = () => {
@@ -608,7 +618,7 @@ const switchRouteMode = (mode) => {
 };
 
 const attachRouteEventListeners = () => {
-    document.getElementById('route-close-btn')?.addEventListener('click', exitRouteMode);
+    document.getElementById('route-close-btn')?.addEventListener('click', hideRouteUI);
     document.getElementById('route-mode-auto')?.addEventListener('click', () => switchRouteMode('auto'));
     document.getElementById('route-mode-manual')?.addEventListener('click', () => switchRouteMode('manual'));
     document.getElementById('route-region-trigger')?.addEventListener('click', openRegionModal);
@@ -686,8 +696,7 @@ const attachRouteEventListeners = () => {
 
     document.getElementById('route-clear-btn')?.addEventListener('click', () => {
         if (confirm('현재 경로를 초기화하시겠습니까?')) {
-            clearRouteDisplay();
-            document.getElementById('route-active-section').style.display = 'none';
+            exitRouteMode();
         }
     });
 };

@@ -4,7 +4,8 @@
  */
 
 import { state } from './state.js';
-import { t } from './utils.js';
+import { t, isPointInPolygon } from './utils.js';
+import { getRegionPolygonsCache } from './map/markerFactory.js';
 
 
 // 개발자 도구 상태
@@ -153,6 +154,11 @@ const createAddMarkerModal = (lat, lng) => {
                 </div>
 
                 <div class="dev-form-group">
+                    <label for="dev-add-region">지역 (자동 감지됨)</label>
+                    <input type="text" id="dev-add-region" placeholder="지역 이름">
+                </div>
+
+                <div class="dev-form-group">
                     <label for="dev-add-title">마커 이름</label>
                     <input type="text" id="dev-add-title" placeholder="마커 이름을 입력하세요" value="새 마커">
                 </div>
@@ -169,6 +175,19 @@ const createAddMarkerModal = (lat, lng) => {
     `;
 
     modal.style.display = 'flex';
+
+    // 지역 자동 감지
+    let detectedRegion = '';
+    const regionPolygonsCache = getRegionPolygonsCache();
+    if (regionPolygonsCache.length > 0) {
+        for (const polyObj of regionPolygonsCache) {
+            if (isPointInPolygon([parseFloat(lat), parseFloat(lng)], polyObj.coords)) {
+                detectedRegion = polyObj.title;
+                break;
+            }
+        }
+    }
+    document.getElementById('dev-add-region').value = detectedRegion;
 
     // 이벤트 바인딩
     const close = () => modal.style.display = 'none';
@@ -204,13 +223,14 @@ const createAddMarkerModal = (lat, lng) => {
         const catId = document.getElementById('dev-add-cat').value;
         const title = document.getElementById('dev-add-title').value;
         const desc = document.getElementById('dev-add-desc').value;
+        const region = document.getElementById('dev-add-region').value;
 
         if (!catId || !title) {
             alert("카테고리와 이름을 입력해주세요.");
             return;
         }
 
-        saveNewMarker(lat, lng, catId, title, desc);
+        saveNewMarker(lat, lng, catId, title, desc, region);
         close();
     };
 };
@@ -220,15 +240,17 @@ const createAddMarkerModal = (lat, lng) => {
 /**
  * 신규 마커 저장 및 표시
  */
-const saveNewMarker = (lat, lng, catId, title, desc) => {
+const saveNewMarker = (lat, lng, catId, title, desc, region) => {
     const newId = Date.now();
     const newMarker = {
         id: newId,
-        category_id: catId,
+        category: catId,
         title: title,
+        originalName: title,
         description: desc,
-        latitude: parseFloat(lat),
-        longitude: parseFloat(lng),
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
+        region: region,
         regionId: 0
     };
 
@@ -242,8 +264,19 @@ const saveNewMarker = (lat, lng, catId, title, desc) => {
         iconAnchor: [18, 36]
     });
 
+    const popupContent = `
+        <div style="font-size:12px; line-height:1.4; text-align: center;">
+            <b style="font-size:14px; color:#daac71;">${title}</b><br>
+            <span style="color:#888;">ID: ${newId}</span><br>
+            <span style="color:#aaa;">카테고리: ${catId}</span><br>
+            <span style="color:#aaa;">지역: ${region || '미지정'}</span><br>
+            <span style="color:#aaa;">좌표: ${lat}, ${lng}</span><br>
+            <p style="margin-top:4px; color:#ddd;">${desc || ''}</p>
+        </div>
+    `;
+
     L.marker([parseFloat(lat), parseFloat(lng)], { icon: emojiIcon }).addTo(state.map)
-        .bindPopup(`<b>신규 마커</b><br>ID: ${newId}<br>이름: ${title}<br>카테고리: ${catId}`);
+        .bindPopup(popupContent);
 
     addLog(`추가됨: ${title} (${newId})`, 'success');
     updateUI();
@@ -782,11 +815,19 @@ const updateUI = () => {
 
     // 선택된 마커 정보
     const selectedInfo = document.getElementById('dev-selected-info');
-    const selectedName = document.getElementById('dev-selected-name');
-    if (selectedInfo && selectedName) {
+    if (selectedInfo) {
         if (devState.selectedMarkerData) {
+            const m = devState.selectedMarkerData;
             selectedInfo.style.display = 'flex';
-            selectedName.textContent = devState.selectedMarkerData.originalName || devState.selectedMarkerData.id;
+            selectedInfo.style.flexDirection = 'column';
+            selectedInfo.style.gap = '4px';
+            selectedInfo.innerHTML = `
+                <div class="dev-info-row"><span class="dev-info-label">이름</span><span class="dev-info-value" style="color:#daac71">${m.originalName || m.title || m.name}</span></div>
+                <div class="dev-info-row"><span class="dev-info-label">ID</span><span class="dev-info-value">${m.id}</span></div>
+                <div class="dev-info-row"><span class="dev-info-label">지역</span><span class="dev-info-value">${m.region || '-'}</span></div>
+                <div class="dev-info-row"><span class="dev-info-label">좌표</span><span class="dev-info-value">${parseFloat(m.lat).toFixed(4)}, ${parseFloat(m.lng).toFixed(4)}</span></div>
+                <div class="dev-info-row"><span class="dev-info-label">카테고리</span><span class="dev-info-value">${m.category}</span></div>
+            `;
         } else {
             selectedInfo.style.display = 'none';
         }

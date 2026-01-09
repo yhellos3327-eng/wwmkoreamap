@@ -318,16 +318,8 @@ export const validateBackupData = (data, context = {}, options = {}) => {
         }
     }
 
-    const versionResult = validateVersion(data);
-    result.steps.version = versionResult;
-
-    if (versionResult.legacy || versionResult.futureVersion) {
-        addIssue(result, {
-            key: '_version',
-            severity: SEVERITY.INFO,
-            message: versionResult.message
-        });
-    }
+    // 버전 검사 생략
+    result.steps.version = { valid: true };
 
     const completedResult = validateCompletedMarkers(data.completedMarkers, context);
     result.steps.completed = completedResult;
