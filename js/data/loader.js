@@ -116,8 +116,8 @@ const fetchAllData = async (config, onProgress) => {
         updateAggregateProgress();
     });
 
-    const missingPromise = fetch('missing_data.csv?raw=true').catch(e => ({ ok: false }));
-    const newDataPromise = config.newDataFile ? fetch(config.newDataFile + '?raw=true').catch(e => ({ ok: false })) : Promise.resolve({ ok: false });
+    const missingPromise = fetch('missing_data.csv').catch(e => ({ ok: false }));
+    const newDataPromise = config.newDataFile ? fetch(config.newDataFile).catch(e => ({ ok: false })) : Promise.resolve({ ok: false });
 
     const [dataBlob, regionBlob, missingRes, newDataRes] = await Promise.all([
         dataBlobPromise,

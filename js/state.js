@@ -1,5 +1,6 @@
 import { logger } from './logger.js';
 import { ACTIONS } from './actions.js';
+import { storage } from './storage.js';
 
 const checkWebGL = (() => {
     let supported = null;
@@ -53,9 +54,9 @@ const state = {
     regionMetaInfo: {},
     reverseRegionMap: {},
     savedAIProvider: localStorage.getItem('wwm_ai_provider') || "gemini",
-    savedGeminiKey: localStorage.getItem('wwm_api_key') || "",
-    savedOpenAIKey: localStorage.getItem('wwm_openai_key') || "",
-    savedClaudeKey: localStorage.getItem('wwm_claude_key') || "",
+    savedGeminiKey: storage.getApiKey('wwm_api_key', ''),
+    savedOpenAIKey: storage.getApiKey('wwm_openai_key', ''),
+    savedClaudeKey: storage.getApiKey('wwm_claude_key', ''),
     savedApiModel: localStorage.getItem('wwm_api_model') || "gemini-1.5-flash",
     savedRegionColor: localStorage.getItem('wwm_region_color') || "#242424",
     savedRegionFillColor: localStorage.getItem('wwm_region_fill_color') || "#ffbd53",
