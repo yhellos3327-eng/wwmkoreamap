@@ -302,11 +302,7 @@ export const initPopupEventDelegation = () => {
                 toggleCompleted(itemId);
                 break;
             case 'share':
-                if (popupContainer) {
-                    const lat = popupContainer.dataset.lat;
-                    const lng = popupContainer.dataset.lng;
-                    shareLocation(parseInt(itemId), parseFloat(lat), parseFloat(lng));
-                }
+                shareLocation(parseInt(itemId));
                 break;
             case 'report':
                 openReportPage(parseInt(itemId));

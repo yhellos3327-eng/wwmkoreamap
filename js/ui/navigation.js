@@ -134,9 +134,9 @@ export const toggleFavorite = (id) => {
     }
 };
 
-export const shareLocation = (id, lat, lng) => {
-    const baseUrl = window.location.href.split('?')[0];
-    const shareUrl = `${baseUrl}?id=${id}&lat=${lat}&lng=${lng}`;
+export const shareLocation = (id) => {
+    const mapKey = state.currentMapKey || 'qinghe';
+    const shareUrl = `https://wwmmap.kr?map=${mapKey}&id=${id}`;
     navigator.clipboard.writeText(shareUrl).then(() => {
         alert('링크가 복사되었습니다!\n' + shareUrl);
     }).catch(err => prompt("링크 복사:", shareUrl));
@@ -216,7 +216,7 @@ export const openReportPage = (itemId) => {
         const jsonStr = JSON.stringify(reportData, null, 4);
         const mapNames = { qinghe: '청하', kaifeng: '개봉' };
         const mapName = mapNames[state.currentMapKey] || state.currentMapKey;
-        const locationUrl = `https://wwmmap.kr/?map=${state.currentMapKey}&id=${item.id}`;
+        const locationUrl = `https://wwmmap.kr?map=${state.currentMapKey}&id=${item.id}`;
 
         const template = `▶ 마커 정보
 • 지도: ${mapName}

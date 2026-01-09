@@ -1,19 +1,23 @@
 .popup-actions {
     display: flex;
     gap: 6px;
-    padding: 0px 12px 8px;
-    background: linear-gradient(180deg,
-            rgba(255, 255, 255, 0.02) 0%,
-            transparent 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0px 12px 10px;
+    background: rgba(28, 28, 30, 0.7);
+    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
     flex-shrink: 0;
     flex-wrap: wrap;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin-top: auto;
 }
 
 .action-btn {
     flex: 1;
     min-width: 50px;
-    padding: 7px 10px;
+    padding: 5px 10px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 10px;
@@ -44,7 +48,7 @@
 .btn-fav {
     flex: 0 0 auto;
     min-width: 36px;
-    padding: 7px 10px;
+    padding: 5px 10px;
     font-size: 1rem;
 }
 
@@ -98,7 +102,7 @@
 .btn-share {
     flex: 0 0 auto;
     min-width: 36px;
-    padding: 7px 10px;
+    padding: 5px 10px;
     font-size: 0.9rem;
 }
 
