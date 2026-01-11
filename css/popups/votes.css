@@ -6,6 +6,8 @@
     background: rgba(255, 255, 255, 0.03);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     margin-top: 6px;
+    position: relative;
+    z-index: 1;
 }
 
 .vote-label {

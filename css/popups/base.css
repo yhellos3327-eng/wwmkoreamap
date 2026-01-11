@@ -121,6 +121,8 @@
 
 .popup-body {
     padding: 16px 20px;
+    position: relative;
+    z-index: 1;
 }
 
 .popup-body p {

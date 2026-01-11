@@ -29,10 +29,22 @@ export const toggleStickerModal = (itemId) => {
 
     if (!modal || !grid) return;
 
+    // 팝업 컨테이너에서 popup-actions 찾기
+    const popupContainer = modal.closest('.popup-container');
+    const popupActions = popupContainer?.querySelector('.popup-actions');
+
     if (modal.classList.contains('active')) {
         modal.classList.remove('active');
+        // 스티커 모달 닫힐 때 popup-actions z-index 복원
+        popupActions?.classList.remove('sticker-open');
     } else {
-        document.querySelectorAll('.sticker-modal.active').forEach(m => m.classList.remove('active'));
+        // 다른 모달 닫기
+        document.querySelectorAll('.sticker-modal.active').forEach(m => {
+            m.classList.remove('active');
+            const container = m.closest('.popup-container');
+            container?.querySelector('.popup-actions')?.classList.remove('sticker-open');
+        });
+
         if (grid.children.length === 0) {
             STICKERS.forEach(url => {
                 const img = document.createElement('img');
@@ -43,6 +55,8 @@ export const toggleStickerModal = (itemId) => {
             });
         }
         modal.classList.add('active');
+        // 스티커 모달 열릴 때 popup-actions z-index 낮춤
+        popupActions?.classList.add('sticker-open');
     }
 };
 
@@ -61,6 +75,10 @@ const selectSticker = async (itemId, url) => {
     const nickname = nicknameInput ? nicknameInput.value.trim() : '익명';
 
     modal.classList.remove('active');
+
+    // popup-actions의 sticker-open 클래스 제거
+    const popupContainer = modal.closest('.popup-container');
+    popupContainer?.querySelector('.popup-actions')?.classList.remove('sticker-open');
 
     const container = document.getElementById(`comments-list-${itemId}`);
     if (container) {
