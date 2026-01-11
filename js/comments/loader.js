@@ -52,7 +52,24 @@ export const loadComments = async (itemId, forceRefresh = false) => {
         }
     }
 
-    container.innerHTML = '<div class="loading-comments">이정표 불러오는 중...</div>';
+    const skeletonHtml = `
+        <div class="skeleton-comment">
+            <div class="skeleton-header">
+                <div class="skeleton skeleton-avatar"></div>
+                <div class="skeleton skeleton-date"></div>
+            </div>
+            <div class="skeleton skeleton-text"></div>
+            <div class="skeleton skeleton-text short"></div>
+        </div>
+        <div class="skeleton-comment">
+            <div class="skeleton-header">
+                <div class="skeleton skeleton-avatar"></div>
+                <div class="skeleton skeleton-date"></div>
+            </div>
+            <div class="skeleton skeleton-text"></div>
+        </div>
+    `;
+    container.innerHTML = skeletonHtml;
 
     try {
         const cutoffDate = new Date();

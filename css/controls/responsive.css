@@ -3,8 +3,8 @@
     align-items: center;
     padding: 10px 16px;
     gap: 8px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid var(--border);
+    background: var(--bg-item);
 }
 
 body.menu-pos-left .sidebar-toolbar {
@@ -20,20 +20,20 @@ body.menu-pos-left .sidebar-toolbar {
 }
 
 .sidebar-toolbar .select-trigger {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
     border-radius: 10px;
     padding: 8px 12px;
     height: 38px;
 }
 
 .sidebar-toolbar .select-trigger:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
 }
 
 .sidebar-toolbar .toolbar-divider {
     width: 1px;
     height: 24px;
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--border);
 }
 
 .sidebar-toolbar .toolbar-btn {
@@ -41,7 +41,7 @@ body.menu-pos-left .sidebar-toolbar {
     align-items: center;
     gap: 6px;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
     border: none;
     border-radius: 10px;
     color: var(--text-main);
@@ -53,7 +53,7 @@ body.menu-pos-left .sidebar-toolbar {
 }
 
 .sidebar-toolbar .toolbar-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     color: var(--accent);
 }
 

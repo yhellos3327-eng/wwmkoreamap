@@ -1,4 +1,5 @@
 import { state, setState } from '../state.js';
+import { applyTheme, getTheme } from '../theme.js';
 
 export const applyMenuPosition = (position) => {
     document.body.classList.remove('menu-pos-left', 'menu-pos-center', 'menu-pos-right');
@@ -9,6 +10,7 @@ export const initAppearanceSettings = () => {
     const regionColorInput = document.getElementById('region-line-color');
     const regionFillColorInput = document.getElementById('region-fill-color');
     const menuPositionSelect = document.getElementById('menu-position-select');
+    const themeSelect = document.getElementById('theme-select');
 
     if (regionColorInput) {
         regionColorInput.addEventListener('input', (e) => {
@@ -36,6 +38,12 @@ export const initAppearanceSettings = () => {
         });
     }
 
+    if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+        });
+    }
+
     return {
         loadValues: () => {
             if (regionColorInput) {
@@ -47,6 +55,9 @@ export const initAppearanceSettings = () => {
                 regionFillColorInput.value = state.savedRegionFillColor;
                 const valDisplay = document.getElementById('region-fill-color-value');
                 if (valDisplay) valDisplay.textContent = state.savedRegionFillColor.toUpperCase();
+            }
+            if (themeSelect) {
+                themeSelect.value = getTheme();
             }
         }
     };

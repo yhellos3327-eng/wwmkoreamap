@@ -42,7 +42,7 @@
 .spoiler.revealed {
     animation: revealSpoiler 0.4s ease forwards;
     background: transparent;
-    color: var(--text-secondary, #b0b0b0);
+    color: var(--text-muted);
     pointer-events: none;
     padding: 0;
 }
@@ -85,12 +85,12 @@
     }
 
     50% {
-        background: var(--accent-primary, #4a9eff);
+        background: var(--accent);
         color: transparent;
     }
 
     100% {
         background: transparent;
-        color: var(--text-secondary, #b0b0b0);
+        color: var(--text-muted);
     }
 }

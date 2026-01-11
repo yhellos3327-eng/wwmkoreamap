@@ -6,12 +6,15 @@ import { spatialIndex } from './SpatialIndex.js';
 import { logger } from '../logger.js';
 import { createMarkerForItem, setRegionPolygonsCache } from './markerFactory.js';
 import { webWorkerManager } from '../web-worker-manager.js';
-import {
-    isGpuRenderingAvailable,
-    renderMarkersWithPixi,
-    clearPixiOverlay,
-    showRenderModeIndicator
-} from './pixiOverlay.js';
+
+// Dynamic import wrapper for PixiOverlay
+let pixiModule = null;
+const getPixiModule = async () => {
+    if (!pixiModule) {
+        pixiModule = await import('./pixiOverlay.js');
+    }
+    return pixiModule;
+};
 
 export { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.js';
 
@@ -47,44 +50,59 @@ export const initLazyLoading = async () => {
 };
 
 export const renderMapDataAndMarkers = async () => {
-    const isGpuMode = state.gpuRenderMode && isGpuRenderingAvailable();
+    // Check GPU mode preference first
+    const preferGpu = state.gpuRenderMode;
 
-    if (isGpuMode) {
-        console.log('%c[Markers] 🚀 GPU 모드로 렌더링 시작...', 'color: #4CAF50; font-weight: bold;');
-        logger.log('Markers', 'Rendering with GPU mode (PixiOverlay)');
+    if (preferGpu) {
+        const pixi = await getPixiModule();
+        if (pixi.isGpuRenderingAvailable()) {
+            console.log('%c[Markers] 🚀 GPU 모드로 렌더링 시작...', 'color: #4CAF50; font-weight: bold;');
+            logger.log('Markers', 'Rendering with GPU mode (PixiOverlay)');
 
-        if (state.markerClusterGroup) {
-            state.markerClusterGroup.clearLayers();
-            if (state.map.hasLayer(state.markerClusterGroup)) {
-                state.map.removeLayer(state.markerClusterGroup);
-            }
-        }
-
-        if (state.allMarkers) {
-            state.allMarkers.forEach(item => {
-                if (item.marker && state.map.hasLayer(item.marker)) {
-                    state.map.removeLayer(item.marker);
+            if (state.markerClusterGroup) {
+                state.markerClusterGroup.clearLayers();
+                if (state.map.hasLayer(state.markerClusterGroup)) {
+                    state.map.removeLayer(state.markerClusterGroup);
                 }
-            });
+            }
+
+            if (state.allMarkers) {
+                state.allMarkers.forEach(item => {
+                    if (item.marker && state.map.hasLayer(item.marker)) {
+                        state.map.removeLayer(item.marker);
+                    }
+                });
+            }
+
+            markerPool.clearAll();
+            state.allMarkers = new Map();
+            setState('pendingMarkers', []);
+            setState('visibleMarkerIds', new Set());
+
+            await initLazyLoading();
+
+            await pixi.renderMarkersWithPixi(state.mapData.items);
+
+            refreshSidebarLists();
+            return;
         }
+    }
 
-        markerPool.clearAll();
-        state.allMarkers = new Map();
-        setState('pendingMarkers', []);
-        setState('visibleMarkerIds', new Set());
-
-        await initLazyLoading();
-
-        await renderMarkersWithPixi(state.mapData.items);
-
-        refreshSidebarLists();
-        return;
+    // Fallback to CPU mode or if GPU not available
+    if (preferGpu) {
+        // If we preferred GPU but it wasn't available (and we loaded the module to check)
+        // We might want to log that fallback happened.
+        // But pixi.renderMarkersWithPixi already handles fallback logging if called.
+        // Here we just proceed to CPU logic.
     }
 
     console.log('%c[Markers] 🖥️ CPU 모드 렌더링', 'color: #2196F3; font-weight: bold;');
     logger.log('Markers', 'Rendering with CPU mode (Leaflet markers)');
 
-    clearPixiOverlay();
+    // Ensure Pixi overlay is cleared if it was loaded
+    if (pixiModule) {
+        pixiModule.clearPixiOverlay();
+    }
 
     if (state.markerClusterGroup) {
         state.markerClusterGroup.clearLayers();
@@ -106,10 +124,10 @@ export const renderMapDataAndMarkers = async () => {
     await initLazyLoading();
 
     if (state.enableClustering) {
-        showRenderModeIndicator('CPU');
+        if (pixiModule) pixiModule.showRenderModeIndicator('CPU');
         renderAllMarkersForClustering();
     } else {
-        showRenderModeIndicator('CPU');
+        if (pixiModule) pixiModule.showRenderModeIndicator('CPU');
         updateViewportMarkers();
     }
 
@@ -142,12 +160,19 @@ const renderAllMarkersForClustering = () => {
     }
 };
 
-export const updateViewportMarkers = () => {
-    if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
+export const updateViewportMarkers = async () => {
+    // If GPU mode is active, we don't need to do anything here as Pixi handles it
+    // But we need to check if pixiModule is loaded to be sure
+    if (state.gpuRenderMode) {
+        const pixi = await getPixiModule();
+        if (pixi.isGpuRenderingAvailable()) return;
+    }
+
     if (!state.map || state.enableClustering || state.isDragging) return;
 
     // Low Spec Mode Optimization: Hide markers at low zoom levels
-    if (!state.gpuRenderMode && state.map.getZoom() < 5) {
+    // Note: We assume CPU mode here because of the check above
+    if (state.map.getZoom() < 5) {
         const visibleMarkerIds = state.visibleMarkerIds || new Set();
         visibleMarkerIds.forEach(id => {
             const markerInfo = state.allMarkers.get(id);
@@ -225,8 +250,12 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
     }
 };
 
-export const forceFullRender = () => {
-    if (state.gpuRenderMode && isGpuRenderingAvailable()) return;
+export const forceFullRender = async () => {
+    if (state.gpuRenderMode) {
+        const pixi = await getPixiModule();
+        if (pixi.isGpuRenderingAvailable()) return;
+    }
+
     if (state.enableClustering) return;
 
     const allItems = state.mapData.items;

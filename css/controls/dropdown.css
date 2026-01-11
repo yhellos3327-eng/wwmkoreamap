@@ -13,7 +13,7 @@
     justify-content: space-between;
     padding: 0 14px;
     height: 40px;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
     border-radius: 10px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -24,7 +24,7 @@
 }
 
 .select-trigger:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     color: var(--accent);
 }
 
@@ -51,7 +51,7 @@
     left: 0;
     width: 100%;
     min-width: 160px;
-    background: rgba(20, 20, 20, 0.75);
+    background: var(--bg-panel);
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
     border: 1px solid var(--glass-border);
@@ -80,7 +80,7 @@
     padding: 12px 14px;
     cursor: pointer;
     transition: all 0.2s;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-muted);
     font-size: 14px;
     font-weight: 500;
     display: flex;
@@ -90,8 +90,8 @@
 }
 
 .custom-option:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
+    background: var(--bg-item-hover);
+    color: var(--text-main);
 }
 
 .custom-option.selected {

@@ -22,6 +22,8 @@ export const setAllCategories = (isActive) => {
     saveFilterState();
 };
 
+import { lazyLoader } from '../lazy-loader.js';
+
 export const refreshCategoryList = () => {
     const categoryListEl = document.getElementById('category-list');
     if (!categoryListEl) return;
@@ -109,8 +111,12 @@ export const refreshCategoryList = () => {
             else if (percent >= 30) progressClass = 'mid';
             else if (percent > 0) progressClass = 'low';
 
+            // Use lazy loading for category icons
+            // Use a transparent 1x1 pixel as placeholder or a loading spinner
+            const placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
             btn.innerHTML = `
-                <span class="cate-icon"><img src="${cat.image}" alt=""></span>
+                <span class="cate-icon"><img data-src="${cat.image}" src="${placeholder}" class="lazy-load" alt=""></span>
                 <div class="cate-info">
                     <div class="cate-name"><span>${t(cat.name)}</span></div>
                     <div class="cate-meta">
@@ -164,4 +170,7 @@ export const refreshCategoryList = () => {
     }
 
     updateToggleButtonsState();
+
+    // Observe all lazy images in the list
+    lazyLoader.observeAll('.lazy-load', categoryListEl);
 };

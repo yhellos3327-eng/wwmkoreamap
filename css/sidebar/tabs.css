@@ -2,7 +2,7 @@
     display: flex;
     padding: 3px;
     margin: 0 24px 16px 24px;
-    background: rgba(118, 118, 128, 0.24);
+    background: var(--bg-item);
     border-radius: 9px;
     flex-shrink: 0;
     gap: 0;
@@ -17,7 +17,7 @@
     flex: 1;
     background: none;
     border: none;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-muted);
     padding: 6px 0;
     cursor: pointer;
     font-weight: 500;
@@ -29,12 +29,12 @@
 }
 
 .tab-btn:hover {
-    color: #fff;
+    color: var(--text-main);
 }
 
 .tab-btn.active {
-    background: rgba(99, 99, 102, 0.5);
-    color: #fff;
+    background: var(--bg-item-hover);
+    color: var(--text-main);
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12), 0 3px 1px rgba(0, 0, 0, 0.04);
     font-weight: 600;
 }

@@ -15,7 +15,7 @@
     position: absolute;
     left: 0;
     top: 0;
-    color: #fff;
+    color: var(--text-main);
     overflow: hidden;
     border: 1px solid var(--glass-border);
     background-clip: padding-box;
@@ -63,7 +63,7 @@
     justify-content: space-between;
     align-items: center;
     background: transparent;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     position: relative;
     z-index: 1;
@@ -71,7 +71,7 @@
 
 .sidebar-header h1 {
     font-size: 1.3rem;
-    color: #fff;
+    color: var(--text-main);
     font-weight: 700;
     letter-spacing: -0.5px;
     text-transform: none;
@@ -79,9 +79,9 @@
 }
 
 .close-btn {
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
     border: none;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-muted);
     cursor: pointer;
     width: 32px;
     height: 32px;
@@ -93,12 +93,12 @@
 }
 
 .close-btn:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.15);
+    color: var(--text-main);
+    background: var(--bg-item-hover);
     transform: scale(1.05);
 }
 
 .close-btn:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--bg-item-hover);
 }

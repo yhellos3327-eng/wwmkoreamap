@@ -27,7 +27,7 @@
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     box-shadow: var(--glass-shadow);
     overflow: hidden;
     animation: modal-slide-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -61,7 +61,7 @@
     margin: 0;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .integrity-body {
@@ -74,7 +74,7 @@
     justify-content: center;
     gap: 12px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-item);
     border-radius: 12px;
     margin-bottom: 20px;
 }
@@ -115,15 +115,15 @@
     align-items: center;
     gap: 12px;
     padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 10px;
     transition: all 0.3s ease;
 }
 
 .step.active {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
+    border-color: var(--border);
 }
 
 .step.success {
@@ -210,9 +210,9 @@
 .integrity-result {
     margin-top: 20px;
     padding: 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-item);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border);
 }
 
 .integrity-result.hidden {
@@ -268,7 +268,7 @@
 .result-title {
     font-size: 0.95rem;
     font-weight: 600;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .result-desc {
@@ -279,7 +279,7 @@
 .result-details {
     margin-top: 12px;
     padding-top: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border);
     font-size: 0.8rem;
     color: var(--text-muted);
     line-height: 1.6;
@@ -293,14 +293,16 @@
     padding: 16px 24px 24px;
     display: flex;
     gap: 12px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-item);
 }
 
 .integrity-footer .modal-btn {
     flex: 1;
     padding: 12px 16px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    background: var(--bg-item);
     color: var(--text-main);
     font-size: 0.9rem;
     font-weight: 600;
@@ -309,7 +311,7 @@
 }
 
 .integrity-footer .modal-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     transform: translateY(-1px);
 }
 
@@ -329,7 +331,7 @@
     transform: none;
 }
 
-/* ��� �˸� ��� */
+/*  ˸  */
 #result-alert-modal {
     position: fixed;
     top: 0;
@@ -359,7 +361,7 @@
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
     border-radius: 20px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     box-shadow: var(--glass-shadow);
     padding: 32px 24px 24px;
     text-align: center;
@@ -416,7 +418,7 @@
     margin: 0 0 12px;
     font-size: 1.2rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .result-alert-modal p {
@@ -435,8 +437,8 @@
     flex: 1;
     padding: 12px 16px;
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    background: var(--bg-item);
     color: var(--text-main);
     font-size: 0.9rem;
     font-weight: 600;
@@ -445,7 +447,7 @@
 }
 
 .result-alert-actions .modal-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     transform: translateY(-1px);
 }
 
@@ -459,13 +461,13 @@
     background: var(--accent-hover);
 }
 
-/* �͹̳� �α� â */
+/* ͹̳ α â */
 .integrity-console {
     margin-top: 16px;
     border-radius: 10px;
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: #0d1117;
+    border: 1px solid var(--border);
+    background: var(--bg-dark);
     font-family: 'SF Mono', 'Monaco', 'Cascadia Code', 'Consolas', monospace;
 }
 
@@ -473,8 +475,8 @@
     display: flex;
     align-items: center;
     padding: 8px 12px;
-    background: rgba(255, 255, 255, 0.05);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-item);
+    border-bottom: 1px solid var(--border);
 }
 
 .console-title {
@@ -574,49 +576,6 @@
     50% {
         opacity: 0;
     }
-}
-
-/* 무결성 모달 푸터 */
-.integrity-footer {
-    padding: 16px 24px 24px;
-    display: flex;
-    gap: 12px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
-    background: rgba(0, 0, 0, 0.2);
-}
-
-.integrity-footer .modal-btn {
-    flex: 1;
-    padding: 12px 16px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: var(--text-main);
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-
-.integrity-footer .modal-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateY(-1px);
-}
-
-.integrity-footer .modal-btn.primary {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: #000;
-}
-
-.integrity-footer .modal-btn.primary:hover {
-    background: var(--accent-hover);
-}
-
-.integrity-footer .modal-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
 }
 
 .integrity-modal {

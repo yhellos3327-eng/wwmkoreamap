@@ -39,6 +39,8 @@ export const showPopupForSprite = (sprite) => {
     return popup;
 };
 
+import { memoryManager } from '../../memory.js';
+
 export const createSpriteForItem = (item) => {
     let catId = item.category;
 
@@ -104,6 +106,14 @@ export const createSpriteForItem = (item) => {
         isCompleted: isCompleted,
         completedAt: completedItem?.completedAt
     };
+
+    // Track sprite memory
+    memoryManager.track(sprite, `Sprite-${item.id}`);
+    memoryManager.setMeta(sprite, {
+        created: Date.now(),
+        itemId: item.id,
+        type: 'PixiSprite'
+    });
 
     return sprite;
 };

@@ -1,17 +1,13 @@
 .leaflet-popup-content-wrapper {
-    background: linear-gradient(180deg,
-            rgba(28, 28, 30, 0.85) 0%,
-            rgba(28, 28, 30, 0.90) 85%,
-            rgba(28, 28, 30, 0.95) 100%);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
     border-radius: 20px;
     border: 1px solid var(--glass-border);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.5),
-        0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+    box-shadow: var(--glass-shadow);
     color: var(--text-main);
     padding: 0;
+    /* 패딩 제거하여 내부 요소가 꽉 차게 함 */
     overflow: hidden;
 }
 
@@ -25,6 +21,8 @@
     overflow-x: hidden;
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    padding: 0;
+    /* 내용 패딩 제거 */
 }
 
 .leaflet-popup-content::-webkit-scrollbar {
@@ -46,45 +44,50 @@
 }
 
 .leaflet-popup-tip {
-    background: linear-gradient(180deg,
-            rgba(28, 28, 30, 0.95) 0%,
-            rgba(28, 28, 30, 0.80) 100%);
+    background: var(--bg-panel);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
     border: none;
 }
 
+/* 닫기 버튼 디자인 개선 (사이드바 close-btn 스타일 적용) */
 .leaflet-popup-close-button {
     width: 32px !important;
     height: 32px !important;
-    top: 12px !important;
-    right: 12px !important;
-    font-size: 18px !important;
+    top: 16px !important;
+    right: 16px !important;
+    font-size: 20px !important;
     font-weight: 400 !important;
-    color: rgba(255, 255, 255, 0.5) !important;
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted) !important;
+    background: var(--bg-item) !important;
+    border: none !important;
     border-radius: 50%;
     display: flex !important;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
     padding: 0 !important;
-    line-height: 32px !important;
+    line-height: 1 !important;
     text-align: center !important;
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    z-index: 100;
 }
 
 .leaflet-popup-close-button:hover {
-    color: #fff !important;
-    background: rgba(255, 255, 255, 0.15) !important;
+    color: var(--text-main) !important;
+    background: var(--bg-item-hover) !important;
     transform: scale(1.05);
 }
 
 .leaflet-popup-close-button:active {
     transform: scale(0.95);
-    background: rgba(255, 255, 255, 0.2) !important;
+    background: var(--bg-item-hover) !important;
 }
 
 .popup-container {
     padding: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .popup-header {
@@ -92,11 +95,15 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 20px;
-    padding-right: 48px;
-    background: linear-gradient(180deg,
-            rgba(255, 255, 255, 0.08) 0%,
-            rgba(255, 255, 255, 0.03) 100%);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-right: 54px;
+    /* 닫기 버튼 공간 확보 */
+    background: var(--bg-item);
+    border-bottom: 1px solid var(--border);
+    width: 100%;
+    /* 가로 꽉 차게 */
+    box-sizing: border-box;
+    /* 패딩 포함 너비 계산 */
+    z-index: 10;
 }
 
 .popup-icon {
@@ -105,7 +112,7 @@
     border-radius: 12px;
     margin-right: 12px;
     object-fit: contain;
-    background: rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
     padding: 6px;
     flex-shrink: 0;
 }
@@ -153,11 +160,11 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    background: linear-gradient(0deg,
-            rgba(0, 0, 0, 0.3) 0%,
-            rgba(0, 0, 0, 0.1) 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
+    border-top: 1px solid var(--border);
     gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .footer-badges {
@@ -173,8 +180,8 @@
     padding: 4px 10px;
     font-size: 0.75rem;
     font-weight: 500;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
+    border: 1px solid var(--border);
     border-radius: 12px;
     color: var(--text-muted);
     white-space: nowrap;

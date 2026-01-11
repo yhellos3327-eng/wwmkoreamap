@@ -1,4 +1,4 @@
-import { state, setState, subscribe } from './state.js';
+import { state, setState, subscribe, dispatch } from './state.js';
 import { loadMapData } from './data.js';
 import { renderMapDataAndMarkers, moveToLocation } from './map.js';
 import {
@@ -8,21 +8,32 @@ import {
     toggleCompleted, toggleFavorite, shareLocation, expandRelated, jumpToId, findItem
 } from './ui.js';
 import { translateItem } from './translation.js';
-import './dev-tools.js';
 import { initMainNotice } from './main-notice.js';
-import { initSettingsModal, initAdToggle } from './settings.js';
-import { initBackupButtons } from './backup.js';
 import { initAuth } from './auth.js';
 import { initSearch, initModalSearch } from './search.js';
 import { initAllEventHandlers } from './events.js';
 import { initPopupEventDelegation } from './map/popup.js';
 import { initMigration, isOldDomain } from './migration.js';
-import './comments.js';
 import { initAds } from './ads.js';
 
+import { memoryManager } from './memory.js';
+import { initTheme } from './theme.js';
+
+window.state = state;
+window.setState = setState;
+window.dispatch = dispatch;
+window.subscribe = subscribe;
 window.findItem = findItem;
 window.finditem = findItem;
 window.jumpToId = jumpToId;
+window.memoryManager = memoryManager;
+
+subscribe('isDevMode', (isDev) => {
+    memoryManager.setDebug(isDev);
+    if (isDev) {
+        console.log('%c[MemoryManager] Debug mode enabled. Watch console for GC events.', 'color: #ff00ff');
+    }
+});
 
 
 const handleUrlParams = () => {
@@ -97,6 +108,7 @@ const handleSharedLink = (urlParams) => {
 import { loadAllComponents } from './component-loader.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    initTheme();
     initMigration();
 
     if (isOldDomain()) {
@@ -154,7 +166,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             const settingsModal = document.getElementById('settings-modal');
             if (settingsModal && !settingsModal.classList.contains('hidden')) {
-                initSettingsModal();
+                import('./settings.js').then(m => m.initSettingsModal());
             }
         });
 
@@ -196,9 +208,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         initModalSearch(renderModalList);
         initAllEventHandlers();
         initPopupEventDelegation();
-        initSettingsModal();
-        initBackupButtons();
-        initAdToggle();
+
+        // Dynamic imports for non-critical modules
+        import('./settings.js').then(({ initSettingsModal, initAdToggle }) => {
+            initSettingsModal();
+            initAdToggle();
+        });
+
+        import('./backup.js').then(({ initBackupButtons }) => {
+            initBackupButtons();
+        });
+
+        import('./comments.js'); // Side-effect import
+
+        if (state.isDevMode || localStorage.getItem('wwm_dev_mode') === 'true') {
+            import('./dev-tools.js');
+        }
+
         initAds();
         renderFavorites();
 

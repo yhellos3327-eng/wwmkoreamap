@@ -3,8 +3,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 4px 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-item);
+    border-top: 1px solid var(--border);
     margin-top: 6px;
     position: relative;
     z-index: 1;
@@ -26,8 +26,8 @@
     gap: 6px;
     padding: 4px 8px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    background: var(--bg-item);
     color: var(--text-muted);
     cursor: pointer;
     transition: all 0.2s ease;
@@ -35,7 +35,7 @@
 }
 
 .btn-vote:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     color: var(--text-main);
 }
 

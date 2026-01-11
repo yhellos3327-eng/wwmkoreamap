@@ -46,7 +46,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: rgba(255, 255, 255, 0.02);
+    background: var(--bg-item);
 }
 
 .modal-header h3 {
@@ -54,6 +54,9 @@
     font-size: 1.1rem;
     color: var(--text-main);
     font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .close-modal-btn {
@@ -73,7 +76,7 @@
 }
 
 .close-modal-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     color: var(--text-main);
 }
 
@@ -94,7 +97,7 @@
 
 .modal-btn:hover {
     background: var(--bg-item-hover);
-    border-color: #666;
+    border-color: var(--text-muted);
 }
 
 .action-btn {

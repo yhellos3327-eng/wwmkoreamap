@@ -2,10 +2,10 @@
     display: flex;
     gap: 6px;
     padding: 0px 12px 10px;
-    background: rgba(28, 28, 30, 0.7);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-panel);
+    -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
+    border-top: 1px solid var(--border);
     flex-shrink: 0;
     flex-wrap: wrap;
     position: sticky;
@@ -23,8 +23,8 @@
     flex: 1;
     min-width: 50px;
     padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 10px;
     color: var(--text-main);
     font-size: 0.75rem;
@@ -40,14 +40,14 @@
 }
 
 .action-btn:hover {
-    background: rgba(255, 255, 255, 0.12);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--bg-item-hover);
+    border-color: var(--border);
     transform: translateY(-1px);
 }
 
 .action-btn:active {
     transform: translateY(0);
-    background: rgba(255, 255, 255, 0.15);
+    background: var(--bg-item-hover);
 }
 
 .btn-fav {
@@ -118,8 +118,8 @@
 
 .btn-footer-action {
     padding: 8px 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 10px;
     color: var(--text-main);
     font-size: 0.8rem;
@@ -129,8 +129,8 @@
 }
 
 .btn-footer-action:hover {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--bg-item-hover);
+    border-color: var(--border);
 }
 
 .btn-translate {

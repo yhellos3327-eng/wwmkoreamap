@@ -88,18 +88,51 @@ const state = {
 
 const listeners = {};
 
+/**
+ * Subscribe to state changes with a strong reference.
+ * Returns an unsubscribe function.
+ */
 export const subscribe = (key, callback) => {
     if (!listeners[key]) {
         listeners[key] = [];
     }
-    listeners[key].push(callback);
+    listeners[key].push({ type: 'strong', callback });
 
     return () => {
-        const index = listeners[key].indexOf(callback);
+        if (!listeners[key]) return;
+        const index = listeners[key].findIndex(l => l.callback === callback);
         if (index > -1) {
             listeners[key].splice(index, 1);
         }
     };
+};
+
+/**
+ * Subscribe to state changes with a weak reference to the owner.
+ * This allows the owner to be garbage collected without manual unsubscribe.
+ * @param {string} key - State key to subscribe to
+ * @param {Object} owner - The object that owns the subscription (this)
+ * @param {Function|string} callbackOrMethod - Callback function or method name on owner
+ */
+export const subscribeWeak = (key, owner, callbackOrMethod) => {
+    if (!listeners[key]) {
+        listeners[key] = [];
+    }
+
+    // If method name is passed
+    let callback;
+    if (typeof callbackOrMethod === 'string') {
+        callback = (value) => {
+            const target = owner; // This would be a strong ref if captured directly
+            // We don't execute this wrapper directly in the loop, we handle 'weak' type specifically
+        };
+    }
+
+    listeners[key].push({
+        type: 'weak',
+        ownerRef: new WeakRef(owner),
+        callbackOrMethod
+    });
 };
 
 export const unsubscribeAll = (key) => {
@@ -112,7 +145,34 @@ export const notify = (key, value, oldValue) => {
     logger.stateChange(key, oldValue, value);
 
     if (listeners[key]) {
-        listeners[key].forEach(callback => callback(value));
+        // Iterate backwards to allow safe removal
+        for (let i = listeners[key].length - 1; i >= 0; i--) {
+            const listener = listeners[key][i];
+
+            if (listener.type === 'strong') {
+                listener.callback(value);
+            } else if (listener.type === 'weak') {
+                const owner = listener.ownerRef.deref();
+                if (owner) {
+                    if (typeof listener.callbackOrMethod === 'string') {
+                        if (typeof owner[listener.callbackOrMethod] === 'function') {
+                            owner[listener.callbackOrMethod](value);
+                        }
+                    } else if (typeof listener.callbackOrMethod === 'function') {
+                        // CAUTION: If this function captures 'owner', it will prevent GC.
+                        // Ideally use method name or a function that doesn't capture 'this'.
+                        listener.callbackOrMethod.call(owner, value);
+                    }
+                } else {
+                    // Owner collected, remove listener
+                    listeners[key].splice(i, 1);
+                    // console.log(`[State] Auto-unsubscribed collected listener for ${key}`);
+                }
+            } else {
+                // Legacy support if any raw callbacks remain (shouldn't happen with new code)
+                if (typeof listener === 'function') listener(value);
+            }
+        }
     }
 };
 

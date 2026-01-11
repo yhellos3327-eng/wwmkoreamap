@@ -194,8 +194,15 @@ export const updateSinglePixiMarker = (itemId) => {
     }
 };
 
+import { memoryManager } from '../../memory.js';
+
 export const clearPixiOverlay = () => {
     if (pixiContainer) {
+        // Track children removal for memory debugging
+        if (memoryManager.debugMode) {
+            console.log(`[PixiOverlay] Clearing ${pixiContainer.children.length} sprites from container`);
+        }
+
         pixiContainer.removeChildren();
         clearSpriteDataMap();
     }

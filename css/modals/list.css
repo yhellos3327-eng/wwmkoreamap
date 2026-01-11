@@ -5,10 +5,10 @@
 .modal-search input {
     width: 100%;
     padding: 10px 12px;
-    background: var(--bg-dark);
+    background: var(--bg-item);
     border: 1px solid var(--border);
     border-radius: 6px;
-    color: white;
+    color: var(--text-main);
 }
 
 .modal-list-items {
@@ -19,7 +19,7 @@
 
 .modal-list-item {
     padding: 12px 15px;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border);
     cursor: pointer;
     transition: background 0.2s;
     display: flex;
@@ -34,7 +34,7 @@
 .modal-item-icon {
     width: 32px;
     height: 32px;
-    background: rgba(0, 0, 0, 0.3);
+    background: var(--bg-item);
     border-radius: 4px;
     padding: 4px;
     object-fit: contain;

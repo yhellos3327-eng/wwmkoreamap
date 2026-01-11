@@ -22,6 +22,8 @@ export const getIconUrl = (categoryId) => {
     return DEFAULT_ICON_URL;
 };
 
+import { memoryManager } from '../../memory.js';
+
 export const loadTexture = async (iconUrl) => {
     if (textureCache.has(iconUrl)) {
         return textureCache.get(iconUrl);
@@ -30,6 +32,15 @@ export const loadTexture = async (iconUrl) => {
     try {
         const texture = await PIXI.Assets.load(iconUrl);
         textureCache.set(iconUrl, texture);
+
+        // Track texture memory
+        memoryManager.track(texture, `Texture-${iconUrl}`);
+        memoryManager.setMeta(texture, {
+            url: iconUrl,
+            created: Date.now(),
+            type: 'PixiTexture'
+        });
+
         return texture;
     } catch (error) {
         logger.warn('TextureManager', `Failed to load texture: ${iconUrl}`);
@@ -37,6 +48,10 @@ export const loadTexture = async (iconUrl) => {
             try {
                 const defaultTexture = await PIXI.Assets.load(DEFAULT_ICON_URL);
                 textureCache.set(DEFAULT_ICON_URL, defaultTexture);
+
+                // Track default texture
+                memoryManager.track(defaultTexture, `Texture-Default`);
+
                 return defaultTexture;
             } catch (e) {
                 return null;

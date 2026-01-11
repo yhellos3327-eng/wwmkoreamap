@@ -5,7 +5,7 @@
 .github-intro {
     text-align: center;
     margin-bottom: 30px;
-    color: #ccc;
+    color: var(--text-muted);
     line-height: 1.6;
 }
 
@@ -54,9 +54,9 @@
 
 .contribute-guide-content {
     font-size: 0.9rem;
-    color: #ccc;
+    color: var(--text-main);
     line-height: 1.6;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-item);
     padding: 15px;
     border-radius: 8px;
     border: 1px solid var(--border);
@@ -83,7 +83,7 @@
 }
 
 .contribute-guide-list li strong {
-    color: #fff;
+    color: var(--text-main);
 }
 
 .contribute-guide-content p {
@@ -91,9 +91,9 @@
 }
 
 .contribute-guide-content code {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
     padding: 2px 4px;
     border-radius: 4px;
     font-family: monospace;
-    color: #e6db74;
+    color: var(--accent);
 }

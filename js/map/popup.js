@@ -88,7 +88,9 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             const activeClass = index === 0 ? 'active' : '';
 
             if (media.type === 'image') {
-                return `<img src="${media.src}" class="popup-media ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
+                // Lazy load images in popup
+                const placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                return `<img data-src="${media.src}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
             } else {
                 let videoSrc = media.src.replace(/^http:/, 'https:');
                 if (videoSrc.startsWith('//')) videoSrc = 'https:' + videoSrc;
@@ -188,7 +190,14 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             </div>
             <div class="popup-comments-container">
                 <div id="comments-list-${item.id}" class="comments-list">
-                    <div class="loading-comments">이정표 불러오는 중...</div>
+                    <div class="skeleton-comment">
+                        <div class="skeleton-header">
+                            <div class="skeleton skeleton-avatar"></div>
+                            <div class="skeleton skeleton-date"></div>
+                        </div>
+                        <div class="skeleton skeleton-text"></div>
+                        <div class="skeleton skeleton-text short"></div>
+                    </div>
                 </div>
                 
                 <div id="comment-guide-${item.id}" class="comment-guide hidden">
@@ -279,8 +288,20 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 `;
 };
 
+import { lazyLoader } from '../ui/lazy-loader.js';
+
 // 이벤트 위임으로 팝업 내 이벤트 처리
 export const initPopupEventDelegation = () => {
+    // Trigger lazy loading when popup opens
+    if (state.map) {
+        state.map.on('popupopen', (e) => {
+            const popupNode = e.popup.getElement();
+            if (popupNode) {
+                lazyLoader.observeAll('.lazy-load', popupNode);
+            }
+        });
+    }
+
     document.addEventListener('click', (e) => {
         const target = e.target.closest('[data-action]');
         if (!target) return;
