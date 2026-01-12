@@ -117,15 +117,31 @@ export const fetchUserIp = async (masked = true) => {
     if (masked && cachedMaskedIp) return cachedMaskedIp;
     if (!masked && cachedIp) return cachedIp;
 
+    const getMasked = (ip) => ip.split('.').slice(0, 2).join('.');
+
     try {
+        // Primary: ipify
         const response = await fetch('https://api.ipify.org?format=json');
+        if (!response.ok) throw new Error('ipify failed');
         const data = await response.json();
         cachedIp = data.ip;
-        cachedMaskedIp = data.ip.split('.').slice(0, 2).join('.');
+        cachedMaskedIp = getMasked(data.ip);
         return masked ? cachedMaskedIp : cachedIp;
     } catch (e) {
-        console.warn('Failed to get IP', e);
-        return 'unknown';
+        console.warn('Primary IP fetch failed, trying backup...', e);
+        try {
+            // Backup: db-ip
+            const response = await fetch('https://api.db-ip.com/v2/free/self');
+            if (!response.ok) throw new Error('db-ip failed');
+            const data = await response.json();
+            const ip = data.ipAddress || data.ip; // db-ip uses ipAddress
+            cachedIp = ip;
+            cachedMaskedIp = getMasked(ip);
+            return masked ? cachedMaskedIp : cachedIp;
+        } catch (e2) {
+            console.warn('All IP fetch attempts failed', e2);
+            return 'unknown';
+        }
     }
 };
 
