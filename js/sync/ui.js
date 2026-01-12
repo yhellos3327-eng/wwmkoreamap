@@ -15,7 +15,7 @@ const createSyncTooltip = () => {
             background: var(--bg-panel);
             backdrop-filter: var(--glass-blur) saturate(180%);
             -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
-            color: #fff;
+            color: var(--text-main);
             padding: 12px 24px;
             border-radius: 20px;
             font-size: 14px;
@@ -124,7 +124,7 @@ export const showSyncToast = (message, type = 'info') => {
             background: var(--bg-panel);
             backdrop-filter: var(--glass-blur) saturate(180%);
             -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
-            color: #fff;
+            color: var(--text-main);
             padding: 14px 24px;
             border-radius: 16px;
             font-size: 14px;

@@ -781,39 +781,6 @@ input:checked+.slider:before {
     animation: rotate-sync 1s linear infinite;
 }
 
-@keyframes rotate-sync {
-    from {
-        transform: rotate(0deg);
-    }
-
-    to {
-        transform: rotate(360deg);
-    }
-}
-
-/* 클라우드 백업 리스트 */
-.cloud-backup-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 12px;
-}
-
-.backup-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px;
-    background: var(--bg-item);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    transition: all 0.2s ease;
-}
-
-.backup-item:hover {
-    background: var(--bg-item-hover);
-    border-color: var(--border);
-}
 
 .backup-info {
     display: flex;
