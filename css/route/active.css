@@ -51,7 +51,7 @@
     padding: 14px 12px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.08);
-    color: #fff;
+    color: var(--text-main);
     border-radius: 12px;
     cursor: pointer;
     font-size: 0.85rem;

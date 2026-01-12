@@ -2,7 +2,7 @@
 .route-list-container {
     margin-top: 16px;
     padding-top: 20px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border);
 }
 
 .route-list-container h4 {
@@ -11,7 +11,7 @@
     text-transform: uppercase;
     margin: 0 0 16px 0;
     padding-bottom: 12px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 8px;
@@ -107,7 +107,7 @@
     gap: 8px;
     margin-top: 4px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border);
 }
 
 .route-action-btn {
@@ -134,14 +134,14 @@
 
 .route-action-btn:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    color: var(--text-main);
 }
 
 /* Saved Routes */
 .route-saved-section {
     margin-top: 4px;
     padding-top: 16px;
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid var(--border);
 }
 
 .route-saved-section h4 {

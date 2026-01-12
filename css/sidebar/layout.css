@@ -20,7 +20,7 @@
     border: 1px solid var(--glass-border);
     background-clip: padding-box;
     will-change: transform;
-    /* 성능 최적화 */
+    /* ?�능 최적??*/
 }
 
 .sidebar.collapsed {
@@ -36,11 +36,11 @@
     padding: 1px;
     background: conic-gradient(from var(--border-angle, 0deg),
             transparent 0%,
-            rgba(255, 255, 255, 0.05) 15%,
-            rgba(255, 255, 255, 0.4) 45%,
-            rgba(255, 255, 255, 0.9) 50%,
-            rgba(255, 255, 255, 0.4) 55%,
-            rgba(255, 255, 255, 0.05) 85%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
             transparent 100%);
     -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
@@ -54,7 +54,7 @@
     animation: rotate-border 8s linear infinite;
     z-index: 10;
     will-change: transform;
-    /* 애니메이션 최적화 */
+    /* ?�니메이??최적??*/
 }
 
 .sidebar-header {

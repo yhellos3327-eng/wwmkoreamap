@@ -15,7 +15,7 @@
     background: var(--bg-panel);
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     border-radius: 20px;
     display: flex;
     flex-direction: column;
@@ -33,11 +33,11 @@
     padding: 1px;
     background: conic-gradient(from var(--border-angle, 0deg),
             transparent 0%,
-            rgba(255, 255, 255, 0.05) 15%,
-            rgba(255, 255, 255, 0.4) 45%,
-            rgba(255, 255, 255, 0.9) 50%,
-            rgba(255, 255, 255, 0.4) 55%,
-            rgba(255, 255, 255, 0.05) 85%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
             transparent 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -81,13 +81,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 18px 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid var(--border);
 }
 
 .route-region-modal-header h4 {
     font-size: 1rem;
     font-weight: 700;
-    color: #fff;
+    color: var(--text-main);
     margin: 0;
 }
 
@@ -112,7 +112,7 @@
 
 .route-region-modal-close:hover {
     background: rgba(255, 255, 255, 0.15);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .route-region-modal-list {
@@ -128,7 +128,7 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-item);
     border: 1px solid transparent;
     border-radius: 12px;
     cursor: pointer;
@@ -136,8 +136,8 @@
 }
 
 .route-region-option:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
+    border-color: var(--border);
 }
 
 .route-region-option.selected {
@@ -148,7 +148,7 @@
 .route-region-option-name {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .route-region-check {

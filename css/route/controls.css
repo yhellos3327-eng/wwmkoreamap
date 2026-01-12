@@ -91,8 +91,8 @@
     align-items: center;
     gap: 4px;
     padding: 4px 8px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.6);
     font-size: 0.75rem;
@@ -101,9 +101,9 @@
 }
 
 .route-cat-action-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #fff;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: var(--bg-item-hover);
+    color: var(--text-main);
+    border-color: var(--border);
 }
 
 .route-cat-action-btn svg {
@@ -127,22 +127,22 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
 .route-region-trigger:hover {
-    border-color: rgba(255, 255, 255, 0.15);
-    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--border);
+    background: var(--bg-item-hover);
 }
 
 .route-region-text {
     font-size: 0.9rem;
     font-weight: 500;
-    color: #fff;
+    color: var(--text-main);
 }
 
 .route-region-trigger>svg {
@@ -158,18 +158,18 @@
     gap: 12px;
     cursor: pointer;
     font-size: 0.9rem;
-    color: rgba(255, 255, 255, 0.8);
+    color: var(--text-main);
     padding: 12px 14px;
-    background: rgba(255, 255, 255, 0.03);
+    background: var(--bg-item);
     border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
     transition: all 0.2s;
     font-weight: 500;
 }
 
 .route-checkbox-label:hover {
-    background: rgba(255, 255, 255, 0.06);
-    border-color: rgba(255, 255, 255, 0.1);
+    background: var(--bg-item-hover);
+    border-color: var(--border);
 }
 
 .route-checkbox-icon {
@@ -226,18 +226,18 @@
     align-items: center;
     gap: 8px;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: var(--bg-item);
+    border: 1px solid var(--border);
     border-radius: 10px;
     cursor: pointer;
     font-size: 0.8rem;
-    color: rgba(255, 255, 255, 0.7);
+    color: var(--text-muted);
     transition: all 0.2s;
 }
 
 .route-category-item:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #fff;
+    background: var(--bg-item-hover);
+    color: var(--text-main);
 }
 
 .route-category-item .route-checkbox-icon {
@@ -265,7 +265,7 @@
 .route-category-item.checked {
     background: rgba(218, 172, 113, 0.08);
     border-color: rgba(218, 172, 113, 0.15);
-    color: #fff;
+    color: var(--text-main);
 }
 
 .route-category-item.checked .checkbox-unchecked {

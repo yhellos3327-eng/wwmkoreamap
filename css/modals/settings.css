@@ -1,4 +1,4 @@
-ï»¿#settings-modal {
+#settings-modal {
     position: fixed;
     top: 0;
     left: 0;
@@ -61,11 +61,11 @@
     padding: 1px;
     background: conic-gradient(from var(--border-angle, 0deg),
             transparent 0%,
-            rgba(255, 255, 255, 0.05) 15%,
-            rgba(255, 255, 255, 0.4) 45%,
-            rgba(255, 255, 255, 0.9) 50%,
-            rgba(255, 255, 255, 0.4) 55%,
-            rgba(255, 255, 255, 0.05) 85%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
             transparent 100%);
     -webkit-mask:
         linear-gradient(#fff 0 0) content-box,
@@ -586,7 +586,7 @@ input:checked+.slider:before {
 }
 
 .settings-backup-section li::before {
-    content: 'â€¢';
+    content: '?';
     position: absolute;
     left: 0;
     top: 0;
@@ -844,7 +844,7 @@ input:checked+.slider:before {
     border: 1px dashed var(--border);
 }
 
-/* Chrome ë²ˆì—­ê¸° ì¹´ë“œ ìŠ¤íƒ€ì¼ */
+/* Chrome ¹ø¿ª±â Ä«µå ½ºÅ¸ÀÏ */
 .chrome-translator-card {
     background: var(--bg-item);
     border: 1px solid var(--border);

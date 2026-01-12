@@ -12,9 +12,9 @@
     flex-direction: column;
     z-index: 1002;
     box-shadow: var(--glass-shadow);
-    color: #fff;
+    color: var(--text-main);
     overflow: hidden;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border);
     background-clip: padding-box;
     animation: panel-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     transition: top 0.3s ease, right 0.3s ease;
@@ -41,11 +41,11 @@
     padding: 1px;
     background: conic-gradient(from var(--border-angle, 0deg),
             transparent 0%,
-            rgba(255, 255, 255, 0.05) 15%,
-            rgba(255, 255, 255, 0.4) 45%,
-            rgba(255, 255, 255, 0.9) 50%,
-            rgba(255, 255, 255, 0.4) 55%,
-            rgba(255, 255, 255, 0.05) 85%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
             transparent 100%);
     -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
     mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
@@ -62,7 +62,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid var(--border);
     flex-shrink: 0;
 }
 
