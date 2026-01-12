@@ -22,8 +22,6 @@
                     </div>
                     <span class="auth-title">로그인</span>
                 </div>
-
-                <!-- 로그아웃 상태 -->
                 <div id="auth-logged-out" class="auth-content">
                     <p class="auth-description">로그인하면 진행 상황을 클라우드에 동기화할 수 있습니다.</p>
                     <div class="auth-buttons">
@@ -38,27 +36,18 @@
                             <span>Google 로그인</span>
                         </button>
                     </div>
-                    <!-- 로컬 개발용 테스트 모드 -->
                     <div id="local-dev-auth" class="local-dev-section" style="display: none;">
-                        <p class="local-dev-notice">
-                            <span class="icon-mask"
-                                style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z'/%3E%3C/svg%3E&quot;);"></span>
-                            로컬 개발 모드
-                        </p>
-                        <button id="btn-test-login" class="auth-btn test-btn">
-                            테스트 로그인
-                        </button>
+                        <p class="local-dev-notice">로컬 개발 모드</p>
+                        <button id="btn-test-login" class="auth-btn test-btn">테스트 로그인</button>
                     </div>
                 </div>
-
-                <!-- 로그인 상태 -->
                 <div id="auth-logged-in" class="auth-content" style="display: none;">
                     <div class="auth-user-info">
-                        <div class="auth-avatar-wrapper"><img id="auth-user-avatar" class="auth-avatar" src=""
-                                alt="프로필">
+                        <div class="auth-avatar-wrapper">
+                            <img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필">
                             <div class="auth-avatar-fallback">
                                 <div class="icon-mask"
-                                    style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);">
+                                    style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);">
                                 </div>
                             </div>
                         </div>
@@ -67,21 +56,13 @@
                             <span id="auth-user-provider" class="auth-user-provider">Kakao</span>
                         </div>
                     </div>
-                    <button id="btn-logout" class="auth-btn logout-btn">
-                        <div class="icon-mask"
-                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4'/%3E%3Cpolyline points='16 17 21 12 16 7'/%3E%3Cline x1='21' y1='12' x2='9' y2='12'/%3E%3C/svg%3E&quot;);">
-                        </div>
-                        로그아웃
-                    </button>
+                    <button id="btn-logout" class="auth-btn logout-btn">로그아웃</button>
                 </div>
             </div>
 
-            <!-- 2. 데이터 동기화 섹션 (로그인 시에만 표시) -->
+            <!-- 2. 데이터 동기화 섹션 -->
             <div id="sync-section" class="settings-group settings-card" style="display: none;">
                 <div class="card-header">
-                    <div class="icon-mask"
-                        style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9'/%3E%3C/svg%3E&quot;);">
-                    </div>
                     <span class="card-title">데이터 동기화</span>
                 </div>
                 <div class="card-body">
@@ -95,74 +76,36 @@
                             <span id="last-sync-time" class="sync-info-value">-</span>
                         </div>
                     </div>
-                    <button id="btn-manual-sync" class="auth-btn sync-btn">
-                        <div class="icon-mask"
-                            style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3'/%3E%3C/svg%3E&quot;);">
-                        </div>
-                        지금 동기화
-                    </button>
+                    <button id="btn-manual-sync" class="auth-btn sync-btn">지금 동기화</button>
                 </div>
             </div>
 
             <!-- 3. AI 번역 설정 -->
-            <!-- 3-1. Chrome 내장 번역 상태 표시 -->
             <div id="chrome-translator-status" class="chrome-translator-card" style="display: none;">
                 <div class="chrome-card-header">
                     <div class="chrome-card-title">
-                        <div class="icon-mask"
-                            style="width: 20px; height: 20px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8l6 6'/%3E%3Cpath d='M4 14l6-6 2-3'/%3E%3Cpath d='M2 5h12'/%3E%3Cpath d='M7 2h1'/%3E%3Cpath d='M22 22l-5-10-5 10'/%3E%3Cpath d='M14 18h6'/%3E%3C/svg%3E&quot;);">
-                        </div>
                         <span>Chrome 번역 엔진</span>
                     </div>
                     <div class="chrome-badge" id="chrome-badge">
-                        <div class="icon-mask"
-                            style="width: 12px; height: 12px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3C/svg%3E&quot;);">
-                        </div>
                         <span>확인 중</span>
                     </div>
                 </div>
-
                 <div class="chrome-status-grid">
                     <div class="chrome-status-item">
-                        <div class="chrome-status-icon translator-icon">
-                            <div class="icon-mask"
-                                style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 8l6 6M4 14l6-6 2-3M2 5h12M7 2h1'/%3E%3C/svg%3E&quot;);">
-                            </div>
-                        </div>
                         <div class="chrome-status-info">
                             <span class="chrome-status-label">Translator API</span>
                             <span class="chrome-status-value" id="translator-status">확인 중...</span>
                         </div>
                     </div>
                     <div class="chrome-status-item">
-                        <div class="chrome-status-icon detector-icon">
-                            <div class="icon-mask"
-                                style="width: 16px; height: 16px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='M21 21l-4.35-4.35'/%3E%3C/svg%3E&quot;);">
-                            </div>
-                        </div>
                         <div class="chrome-status-info">
                             <span class="chrome-status-label">Language Detector</span>
                             <span class="chrome-status-value" id="detector-status">확인 중...</span>
                         </div>
                     </div>
                 </div>
-
-                <div class="chrome-info-box">
-                    <div class="icon-mask"
-                        style="width: 14px; height: 14px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E&quot;);">
-                    </div>
-                    <div>
-                        <strong>Chrome 138+</strong> 필요 · 모델 다운로드 약 100MB<br>
-                        <span style="opacity: 0.8;">단순 번역만 지원 (컨텍스트/사전 참조 불가)</span><br>
-                        <a href="https://developer.chrome.com/release-notes/138?hl=ko#translator_api" target="_blank"
-                            style="color: #4285f4; text-decoration: underline; font-size: 0.9em;">
-                            Chrome 138 릴리스 노트 →
-                        </a>
-                    </div>
-                </div>
             </div>
 
-            <!-- 3-2. AI 외부 서비스 설정 -->
             <div id="external-ai-settings">
                 <div class="settings-group">
                     <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
@@ -173,21 +116,14 @@
                         <option value="openai">OpenAI (ChatGPT)</option>
                         <option value="claude">Anthropic (Claude)</option>
                     </select>
-                    <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의
-                            키)</span></label>
+                    <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의 키)</span></label>
                     <input type="password" id="api-key-input" class="settings-input" placeholder="API Key 입력">
-                    <p class="settings-security-note">
-                        <span class="icon-mask"
-                            style="width: 12px; height: 12px; display: inline-block; vertical-align: middle; margin-right: 4px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E&quot;);"></span>
-                        API 키는 보안을 위해 이 브라우저에만 저장되며, 클라우드에 동기화되지 않습니다.
-                    </p>
+                    <p class="settings-security-note">API 키는 보안을 위해 이 브라우저에만 저장됩니다.</p>
                 </div>
-
                 <div class="settings-group">
                     <label class="settings-label">AI Model <span class="settings-subtitle">(모델 선택)</span></label>
                     <select id="api-model-select" class="settings-input"
-                        style="background-color: var(--bg-dark); color: var(--text-main);">
-                    </select>
+                        style="background-color: var(--bg-dark); color: var(--text-main);"></select>
                 </div>
             </div>
 
@@ -214,7 +150,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">완료된 항목 숨기기</span>
@@ -225,7 +160,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">마커 클러스터링</span>
@@ -236,7 +170,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">GPU 렌더링 모드</span>
@@ -249,7 +182,6 @@
                     <option value="off">저사양 모드 (CPU)</option>
                 </select>
             </div>
-
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">메뉴 위치</span>
@@ -274,7 +206,6 @@
                     <span class="slider round"></span>
                 </label>
             </div>
-
             <div class="settings-group settings-toggle-wrapper">
                 <div class="settings-label-container">
                     <span class="settings-toggle-label">완료 체크 시 팝업 닫기</span>
@@ -297,7 +228,6 @@
                     <span class="color-label">기본값: #242424</span>
                 </div>
             </div>
-
             <div class="settings-group">
                 <label class="settings-label">지역 채우기 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
                 <div class="color-picker-wrapper">
@@ -309,6 +239,41 @@
                 </div>
             </div>
 
+            <!-- 6-2. 키보드 단축키 설정 -->
+            <div class="settings-shortcuts-section">
+                <div class="shortcuts-header">
+                    <div class="shortcuts-title-wrapper">
+                        <div class="icon-mask"
+                            style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);">
+                        </div>
+                        <h4>키보드 단축키</h4>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="toggle-shortcuts" checked>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+
+                <div class="shortcuts-description">
+                    <p>자주 사용하는 기능에 단축키를 지정할 수 있습니다.</p>
+                </div>
+
+                <!-- 시각적 키보드 열기 버튼 -->
+                <button id="btn-open-keyboard" class="open-keyboard-btn">
+                    <div class="icon-mask"
+                        style="width: 20px; height: 20px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);">
+                    </div>
+                    키보드로 단축키 설정하기
+                </button>
+
+                <button id="btn-reset-shortcuts" class="modal-btn shortcuts-reset-btn">
+                    <div class="icon-mask"
+                        style="width: 14px; height: 14px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3C/svg%3E&quot;);">
+                    </div>
+                    기본값으로 초기화
+                </button>
+            </div>
+
             <!-- 7. 백업 및 복구 -->
             <div class="settings-backup-section">
                 <h4>
@@ -316,49 +281,33 @@
                         style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E&quot;);"></span>
                     데이터 백업 및 복구
                 </h4>
-                <p>
-                    현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
+                <p>현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
                     <span style="color: #d9534f; font-size: 0.8em;">
                         <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>
                     </span>
                 </p>
-
                 <div class="backup-buttons" style="display: flex; gap: 10px;">
                     <button id="btn-backup-save" class="modal-btn save-btn"
-                        style="flex: 1; padding: 8px; cursor: pointer;">
-                        파일로 저장
-                    </button>
-
+                        style="flex: 1; padding: 8px; cursor: pointer;">파일로 저장</button>
                     <button id="btn-backup-load" class="modal-btn load-btn"
-                        style="flex: 1; padding: 8px; cursor: pointer;">
-                        파일 불러오기
-                    </button>
-
+                        style="flex: 1; padding: 8px; cursor: pointer;">파일 불러오기</button>
                     <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
                 </div>
             </div>
 
-            <!-- 7-2. 클라우드 백업 히스토리 (로그인 시에만 표시) -->
+            <!-- 7-2. 클라우드 백업 히스토리 -->
             <div id="cloud-backup-section" class="settings-backup-section" style="display: none; margin-top: 15px;">
                 <h4>
                     <span class="icon-mask"
                         style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E&quot;);"></span>
                     클라우드 백업 히스토리
                 </h4>
-                <p style="margin-bottom: 10px; font-size: 0.85em;">
-                    클라우드에 최대 3개의 스냅샷을 저장하고 복원할 수 있습니다.
-                </p>
-
+                <p style="margin-bottom: 10px; font-size: 0.85em;">클라우드에 최대 3개의 스냅샷을 저장하고 복원할 수 있습니다.</p>
                 <div id="cloud-backup-list" class="cloud-backup-list">
                     <div class="backup-empty-state">저장된 백업이 없습니다.</div>
                 </div>
-
                 <button id="btn-cloud-backup-save" class="modal-btn"
-                    style="width: 100%; margin-top: 10px; padding: 8px;">
-                    <span class="icon-mask"
-                        style="width: 14px; height: 14px; display: inline-block; vertical-align: middle; margin-right: 4px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E&quot;);"></span>
-                    현재 상태를 클라우드에 스냅샷 저장
-                </button>
+                    style="width: 100%; margin-top: 10px; padding: 8px;">현재 상태를 클라우드에 스냅샷 저장</button>
             </div>
 
             <!-- 8. 저장 버튼 -->

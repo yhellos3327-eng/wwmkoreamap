@@ -27,6 +27,7 @@ export const loadAllComponents = async () => {
     await Promise.all([
         loadComponent('components/sidebar.html', 'sidebar-placeholder'),
         loadComponent('components/settings-modal.html'),
+        loadComponent('components/keyboard-modal.html'),
         loadComponent('components/github-modal.html'),
         loadComponent('components/related-modal.html'),
         loadComponent('components/dev-modal.html'),

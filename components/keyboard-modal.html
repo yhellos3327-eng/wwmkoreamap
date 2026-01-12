@@ -1,0 +1,71 @@
+<!-- 키보드 단축키 설정 모달 -->
+<div id="keyboard-shortcut-modal" class="modal-overlay hidden">
+    <div class="modal-content keyboard-modal-content" id="keyboard-modal-content">
+        <div class="modal-header">
+            <h3>
+                <div class="icon-mask"
+                    style="width: 22px; height: 22px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);">
+                </div>
+                키보드 단축키 설정
+            </h3>
+            <button id="close-keyboard-modal" class="close-modal-btn" title="닫기">
+                <div class="icon-mask"
+                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);">
+                </div>
+            </button>
+        </div>
+        <div class="modal-body keyboard-modal-body">
+            <!-- 안내 메시지 -->
+            <div class="keyboard-instructions">
+                <p>
+                    <span class="icon-mask"
+                        style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='12' y1='16' x2='12' y2='12'/%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'/%3E%3C/svg%3E&quot;);"></span>
+                    수정자 키(Ctrl, Shift, Alt)를 선택한 후, 원하는 키를 클릭하여 기능을 할당하세요.
+                </p>
+            </div>
+
+            <!-- 수정자 키 선택 바 -->
+            <div class="modifier-bar">
+                <span class="modifier-label">수정자 키:</span>
+                <button id="mod-ctrl" class="modifier-btn">
+                    <span>Ctrl</span>
+                </button>
+                <button id="mod-shift" class="modifier-btn">
+                    <span>Shift</span>
+                </button>
+                <button id="mod-alt" class="modifier-btn">
+                    <span>Alt</span>
+                </button>
+            </div>
+
+            <!-- 범례 -->
+            <div class="keyboard-legend">
+                <div class="legend-item">
+                    <span class="legend-color assigned"></span>
+                    <span>기능 할당됨</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color available"></span>
+                    <span>할당 가능</span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-color disabled"></span>
+                    <span>사용 불가</span>
+                </div>
+            </div>
+
+            <!-- 시각적 키보드 -->
+            <div id="visual-keyboard" class="visual-keyboard">
+                <!-- 키보드 레이아웃은 JS에서 동적으로 렌더링됩니다 -->
+            </div>
+
+            <!-- 현재 할당된 단축키 목록 -->
+            <div class="current-shortcuts-section">
+                <h4>현재 할당된 단축키</h4>
+                <div id="assigned-shortcuts-list" class="assigned-shortcuts-list">
+                    <!-- JS에서 렌더링 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

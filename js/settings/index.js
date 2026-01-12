@@ -6,6 +6,7 @@ import { AI_MODELS, updateModelOptions, updateApiKeyInput, saveAISettings, initA
 import { initAdToggle, initToggles, saveToggleSettings, updateClusteringToggleState } from './toggles.js';
 import { applyMenuPosition, initAppearanceSettings, saveAppearanceSettings } from './appearance.js';
 import { initCloudBackupSection, loadCloudBackups } from './backup.js';
+import { initShortcuts } from './shortcuts.js';
 
 export const saveSettings = (settingsModal) => {
     try {
@@ -45,6 +46,7 @@ export const initSettingsModal = () => {
             toggles.loadValues();
             appearance.loadValues();
 
+
             settingsModal.classList.remove('hidden');
         });
 
@@ -70,6 +72,7 @@ export const initSettingsModal = () => {
     }
 
     initCloudBackupSection();
+    initShortcuts();
 };
 
 export {
