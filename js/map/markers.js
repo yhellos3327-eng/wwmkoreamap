@@ -212,6 +212,8 @@ const performViewportUpdate = async () => {
 };
 
 const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, startIndex) => {
+    if (!state.map) return;
+
     let addedCount = 0;
     let currentIndex = startIndex;
 
@@ -219,12 +221,12 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
         const item = visibleItems[currentIndex];
         const existingMarker = state.allMarkers.get(item.id);
 
-        if (existingMarker) {
+        if (existingMarker && existingMarker.marker) {
             newVisibleIds.add(item.id);
             if (!state.map.hasLayer(existingMarker.marker)) {
                 state.map.addLayer(existingMarker.marker);
             }
-        } else {
+        } else if (!existingMarker) {
             const markerData = createMarkerForItem(item);
             if (markerData) {
                 newVisibleIds.add(item.id);
@@ -244,7 +246,7 @@ const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, start
         oldVisibleIds.forEach(id => {
             if (!newVisibleIds.has(id)) {
                 const markerInfo = state.allMarkers.get(id);
-                if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
+                if (markerInfo && markerInfo.marker && state.map.hasLayer(markerInfo.marker)) {
                     state.map.removeLayer(markerInfo.marker);
                 }
             }

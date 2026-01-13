@@ -99,8 +99,7 @@ export const initPixiOverlay = async () => {
 
 export const renderMarkersWithPixi = async (items) => {
     if (!isGpuRenderingAvailable()) {
-        logger.warn('PixiOverlay', 'GPU rendering not available, falling back to CPU mode');
-        setState('gpuRenderMode', false);
+        logger.warn('PixiOverlay', 'GPU rendering not available, falling back to CPU mode (setting preserved)');
         return;
     }
 
