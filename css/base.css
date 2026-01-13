@@ -133,10 +133,20 @@ body {
     -webkit-user-select: none;
 }
 
+/* Low Spec Mode - Dark Theme */
 body.low-spec-mode {
     --glass-bg: #111;
     --glass-bg-hover: #222;
     --glass-border: #333;
+    --glass-shadow: none;
+    --glass-blur: none;
+}
+
+/* Low Spec Mode - Light Theme */
+[data-theme="light"] body.low-spec-mode {
+    --glass-bg: #f5f5f7;
+    --glass-bg-hover: #e8e8ea;
+    --glass-border: #d1d1d6;
     --glass-shadow: none;
     --glass-blur: none;
 }
@@ -156,8 +166,8 @@ body.low-spec-mode .sidebar-toggle-btn,
 body.low-spec-mode .popup-container,
 body.low-spec-mode .custom-select .select-options,
 body.low-spec-mode .floating-sidebar-toggle {
-    background: #141414 !important;
-    border-color: #333 !important;
+    background: var(--glass-bg) !important;
+    border-color: var(--glass-border) !important;
 }
 
 body.low-spec-mode .sidebar::after,
