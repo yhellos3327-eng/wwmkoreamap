@@ -131,3 +131,32 @@
     align-items: center;
     gap: 6px;
 }
+/* Light Theme Support */
+[data-theme="light"] .route-progress {
+    background: rgba(0, 0, 0, 0.02);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .route-progress-bar {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .route-nav-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-main);
+}
+
+[data-theme="light"] .route-nav-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .route-current-item {
+    background: rgba(184, 138, 77, 0.1);
+    border-color: rgba(184, 138, 77, 0.25);
+}
+
+[data-theme="light"] .current-item-status {
+    background: rgba(50, 215, 75, 0.1);
+    color: #2da83e;
+}

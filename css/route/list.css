@@ -233,3 +233,57 @@
     color: var(--text-muted);
     font-size: 0.85rem;
 }
+/* Light Theme Support */
+[data-theme="light"] .route-action-btn {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-main);
+}
+
+[data-theme="light"] .route-action-btn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--text-main);
+}
+
+[data-theme="light"] .route-list-item {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+[data-theme="light"] .route-list-item:hover {
+    background: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .route-item-order {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .saved-route-item {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .route-list-item.current {
+    background: rgba(184, 138, 77, 0.15);
+    border-color: rgba(184, 138, 77, 0.3);
+}
+
+[data-theme="light"] .route-list-item.current .route-item-order {
+    color: #fff;
+}
+
+[data-theme="light"] .saved-route-load-btn {
+    background: rgba(184, 138, 77, 0.2);
+}
+
+[data-theme="light"] .saved-route-load-btn:hover {
+    background: rgba(184, 138, 77, 0.3);
+}
+
+[data-theme="light"] .saved-route-delete-btn {
+    background: rgba(255, 59, 48, 0.1);
+    color: #ff3b30;
+}
+
+[data-theme="light"] .saved-route-delete-btn:hover {
+    background: rgba(255, 59, 48, 0.2);
+}

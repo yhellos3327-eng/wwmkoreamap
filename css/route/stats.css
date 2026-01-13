@@ -68,3 +68,13 @@
     cursor: not-allowed;
     transform: none;
 }
+/* Light Theme Support */
+[data-theme="light"] .route-stats {
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.03) 0%, rgba(0, 0, 0, 0.01) 100%);
+    border-color: rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .route-generate-btn:disabled {
+    background: rgba(0, 0, 0, 0.06);
+    color: rgba(0, 0, 0, 0.25);
+}
