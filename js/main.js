@@ -164,7 +164,15 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (s.enableClustering !== undefined) setState('enableClustering', s.enableClustering === 'true' || s.enableClustering === true);
                 if (s.regionColor !== undefined) setState('savedRegionColor', s.regionColor);
                 if (s.regionFillColor !== undefined) setState('savedRegionFillColor', s.regionFillColor);
-                if (s.gpuMode !== undefined) setState('gpuRenderMode', s.gpuMode === 'true' || s.gpuMode === true);
+                if (s.gpuMode !== undefined) {
+                    let gpuSetting = s.gpuMode;
+                    if (gpuSetting === 'true' || gpuSetting === true) gpuSetting = 'on';
+                    else if (gpuSetting === 'false' || gpuSetting === false) gpuSetting = 'off';
+                    if (['on', 'off', 'auto'].includes(gpuSetting)) {
+                        state.savedGpuSetting = gpuSetting;
+                        localStorage.setItem('wwm_gpu_setting', gpuSetting);
+                    }
+                }
             }
 
             renderMapDataAndMarkers();
