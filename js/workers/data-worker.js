@@ -1,3 +1,5 @@
+import { DEFAULT_DESCRIPTIONS } from '../config.js';
+
 const parseCSV = (str) => {
     const arr = [];
     let quote = false;
@@ -118,8 +120,13 @@ const processJSONData = (rawItems, regionIdMap, blacklistItems, categoryItemTran
             }
         }
 
-        if ((!item.description || item.description.trim() === "") && commonDesc) {
-            item.description = commonDesc;
+        // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
+        if (!item.description || item.description.trim() === "") {
+            if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
+                item.description = DEFAULT_DESCRIPTIONS[item.name];
+            } else if (commonDesc) {
+                item.description = commonDesc;
+            }
         }
 
         if (!itemsByCategory[item.category]) {

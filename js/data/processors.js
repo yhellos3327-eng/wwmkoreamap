@@ -1,6 +1,7 @@
 import { state, setState } from '../state.js';
 import { t } from '../utils.js';
 import { webWorkerManager } from '../web-worker-manager.js';
+import { DEFAULT_DESCRIPTIONS } from '../config.js';
 
 export const USE_WORKERS = true;
 
@@ -93,8 +94,16 @@ const applyTranslations = (item, reverseRegionMap) => {
         }
     }
 
-    if ((!item.description || item.description.trim() === "") && commonDesc) {
-        item.description = commonDesc;
+    // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
+    if (!item.description || item.description.trim() === "") {
+        const translatedName = t(item.name) || item.name;
+        if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
+            item.description = DEFAULT_DESCRIPTIONS[translatedName];
+        } else if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
+            item.description = DEFAULT_DESCRIPTIONS[item.name];
+        } else if (commonDesc) {
+            item.description = commonDesc;
+        }
     }
 };
 

@@ -5,7 +5,6 @@ import { initMap, renderMapDataAndMarkers } from '../map.js';
 import { refreshCategoryList, updateToggleButtonsState, renderFavorites } from '../ui.js';
 import { calculateTranslationProgress } from '../translation.js';
 import { logger, perfTimer } from '../logger.js';
-
 import { loadTranslations } from './translations.js';
 import {
     processRegionData,
@@ -44,7 +43,6 @@ export const loadMapData = async (mapKey, onProgress) => {
         const mapTimer = perfTimer.start('Worker', 'Map Data Processing');
         const rawItems = dataJson.data || [];
 
-        // Add new markers from CSV if available
         if (newDataRes && newDataRes.ok) {
             const { parseCSVData } = await import('./processors.js');
             const newDataItems = await parseCSVData(newDataRes);

@@ -14,15 +14,12 @@ export const injectSetAllCategories = (fn) => {
 };
 
 export const setAllRegions = (isActive) => {
-    // Update state first
     state.activeRegionNames.clear();
     if (isActive) {
         state.uniqueRegions.forEach(r => state.activeRegionNames.add(r));
     }
 
-    // Refresh list to update UI
     refreshSidebarLists();
-
     updateToggleButtonsState();
     updateMapVisibility();
     saveFilterState();
@@ -32,20 +29,15 @@ const renderRegionItem = (region) => {
     const btn = document.createElement('div');
     btn.className = state.activeRegionNames.has(region) ? 'cate-item active' : 'cate-item';
     btn.dataset.region = region;
-    // Fixed height for virtual scrolling
     btn.style.height = '60px';
     btn.style.boxSizing = 'border-box';
 
-    // Calculate count from mapData.items instead of allMarkers for accurate counting
-    // This works regardless of GPU/CPU mode or viewport state
     const regionItems = state.mapData.items.filter(item => {
         const itemRegion = item.forceRegion || item.region || "알 수 없음";
         const normalizedRegion = state.reverseRegionMap[itemRegion] || itemRegion;
         return normalizedRegion === region;
     });
     const count = regionItems.length;
-
-    // For reset functionality, we still need marker references
     const regionMarkers = Array.from(state.allMarkers.values()).filter(m => m.region === region);
 
     let translatedCount = 0;
@@ -195,22 +187,19 @@ export const refreshSidebarLists = () => {
 
     const sortedRegions = Array.from(state.uniqueRegions).sort((a, b) => t(a).localeCompare(t(b), 'ko'));
 
-    // Initialize VirtualScroller if not exists
     if (!regionScroller) {
-        // Find the scroll container (parent .filter-container)
         const scrollContainer = regionListEl.closest('.filter-container');
 
         regionScroller = new VirtualScroller({
             element: regionListEl,
-            scrollContainer: scrollContainer, // Pass the scroll container
+            scrollContainer: scrollContainer,
             items: sortedRegions,
             renderItem: renderRegionItem,
-            itemHeight: 85, // Approximate height of .cate-item (70px + gap + border)
-            columns: 2, // 2 columns grid
+            itemHeight: 85,
+            columns: 2,
             buffer: 5
         });
     } else {
-        // Update items if scroller exists
         regionScroller.setItems(sortedRegions);
     }
 

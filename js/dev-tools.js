@@ -962,8 +962,8 @@ const handleMapClick = (e) => {
     const lng = e.latlng.lng.toFixed(6);
 
     if (devState.currentMode === 'coords') {
-        // 좌표 복사
-        const coordsText = `${lat}, ${lng}`;
+        // 좌표 복사 - CSV 형식에 맞게 ["lat"|"lng"] 형태로 복사
+        const coordsText = `["${lat}"|"${lng}"]`;
         navigator.clipboard.writeText(coordsText).then(() => {
             addLog(`복사됨: ${coordsText}`, 'success');
         }).catch(() => {

@@ -23,7 +23,7 @@ class WebWorkerManager {
         if (!this.workers[name]) {
             try {
                 const workerPath = `./js/workers/${name}.js`;
-                this.workers[name] = new Worker(workerPath);
+                this.workers[name] = new Worker(workerPath, { type: 'module' });
 
                 this.workers[name].onmessage = (e) => {
                     const { taskId, success, result, error } = e.data;
