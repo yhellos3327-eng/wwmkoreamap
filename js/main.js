@@ -28,6 +28,12 @@ window.finditem = findItem;
 window.jumpToId = jumpToId;
 window.memoryManager = memoryManager;
 
+// 개발자 도구 활성화 함수 (콘솔용)
+window.dev = async () => {
+    const { dev } = await import('./dev-tools.js');
+    return dev();
+};
+
 subscribe('isDevMode', (isDev) => {
     memoryManager.setDebug(isDev);
     if (isDev) {
