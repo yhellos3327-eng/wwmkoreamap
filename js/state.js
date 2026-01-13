@@ -75,6 +75,10 @@ const state = {
         if (this.savedGpuSetting === 'off') return false;
         return checkWebGL();
     },
+    set gpuRenderMode(value) {
+        this.savedGpuSetting = value ? 'on' : 'off';
+        localStorage.setItem('wwm_gpu_setting', this.savedGpuSetting);
+    },
     pixiOverlay: null,
     pixiContainer: null,
     loadingState: {

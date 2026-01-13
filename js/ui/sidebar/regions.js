@@ -36,13 +36,21 @@ const renderRegionItem = (region) => {
     btn.style.height = '60px';
     btn.style.boxSizing = 'border-box';
 
+    // Calculate count from mapData.items instead of allMarkers for accurate counting
+    // This works regardless of GPU/CPU mode or viewport state
+    const regionItems = state.mapData.items.filter(item => {
+        const itemRegion = item.forceRegion || item.region || "알 수 없음";
+        const normalizedRegion = state.reverseRegionMap[itemRegion] || itemRegion;
+        return normalizedRegion === region;
+    });
+    const count = regionItems.length;
+
+    // For reset functionality, we still need marker references
     const regionMarkers = Array.from(state.allMarkers.values()).filter(m => m.region === region);
-    const count = regionMarkers.length;
 
     let translatedCount = 0;
-    regionMarkers.forEach(m => {
-        const item = state.mapData.items.find(i => i.id === m.id);
-        if (item && (item.isTranslated || state.koDict[item.name] || state.koDict[item.name.trim()])) {
+    regionItems.forEach(item => {
+        if (item.isTranslated || state.koDict[item.name] || state.koDict[item.name?.trim()]) {
             translatedCount++;
         }
     });

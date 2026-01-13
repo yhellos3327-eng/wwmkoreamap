@@ -135,7 +135,10 @@ export const renderMapDataAndMarkers = async () => {
 };
 
 const renderAllMarkersForClustering = () => {
-    clearPixiOverlay();
+    // Clear Pixi overlay if it was loaded (safe call with optional chaining)
+    if (pixiModule) {
+        pixiModule.clearPixiOverlay();
+    }
 
     if (state.markerClusterGroup) {
         state.markerClusterGroup.clearLayers();
