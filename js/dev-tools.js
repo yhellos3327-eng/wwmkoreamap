@@ -16,7 +16,11 @@ const devState = {
     selectedMarkerData: null,
     changes: new Map(), // id -> { original: {lat, lng}, modified: {lat, lng} }
     newMarkers: [], // 신규 추가된 마커들
-    originalPositions: new Map() // 백업용
+    originalPositions: new Map(), // 백업용
+    regionMode: false, // 영역 편집 모드
+    currentPolygon: null, // 현재 편집 중인 폴리곤
+    polygonHandles: [], // 폴리곤 핸들 마커들
+    regionEditorUI: null // 영역 편집 UI
 };
 
 
@@ -62,6 +66,10 @@ const createDevModal = () => {
                 <button class="dev-btn" id="dev-btn-add" title="맵 클릭시 새 마커 추가">
                     <span class="dev-btn-icon">➕</span>
                     <span class="dev-btn-text">새 마커 추가</span>
+                </button>
+                <button class="dev-btn" id="dev-btn-region" title="영역(폴리곤) 편집">
+                    <span class="dev-btn-icon">📐</span>
+                    <span class="dev-btn-text">영역 편집</span>
                 </button>
             </div>
 
@@ -792,7 +800,8 @@ const updateUI = () => {
         const modeNames = {
             'move': '📍 마커 이동',
             'coords': '📋 좌표 복사',
-            'inspect': '🔍 정보 보기'
+            'inspect': '🔍 정보 보기',
+            'region': '📐 영역 편집'
         };
         modeDisplay.textContent = devState.currentMode ? modeNames[devState.currentMode] : '없음';
     }
@@ -805,7 +814,7 @@ const updateUI = () => {
     }
 
     // 버튼 active 상태
-    ['move', 'coords', 'inspect', 'add'].forEach(mode => {
+    ['move', 'coords', 'inspect', 'add', 'region'].forEach(mode => {
 
         const btn = document.getElementById(`dev-btn-${mode}`);
         if (btn) {
@@ -838,8 +847,16 @@ const updateUI = () => {
  * 모드 설정
  */
 const setMode = (mode) => {
+    // 이전 모드가 region이었다면 정리
+    if (devState.currentMode === 'region' && mode !== 'region') {
+        stopRegionMode();
+    }
+
     // 같은 모드 클릭시 해제
     if (devState.currentMode === mode) {
+        if (mode === 'region') {
+            stopRegionMode();
+        }
         devState.currentMode = null;
         clearSelection();
         addLog(`모드 해제`, 'info');
@@ -850,10 +867,15 @@ const setMode = (mode) => {
             'move': '마커를 클릭하세요',
             'coords': '맵을 클릭하면 좌표가 복사됩니다',
             'inspect': '마커를 클릭하면 정보가 출력됩니다',
-            'add': '맵을 클릭하여 새 마커를 추가하세요'
+            'add': '맵을 클릭하여 새 마커를 추가하세요',
+            'region': '영역 편집 패널을 사용하여 폴리곤을 그리세요'
         };
 
         addLog(modeMessages[mode], 'info');
+
+        if (mode === 'region') {
+            startRegionMode();
+        }
     }
     document.body.setAttribute('data-dev-mode', devState.currentMode || 'none');
     updateUI();
@@ -1020,6 +1042,8 @@ const handleMapClick = (e) => {
     } else if (devState.currentMode === 'add') {
         // 새 마커 추가 모달 표시
         createAddMarkerModal(lat, lng);
+    } else if (devState.currentMode === 'region') {
+        addPolygonPoint(e.latlng);
     }
 };
 
@@ -1158,6 +1182,7 @@ const bindDevEvents = () => {
     document.getElementById('dev-btn-coords')?.addEventListener('click', () => setMode('coords'));
     document.getElementById('dev-btn-inspect')?.addEventListener('click', () => setMode('inspect'));
     document.getElementById('dev-btn-add')?.addEventListener('click', () => setMode('add'));
+    document.getElementById('dev-btn-region')?.addEventListener('click', () => toggleRegionEditor());
 
 
     // 액션 버튼들
@@ -1288,7 +1313,216 @@ dev.help = () => {
     );
 };
 
+
+
 // window에 노출
 window.dev = dev;
 
+// --- Region Editor Logic ---
+
+const toggleRegionEditor = () => {
+    if (devState.currentMode === 'region') {
+        setMode(null);
+    } else {
+        setMode('region');
+    }
+};
+
+const startRegionMode = () => {
+    devState.regionMode = true;
+    createRegionEditorUI();
+    document.getElementById('region-editor-ui').style.display = 'flex';
+    addLog("영역 편집 모드 시작", 'info');
+};
+
+const stopRegionMode = () => {
+    devState.regionMode = false;
+    const ui = document.getElementById('region-editor-ui');
+    if (ui) ui.style.display = 'none';
+    clearPolygon();
+    addLog("영역 편집 모드 종료", 'info');
+};
+
+const createRegionEditorUI = () => {
+    if (document.getElementById('region-editor-ui')) return;
+
+    const container = document.createElement('div');
+    container.id = 'region-editor-ui';
+    container.style.cssText = `
+        position: fixed;
+        top: 80px;
+        right: 320px; /* dev panel width + margin */
+        background: rgba(20, 20, 25, 0.95);
+        padding: 16px;
+        border-radius: 12px;
+        z-index: 9999;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        color: white;
+        border: 1px solid #444;
+        width: 200px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    `;
+
+    container.innerHTML = `
+        <h4 style="margin: 0 0 5px 0; color: var(--accent); text-align: center; font-size: 14px;">📐 Region Editor</h4>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button id="btn-clear-polygon" class="dev-btn" style="justify-content: center; border-color: #ff6b6b; color: #ff6b6b;">Reset (Clear)</button>
+            <button id="btn-export-region" class="dev-btn dev-action-export" style="justify-content: center;">Export JSON</button>
+        </div>
+        <div style="font-size: 11px; color: #888; margin-top: 5px; line-height: 1.4;">
+            • 좌클릭: 점 추가<br>
+            • 드래그: 점 이동<br>
+            • 우클릭: 점 삭제
+        </div>
+    `;
+
+    document.body.appendChild(container);
+
+    document.getElementById('btn-clear-polygon').onclick = clearPolygon;
+    document.getElementById('btn-export-region').onclick = exportRegionJSON;
+};
+
+const startNewPolygon = () => {
+    clearPolygon();
+    devState.currentPolygon = L.polygon([], { color: '#ff4444', weight: 3 }).addTo(state.map);
+    addLog("새 폴리곤 그리기 시작", 'info');
+};
+
+
+
+const clearPolygon = () => {
+    if (devState.currentPolygon) {
+        state.map.removeLayer(devState.currentPolygon);
+        devState.currentPolygon = null;
+    }
+    devState.polygonHandles.forEach(h => state.map.removeLayer(h));
+    devState.polygonHandles = [];
+};
+
+const updatePolygonShape = () => {
+    if (!devState.currentPolygon) return;
+    const latlngs = devState.polygonHandles.map(h => h.getLatLng());
+    devState.currentPolygon.setLatLngs(latlngs);
+};
+
+const addPolygonPoint = (latlng) => {
+    if (!devState.currentPolygon) startNewPolygon();
+
+    const handle = L.marker(latlng, {
+        draggable: true,
+        icon: L.divIcon({
+            className: 'region-handle',
+            html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+            iconSize: [16, 16],
+            iconAnchor: [8, 8]
+        })
+    }).addTo(state.map);
+
+    handle.on('drag', updatePolygonShape);
+    handle.on('contextmenu', () => {
+        state.map.removeLayer(handle);
+        devState.polygonHandles = devState.polygonHandles.filter(h => h !== handle);
+        updatePolygonShape();
+    });
+
+    devState.polygonHandles.push(handle);
+    updatePolygonShape();
+};
+
+const exportRegionJSON = () => {
+    if (!devState.currentPolygon) {
+        alert("내보낼 폴리곤이 없습니다!");
+        return;
+    }
+
+    const latlngs = devState.currentPolygon.getLatLngs()[0]; // Assuming simple polygon
+    if (!latlngs || latlngs.length < 3) {
+        alert("최소 3개의 점이 필요합니다.");
+        return;
+    }
+
+    const coordinates = latlngs.map(ll => [
+        String(ll.lng),
+        String(ll.lat)
+    ]);
+
+    // Close the loop
+    if (coordinates.length > 0) {
+        coordinates.push(coordinates[0]);
+    }
+
+    const center = devState.currentPolygon.getBounds().getCenter();
+
+    const json = {
+        mapId: 3003,
+        title: "New Region",
+        zoom: 12,
+        latitude: String(center.lat),
+        longitude: String(center.lng),
+        coordinates: coordinates,
+        id: Date.now(),
+        map_id: 3003
+    };
+
+    console.log(JSON.stringify(json, null, 4));
+    
+    navigator.clipboard.writeText(JSON.stringify(json, null, 4)).then(() => {
+        alert("JSON이 클립보드에 복사되었습니다! (콘솔 확인)");
+        addLog("Region JSON 복사됨", 'success');
+    });
+};
+
+
+
+const loadRegion = (region) => {
+    if (devState.currentMode !== 'region') {
+        setMode('region');
+    }
+
+    clearPolygon();
+    
+    if (!region.coordinates || region.coordinates.length === 0) {
+        alert("좌표 데이터가 없는 지역입니다.");
+        return;
+    }
+
+    // 원본 데이터는 [lon, lat] 순서 (문자열일 수 있음)
+    // regions.js: const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
+    const latlngs = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
+    
+    // 폴리곤 생성
+    devState.currentPolygon = L.polygon(latlngs, { color: '#4444ff', weight: 3 }).addTo(state.map);
+    
+    // 핸들 생성
+    latlngs.forEach(ll => {
+        const handle = L.marker(ll, {
+            draggable: true,
+            icon: L.divIcon({
+                className: 'region-handle',
+                html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+                iconSize: [16, 16],
+                iconAnchor: [8, 8]
+            })
+        }).addTo(state.map);
+
+        handle.on('drag', updatePolygonShape);
+        handle.on('contextmenu', () => {
+            state.map.removeLayer(handle);
+            devState.polygonHandles = devState.polygonHandles.filter(h => h !== handle);
+            updatePolygonShape();
+        });
+
+        devState.polygonHandles.push(handle);
+    });
+
+    addLog(`${region.title} 영역 편집 시작`, 'success');
+};
+
+dev.loadRegion = loadRegion;
+dev.isRegionMode = () => devState.currentMode === 'region';
+
 export { dev, startDev, stopDev };
+

@@ -71,7 +71,13 @@ export const renderRegionPolygons = (filteredRegions) => {
             polygon.regionTitle = region.title;
 
             polygon.on('click', function (e) {
-                if (state.isDevMode) return;
+                if (state.isDevMode) {
+                    if (window.dev && typeof window.dev.isRegionMode === 'function' && window.dev.isRegionMode()) {
+                        window.dev.loadRegion(region);
+                        L.DomEvent.stopPropagation(e);
+                    }
+                    return;
+                }
 
                 if (state.gpuRenderMode && isGpuRenderingAvailable()) {
                     const container = getPixiContainer();

@@ -16,6 +16,174 @@ export const enableDevMode = () => {
     let editingItem = null;
     let uploadedImages = [];
 
+    // Region Editor State
+    let isRegionMode = false;
+    let currentPolygon = null;
+    let polygonHandles = [];
+    let regionEditorUI = null;
+
+    // --- Region Editor UI ---
+    const createRegionEditorUI = () => {
+        if (document.getElementById('region-editor-ui')) return;
+
+        const container = document.createElement('div');
+        container.id = 'region-editor-ui';
+        container.style.cssText = `
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 10px;
+            border-radius: 8px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            color: white;
+            border: 1px solid var(--accent);
+            width: 200px;
+        `;
+
+        container.innerHTML = `
+            <h4 style="margin: 0 0 5px 0; color: var(--accent); text-align: center;">Region Editor</h4>
+            <button id="btn-toggle-region-mode" style="padding: 5px; cursor: pointer;">Start Region Mode</button>
+            <div id="region-controls" style="display: none; flex-direction: column; gap: 5px;">
+                <button id="btn-new-polygon" style="padding: 5px; cursor: pointer;">New Polygon</button>
+                <button id="btn-finish-polygon" style="padding: 5px; cursor: pointer;">Finish Drawing</button>
+                <button id="btn-clear-polygon" style="padding: 5px; cursor: pointer; background: #d32f2f; color: white; border: none;">Clear</button>
+                <button id="btn-export-region" style="padding: 5px; cursor: pointer; background: #388e3c; color: white; border: none;">Export JSON</button>
+                <div style="font-size: 12px; color: #aaa; margin-top: 5px;">
+                    Left Click: Add Point<br>
+                    Drag Handle: Move Point<br>
+                    Right Click Handle: Delete Point
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(container);
+        regionEditorUI = container;
+
+        document.getElementById('btn-toggle-region-mode').onclick = toggleRegionMode;
+        document.getElementById('btn-new-polygon').onclick = startNewPolygon;
+        document.getElementById('btn-finish-polygon').onclick = finishPolygon;
+        document.getElementById('btn-clear-polygon').onclick = clearPolygon;
+        document.getElementById('btn-export-region').onclick = exportRegionJSON;
+    };
+
+    const toggleRegionMode = () => {
+        isRegionMode = !isRegionMode;
+        const btn = document.getElementById('btn-toggle-region-mode');
+        const controls = document.getElementById('region-controls');
+
+        if (isRegionMode) {
+            btn.textContent = "Exit Region Mode";
+            btn.style.background = "var(--accent)";
+            btn.style.color = "black";
+            controls.style.display = 'flex';
+            // Disable item edit mode interactions if needed
+        } else {
+            btn.textContent = "Start Region Mode";
+            btn.style.background = "";
+            btn.style.color = "";
+            controls.style.display = 'none';
+            clearPolygon();
+        }
+    };
+
+    const startNewPolygon = () => {
+        clearPolygon();
+        currentPolygon = L.polygon([], { color: 'red', weight: 2 }).addTo(state.map);
+    };
+
+    const finishPolygon = () => {
+        if (currentPolygon) {
+            currentPolygon.setStyle({ color: 'blue' });
+        }
+    };
+
+    const clearPolygon = () => {
+        if (currentPolygon) {
+            state.map.removeLayer(currentPolygon);
+            currentPolygon = null;
+        }
+        polygonHandles.forEach(h => state.map.removeLayer(h));
+        polygonHandles = [];
+    };
+
+    const updatePolygonShape = () => {
+        if (!currentPolygon) return;
+        const latlngs = polygonHandles.map(h => h.getLatLng());
+        currentPolygon.setLatLngs(latlngs);
+    };
+
+    const addPolygonPoint = (latlng) => {
+        if (!currentPolygon) startNewPolygon();
+
+        const handle = L.marker(latlng, {
+            draggable: true,
+            icon: L.divIcon({
+                className: 'region-handle',
+                html: '<div style="width: 10px; height: 10px; background: white; border: 2px solid red; border-radius: 50%;"></div>',
+                iconSize: [14, 14],
+                iconAnchor: [7, 7]
+            })
+        }).addTo(state.map);
+
+        handle.on('drag', updatePolygonShape);
+        handle.on('contextmenu', () => {
+            state.map.removeLayer(handle);
+            polygonHandles = polygonHandles.filter(h => h !== handle);
+            updatePolygonShape();
+        });
+
+        polygonHandles.push(handle);
+        updatePolygonShape();
+    };
+
+    const exportRegionJSON = () => {
+        if (!currentPolygon) {
+            alert("No polygon to export!");
+            return;
+        }
+
+        const latlngs = currentPolygon.getLatLngs()[0]; // Assuming simple polygon
+        // Format: [ [lon, lat], ... ] as strings
+        const coordinates = latlngs.map(ll => [
+            String(ll.lng),
+            String(ll.lat)
+        ]);
+
+        // Close the loop
+        if (coordinates.length > 0) {
+            coordinates.push(coordinates[0]);
+        }
+
+        const center = currentPolygon.getBounds().getCenter();
+
+        const json = {
+            mapId: 3003, // Default to Kaifeng/current, maybe make selectable
+            title: "New Region",
+            zoom: 12,
+            latitude: String(center.lat),
+            longitude: String(center.lng),
+            coordinates: coordinates,
+            id: Date.now(), // Temp ID
+            map_id: 3003
+        };
+
+        console.log(JSON.stringify(json, null, 4));
+        
+        // Copy to clipboard
+        navigator.clipboard.writeText(JSON.stringify(json, null, 4)).then(() => {
+            alert("Region JSON copied to clipboard! (Check console for full output)");
+        });
+    };
+
+    // Initialize UI
+    createRegionEditorUI();
+
+    // --- Existing Item Editor Code ---
+
     if (categorySelect && state.mapData.categories) {
         categorySelect.innerHTML = '';
         const defaultOption = document.createElement('option');
@@ -69,6 +237,7 @@ export const enableDevMode = () => {
 
     const onMarkerClick = (e) => {
         if (!state.isDevMode) return;
+        if (isRegionMode) return; // Disable item editing in region mode
 
         const marker = e.target;
         marker.closePopup();
@@ -119,20 +288,27 @@ export const enableDevMode = () => {
     attachListeners();
 
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && editingItem) {
-            editingItem = null;
-            console.log("Edit mode cancelled");
-            alert("편집 모드가 취소되었습니다.");
-            const elName = document.getElementById('dev-name');
-            if (elName) elName.value = "";
-            const elDesc = document.getElementById('dev-desc');
-            if (elDesc) elDesc.value = "";
-            if (categorySelect) categorySelect.value = "";
+        if (e.key === 'Escape') {
+            if (editingItem) {
+                editingItem = null;
+                console.log("Edit mode cancelled");
+                alert("편집 모드가 취소되었습니다.");
+                const elName = document.getElementById('dev-name');
+                if (elName) elName.value = "";
+                const elDesc = document.getElementById('dev-desc');
+                if (elDesc) elDesc.value = "";
+                if (categorySelect) categorySelect.value = "";
+            }
         }
     });
 
     state.map.on('click', (e) => {
         if (!state.isDevMode) return;
+
+        if (isRegionMode) {
+            addPolygonPoint(e.latlng);
+            return;
+        }
 
         const lat = e.latlng.lat.toFixed(6);
         const lng = e.latlng.lng.toFixed(6);
