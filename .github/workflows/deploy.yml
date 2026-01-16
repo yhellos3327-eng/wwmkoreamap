@@ -89,10 +89,10 @@ jobs:
       - name: Minify CSS
         run: |
           # 프로젝트 내의 모든 .css 파일을 찾아 강력하게 압축 (Level 2)
-          # npx를 사용하여 실행 환경 문제를 방지하고 처리 과정을 출력합니다.
+          # clean-css-cli의 최적화 옵션은 -O2를 사용합니다.
           find . -name "*.css" -not -path "*/node_modules/*" | while read f; do
             echo "Minifying $f..."
-            npx clean-css-cli --level 2 -o "$f" "$f"
+            npx clean-css-cli -O2 -o "$f" "$f"
           done
           echo "CSS minification (Level 2) complete"
 
