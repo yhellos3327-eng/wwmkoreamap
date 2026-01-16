@@ -89,11 +89,9 @@ jobs:
       - name: Minify CSS
         run: |
           npm install -g clean-css-cli
-          find ./css -name "*.css" -exec sh -c 'cleancss -o "$1" "$1"' _ {} \;
-          if [ -f "style.css" ]; then
-            cleancss -o style.css style.css
-          fi
-          echo "CSS minification complete"
+          # 프로젝트 내의 모든 .css 파일을 찾아 강력하게 압축 (수정 금지 수준 2 적용)
+          find . -name "*.css" -not -path "*/node_modules/*" -exec sh -c 'cleancss --level 2 -o "$1" "$1"' _ {} \;
+          echo "CSS minification (Level 2) complete"
 
       - name: Debug - List files
         run: |
