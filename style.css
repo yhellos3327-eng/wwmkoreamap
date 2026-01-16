@@ -8,6 +8,8 @@
 @import 'css/popups/votes.css';
 @import 'css/responsive.css';
 @import 'css/overlay-mode.css';
+@import 'css/web-llm.css';
+
 
 .leaflet-container.low-quality-mode .game-marker-icon {
     transform: scale(0.6) !important;

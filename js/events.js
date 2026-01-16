@@ -89,14 +89,13 @@ export const initRelatedModal = () => {
   }
 };
 
-export const initGithubModal = () => {
-  const githubModal = document.getElementById("github-modal");
-  const openGithubModalBtn = document.getElementById("open-github-modal");
+export const initWebLLMModal = () => {
+  const webLLMModal = document.getElementById("web-llm-modal");
+  const openWebLLMModalBtn = document.getElementById("open-web-llm-modal");
 
-  if (openGithubModalBtn && githubModal) {
-    openGithubModalBtn.addEventListener("click", () => {
-      renderContributionModal();
-      githubModal.classList.remove("hidden");
+  if (openWebLLMModalBtn && webLLMModal) {
+    openWebLLMModalBtn.addEventListener("click", () => {
+      import("./web-llm.js").then((m) => m.openWebLLMModal());
     });
   }
 };
@@ -124,9 +123,9 @@ export const initGlobalEventDelegation = () => {
     const action = target.dataset.action;
 
     switch (action) {
-      case "close-github-modal":
+      case "close-web-llm-modal":
         e.stopPropagation();
-        document.getElementById("github-modal")?.classList.add("hidden");
+        document.getElementById("web-llm-modal")?.classList.add("hidden");
         break;
       case "close-related-modal":
         e.stopPropagation();
@@ -212,7 +211,7 @@ export const initAllEventHandlers = () => {
   initToggleButtons();
   initSidebarToggle();
   initRelatedModal();
-  initGithubModal();
+  initWebLLMModal();
   initKeyboardEvents();
   initGlobalEventDelegation();
   initRouteMode();

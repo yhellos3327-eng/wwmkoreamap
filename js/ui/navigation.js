@@ -1,5 +1,9 @@
 import { state } from "../state.js";
-import { updateMapVisibility, moveToLocation } from "../map.js";
+import {
+  updateMapVisibility,
+  moveToLocation,
+  createMarkerForItem,
+} from "../map.js";
 import { saveFilterState } from "../data.js";
 import { t } from "../utils.js";
 import { setAllRegions, updateToggleButtonsState } from "./sidebar.js";
@@ -203,8 +207,9 @@ export const jumpToId = (id) => {
   }
 };
 
-export const findItem = (id) => {
+export const findItem = async (id) => {
   const targetId = String(id);
+  window.findItem = findItem;
   let target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
 
   if (target) {
@@ -239,13 +244,35 @@ export const findItem = (id) => {
     setAllRegions(true);
     filtersChanged = true;
   }
+
+  // 완료 항목 숨기기가 켜져 있으면 강제로 끔 (마커 표시를 위해)
+  if (state.hideCompleted) {
+    state.hideCompleted = false;
+    filtersChanged = true;
+    const hideToggle = document.getElementById("toggle-hide-completed");
+    if (hideToggle) hideToggle.checked = false;
+  }
+
   if (filtersChanged) {
-    updateMapVisibility();
+    await updateMapVisibility();
     updateToggleButtonsState();
     saveFilterState();
   }
+
+  // 렌더링 대기 및 마커 확인
   setTimeout(() => {
     target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
+
+    // 여전히 마커가 없다면 수동으로 생성 시도
+    if (!target) {
+      const markerData = createMarkerForItem(item);
+      if (markerData) {
+        state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
+        target = markerData.markerInfo;
+        logger.log("Navigation", `마커 수동 생성 완료: ${item.id}`);
+      }
+    }
+
     if (target) {
       const latlng = target.marker
         ? target.marker.getLatLng()
@@ -260,7 +287,7 @@ export const findItem = (id) => {
     } else {
       logger.error("Navigation", "필터 활성화 후 마커 생성 실패");
     }
-  }, 100);
+  }, 200);
 };
 
 export const openReportPage = (itemId) => {

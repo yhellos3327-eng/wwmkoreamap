@@ -1,0 +1,105 @@
+<div id="web-llm-modal" class="web-llm-modal-overlay hidden">
+    <div class="web-llm-panel">
+        <div class="web-llm-header">
+            <h4>
+                <span class="icon">🤖</span>
+                AI 채팅 (WebLLM Beta)
+            </h4>
+            <div class="web-llm-controls">
+                <button id="btn-add-custom-model" class="web-llm-btn" title="커스텀 모델 추가">
+                    <span>+</span>
+                </button>
+                <button class="web-llm-close-btn" data-action="close-web-llm-modal">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        
+        <div class="web-llm-body">
+            <!-- 설정 영역 -->
+            <div class="web-llm-settings">
+                <div class="web-llm-row">
+                    <div class="web-llm-col">
+                        <label class="web-llm-label">모델 선택</label>
+                        <select id="web-llm-model-select" class="web-llm-select">
+                            <option value="" disabled selected>모델을 선택하세요</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="web-llm-row">
+                    <div class="web-llm-col">
+                        <label class="web-llm-label">캐릭터(페르소나)</label>
+                        <select id="llm-character-select" class="web-llm-select">
+                            <option value="default">기본 어시스턴트</option>
+                            <option value="kind_guide">친절한 가이드</option>
+                            <option value="historical_scholar">역사 학자</option>
+                            <option value="local_expert">지역 전문가</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="web-llm-col">
+                    <div class="web-llm-status">대기 중...</div>
+                    <div id="llm-progress-bar" class="web-llm-progress">
+                        <div id="llm-progress-fill" class="web-llm-progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 채팅 영역 -->
+            <div class="web-llm-chat-container">
+                <div class="chat-message system" style="align-self: center; color: var(--text-muted); font-style: italic; text-align: center; max-width: 90%;">
+                    <p>WebLLM은 브라우저 내에서 직접 실행되는 AI 모델입니다.</p>
+                    <p style="font-size: 0.8rem; margin-top: 5px;">초기 로딩 시 대용량 데이터(1GB+)를 다운로드합니다.</p>
+                    <p>중요한것은, 현재 기능은 Beta이기에 출력이 매우 쓰레기입니다. 재미로 사용하시길..</p>
+                </div>
+            </div>
+
+            <!-- 입력 영역 -->
+            <div class="web-llm-input-area">
+                <div class="web-llm-input-wrapper">
+                    <textarea class="web-llm-textarea" placeholder="메시지를 입력하세요..."></textarea>
+                    <div style="display: flex; flex-direction: column; gap: 5px; justify-content: flex-end;">
+                        <button class="web-llm-send-btn web-llm-btn primary" style="height: 100%;">전송</button>
+                        <button id="chat-stop-btn" class="web-llm-btn" style="height: 100%; display: none;">중지</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 커스텀 모델 추가 모달 (중첩) -->
+    <div id="custom-model-modal" class="hidden" style="position: fixed; inset: 0; z-index: 2100; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;">
+        <div class="modal-content" style="width: 400px; background: var(--bg-panel); padding: 20px; border-radius: 16px; border: 1px solid var(--border);">
+            <div class="modal-header" style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;">
+                <h3 style="margin: 0; font-size: 1.1rem;">커스텀 모델 추가</h3>
+                <button id="close-custom-model-btn" class="close-modal-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 1.2rem;">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px;">
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted);">이름 (Label)</label>
+                    <input type="text" id="cm-label" class="web-llm-select" placeholder="예: My Custom Model">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted);">Model ID</label>
+                    <input type="text" id="cm-id" class="web-llm-select" placeholder="예: Qwen2.5-14B-Instruct-q4f16_1-MLC">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted);">HuggingFace URL (MLC Weights)</label>
+                    <input type="text" id="cm-url" class="web-llm-select" placeholder="https://huggingface.co/...">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted);">Model Lib URL (Wasm)</label>
+                    <input type="text" id="cm-lib-url" class="web-llm-select" placeholder="https://.../model.wasm">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: var(--text-muted);">VRAM (GB, 선택)</label>
+                    <input type="number" id="cm-vram" class="web-llm-select" placeholder="예: 8" step="0.1">
+                </div>
+                <button id="cm-add-btn" class="web-llm-btn primary" style="width: 100%; margin-top: 10px;">추가하기</button>
+            </div>
+        </div>
+    </div>
+</div>

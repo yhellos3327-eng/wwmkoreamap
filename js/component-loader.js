@@ -28,7 +28,7 @@ export const loadAllComponents = async () => {
     loadComponent("components/sidebar.html", "sidebar-placeholder"),
     loadComponent("components/settings-modal.html"),
     loadComponent("components/keyboard-modal.html"),
-    loadComponent("components/github-modal.html"),
+    loadComponent("components/web-llm.html"),
     loadComponent("components/related-modal.html"),
     loadComponent("components/dev-modal.html"),
     loadComponent("components/lightboxes.html"),
