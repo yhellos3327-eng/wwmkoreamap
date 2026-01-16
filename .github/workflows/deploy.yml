@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       # Remove .gitignore first to ensure all generated files are included
       - name: Remove .gitignore
         run: rm -f .gitignore
@@ -63,11 +63,27 @@ jobs:
               appId: "$FIREBASE_APP_ID"
           };
           EOF
-          
+
           echo "Generated js/env.js successfully"
-          
+
           # Ensure .nojekyll exists
           touch .nojekyll
+
+      # Obfuscate JavaScript files
+      - name: Obfuscate JavaScript
+        run: |
+          npx javascript-obfuscator ./js --output ./js \
+            --compact true \
+            --self-defending false \
+            --control-flow-flattening false \
+            --dead-code-injection false \
+            --string-array true \
+            --string-array-rotate true \
+            --string-array-shuffle true \
+            --string-array-threshold 0.75 \
+            --identifier-names-generator hexadecimal \
+            --rename-globals false \
+            --target browser
 
       - name: Debug - List files
         run: |
@@ -78,15 +94,15 @@ jobs:
             echo "js/env.js creation FAILED"
             exit 1
           fi
-      
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
-      
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
-      
+          path: "."
+
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
