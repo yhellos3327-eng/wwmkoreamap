@@ -1,0 +1,193 @@
+/* 아카라이브 패널 스타일 - 사이드바와 일관된 디자인 */
+.arca-panel {
+    position: fixed;
+    top: 16px;
+    left: calc(var(--sidebar-width, 320px) + 32px);
+    width: 0;
+    height: calc(100vh - 32px);
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border-radius: 24px;
+    z-index: 1000;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+                opacity 0.3s ease,
+                transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--glass-shadow);
+    opacity: 0;
+    transform: translateX(-20px);
+}
+
+.arca-panel.open {
+    width: 820px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+/* 외곽선 애니메이션 - 사이드바와 동일 */
+.arca-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
+            transparent 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+    will-change: transform;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.arca-panel.open::after {
+    opacity: 1;
+}
+
+.arca-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--glass-border);
+    min-height: 56px;
+    border-radius: 24px 24px 0 0;
+}
+
+.arca-panel-header h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+}
+
+.arca-panel-header h3 .icon-mask {
+    flex-shrink: 0;
+}
+
+.arca-panel-close {
+    background: var(--bg-item);
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.arca-panel-close:hover {
+    color: var(--text-main);
+    background: var(--bg-item-hover);
+    transform: scale(1.05);
+}
+
+.arca-panel-content {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+    background: #fff;
+    border-radius: 0 0 24px 24px;
+}
+
+.arca-panel-content object {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+/* Fallback 스타일 */
+.arca-panel-content p {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 24px;
+    text-align: center;
+    color: var(--text-muted);
+    background: var(--bg-panel);
+}
+
+.arca-panel-content p a {
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: var(--accent);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.arca-panel-content p a:hover {
+    background: var(--accent-hover);
+    transform: translateY(-2px);
+}
+
+/* 사이드바 상태에 따른 위치 조정 */
+body.sidebar-open .arca-panel {
+    left: calc(var(--sidebar-width, 320px) + 32px);
+}
+
+body:not(.sidebar-open) .arca-panel {
+    left: 16px;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+    .arca-panel {
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100vh;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .arca-panel.open {
+        width: 100%;
+    }
+
+    .arca-panel-header {
+        border-radius: 0;
+    }
+
+    .arca-panel-content {
+        border-radius: 0;
+    }
+
+    body.sidebar-open .arca-panel,
+    body:not(.sidebar-open) .arca-panel {
+        left: 0;
+    }
+}

@@ -7,6 +7,7 @@
 @import 'sidebar/progress.css';
 @import 'sidebar/ads.css';
 @import 'sidebar/routes.css';
+@import 'sidebar/arca-panel.css';
 
 .spoiler {
     position: relative;
