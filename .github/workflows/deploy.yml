@@ -81,7 +81,7 @@ jobs:
             --string-array-rotate true \
             --string-array-shuffle true \
             --string-array-threshold 0.75 \
-            --identifier-names-generator hexadecimal \
+            --identifier-names-generator mangled \
             --rename-globals false \
             --target browser
 
