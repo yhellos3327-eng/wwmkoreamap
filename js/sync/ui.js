@@ -1,13 +1,13 @@
 const createSyncTooltip = () => {
-    let tooltip = document.getElementById('sync-tooltip');
-    if (!tooltip) {
-        tooltip = document.createElement('div');
-        tooltip.id = 'sync-tooltip';
-        tooltip.innerHTML = `
+  let tooltip = document.getElementById("sync-tooltip");
+  if (!tooltip) {
+    tooltip = document.createElement("div");
+    tooltip.id = "sync-tooltip";
+    tooltip.innerHTML = `
             <span class="sync-spinner">⟳</span>
             <span class="sync-text">동기화중...</span>
         `;
-        tooltip.style.cssText = `
+    tooltip.style.cssText = `
             position: fixed;
             top: 80px;
             left: 50%;
@@ -29,8 +29,8 @@ const createSyncTooltip = () => {
             transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
         `;
 
-        const style = document.createElement('style');
-        style.textContent = `
+    const style = document.createElement("style");
+    style.textContent = `
             @keyframes sync-spin {
                 from { transform: rotate(0deg); }
                 to { transform: rotate(360deg); }
@@ -60,67 +60,73 @@ const createSyncTooltip = () => {
                 pointer-events: none;
             }
         `;
-        document.head.appendChild(style);
-        document.body.appendChild(tooltip);
-    }
-    return tooltip;
+    document.head.appendChild(style);
+    document.body.appendChild(tooltip);
+  }
+  return tooltip;
 };
 
-export const showSyncTooltip = (message = '동기화중...', type = 'syncing') => {
-    const tooltip = createSyncTooltip();
-    const spinner = tooltip.querySelector('.sync-spinner');
-    const text = tooltip.querySelector('.sync-text');
+export const showSyncTooltip = (message = "동기화중...", type = "syncing") => {
+  const tooltip = createSyncTooltip();
+  const spinner = tooltip.querySelector(".sync-spinner");
+  const text = tooltip.querySelector(".sync-text");
 
-    tooltip.classList.remove('hidden', 'sync-success', 'sync-error', 'sync-update');
+  tooltip.classList.remove(
+    "hidden",
+    "sync-success",
+    "sync-error",
+    "sync-update",
+  );
 
-    if (type === 'success') {
-        tooltip.classList.add('sync-success');
-        spinner.textContent = '✓';
-        spinner.style.animation = 'none';
-    } else if (type === 'error') {
-        tooltip.classList.add('sync-error');
-        spinner.textContent = '✕';
-        spinner.style.animation = 'none';
-    } else if (type === 'update') {
-        tooltip.classList.add('sync-update');
-        spinner.textContent = '↻';
-        spinner.style.animation = 'none';
-    } else {
-        spinner.textContent = '⟳';
-        spinner.style.animation = 'sync-spin 1s linear infinite';
-    }
+  if (type === "success") {
+    tooltip.classList.add("sync-success");
+    spinner.textContent = "✓";
+    spinner.style.animation = "none";
+  } else if (type === "error") {
+    tooltip.classList.add("sync-error");
+    spinner.textContent = "✕";
+    spinner.style.animation = "none";
+  } else if (type === "update") {
+    tooltip.classList.add("sync-update");
+    spinner.textContent = "↻";
+    spinner.style.animation = "none";
+  } else {
+    spinner.textContent = "⟳";
+    spinner.style.animation = "sync-spin 1s linear infinite";
+  }
 
-    text.textContent = message;
-    tooltip.style.display = 'flex';
+  text.textContent = message;
+  tooltip.style.display = "flex";
 
-    // Force reflow
-    tooltip.offsetHeight;
-    tooltip.classList.remove('hidden');
+  // Force reflow
+  tooltip.offsetHeight;
+  tooltip.classList.remove("hidden");
 };
 
 export const hideSyncTooltip = (delay = 0) => {
-    setTimeout(() => {
-        const tooltip = document.getElementById('sync-tooltip');
-        if (tooltip) {
-            tooltip.classList.add('hidden');
-            setTimeout(() => {
-                if (tooltip.classList.contains('hidden')) {
-                    tooltip.style.display = 'none';
-                }
-            }, 400); // Match transition duration
+  setTimeout(() => {
+    const tooltip = document.getElementById("sync-tooltip");
+    if (tooltip) {
+      tooltip.classList.add("hidden");
+      setTimeout(() => {
+        if (tooltip.classList.contains("hidden")) {
+          tooltip.style.display = "none";
         }
-    }, delay);
+      }, 400); // Match transition duration
+    }
+  }, delay);
 };
 
-export const showSyncToast = (message, type = 'info') => {
-    let toast = document.getElementById('sync-toast');
-    if (!toast) {
-        toast = document.createElement('div');
-        toast.id = 'sync-toast';
-        toast.style.cssText = `
+export const showSyncToast = (message, type = "info") => {
+  let toast = document.getElementById("sync-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "sync-toast";
+    toast.style.cssText = `
             position: fixed;
-            bottom: 24px;
-            right: 24px;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
             background: var(--bg-panel);
             backdrop-filter: var(--glass-blur) saturate(180%);
             -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
@@ -131,25 +137,27 @@ export const showSyncToast = (message, type = 'info') => {
             font-weight: 500;
             z-index: 10000;
             opacity: 0;
-            transform: translateY(20px);
             transition: all 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
             box-shadow: var(--glass-shadow);
             border: 1px solid var(--glass-border);
-            max-width: 320px;
+            max-width: 90vw;
+            width: max-content;
+            text-align: center;
         `;
-        document.body.appendChild(toast);
-    }
+    document.body.appendChild(toast);
+  }
 
-    if (type === 'success') toast.style.borderColor = 'rgba(50, 215, 75, 0.4)';
-    else if (type === 'update') toast.style.borderColor = 'rgba(0, 122, 255, 0.4)';
-    else toast.style.borderColor = 'var(--glass-border)';
+  if (type === "success") toast.style.borderColor = "rgba(50, 215, 75, 0.4)";
+  else if (type === "update")
+    toast.style.borderColor = "rgba(0, 122, 255, 0.4)";
+  else toast.style.borderColor = "var(--glass-border)";
 
-    toast.textContent = message;
-    toast.style.opacity = '1';
-    toast.style.transform = 'translateY(0)';
+  toast.textContent = message;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateX(-50%) translateY(0)";
 
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateY(20px)';
-    }, 3000);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateX(-50%) translateY(-20px)";
+  }, 3000);
 };

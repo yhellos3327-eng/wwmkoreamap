@@ -272,6 +272,17 @@ const executeShortcutAction = async (actionId) => {
       break;
 
     case "closeModal":
+      // 오류 제보 패널 닫기
+      const reportPanel = document.getElementById("report-panel");
+      if (reportPanel && reportPanel.classList.contains("open")) {
+        reportPanel.classList.remove("open");
+        const reportEmbed = document.getElementById("report-embed");
+        if (reportEmbed) {
+          reportEmbed.setAttribute("data", "");
+        }
+        break;
+      }
+
       // 아카라이브 패널 닫기
       const arcaPanel = document.getElementById("arca-panel");
       if (arcaPanel && arcaPanel.classList.contains("open")) {

@@ -85,6 +85,16 @@ jobs:
             --rename-globals false \
             --target browser
 
+      # Minify CSS files
+      - name: Minify CSS
+        run: |
+          npm install -g clean-css-cli
+          find ./css -name "*.css" -exec sh -c 'cleancss -o "$1" "$1"' _ {} \;
+          if [ -f "style.css" ]; then
+            cleancss -o style.css style.css
+          fi
+          echo "CSS minification complete"
+
       - name: Debug - List files
         run: |
           ls -R js/

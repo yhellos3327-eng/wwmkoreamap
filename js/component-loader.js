@@ -35,5 +35,6 @@ export const loadAllComponents = async () => {
     loadComponent("components/integrity-check-modal.html"),
     loadComponent("components/result-alert-modal.html"),
     loadComponent("components/arca-panel.html"),
+    loadComponent("components/report-panel.html"),
   ]);
 };

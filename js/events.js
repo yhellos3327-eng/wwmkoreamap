@@ -192,6 +192,21 @@ export const initArcaChannel = () => {
   }
 };
 
+export const initReportPanel = () => {
+  const closeBtn = document.getElementById("close-report-panel");
+  const panel = document.getElementById("report-panel");
+  const embed = document.getElementById("report-embed");
+
+  if (closeBtn && panel) {
+    closeBtn.addEventListener("click", () => {
+      panel.classList.remove("open");
+      if (embed) {
+        embed.setAttribute("data", "");
+      }
+    });
+  }
+};
+
 export const initAllEventHandlers = () => {
   initTabs();
   initToggleButtons();
@@ -202,4 +217,5 @@ export const initAllEventHandlers = () => {
   initGlobalEventDelegation();
   initRouteMode();
   initArcaChannel();
+  initReportPanel();
 };
