@@ -178,3 +178,63 @@ export const fetchUserIp = async (masked = true) => {
 };
 
 export const getCachedMaskedIp = () => cachedMaskedIp;
+
+/**
+ * Simple Markdown Parser
+ * Supports: Bold, Italic, Strikethrough, Links, Headers, Blockquotes, Code, HR
+ */
+export const parseMarkdown = (text) => {
+  if (!text) return "";
+  let html = text;
+
+  // Headers
+  html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
+  html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
+  html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
+
+  // Bold (**text** or __text__)
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
+
+  // Italic (*text* or _text_)
+  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  html = html.replace(/_(.*?)_/g, "<em>$1</em>");
+
+  // Strikethrough (~~text~~)
+  html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
+
+  // Blockquote (> text)
+  html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
+
+  // Code block (```text```)
+  html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+
+  // Inline code (`text`)
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+  // Horizontal Rule (---)
+  html = html.replace(/^---$/gm, "<hr>");
+
+  // Lists (Unordered)
+  html = html.replace(
+    /(^|\n)((?:[-*] .+(?:\n|$))+)/g,
+    (match, prefix, list) => {
+      const items = list
+        .trim()
+        .split(/\n/)
+        .map((line) => {
+          return `<li>${line.replace(/^[-*] /, "")}</li>`;
+        })
+        .join("");
+      return `${prefix}<ul>${items}</ul>`;
+    },
+  );
+
+  // Links ([text](url))
+  html = html.replace(
+    /\[([^\]]+)\]\(([^)]+)\)/g,
+    '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
+  );
+
+  return html;
+};

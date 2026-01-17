@@ -132,7 +132,8 @@
     z-index: 1;
 }
 
-.popup-body p {
+/* Replaced .popup-body p with .popup-content */
+.popup-content {
     margin: 0;
     font-size: 0.9rem;
     line-height: 1.7;
@@ -140,7 +141,7 @@
     word-break: keep-all;
 }
 
-.popup-body p:empty {
+.popup-content:empty {
     display: none;
 }
 
@@ -229,4 +230,93 @@
     border: 0;
     border-bottom: 1px solid var(--border);
     margin: 10px 0;
+}
+
+/* Markdown Styles */
+.popup-content h1,
+.popup-content h2,
+.popup-content h3 {
+    margin: 12px 0 6px;
+    color: var(--text-main);
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+.popup-content h1 { font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.popup-content h2 { font-size: 1.1rem; }
+.popup-content h3 { font-size: 1.0rem; }
+
+.popup-content p {
+    margin: 0 0 8px 0;
+}
+
+.popup-content p:last-child {
+    margin-bottom: 0;
+}
+
+.popup-content ul,
+.popup-content ol {
+    margin: 6px 0 10px 20px;
+    padding: 0;
+}
+
+.popup-content li {
+    margin-bottom: 4px;
+    line-height: 1.6;
+}
+
+.popup-content blockquote {
+    margin: 10px 0;
+    padding: 8px 12px;
+    border-left: 3px solid var(--accent);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    font-style: italic;
+    border-radius: 0 4px 4px 0;
+}
+
+.popup-content pre {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 10px 0;
+    border: 1px solid var(--border);
+}
+
+.popup-content code {
+    font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    color: var(--accent-light);
+}
+
+.popup-content pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    font-size: 0.9em;
+}
+
+.popup-content strong {
+    font-weight: 700;
+    color: var(--text-main);
+}
+
+.popup-content em {
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.popup-content del {
+    text-decoration: line-through;
+    opacity: 0.6;
+}
+
+.popup-content hr {
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    margin: 16px 0;
 }

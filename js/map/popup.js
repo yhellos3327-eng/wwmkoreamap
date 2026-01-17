@@ -1,5 +1,5 @@
 import { state } from "../state.js";
-import { t, getJosa } from "../utils.js";
+import { t, getJosa, parseMarkdown } from "../utils.js";
 import { formatCompletedTime } from "../ui/navigation.js";
 import {
   openLightbox,
@@ -53,13 +53,13 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 
   if (!isExternalContent) {
     if (itemDescription) {
-      itemDescription = itemDescription.replace(
-        /\[([^\]]+)\]\(([^)]+)\)/g,
-        '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
-      );
-      itemDescription = itemDescription.replace(/\n/g, "<br>");
       itemDescription = itemDescription.replace(/{name}/g, replaceName);
       itemDescription = itemDescription.replace(/{region}/g, displayRegion);
+
+      itemDescription = parseMarkdown(itemDescription);
+
+      itemDescription = itemDescription.replace(/\n/g, "<br>");
+
       // 스포일러 처리: {spoiler}...{/spoiler} -> 클릭 가능한 스포일러 span
       itemDescription = itemDescription.replace(
         /{spoiler}([\s\S]*?){\/spoiler}/g,
@@ -273,9 +273,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 
   const bodyContent = isExternalContent
     ? `<div id="${contentId}"></div>`
-    : itemDescription.startsWith("<p")
-      ? itemDescription
-      : `<p>${itemDescription}</p>`;
+    : `<div class="popup-content">${itemDescription}</div>`;
 
   return `
     <div class="popup-container" data-id="${item.id}" data-lat="${lat}" data-lng="${lng}">

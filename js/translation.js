@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { t } from "./utils.js";
+import { t, parseMarkdown } from "./utils.js";
 
 /**
  * Chrome 내장 번역 사용하여 아이템 번역
@@ -226,13 +226,12 @@ export const translateItem = async (itemId, translateType = "ai") => {
       }
 
       // 본문 업데이트
-      const bodyEl = popupContainer.querySelector(".popup-body p");
+      const bodyEl = popupContainer.querySelector(".popup-content");
       if (bodyEl) {
         let desc = result.description ?? "";
-        desc = desc.replace(
-          /\[([^\]]+)\]\(([^)]+)\)/g,
-          '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
-        );
+
+        desc = parseMarkdown(desc);
+
         desc = desc.replace(/\n/g, "<br>");
         desc = desc.replace(
           /{spoiler}([\s\S]*?){\/spoiler}/g,
