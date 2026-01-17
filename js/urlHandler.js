@@ -4,6 +4,7 @@
  */
 import { state, setState } from "./state.js";
 import { findItem } from "./ui.js";
+import { MAP_CONFIGS } from "./config.js";
 
 /**
  * URL 파라미터를 파싱하여 앱 상태에 반영
@@ -12,20 +13,17 @@ import { findItem } from "./ui.js";
 export const handleUrlParams = () => {
   const urlParams = new URLSearchParams(window.location.search);
 
-  
   const mapParam = urlParams.get("map");
-  if (mapParam && (mapParam === "qinghe" || mapParam === "kaifeng")) {
+  if (mapParam && MAP_CONFIGS[mapParam]) {
     setState("currentMapKey", mapParam);
   }
 
-  
   if (urlParams.get("embed") === "true") {
     document.body.classList.add("embed-mode");
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.classList.add("collapsed");
   }
 
-  
   if (urlParams.get("overlay") === "true") {
     document.body.classList.add("overlay-mode");
   }
@@ -43,7 +41,6 @@ export const handleSharedLink = (urlParams) => {
   const sharedLng = parseFloat(urlParams.get("lng"));
   const routeParam = urlParams.get("route");
 
-  
   if (routeParam) {
     import("./route/index.js")
       .then((routeModule) => {
@@ -55,13 +52,11 @@ export const handleSharedLink = (urlParams) => {
     return;
   }
 
-  
   if (sharedId) {
     setTimeout(() => findItem(sharedId), 1000);
     return;
   }
 
-  
   if (!isNaN(sharedLat) && !isNaN(sharedLng)) {
     setTimeout(() => {
       if (state.map) {

@@ -19,7 +19,7 @@ export const toggleCompleted = (id) => {
   const index = state.completedList.findIndex(
     (item) => String(item.id) === targetId,
   );
-  
+
   const target =
     state.allMarkers.get(id) ??
     state.allMarkers.get(targetId) ??
@@ -31,7 +31,7 @@ export const toggleCompleted = (id) => {
     state.completedList.push({ id: targetId, completedAt });
     if (target?.marker) {
       target.marker._icon?.classList.add("completed-marker");
-      
+
       if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className += " completed-marker";
       }
@@ -56,7 +56,7 @@ export const toggleCompleted = (id) => {
     state.completedList.splice(index, 1);
     if (target?.marker) {
       target.marker._icon?.classList.remove("completed-marker");
-      
+
       if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className =
           target.marker.options.icon.options.className.replace(
@@ -113,7 +113,6 @@ export const toggleCompleted = (id) => {
   }
   if (state.hideCompleted) updateMapVisibility();
 
-  
   import("../map/regions.js").then(
     ({ renderRegionPolygons, updateRegionOverlay }) => {
       renderRegionPolygons(state.regionData);
@@ -241,7 +240,6 @@ export const findItem = async (id) => {
     filtersChanged = true;
   }
 
-  
   if (state.hideCompleted) {
     state.hideCompleted = false;
     filtersChanged = true;
@@ -255,11 +253,9 @@ export const findItem = async (id) => {
     saveFilterState();
   }
 
-  
   setTimeout(() => {
     target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
 
-    
     if (!target) {
       const markerData = createMarkerForItem(item);
       if (markerData) {
@@ -292,7 +288,11 @@ export const openReportPage = (itemId) => {
   let template = "";
 
   if (item) {
-    const mapNames = { qinghe: "청하", kaifeng: "개봉" };
+    const mapNames = {
+      qinghe: "청하",
+      kaifeng: "개봉",
+      dreamsunsun: "꿈속의 불선선",
+    };
     const mapName = mapNames[state.currentMapKey] || state.currentMapKey;
     const locationUrl = `https://wwmmap.kr?map=${state.currentMapKey}&id=${item.id}`;
 
