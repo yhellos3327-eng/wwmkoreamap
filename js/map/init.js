@@ -121,13 +121,6 @@ export const initMap = async (mapKey) => {
     markerClusterGroup.on("clusterclick", function (a) {
       a.layer.spiderfy();
     });
-
-    // GPU 모드에서는 클러스터링을 직접 사용하지 않거나, Pixi와 연동해야 함.
-    // 현재 구조상 GPU 모드에서는 클러스터링을 비활성화하는 것이 일반적이나,
-    // 사용자가 GL만 사용한다고 했으므로 클러스터링 관련 로직은 유지하되,
-    // CPU 렌더링과 섞이지 않도록 주의.
-    // (기존 코드에서도 GPU 모드일 땐 markerClusterGroup을 map에 add하지 않았음)
-
     setState("markerClusterGroup", markerClusterGroup);
   }
 };
