@@ -190,20 +190,6 @@ export const MAP_CONFIGS = {
     zoom: 11,
     tilePadding: 0.02,
   },
-  kaifeng: {
-    id: 4000,
-    name: "개봉 (开封)",
-    tileUrl:
-      "https://ue.17173cdn.com/a/terra/tiles/yysls/3003_v8_65jd2/{z}/{y}_{x}.png",
-    dataFile: "./data2.json",
-    newDataFile: "./data4.csv",
-    regionFile: "./regions2.json",
-    minZoom: 9,
-    maxNativeZoom: 13,
-    center: [0.5, -0.5],
-    zoom: 11,
-    tilePadding: 1.0,
-  },
   dreamsunsun: {
     id: 5000,
     name: "꿈속의 불선선",
@@ -221,6 +207,20 @@ export const MAP_CONFIGS = {
       [0, 0],
       [1736, 3417],
     ],
+  },
+  kaifeng: {
+    id: 4000,
+    name: "개봉 (开封)",
+    tileUrl:
+      "https://ue.17173cdn.com/a/terra/tiles/yysls/3003_v8_65jd2/{z}/{y}_{x}.png",
+    dataFile: "./data2.json",
+    newDataFile: "./data4.csv",
+    regionFile: "./regions2.json",
+    minZoom: 9,
+    maxNativeZoom: 13,
+    center: [0.5, -0.5],
+    zoom: 11,
+    tilePadding: 1.0,
   },
 };
 

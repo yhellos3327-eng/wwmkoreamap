@@ -28,7 +28,7 @@ export const loadMapData = async (mapKey, onProgress) => {
     const totalTimer = perfTimer.start("Performance", "loadMapData total");
 
     await loadTranslations(mapKey);
-    initMap(mapKey);
+    await initMap(mapKey);
 
     const { dataBlob, regionBlob, missingRes, newDataRes } = await fetchAllData(
       config,
@@ -181,7 +181,9 @@ const applyRegionData = (regionResult, config) => {
       const padding =
         config.tilePadding !== undefined ? config.tilePadding : 0.1;
       state.currentTileLayer.options.bounds = totalBounds.pad(padding);
-      state.currentTileLayer.redraw();
+      if (typeof state.currentTileLayer.redraw === "function") {
+        state.currentTileLayer.redraw();
+      }
     }
   }
 };

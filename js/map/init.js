@@ -19,6 +19,7 @@ export const initMap = async (mapKey) => {
     setState("map", null);
     setState("regionLayerGroup", null);
     setState("markerClusterGroup", null);
+    setState("currentTileLayer", null);
   }
 
   if (!state.map) {
