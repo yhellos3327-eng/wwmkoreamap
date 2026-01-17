@@ -114,8 +114,7 @@ export const attachEventHandlers = (map, overlay, container) => {
       }
     }
 
-    if (!state.gpuRenderMode || !container || container.children.length === 0)
-      return;
+    if (!container || container.children.length === 0) return;
 
     const clickLat = e.latlng.lat;
     const clickLng = e.latlng.lng;
@@ -222,8 +221,7 @@ export const attachEventHandlers = (map, overlay, container) => {
   };
 
   const handleContextMenu = (e) => {
-    if (!state.gpuRenderMode || !container || container.children.length === 0)
-      return;
+    if (!container || container.children.length === 0) return;
 
     const clickLat = e.latlng.lat;
     const clickLng = e.latlng.lng;
@@ -252,7 +250,7 @@ export const attachEventHandlers = (map, overlay, container) => {
   };
 
   const handleMouseMove = (e) => {
-    if (!state.gpuRenderMode || !container || container.children.length === 0) {
+    if (!container || container.children.length === 0) {
       hideCompletedTooltip();
       return;
     }
@@ -294,8 +292,7 @@ export const attachEventHandlers = (map, overlay, container) => {
   };
 
   const handleMouseDown = (e) => {
-    if (!state.gpuRenderMode || !container || container.children.length === 0)
-      return;
+    if (!container || container.children.length === 0) return;
 
     // Check for middle click (button 1)
     if (e.originalEvent.button !== 1) return;

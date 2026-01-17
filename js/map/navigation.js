@@ -28,7 +28,7 @@ export const moveToLocation = (
   state.map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
 
   // GPU Mode handling
-  if (state.gpuRenderMode && isGpuRenderingAvailable()) {
+  if (isGpuRenderingAvailable()) {
     const id =
       itemId ||
       (marker && marker.markerData ? marker.markerData.item.id : null);

@@ -77,9 +77,7 @@ export const toggleCompleted = (id) => {
   localStorage.setItem("wwm_completed", JSON.stringify(state.completedList));
   triggerSync();
 
-  if (state.gpuRenderMode) {
-    updateSinglePixiMarker(targetId);
-  }
+  updateSinglePixiMarker(targetId);
 
   const popupContainer = document.querySelector(
     `.popup-container[data-id="${id}"]`,
@@ -103,14 +101,12 @@ export const toggleCompleted = (id) => {
   }
 
   if (state.closeOnComplete && isNowCompleted) {
-    if (state.gpuRenderMode) {
-      if (
-        state.map &&
-        state.map._popup &&
-        String(state.map._popup.itemId) === strId
-      ) {
-        state.map.closePopup();
-      }
+    if (
+      state.map &&
+      state.map._popup &&
+      String(state.map._popup.itemId) === strId
+    ) {
+      state.map.closePopup();
     } else if (target?.marker?.isPopupOpen?.()) {
       target.marker.closePopup();
     }

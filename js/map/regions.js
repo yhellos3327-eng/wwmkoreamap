@@ -89,7 +89,7 @@ export const renderRegionPolygons = (filteredRegions) => {
           return;
         }
 
-        if (state.gpuRenderMode && isGpuRenderingAvailable()) {
+        if (isGpuRenderingAvailable()) {
           const container = getPixiContainer();
           if (container && container.children.length > 0) {
             const clickLat = e.latlng.lat;
@@ -120,7 +120,7 @@ export const renderRegionPolygons = (filteredRegions) => {
       });
 
       polygon.on("contextmenu", function (e) {
-        if (state.gpuRenderMode && isGpuRenderingAvailable()) {
+        if (isGpuRenderingAvailable()) {
           const container = getPixiContainer();
           if (container && container.children.length > 0) {
             const clickLat = e.latlng.lat;

@@ -78,8 +78,7 @@ const state = {
     localStorage.getItem("wwm_use_chrome_translator") === "true",
 
   get gpuRenderMode() {
-    if (this.savedGpuSetting === "on") return true;
-    if (this.savedGpuSetting === "off") return false;
+    // GPU 모드가 강제되므로 WebGL 가용 여부를 직접 반환합니다.
     return checkWebGL();
   },
   set gpuRenderMode(value) {

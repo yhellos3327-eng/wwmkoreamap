@@ -305,7 +305,7 @@ const resetMarkerOpacity = () => {
     else if (m.sprite) m.sprite.alpha = 1;
   });
   // Optional chaining으로 안전한 메서드 호출
-  if (state.gpuRenderMode) state.pixiOverlay?.redraw();
+  state.pixiOverlay?.redraw();
 };
 
 // 매칭 마커 하이라이트
@@ -335,7 +335,7 @@ const highlightMatchingMarkers = (term) => {
   });
 
   // Optional chaining으로 안전한 메서드 호출
-  if (state.gpuRenderMode) state.pixiOverlay?.redraw();
+  state.pixiOverlay?.redraw();
 };
 
 // 지역 클릭 핸들러

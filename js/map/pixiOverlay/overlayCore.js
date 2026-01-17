@@ -366,14 +366,14 @@ export const renderMarkersWithPixi = async (items) => {
 };
 
 export const updatePixiMarkers = async () => {
-  if (!state.gpuRenderMode || !isGpuRenderingAvailable()) return;
+  if (!isGpuRenderingAvailable()) return;
 
   const items = state.mapData?.items || [];
   await renderMarkersWithPixi(items);
 };
 
 export const updateSinglePixiMarker = (itemId) => {
-  if (!state.gpuRenderMode || !pixiContainer) return;
+  if (!pixiContainer) return;
 
   const sprite = pixiContainer.children.find(
     (s) => s.markerData && String(s.markerData.item.id) === String(itemId),
