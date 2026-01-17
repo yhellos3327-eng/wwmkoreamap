@@ -1,117 +1,167 @@
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-        <h1>연운 한국어 맵</h1>
-        <div style="display:flex; gap:8px;">
-            <button id="open-web-llm-modal" class="close-btn" title="AI 채팅">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='10' rx='2'/%3E%3Ccircle cx='12' cy='5' r='2'/%3E%3Cpath d='M12 7v4'/%3E%3Cline x1='8' y1='16' x2='8' y2='16'/%3E%3Cline x1='16' y1='16' x2='16' y2='16'/%3E%3C/svg%3E&quot;);">
-                </div>
-            </button>
-            <a href="https://arca.live/b/wwmmap" id="open-arca-channel" class="close-btn" title="아카라이브 채널" target="_blank"
-                style="display: flex; align-items: center; justify-content: center;">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E&quot;);">
-                </div>
-            </a>
-            <button id="open-settings" class="close-btn" title="설정">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E&quot;);">
-                </div>
-            </button>
-            <button id="toggle-sidebar" class="close-btn" title="닫기">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);">
-                </div>
-            </button>
-        </div>
+  <div class="sidebar-header">
+    <h1>연운 한국어 맵</h1>
+    <div style="display: flex; gap: 8px">
+      <button id="open-web-llm-modal" class="close-btn" title="AI 채팅">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='10' rx='2'/%3E%3Ccircle cx='12' cy='5' r='2'/%3E%3Cpath d='M12 7v4'/%3E%3Cline x1='8' y1='16' x2='8' y2='16'/%3E%3Cline x1='16' y1='16' x2='16' y2='16'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </button>
+      <a
+        href="https://arca.live/b/wwmmap"
+        id="open-arca-channel"
+        class="close-btn"
+        title="아카라이브 채널"
+        target="_blank"
+        style="display: flex; align-items: center; justify-content: center"
+      >
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </a>
+      <button id="open-patch-notes" class="close-btn" title="패치 노트">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z'/%3E%3Cpolyline points='14 2 14 8 20 8'/%3E%3Cline x1='16' y1='13' x2='8' y2='13'/%3E%3Cline x1='16' y1='17' x2='8' y2='17'/%3E%3Cpolyline points='10 9 9 9 8 9'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </button>
+      <button id="open-settings" class="close-btn" title="설정">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </button>
+      <button id="toggle-sidebar" class="close-btn" title="닫기">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </button>
     </div>
-    <div class="ad-container">
-        <div class="ad-placeholder">
-            <span>광고 로딩중...</span>
-        </div>
+  </div>
+  <div class="ad-container">
+    <div class="ad-placeholder">
+      <span>광고 로딩중...</span>
     </div>
+  </div>
 
-    <div class="sidebar-toolbar">
-        <div class="map-selector-wrapper">
-            <div class="custom-select" id="sidebar-map-select">
-                <div class="select-trigger">
-                    <span class="icon">
-                        <div class="icon-mask"
-                            style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
-                        </div>
-                    </span>
-                    <span class="selected-text">청하</span>
-                    <span class="arrow">
-                        <div class="icon-mask"
-                            style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;); width: 12px; height: 12px;">
-                        </div>
-                    </span>
-                </div>
-                <div class="select-options"></div>
-            </div>
+  <div class="sidebar-toolbar">
+    <div class="map-selector-wrapper">
+      <div class="custom-select" id="sidebar-map-select">
+        <div class="select-trigger">
+          <span class="icon">
+            <div
+              class="icon-mask"
+              style="
+                --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='10'/%3E%3Cline x1='2' y1='12' x2='22' y2='12'/%3E%3Cpath d='M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z'/%3E%3C/svg%3E&quot;);
+                width: 16px;
+                height: 16px;
+              "
+            ></div>
+          </span>
+          <span class="selected-text">청하</span>
+          <span class="arrow">
+            <div
+              class="icon-mask"
+              style="
+                --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E&quot;);
+                width: 12px;
+                height: 12px;
+              "
+            ></div>
+          </span>
         </div>
-        <div class="toolbar-divider"></div>
-        <button id="sidebar-route-toggle" class="toolbar-btn" title="경로 모드">
-            <span class="icon">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='6' cy='19' r='3'/%3E%3Cpath d='M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15'/%3E%3Ccircle cx='18' cy='5' r='3'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
-                </div>
+        <div class="select-options"></div>
+      </div>
+    </div>
+    <div class="toolbar-divider"></div>
+    <button id="sidebar-route-toggle" class="toolbar-btn" title="경로 모드">
+      <span class="icon">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='6' cy='19' r='3'/%3E%3Cpath d='M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15'/%3E%3Ccircle cx='18' cy='5' r='3'/%3E%3C/svg%3E&quot;);
+            width: 16px;
+            height: 16px;
+          "
+        ></div>
+      </span>
+      <span class="label">경로</span>
+    </button>
+  </div>
+
+  <div class="search-container">
+    <div class="search-wrapper">
+      <div
+        class="icon-mask search-icon"
+        style="
+          --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E&quot;);
+        "
+      ></div>
+      <input
+        type="text"
+        id="search-input"
+        placeholder="지역, 카테고리 검색..."
+      />
+    </div>
+    <div id="search-results" class="search-results hidden"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" data-tab="category-tab">카테고리</button>
+    <button class="tab-btn" data-tab="region-tab">지역</button>
+    <button class="tab-btn" data-tab="favorite-tab">즐겨찾기</button>
+  </div>
+
+  <div class="filter-container">
+    <div id="category-tab" class="tab-content active">
+      <div class="translation-progress-container">
+        <div class="progress-header">
+          <span class="progress-title">
+            <span class="progress-title-icon">
+              <div
+                class="icon-mask"
+                style="
+                  --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m5 8 6 6'/%3E%3Cpath d='m4 14 6-6 2-3'/%3E%3Cpath d='M2 5h12'/%3E%3Cpath d='M7 2h1'/%3E%3Cpath d='m22 22-5-10-5 10'/%3E%3Cpath d='M14 18h6'/%3E%3C/svg%3E&quot;);
+                  width: 16px;
+                  height: 16px;
+                "
+              ></div>
             </span>
-            <span class="label">경로</span>
-        </button>
+            한글화 진행도
+          </span>
+          <span class="progress-percent" id="trans-percent">0%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="trans-bar" style="width: 0%"></div>
+        </div>
+        <div class="progress-stats" id="trans-stats">0 / 0 항목 번역됨</div>
+      </div>
+      <button id="btn-toggle-cat" class="btn-toggle-all">👁️ 모두 끄기</button>
+      <div id="category-list" class="category-list"></div>
     </div>
 
-    <div class="search-container">
-        <div class="search-wrapper">
-            <div class="icon-mask search-icon"
-                style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E&quot;);">
-            </div>
-            <input type="text" id="search-input" placeholder="지역, 카테고리 검색...">
-        </div>
-        <div id="search-results" class="search-results hidden"></div>
+    <div id="region-tab" class="tab-content">
+      <button id="btn-toggle-reg" class="btn-toggle-all">👁️ 모두 끄기</button>
+      <div id="region-list" class="category-list region-grid"></div>
     </div>
 
-    <div class="tabs">
-        <button class="tab-btn active" data-tab="category-tab">카테고리</button>
-        <button class="tab-btn" data-tab="region-tab">지역</button>
-        <button class="tab-btn" data-tab="favorite-tab">즐겨찾기</button>
+    <div id="favorite-tab" class="tab-content">
+      <div id="favorite-list" class="favorite-list">
+        <p class="empty-msg">즐겨찾기한 항목이 없습니다.</p>
+      </div>
     </div>
-
-    <div class="filter-container">
-        <div id="category-tab" class="tab-content active">
-            <div class="translation-progress-container">
-                <div class="progress-header">
-                    <span class="progress-title">
-                        <span class="progress-title-icon">
-                            <div class="icon-mask"
-                                style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='m5 8 6 6'/%3E%3Cpath d='m4 14 6-6 2-3'/%3E%3Cpath d='M2 5h12'/%3E%3Cpath d='M7 2h1'/%3E%3Cpath d='m22 22-5-10-5 10'/%3E%3Cpath d='M14 18h6'/%3E%3C/svg%3E&quot;); width: 16px; height: 16px;">
-                            </div>
-                        </span>
-                        한글화 진행도
-                    </span>
-                    <span class="progress-percent" id="trans-percent">0%</span>
-                </div>
-                <div class="progress-bar-bg">
-                    <div class="progress-bar-fill" id="trans-bar" style="width: 0%"></div>
-                </div>
-                <div class="progress-stats" id="trans-stats">
-                    0 / 0 항목 번역됨
-                </div>
-            </div>
-            <button id="btn-toggle-cat" class="btn-toggle-all">👁️ 모두 끄기</button>
-            <div id="category-list" class="category-list"></div>
-        </div>
-
-        <div id="region-tab" class="tab-content">
-            <button id="btn-toggle-reg" class="btn-toggle-all">👁️ 모두 끄기</button>
-            <div id="region-list" class="category-list region-grid">
-            </div>
-        </div>
-
-        <div id="favorite-tab" class="tab-content">
-            <div id="favorite-list" class="favorite-list">
-                <p class="empty-msg">즐겨찾기한 항목이 없습니다.</p>
-            </div>
-        </div>
-    </div>
+  </div>
 </aside>

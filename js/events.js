@@ -161,7 +161,7 @@ export const initRouteMode = () => {
         const routeModule = await import("./route/index.js");
         const isActive = routeModule.toggleRouteMode();
         routeToggleBtn.classList.toggle("active", isActive);
-        
+
         const sidebarRouteBtn = document.getElementById("sidebar-route-toggle");
         if (sidebarRouteBtn)
           sidebarRouteBtn.classList.toggle("active", isActive);
@@ -206,6 +206,10 @@ export const initReportPanel = () => {
   }
 };
 
+export const initPatchNotes = () => {
+  import("./patch-notes.js").then((m) => m.initPatchNotesPanel());
+};
+
 export const initAllEventHandlers = () => {
   initTabs();
   initToggleButtons();
@@ -217,4 +221,5 @@ export const initAllEventHandlers = () => {
   initRouteMode();
   initArcaChannel();
   initReportPanel();
+  initPatchNotes();
 };

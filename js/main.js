@@ -17,7 +17,6 @@ import { initAds } from "./ads.js";
 import { initTheme } from "./theme.js";
 import { loadAllComponents } from "./component-loader.js";
 
-
 import { handleUrlParams, handleSharedLink } from "./urlHandler.js";
 import { initSyncHandler } from "./syncHandler.js";
 import { initDebug, loadDevToolsIfNeeded } from "./debug.js";
@@ -86,26 +85,21 @@ const loadMapDataWithProgress = async () => {
  * 비필수 모듈 지연 로딩
  */
 const loadOptionalModules = () => {
-  
   import("./web-llm.js")
     .then((m) => m.initWebLLM())
     .catch((e) => console.warn("WebLLM init failed:", e));
 
-  
   import("./settings.js").then(({ initSettingsModal, initAdToggle }) => {
     initSettingsModal();
     initAdToggle();
   });
 
-  
   import("./backup.js").then(({ initBackupButtons }) => {
     initBackupButtons();
   });
 
-  
   import("./comments.js");
 
-  
   loadDevToolsIfNeeded();
 };
 
@@ -122,11 +116,9 @@ const loadTranslationData = () => {
  * 애플리케이션 초기화
  */
 const initializeApp = async () => {
-  
   initTheme();
   initMigration();
 
-  
   if (isOldDomain()) {
     return;
   }
@@ -136,41 +128,32 @@ const initializeApp = async () => {
     favorites: localStorage.getItem("wwm_favorites"),
   });
 
-  
   const urlParams = handleUrlParams();
 
   try {
-    
     await loadAllComponents();
 
-    
     if (!document.body.classList.contains("embed-mode")) {
       document.body.classList.add("sidebar-open");
     }
 
-    
     setupLoadingSubscription();
     initSyncHandler();
 
-    
     initAuth();
     loadTranslationData();
     initCustomDropdown();
 
-    
     await loadMapDataWithProgress();
 
-    
     initSearch();
     initModalSearch(renderModalList);
     initAllEventHandlers();
     initPopupEventDelegation();
 
-    
     initAds();
     renderFavorites();
 
-    
     loadOptionalModules();
   } catch (error) {
     console.error("초기화 실패:", error);
@@ -178,12 +161,9 @@ const initializeApp = async () => {
     return;
   }
 
-  
   handleSharedLink(urlParams);
 };
 
-
 initDebug();
-
 
 document.addEventListener("DOMContentLoaded", initializeApp);

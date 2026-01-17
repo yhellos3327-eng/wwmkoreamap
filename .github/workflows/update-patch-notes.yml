@@ -1,0 +1,83 @@
+name: Update Patch Notes
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  update-patch-notes:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Extract and Update Patch Notes
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'patch-notes.json';
+
+            // PR 정보 가져오기
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+
+            // CodeRabbit 요약 추출 (Walkthrough 또는 Summary 섹션 찾기)
+            // 보통 CodeRabbit은 마크다운 테이블이나 특정 헤더를 사용함
+            let summary = '';
+
+            // 간단한 파싱 로직: '## Summary' 또는 '## Walkthrough' 이후의 내용 추출
+            // 실제 CodeRabbit 포맷에 따라 조정 필요할 수 있음
+            const summaryMatch = body.match(/## (Summary|Walkthrough|Changes)([\s\S]*?)(##|$)/i);
+
+            if (summaryMatch && summaryMatch[2]) {
+              summary = summaryMatch[2].trim();
+            } else {
+              // 매칭되지 않으면 PR 제목 사용
+              summary = pr.title;
+            }
+
+            // 기존 데이터 읽기
+            let patchNotes = [];
+            if (fs.existsSync(path)) {
+              try {
+                patchNotes = JSON.parse(fs.readFileSync(path, 'utf8'));
+              } catch (e) {
+                console.error('Error reading patch-notes.json:', e);
+              }
+            }
+
+            // 새 항목 추가
+            const newEntry = {
+              id: pr.number,
+              date: new Date().toISOString().split('T')[0],
+              title: pr.title,
+              content: summary,
+              author: pr.user.login,
+              url: pr.html_url
+            };
+
+            // 최신순 정렬 (맨 앞에 추가)
+            patchNotes.unshift(newEntry);
+
+            // 파일 저장
+            fs.writeFileSync(path, JSON.stringify(patchNotes, null, 2));
+
+      - name: Commit and Push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add patch-notes.json
+          git commit -m "docs: update patch notes for PR #${{ github.event.pull_request.number }}"
+          git push
