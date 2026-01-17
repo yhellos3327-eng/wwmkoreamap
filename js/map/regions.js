@@ -183,57 +183,34 @@ export const updateRegionOverlay = () => {
   const progressEl = overlay.querySelector(".region-info-progress");
   const tooltipPane = map.getPane("tooltipPane");
 
-  
   const ZOOM_THRESHOLD = 14;
 
   if (zoom >= ZOOM_THRESHOLD) {
-    
     if (tooltipPane) tooltipPane.style.display = "none";
 
-    
     const center = map.getCenter();
     let foundRegion = null;
 
-    
     if (state.regionLayerGroup) {
       state.regionLayerGroup.eachLayer((layer) => {
         if (layer instanceof L.Polygon) {
-          
           if (layer.getBounds().contains(center)) {
-            
-            
             const latlngs = layer.getLatLngs();
             let coords = [];
-
-            
-            
-            
-
-            
-            
-
-            
             const toPoints = (arr) => arr.map((c) => [c.lat, c.lng]);
 
             let isInside = false;
 
             if (Array.isArray(latlngs)) {
-              
-              
-              
-              
-
               const flattenAndCheck = (arr) => {
                 if (arr.length === 0) return false;
-                
+
                 if (arr[0].lat !== undefined) {
-                  
                   return isPointInPolygon(
                     [center.lat, center.lng],
                     toPoints(arr),
                   );
                 } else if (Array.isArray(arr[0])) {
-                  
                   return arr.some((subArr) => flattenAndCheck(subArr));
                 }
                 return false;
@@ -251,7 +228,6 @@ export const updateRegionOverlay = () => {
     }
 
     if (foundRegion) {
-      
       const title = foundRegion.regionTitle;
       const translatedName = t(title);
 
@@ -278,9 +254,8 @@ export const updateRegionOverlay = () => {
       overlay.classList.add("hidden");
     }
   } else {
-    
     if (tooltipPane) tooltipPane.style.display = "block";
-    
+
     overlay.classList.add("hidden");
   }
 };

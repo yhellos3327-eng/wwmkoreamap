@@ -106,7 +106,6 @@ const applyTranslations = (item, reverseRegionMap) => {
     }
   }
 
-  
   if (!item.description || item.description.trim() === "") {
     const translatedName = t(item.name) || item.name;
     if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
@@ -359,19 +358,15 @@ export const parseCSVData = async (csvRes) => {
       const config = MAP_CONFIGS[state.currentMapKey];
       const isImageMap = config && config.type === "image";
 
-      
-      
       const isLargeCoordinate =
         Math.abs(processedItem.latitude) > 10 ||
         Math.abs(processedItem.longitude) > 10;
 
       if (isImageMap) {
-        
         if (isLargeCoordinate) {
           items.push(processedItem);
         }
       } else {
-        
         if (!isLargeCoordinate) {
           items.push(processedItem);
         }

@@ -77,7 +77,6 @@ export const loadMapData = async (mapKey, onProgress) => {
       regionResult.reverseRegionMap,
     );
 
-    
     const currentMeta = state.regionMetaInfo || {};
     uniqueRegions.forEach((regionName) => {
       if (!currentMeta[regionName]) {

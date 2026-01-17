@@ -9,7 +9,7 @@ const parseCSV = (str) => {
   for (let row = 0; row < str.length; row++) {
     let cc = str[row],
       nc = str[row + 1];
-    
+
     arr[col] ??= [];
     arr[col][c] ??= "";
 
@@ -94,7 +94,6 @@ const processJSONData = (
       commonDesc = catTrans._common_description;
     }
 
-    
     const categoryDefaultNames = {
       17310010006: "상자 (지상)",
       17310010007: "상자 (지하)",
@@ -115,7 +114,6 @@ const processJSONData = (
       }
 
       if (transData) {
-        
         if (transData.name) {
           item.name = transData.name;
           item.isTranslated = true;
@@ -135,7 +133,7 @@ const processJSONData = (
         if (transData.video) {
           item.video_url = transData.video;
         }
-        
+
         if (transData.customPosition) {
           item.x = transData.customPosition.x;
           item.y = transData.customPosition.y;
@@ -144,7 +142,6 @@ const processJSONData = (
       }
     }
 
-    
     if (!item.description || item.description.trim() === "") {
       if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
         item.description = DEFAULT_DESCRIPTIONS[item.name];
@@ -153,7 +150,6 @@ const processJSONData = (
       }
     }
 
-    
     itemsByCategory[item.category] ??= [];
     itemsByCategory[item.category].push(item);
   });
@@ -206,7 +202,6 @@ const processCSVData = (csvText) => {
       const catId = parsed[catIdx]?.trim();
       if (!catId) return;
 
-      
       categoryItemTranslations[catId] ??= {};
 
       if (key === "_common_description") {
@@ -256,7 +251,6 @@ const processCSVData = (csvText) => {
           }
         }
 
-        
         let customPosition = null;
         const posRaw = posIdx !== -1 ? parsed[posIdx] : null;
         if (posRaw) {
