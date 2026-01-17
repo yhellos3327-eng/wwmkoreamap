@@ -8,7 +8,6 @@ const REPO_NAME = "wwmkoreamap";
 
 export const loadPatchNotes = async () => {
   try {
-    // Merged된 PR만 가져오기 (최신순 30개)
     const response = await fetch(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls?state=closed&sort=updated&direction=desc&per_page=30`,
     );
@@ -17,31 +16,89 @@ export const loadPatchNotes = async () => {
 
     const pulls = await response.json();
 
-    // Merged된 PR이고, CodeRabbit 요약이 있는 것만 필터링
-    const patchNotes = pulls
-      .filter((pr) => pr.merged_at !== null) // Merge된 것만
-      .map((pr) => {
-        const body = pr.body || "";
-        // CodeRabbit 요약 추출 (Walkthrough 또는 Summary 섹션)
-        const summaryMatch = body.match(
-          /## (Summary|Walkthrough|Changes)([\s\S]*?)(##|$)/i,
-        );
+    const patchNotes = await Promise.all(
+      pulls
+        .filter((pr) => pr.merged_at !== null)
+        .map(async (pr) => {
+          let content = "";
+          try {
+            const commentsRes = await fetch(pr.comments_url);
+            if (commentsRes.ok) {
+              const comments = await commentsRes.json();
+              const rabbitComment = comments.find(
+                (c) =>
+                  c.user.login === "coderabbitai[bot]" &&
+                  (c.body.includes("Walkthrough") ||
+                    c.body.includes("Summary")),
+              );
 
-        // 요약이 없으면 스킵 (또는 제목만 표시하려면 로직 변경 가능)
-        if (!summaryMatch) return null;
+              if (rabbitComment) {
+                content = rabbitComment.body;
+              }
+            }
+          } catch (e) {
+            console.warn("Failed to fetch comments for PR #" + pr.number);
+          }
+          if (!content) {
+            const body = pr.body || "";
+            if (
+              body.includes("coderabbit") ||
+              body.includes("Walkthrough") ||
+              body.includes("Summary")
+            ) {
+              content = body;
+            }
+          }
+          if (!content) return null;
+          if (content.includes("<!-- walkthrough_start -->")) {
+            const start = content.indexOf("<!-- walkthrough_start -->");
+            const endMarkers = [
+              "## 검토 예상 소요 시간",
+              '<h2 dir="auto">검토 예상 소요 시간</h2>',
+              '<h2 dir="auto">Poem</h2>',
+              "## 예상 코드 리뷰 노력",
+              '<h2 dir="auto">예상 코드 리뷰 노력</h2>',
+              "<!-- walkthrough_end -->",
+            ];
 
-        return {
-          id: pr.number,
-          date: new Date(pr.merged_at).toISOString().split("T")[0],
-          title: pr.title,
-          content: summaryMatch[2].trim(),
-          url: pr.html_url,
-          author: pr.user.login,
-        };
-      })
-      .filter((note) => note !== null); // null 제거
+            let end = -1;
+            for (const marker of endMarkers) {
+              const idx = content.indexOf(marker);
+              if (idx !== -1 && (end === -1 || idx < end)) {
+                end = idx;
+              }
+            }
 
-    return patchNotes;
+            if (end > start) {
+              content = content.substring(start, end);
+            }
+          } else {
+            const match = content.match(
+              /## (Summary|Walkthrough|Changes|릴리스 노트)([\s\S]*)/i,
+            );
+            if (match) {
+              content = match[0];
+            }
+          }
+          if (!content) return null;
+          content = content.replace(/<!--[\s\S]*?-->/g, "");
+          content = content
+            .replace(/<details>/g, "")
+            .replace(/<\/details>/g, "");
+          content = content.replace(/<summary>.*?<\/summary>/g, "");
+
+          return {
+            id: pr.number,
+            date: new Date(pr.merged_at).toISOString().split("T")[0],
+            title: pr.title,
+            content: content.trim(),
+            url: pr.html_url,
+            author: pr.user.login,
+          };
+        }),
+    );
+
+    return patchNotes.filter((note) => note !== null);
   } catch (error) {
     console.error("Patch notes load error:", error);
     return [];
@@ -78,6 +135,29 @@ const renderPatchNotesList = async (container) => {
   container.innerHTML =
     '<div class="loading-spinner" style="padding: 20px; text-align: center;">로딩 중...</div>';
 
+  const loadScript = (src) => {
+    return new Promise((resolve, reject) => {
+      if (document.querySelector(`script[src="${src}"]`)) {
+        resolve();
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.onload = resolve;
+      script.onerror = reject;
+      document.head.appendChild(script);
+    });
+  };
+
+  try {
+    await Promise.all([
+      loadScript("https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
+      loadScript("https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"),
+    ]);
+  } catch (e) {
+    console.error("Failed to load libraries", e);
+  }
+
   const notes = await loadPatchNotes();
 
   if (notes.length === 0) {
@@ -86,30 +166,80 @@ const renderPatchNotesList = async (container) => {
     return;
   }
 
-  container.innerHTML = notes
-    .map(
-      (note) => `
-    <div class="patch-note-item" style="padding: 20px; border-bottom: 1px solid var(--glass-border);">
-      <div class="note-header" style="display: flex; gap: 10px; margin-bottom: 8px; font-size: 0.9em;">
-        <span class="note-version" style="background: var(--accent); color: black; padding: 2px 8px; border-radius: 12px; font-weight: bold; font-size: 0.8em;">PR #${note.id}</span>
-        <span class="note-date" style="color: var(--text-muted);">${note.date}</span>
-      </div>
-      <h4 class="note-title" style="margin: 0 0 12px 0; font-size: 1.1em; color: var(--text-main);">${note.title}</h4>
-      <div class="note-body markdown-body" style="background: var(--bg-secondary); padding: 15px; border-radius: 12px; font-size: 0.95em; line-height: 1.6; color: var(--text-main); margin-bottom: 12px; white-space: pre-wrap;">${formatContent(note.content)}</div>
-      <a href="${note.url}" target="_blank" class="note-link" style="color: var(--accent); text-decoration: none; font-size: 0.9em; display: inline-flex; align-items: center; gap: 4px;">
-        GitHub에서 보기 
-        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-      </a>
-    </div>
-  `,
-    )
-    .join("");
-};
+  window.marked.use({
+    renderer: {
+      code(token) {
+        if (token.lang === "mermaid") {
+          return `<div class="mermaid">${token.text}</div>`;
+        }
+        return false;
+      },
+    },
+  });
 
-// 간단한 마크다운 포맷터
-const formatContent = (text) => {
-  if (!text) return "";
-  let content = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  content = content.replace(/\n/g, "<br>");
-  return content;
+  const timelineContainer = document.createElement("div");
+  timelineContainer.className = "timeline-container";
+
+  for (const note of notes) {
+    const htmlContent = await window.marked.parse(note.content);
+
+    const item = document.createElement("div");
+    item.className = "timeline-item";
+
+    const marker = document.createElement("div");
+    marker.className = "timeline-marker";
+    item.appendChild(marker);
+
+    const content = document.createElement("div");
+    content.className = "timeline-content";
+
+    const header = document.createElement("div");
+    header.className = "timeline-header";
+
+    const dateSpan = document.createElement("span");
+    dateSpan.className = "timeline-date";
+    dateSpan.textContent = note.date;
+
+    const versionSpan = document.createElement("span");
+    versionSpan.className = "timeline-version";
+    versionSpan.textContent = `PR #${note.id}`;
+
+    header.appendChild(dateSpan);
+    header.appendChild(versionSpan);
+    content.appendChild(header);
+
+    const title = document.createElement("h3");
+    title.className = "timeline-title";
+    title.textContent = note.title;
+    content.appendChild(title);
+
+    const body = document.createElement("div");
+    body.className = "timeline-body markdown-body";
+    body.innerHTML = htmlContent;
+    content.appendChild(body);
+
+    item.appendChild(content);
+    timelineContainer.appendChild(item);
+  }
+
+  container.innerHTML = "";
+  container.appendChild(timelineContainer);
+
+  if (window.mermaid) {
+    try {
+      window.mermaid.initialize({
+        startOnLoad: false,
+        theme: "dark",
+        securityLevel: "loose",
+        fontFamily: "inherit",
+      });
+      setTimeout(async () => {
+        await window.mermaid.run({
+          nodes: container.querySelectorAll(".mermaid"),
+        });
+      }, 10);
+    } catch (err) {
+      console.error("Mermaid rendering failed:", err);
+    }
+  }
 };
