@@ -5,14 +5,38 @@
 
 const REPO_OWNER = "yhellos3327-eng";
 const REPO_NAME = "wwmkoreamap";
+const CACHE_KEY = "patch_notes_cache";
+const CACHE_TTL = 3600000; // 1시간 캐시
 
 export const loadPatchNotes = async () => {
+  const cached = localStorage.getItem(CACHE_KEY);
+  if (cached) {
+    try {
+      const { timestamp, data } = JSON.parse(cached);
+      if (Date.now() - timestamp < CACHE_TTL) {
+        return data;
+      }
+    } catch (e) {
+      localStorage.removeItem(CACHE_KEY);
+    }
+  }
+
   try {
     const response = await fetch(
       `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls?state=closed&sort=updated&direction=desc&per_page=30`,
     );
 
-    if (!response.ok) throw new Error("GitHub API 호출 실패");
+    if (!response.ok) {
+      if (
+        response.status === 403 &&
+        response.headers.get("X-RateLimit-Remaining") === "0"
+      ) {
+        throw new Error(
+          "GitHub API 호출 횟수 제한을 초과했습니다. 잠시 후 다시 시도해주세요.",
+        );
+      }
+      throw new Error(`GitHub API 호출 실패: ${response.status}`);
+    }
 
     const pulls = await response.json();
 
@@ -21,35 +45,42 @@ export const loadPatchNotes = async () => {
         .filter((pr) => pr.merged_at !== null)
         .map(async (pr) => {
           let content = "";
-          try {
-            const commentsRes = await fetch(pr.comments_url);
-            if (commentsRes.ok) {
-              const comments = await commentsRes.json();
-              const rabbitComment = comments.find(
-                (c) =>
-                  c.user?.login === "coderabbitai[bot]" &&
-                  (c.body.includes("Walkthrough") ||
-                    c.body.includes("Summary")),
-              );
 
-              if (rabbitComment) {
-                content = rabbitComment.body;
-              }
-            }
-          } catch (e) {
-            console.warn("Failed to fetch comments for PR #" + pr.number);
+          // 1. PR 본문에서 먼저 확인 (API 호출 절약)
+          const body = pr.body || "";
+          if (
+            body.includes("coderabbit") ||
+            body.includes("Walkthrough") ||
+            body.includes("Summary")
+          ) {
+            content = body;
           }
+
+          // 2. 본문에 없으면 코멘트 확인
           if (!content) {
-            const body = pr.body || "";
-            if (
-              body.includes("coderabbit") ||
-              body.includes("Walkthrough") ||
-              body.includes("Summary")
-            ) {
-              content = body;
+            try {
+              const commentsRes = await fetch(pr.comments_url);
+              if (commentsRes.ok) {
+                const comments = await commentsRes.json();
+                const rabbitComment = comments.find(
+                  (c) =>
+                    c.user?.login === "coderabbitai[bot]" &&
+                    (c.body.includes("Walkthrough") ||
+                      c.body.includes("Summary")),
+                );
+
+                if (rabbitComment) {
+                  content = rabbitComment.body;
+                }
+              }
+            } catch (e) {
+              console.warn("Failed to fetch comments for PR #" + pr.number);
             }
           }
+
           if (!content) return null;
+
+          // 콘텐츠 가공 로직
           if (content.includes("<!-- walkthrough_start -->")) {
             const start = content.indexOf("<!-- walkthrough_start -->");
             const endMarkers = [
@@ -63,7 +94,7 @@ export const loadPatchNotes = async () => {
 
             let end = -1;
             for (const marker of endMarkers) {
-              const idx = content.indexOf(marker);
+              const idx = content.indexOf(marker, start);
               if (idx !== -1 && (end === -1 || idx < end)) {
                 end = idx;
               }
@@ -80,7 +111,9 @@ export const loadPatchNotes = async () => {
               content = match[0];
             }
           }
+
           if (!content) return null;
+
           content = content.replace(/<!--[\s\S]*?-->/g, "");
           content = content
             .replace(/<details>/g, "")
@@ -98,10 +131,25 @@ export const loadPatchNotes = async () => {
         }),
     );
 
-    return patchNotes.filter((note) => note !== null);
+    const filteredNotes = patchNotes.filter((note) => note !== null);
+
+    // 캐시 저장
+    localStorage.setItem(
+      CACHE_KEY,
+      JSON.stringify({ timestamp: Date.now(), data: filteredNotes }),
+    );
+
+    return filteredNotes;
   } catch (error) {
     console.error("Patch notes load error:", error);
-    return [];
+    // 에러 발생 시 만료된 캐시라도 있으면 반환
+    if (cached) {
+      try {
+        const { data } = JSON.parse(cached);
+        return data;
+      } catch (e) {}
+    }
+    throw error;
   }
 };
 
@@ -153,12 +201,31 @@ const renderPatchNotesList = async (container) => {
     await Promise.all([
       loadScript("https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
       loadScript("https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"),
+      loadScript(
+        "https://cdn.jsdelivr.net/npm/dompurify@3.2.3/dist/purify.min.js",
+      ),
     ]);
   } catch (e) {
     console.error("Failed to load libraries", e);
+    container.innerHTML =
+      '<div class="error-notes">필수 라이브러리를 불러오지 못했습니다. 네트워크 상태를 확인해주세요.</div>';
+    return;
   }
 
-  const notes = await loadPatchNotes();
+  // 라이브러리 로드 성공 후 객체 존재 여부 재확인
+  if (!window.marked || !window.DOMPurify) {
+    container.innerHTML =
+      '<div class="error-notes">라이브러리 초기화에 실패했습니다.</div>';
+    return;
+  }
+
+  let notes = [];
+  try {
+    notes = await loadPatchNotes();
+  } catch (error) {
+    container.innerHTML = `<div class="error-notes">${error.message}</div>`;
+    return;
+  }
 
   if (notes.length === 0) {
     container.innerHTML =
@@ -215,7 +282,7 @@ const renderPatchNotesList = async (container) => {
 
     const body = document.createElement("div");
     body.className = "timeline-body markdown-body";
-    body.innerHTML = htmlContent;
+    body.innerHTML = window.DOMPurify.sanitize(htmlContent);
     content.appendChild(body);
 
     item.appendChild(content);

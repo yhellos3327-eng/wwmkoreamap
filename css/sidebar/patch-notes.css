@@ -253,3 +253,16 @@
     display: flex;
     justify-content: center;
 }
+
+/* 에러 메시지 스타일 */
+.error-notes {
+    padding: 20px;
+    text-align: center;
+    color: #ff4d4d;
+    background: rgba(255, 77, 77, 0.1);
+    border-radius: 12px;
+    margin: 20px;
+    font-size: 0.9em;
+    border: 1px solid rgba(255, 77, 77, 0.2);
+    line-height: 1.5;
+}
