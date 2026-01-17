@@ -53,7 +53,7 @@ const setOnlyRegionActive = (region) => {
     appState.activeRegionNames.clear();
     appState.activeRegionNames.add(region);
 
-    // Trigger re-render
+    
     import('../ui/sidebar.js').then(module => {
         if (module.renderRegionButtons) {
             module.renderRegionButtons();
@@ -138,7 +138,7 @@ export const displayRoute = () => {
         const isCompleted = appState.completedList.some(c => c.id === point.id);
         const isCurrent = index === state.currentStepIndex;
 
-        // Small badge positioned above the game icon
+        
         const markerHtml = `
             <div class="route-badge-marker ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}">
                 ${point.order}
@@ -149,14 +149,14 @@ export const displayRoute = () => {
             html: markerHtml,
             className: 'route-badge-container',
             iconSize: [16, 16],
-            iconAnchor: [8, 30]  // Positioned above the game icon
+            iconAnchor: [8, 30]  
         });
 
         const marker = L.marker([point.lat, point.lng], {
             icon,
             pane: 'routePane',
             zIndexOffset: isCurrent ? 1000 : 100,
-            interactive: false  // Allow clicks to pass through to game markers
+            interactive: false  
         }).addTo(appState.map);
 
         markers.push(marker);

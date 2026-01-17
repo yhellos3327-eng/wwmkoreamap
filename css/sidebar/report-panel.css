@@ -1,4 +1,4 @@
-/* 오류 제보 패널 스타일 - 아카라이브 패널과 동일 */
+
 .report-panel {
     position: fixed;
     top: 16px;
@@ -28,7 +28,7 @@
     transform: translateX(0);
 }
 
-/* 외곽선 애니메이션 */
+
 .report-panel::after {
     content: '';
     position: absolute;
@@ -125,7 +125,7 @@
     display: block;
 }
 
-/* Fallback 스타일 */
+
 .report-panel-content p {
     display: flex;
     flex-direction: column;
@@ -154,7 +154,7 @@
     transform: translateY(-2px);
 }
 
-/* 사이드바 상태에 따른 위치 조정 */
+
 body.sidebar-open .report-panel {
     left: calc(var(--sidebar-width, 320px) + 32px);
 }
@@ -163,7 +163,7 @@ body:not(.sidebar-open) .report-panel {
     left: 16px;
 }
 
-/* 반응형 */
+
 @media (max-width: 768px) {
     .report-panel {
         top: 0;

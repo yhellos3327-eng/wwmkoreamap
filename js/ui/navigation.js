@@ -19,7 +19,7 @@ export const toggleCompleted = (id) => {
   const index = state.completedList.findIndex(
     (item) => String(item.id) === targetId,
   );
-  // Optional chaining으로 안전한 Map 접근
+  
   const target =
     state.allMarkers.get(id) ??
     state.allMarkers.get(targetId) ??
@@ -31,7 +31,7 @@ export const toggleCompleted = (id) => {
     state.completedList.push({ id: targetId, completedAt });
     if (target?.marker) {
       target.marker._icon?.classList.add("completed-marker");
-      // Optional chaining으로 중첩 속성 안전 접근
+      
       if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className += " completed-marker";
       }
@@ -56,7 +56,7 @@ export const toggleCompleted = (id) => {
     state.completedList.splice(index, 1);
     if (target?.marker) {
       target.marker._icon?.classList.remove("completed-marker");
-      // Optional chaining으로 중첩 속성 안전 접근
+      
       if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className =
           target.marker.options.icon.options.className.replace(
@@ -113,7 +113,7 @@ export const toggleCompleted = (id) => {
   }
   if (state.hideCompleted) updateMapVisibility();
 
-  // Update region progress tooltips
+  
   import("../map/regions.js").then(
     ({ renderRegionPolygons, updateRegionOverlay }) => {
       renderRegionPolygons(state.regionData);
@@ -241,7 +241,7 @@ export const findItem = async (id) => {
     filtersChanged = true;
   }
 
-  // 완료 항목 숨기기가 켜져 있으면 강제로 끔 (마커 표시를 위해)
+  
   if (state.hideCompleted) {
     state.hideCompleted = false;
     filtersChanged = true;
@@ -255,11 +255,11 @@ export const findItem = async (id) => {
     saveFilterState();
   }
 
-  // 렌더링 대기 및 마커 확인
+  
   setTimeout(() => {
     target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
 
-    // 여전히 마커가 없다면 수동으로 생성 시도
+    
     if (!target) {
       const markerData = createMarkerForItem(item);
       if (markerData) {

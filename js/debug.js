@@ -12,21 +12,21 @@ import { memoryManager } from "./memory.js";
  * - window.state, window.setState 등 콘솔 디버깅용 전역 변수 설정
  */
 export const initGlobalDebugHelpers = () => {
-  // 상태 관리 도구
+  
   window.state = state;
   window.setState = setState;
   window.dispatch = dispatch;
   window.subscribe = subscribe;
 
-  // UI 헬퍼
+  
   window.findItem = findItem;
-  window.finditem = findItem; // 소문자 alias
+  window.finditem = findItem; 
   window.jumpToId = jumpToId;
 
-  // 메모리 관리
+  
   window.memoryManager = memoryManager;
 
-  // 개발자 도구 활성화 함수 (콘솔용)
+  
   window.dev = async () => {
     const { dev } = await import("./dev-tools.js");
     return dev();

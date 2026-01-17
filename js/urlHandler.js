@@ -12,20 +12,20 @@ import { findItem } from "./ui.js";
 export const handleUrlParams = () => {
   const urlParams = new URLSearchParams(window.location.search);
 
-  // 맵 선택 파라미터 처리
+  
   const mapParam = urlParams.get("map");
   if (mapParam && (mapParam === "qinghe" || mapParam === "kaifeng")) {
     setState("currentMapKey", mapParam);
   }
 
-  // 임베드 모드 처리
+  
   if (urlParams.get("embed") === "true") {
     document.body.classList.add("embed-mode");
     const sidebar = document.getElementById("sidebar");
     if (sidebar) sidebar.classList.add("collapsed");
   }
 
-  // 오버레이 모드 처리
+  
   if (urlParams.get("overlay") === "true") {
     document.body.classList.add("overlay-mode");
   }
@@ -43,7 +43,7 @@ export const handleSharedLink = (urlParams) => {
   const sharedLng = parseFloat(urlParams.get("lng"));
   const routeParam = urlParams.get("route");
 
-  // 경로 공유 링크 처리
+  
   if (routeParam) {
     import("./route/index.js")
       .then((routeModule) => {
@@ -55,13 +55,13 @@ export const handleSharedLink = (urlParams) => {
     return;
   }
 
-  // 마커 ID로 이동
+  
   if (sharedId) {
     setTimeout(() => findItem(sharedId), 1000);
     return;
   }
 
-  // 좌표로 이동
+  
   if (!isNaN(sharedLat) && !isNaN(sharedLng)) {
     setTimeout(() => {
       if (state.map) {

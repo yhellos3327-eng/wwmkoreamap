@@ -33,7 +33,7 @@ export const loadTexture = async (iconUrl) => {
         const texture = await PIXI.Assets.load(iconUrl);
         textureCache.set(iconUrl, texture);
 
-        // Track texture memory
+        
         memoryManager.track(texture, `Texture-${iconUrl}`);
         memoryManager.setMeta(texture, {
             url: iconUrl,
@@ -49,7 +49,7 @@ export const loadTexture = async (iconUrl) => {
                 const defaultTexture = await PIXI.Assets.load(DEFAULT_ICON_URL);
                 textureCache.set(DEFAULT_ICON_URL, defaultTexture);
 
-                // Track default texture
+                
                 memoryManager.track(defaultTexture, `Texture-Default`);
 
                 return defaultTexture;

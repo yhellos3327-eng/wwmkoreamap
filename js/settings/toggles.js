@@ -22,7 +22,7 @@ export const initAdToggle = () => {
 };
 
 export const applyLowSpecMode = (isLowSpec) => {
-  // GPU 모드 전용이므로 저사양 모드(CPU) 로직 제거
+  
   document.body.classList.remove("low-spec-mode");
 };
 
@@ -30,7 +30,7 @@ export const updateClusteringToggleState = () => {
   const clusterToggleInput = document.getElementById("toggle-cluster");
   if (!clusterToggleInput) return;
 
-  // GPU 모드에서도 클러스터링 지원 (Supercluster)
+  
   clusterToggleInput.disabled = false;
   const wrapper = clusterToggleInput.closest(".settings-toggle-wrapper");
   if (wrapper) {
@@ -53,16 +53,16 @@ export const initToggles = () => {
   );
   const adToggleInput = document.getElementById("toggle-ad");
 
-  // Chrome 내장 번역 상태 카드 (토글 없이 상태만 표시)
+  
   const chromeTranslatorStatus = document.getElementById(
     "chrome-translator-status",
   );
 
   if (chromeTranslatorStatus) {
-    // 상태 카드 항상 표시
+    
     chromeTranslatorStatus.style.display = "block";
 
-    // Chrome 상태 UI 업데이트 헬퍼 함수
+    
     const updateChromeStatusUI = (status) => {
       const badge = document.getElementById("chrome-badge");
       const translatorStatusEl = document.getElementById("translator-status");
@@ -103,7 +103,7 @@ export const initToggles = () => {
           detectorStatusEl.className = "chrome-status-value unavailable";
         }
       } else {
-        // 전체 상태 뱃지
+        
         let overallStatus = "available";
         if (
           status.translatorStatus !== "available" ||
@@ -140,7 +140,7 @@ export const initToggles = () => {
       }
     };
 
-    // 설정 모달 열릴 때 상태 확인
+    
     setTimeout(async () => {
       try {
         const { checkStatus } = await import("../chromeTranslator.js");
@@ -163,7 +163,7 @@ export const initToggles = () => {
       setState("enableClustering", e.target.checked);
       updateSettingWithTimestamp("enable_clustering", e.target.checked);
 
-      // 클러스터링 설정 변경 시 즉시 반영을 위해 렌더링 업데이트
+      
       renderMapDataAndMarkers();
     });
   }

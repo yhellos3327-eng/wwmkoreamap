@@ -19,7 +19,7 @@ const filterByCategory = (items, activeCategoryIds) => {
 const filterByRegion = (items, activeRegionNames) => {
   const activeSet = new Set(activeRegionNames);
   return items.filter((item) => {
-    // Nullish coalescing으로 forceRegion/region이 null/undefined인 경우만 기본값 사용
+    
     const region = item.forceRegion ?? item.region ?? "알 수 없음";
     return activeSet.has(region);
   });
@@ -39,7 +39,7 @@ const searchItems = (items, searchTerm, koDict = {}) => {
   if (!term) return items;
 
   return items.filter((item) => {
-    // ||를 사용 - 빈 문자열도 검색 대상에서 제외해야 함
+    
     const name = (item.name ?? "").toLowerCase();
     const desc = (item.description ?? "").toLowerCase();
     const region = (koDict[item.region] ?? item.region ?? "").toLowerCase();
@@ -100,7 +100,7 @@ const buildSpatialIndex = (items, cellSize = 0.02) => {
     const cellY = Math.floor(lat / cellSize);
     const key = `${cellX},${cellY}`;
 
-    // Logical nullish assignment
+    
     grid[key] ??= [];
     grid[key].push(item);
   });
@@ -114,7 +114,7 @@ const getItemsFromSpatialIndex = (
   cellSize = 0.02,
   padding = 0,
 ) => {
-  // Fix: padding을 비율(Ratio)로 적용하여 확장된 Bounds 계산
+  
   const width = Math.abs(bounds.east - bounds.west);
   const height = Math.abs(bounds.north - bounds.south);
 
@@ -137,7 +137,7 @@ const getItemsFromSpatialIndex = (
       const key = `${x},${y}`;
       const cellItems = grid[key];
       if (cellItems) {
-        // 정밀 검사 (확장된 영역 기준)
+        
         for (const item of cellItems) {
           const lat = parseFloat(item.x);
           const lng = parseFloat(item.y);

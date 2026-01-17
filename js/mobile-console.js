@@ -150,7 +150,7 @@
             div.className = `console-log-item ${type}`;
             div.innerHTML = `<span class="time">[${time}]</span> <span class="message">${message}</span>`;
 
-            // Check current filter
+            
             const activeFilterBtn = container.querySelector('.filter-btn.active');
             const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : 'all';
             if (activeFilter !== 'all' && activeFilter !== type) {
@@ -162,7 +162,7 @@
         }
     }
 
-    // Override console methods
+    
     console.log = function (...args) {
         originalConsole.log.apply(console, args);
         addLog('log', args);
@@ -183,18 +183,18 @@
         addLog('info', args);
     };
 
-    // Catch global errors
+    
     window.onerror = function (msg, url, lineNo, columnNo, error) {
         addLog('error', [`Global Error: ${msg}\nAt: ${url}:${lineNo}:${columnNo}`]);
         return false;
     };
 
-    // Catch unhandled promise rejections
+    
     window.onunhandledrejection = function (event) {
         addLog('error', [`Unhandled Promise Rejection: ${event.reason}`]);
     };
 
-    // Initialize UI on DOMContentLoaded
+    
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', createUI);
     } else {

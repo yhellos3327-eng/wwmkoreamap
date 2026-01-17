@@ -1,4 +1,4 @@
-// Re-export from modularized sidebar
+
 export {
     CATEGORY_GROUPS,
     EYE_OPEN_SVG,

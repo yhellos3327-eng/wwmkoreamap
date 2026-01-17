@@ -90,7 +90,7 @@ export const runIntegrityCheck = async (data, onProceed, options = {}) => {
     updateStep('structure', CHECK_STATUS.SUCCESS, '정상');
     report.steps.structure = { status: 'passed' };
 
-    // 버전 검사 생략
+    
     report.steps.version = { status: 'passed' };
 
     await delay(200);

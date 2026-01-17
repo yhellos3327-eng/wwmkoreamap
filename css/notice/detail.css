@@ -1,4 +1,4 @@
-/* ===== Detail View ===== */
+
 .notice-detail,
 .post-detail {
     display: none;
@@ -58,7 +58,7 @@ h2.detail-title {
     font-size: 0.95rem;
 }
 
-/* ===== Report Specific ===== */
+
 .report-image-container {
     margin-bottom: 20px;
     display: none;
@@ -95,7 +95,7 @@ h2.detail-title {
     height: 80px;
 }
 
-/* ===== Map Viewer ===== */
+
 .map-viewer-container {
     margin-top: 20px;
     display: none;

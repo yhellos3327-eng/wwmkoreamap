@@ -28,7 +28,7 @@ async function cacheUrls(urls, cacheName = "web-llm-cache") {
         continue;
       }
 
-      // Fetch with cors mode to ensure we can cache it
+      
       const response = await fetch(url, { mode: "cors" });
       if (!response.ok) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);

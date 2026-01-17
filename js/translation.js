@@ -15,7 +15,7 @@ const translateWithChromeBuiltin = async (item, btn) => {
       );
     }
 
-    // 진행률 표시
+    
     const onProgress = (loaded, total) => {
       if (btn) {
         const percent = total > 0 ? Math.round((loaded / total) * 100) : 0;
@@ -51,7 +51,7 @@ const translateWithExternalAI = async (item, btn) => {
     throw new Error("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
   }
 
-  // Nullish coalescing으로 기본 객체 제공
+  
   const categoryTrans = state.categoryItemTranslations[item.category] ?? {};
 
   const prompt = `
@@ -159,7 +159,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
   );
   const allBtns = popupContainer?.querySelectorAll(".btn-translate");
 
-  // 버튼 텍스트 업데이트 헬퍼 함수 (아이콘 유지)
+  
   const updateBtnText = (button, text) => {
     if (!button) return;
     const textSpan = button.querySelector(".btn-text");
@@ -168,7 +168,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
     }
   };
 
-  // 모든 버튼 비활성화
+  
   if (allBtns) {
     allBtns.forEach((b) => {
       b.disabled = true;
@@ -186,7 +186,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
     if (translateType === "chrome") {
       result = await translateWithChromeBuiltin(item, btn);
     } else {
-      // 외부 AI API 사용 - API 키 확인
+      
       const provider = state.savedAIProvider ?? "gemini";
       let key = "";
       if (provider === "gemini") {
@@ -212,20 +212,20 @@ export const translateItem = async (itemId, translateType = "ai") => {
       result = await translateWithExternalAI(item, btn);
     }
 
-    // 아이템 데이터 업데이트
+    
     item.name = result.name;
     item.description = result.description;
     item.isTranslated = true;
 
-    // 팝업 내용 직접 업데이트 (팝업을 닫지 않고 내용만 갱신하여 이정표 유지)
+    
     if (popupContainer) {
-      // 제목 업데이트
+      
       const titleEl = popupContainer.querySelector(".popup-header h4");
       if (titleEl) {
         titleEl.textContent = t(result.name) || result.name;
       }
 
-      // 본문 업데이트
+      
       const bodyEl = popupContainer.querySelector(".popup-content");
       if (bodyEl) {
         let desc = result.description ?? "";
@@ -240,7 +240,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
         bodyEl.innerHTML = desc;
       }
 
-      // 번역 버튼 영역 숨기기
+      
       const translateBtnsContainer =
         popupContainer.querySelector(".translate-buttons");
       if (translateBtnsContainer) {
@@ -250,7 +250,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
   } catch (error) {
     console.error("Translation failed:", error);
 
-    // 에러 메시지
+    
     if (translateType === "chrome") {
       alert(
         `Chrome 내장 번역 실패: ${error.message}\n\n가능한 원인:\n- Chrome 138 미만 버전 사용\n- 번역 모델 미다운로드\n- GenAILocalFoundationalModelSettings 정책에 의해 차단됨`,
@@ -259,7 +259,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
       alert("번역 실패: " + error.message);
     }
 
-    // 버튼 복구
+    
     if (allBtns) {
       allBtns.forEach((b) => {
         b.disabled = false;

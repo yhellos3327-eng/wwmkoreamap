@@ -272,7 +272,7 @@ const executeShortcutAction = async (actionId) => {
       break;
 
     case "closeModal":
-      // 오류 제보 패널 닫기
+      
       const reportPanel = document.getElementById("report-panel");
       if (reportPanel && reportPanel.classList.contains("open")) {
         reportPanel.classList.remove("open");
@@ -283,40 +283,40 @@ const executeShortcutAction = async (actionId) => {
         break;
       }
 
-      // 아카라이브 패널 닫기
+      
       const arcaPanel = document.getElementById("arca-panel");
       if (arcaPanel && arcaPanel.classList.contains("open")) {
         arcaPanel.classList.remove("open");
         break;
       }
 
-      // 라이트박스 닫기
+      
       const lightbox = document.getElementById("lightbox-modal");
       if (lightbox && !lightbox.classList.contains("hidden")) {
         lightbox.classList.add("hidden");
         break;
       }
 
-      // 비디오 라이트박스 닫기
+      
       const videoLightbox = document.getElementById("video-lightbox");
       if (videoLightbox && !videoLightbox.classList.contains("hidden")) {
         videoLightbox.classList.add("hidden");
         break;
       }
 
-      // 키보드 모달 닫기
+      
       const keyboardModal = document.getElementById("keyboard-shortcut-modal");
       if (keyboardModal && !keyboardModal.classList.contains("hidden")) {
         keyboardModal.classList.add("hidden");
         break;
       }
 
-      // 일반 모달 닫기
+      
       const modals = document.querySelectorAll(".modal-overlay:not(.hidden)");
       if (modals.length > 0) {
         modals[modals.length - 1].classList.add("hidden");
       } else {
-        // 맵 팝업 닫기
+        
         if (state.map) {
           state.map.closePopup();
         }

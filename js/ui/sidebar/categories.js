@@ -111,8 +111,8 @@ export const refreshCategoryList = () => {
             else if (percent >= 30) progressClass = 'mid';
             else if (percent > 0) progressClass = 'low';
 
-            // Use lazy loading for category icons
-            // Use a transparent 1x1 pixel as placeholder or a loading spinner
+            
+            
             const placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
             btn.innerHTML = `
@@ -171,6 +171,6 @@ export const refreshCategoryList = () => {
 
     updateToggleButtonsState();
 
-    // Observe all lazy images in the list
+    
     lazyLoader.observeAll('.lazy-load', categoryListEl);
 };

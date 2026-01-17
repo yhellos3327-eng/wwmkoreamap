@@ -9,7 +9,7 @@ import { saveFilterState } from "./data.js";
 import { renderMapDataAndMarkers } from "./map.js";
 import { updateToggleButtonsState } from "./ui.js";
 
-// SVG 아이콘 정의
+
 const SVG_ICONS = {
   map: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
@@ -32,7 +32,7 @@ const SVG_ICONS = {
     </svg>`,
 };
 
-// 디바운스 유틸리티 (취소 가능)
+
 const debounce = (func, wait) => {
   let timeout;
   const debouncedFn = (...args) => {
@@ -43,23 +43,23 @@ const debounce = (func, wait) => {
   return debouncedFn;
 };
 
-// 카테고리의 지역별 아이템 개수 계산 (ES2023+ 문법 적용)
+
 const getCategoryItemsByRegion = (categoryId) => {
   const regionCounts = {};
   for (const m of state.allMarkers.values()) {
     if (m.category === categoryId) {
       const region = m.region ?? "알 수 없음";
-      regionCounts[region] ??= 0; // Logical nullish assignment
+      regionCounts[region] ??= 0; 
       regionCounts[region]++;
     }
   }
   return regionCounts;
 };
 
-// 현재 표시할 지역 수 (더보기 클릭 시 확장)
+
 let expandedCategories = new Set();
 
-// 검색 결과 렌더링
+
 const renderSearchResults = (term, searchInput, searchResults) => {
   if (!term || term.length < 1) {
     searchResults.classList.add("hidden");
@@ -69,14 +69,14 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     return;
   }
 
-  // 지역 검색
+  
   const matchedRegions = Array.from(state.uniqueRegions)
     .filter((r) => t(r).toLowerCase().includes(term))
     .slice(0, 5);
 
-  // 카테고리 검색
+  
   const matchedCategories = [];
-  // Optional chaining으로 안전한 접근
+  
   for (const cat of state.mapData?.categories ?? []) {
     if (matchedCategories.length >= 8) break;
     const catId = cat.id ?? "";
@@ -86,7 +86,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     }
   }
 
-  // 결과가 없으면
+  
   if (matchedRegions.length === 0 && matchedCategories.length === 0) {
     searchResults.innerHTML = `
             <div class="search-no-results">
@@ -98,10 +98,10 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     return;
   }
 
-  // 결과 HTML 생성
+  
   let html = "";
 
-  // 지역 섹션
+  
   if (matchedRegions.length > 0) {
     html += `
             <div class="search-section">
@@ -138,7 +138,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     html += "</div></div>";
   }
 
-  // 카테고리 섹션 - 지역별로 분리하여 표시
+  
   if (matchedCategories.length > 0) {
     matchedCategories.forEach((cat) => {
       const catId = cat.id;
@@ -171,7 +171,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
                     <div class="search-section-items">
             `;
 
-      // 지역별로 표시
+      
       displayRegions.forEach((region) => {
         const count = regionCounts[region];
         const isActive =
@@ -194,7 +194,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
                 `;
       });
 
-      // 더 많은 지역이 있으면 더보기 버튼 표시
+      
       if (hasMore) {
         const remainingCount = regions.length - 6;
         html += `
@@ -210,7 +210,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
 
   searchResults.innerHTML = html;
 
-  // 이벤트 리스너 추가
+  
   searchResults.querySelectorAll(".search-embed-item").forEach((item) => {
     item.addEventListener("click", () => {
       const type = item.dataset.type;
@@ -231,10 +231,10 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     });
   });
 
-  // 더보기 버튼 이벤트 리스너
+  
   searchResults.querySelectorAll(".search-more-regions").forEach((btn) => {
     btn.addEventListener("mousedown", (e) => {
-      e.preventDefault(); // blur 이벤트 방지
+      e.preventDefault(); 
       e.stopPropagation();
     });
     btn.addEventListener("click", (e) => {
@@ -242,10 +242,10 @@ const renderSearchResults = (term, searchInput, searchResults) => {
       e.stopPropagation();
       const catId = btn.dataset.category;
       expandedCategories.add(catId);
-      // 검색 결과 다시 렌더링
+      
       const term = searchInput.value.trim().toLowerCase();
       renderSearchResults(term, searchInput, searchResults);
-      // 포커스 유지
+      
       searchInput.focus();
     });
   });
@@ -254,7 +254,7 @@ const renderSearchResults = (term, searchInput, searchResults) => {
   highlightMatchingMarkers(term);
 };
 
-// 검색 결과 표시
+
 const showSearchResults = (searchResults) => {
   searchResults.classList.remove("hidden");
   searchResults.style.display = "block";
@@ -263,7 +263,7 @@ const showSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "auto";
 };
 
-// 검색 결과 숨기기
+
 const hideSearchResults = (searchResults) => {
   searchResults.classList.add("hidden");
   searchResults.style.display = "none";
@@ -272,21 +272,21 @@ const hideSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "none";
 };
 
-// 모든 필터 복원 (검색 취소 시)
+
 const restoreAllFilters = () => {
-  // 모든 카테고리 활성화 (Optional chaining 적용)
+  
   state.activeCategoryIds.clear();
   state.mapData?.categories?.forEach((cat) => {
     state.activeCategoryIds.add(cat.id);
   });
 
-  // 모든 지역 활성화
+  
   state.activeRegionNames.clear();
   state.uniqueRegions.forEach((region) => {
     state.activeRegionNames.add(region);
   });
 
-  // UI 업데이트
+  
   const catBtns = document.querySelectorAll("#category-list .cate-item");
   catBtns.forEach((btn) => btn.classList.add("active"));
 
@@ -298,17 +298,17 @@ const restoreAllFilters = () => {
   saveFilterState();
 };
 
-// 마커 불투명도 리셋
+
 const resetMarkerOpacity = () => {
   state.allMarkers.forEach((m) => {
     if (m.marker) m.marker.setOpacity(1);
     else if (m.sprite) m.sprite.alpha = 1;
   });
-  // Optional chaining으로 안전한 메서드 호출
+  
   state.pixiOverlay?.redraw();
 };
 
-// 매칭 마커 하이라이트
+
 const highlightMatchingMarkers = (term) => {
   if (!term) {
     resetMarkerOpacity();
@@ -334,11 +334,11 @@ const highlightMatchingMarkers = (term) => {
     }
   });
 
-  // Optional chaining으로 안전한 메서드 호출
+  
   state.pixiOverlay?.redraw();
 };
 
-// 지역 클릭 핸들러
+
 const handleRegionClick = (region, searchInput, searchResults) => {
   searchInput.value = t(region);
   hideSearchResults(searchResults);
@@ -370,7 +370,7 @@ const handleRegionClick = (region, searchInput, searchResults) => {
   }
 };
 
-// 카테고리 + 지역 클릭 핸들러
+
 const handleCategoryRegionClick = (
   categoryId,
   region,
@@ -383,14 +383,14 @@ const handleCategoryRegionClick = (
   hideSearchResults(searchResults);
   resetMarkerOpacity();
 
-  // 해당 카테고리와 지역 모두 활성화
+  
   state.activeCategoryIds.clear();
   state.activeCategoryIds.add(categoryId);
 
   state.activeRegionNames.clear();
   state.activeRegionNames.add(region);
 
-  // 카테고리 버튼 업데이트
+  
   const catBtns = document.querySelectorAll("#category-list .cate-item");
   catBtns.forEach((btn) => {
     if (btn.dataset.id === categoryId) {
@@ -400,7 +400,7 @@ const handleCategoryRegionClick = (
     }
   });
 
-  // 지역 버튼 업데이트
+  
   const regBtns = document.querySelectorAll("#region-list .cate-item");
   regBtns.forEach((btn) => {
     if (btn.dataset.region === region) {
@@ -414,7 +414,7 @@ const handleCategoryRegionClick = (
   renderMapDataAndMarkers();
   saveFilterState();
 
-  // 해당 지역으로 이동
+  
   const meta = state.regionMetaInfo[region];
   if (meta) {
     state.map.flyTo([meta.lat, meta.lng], meta.zoom, {
@@ -424,7 +424,7 @@ const handleCategoryRegionClick = (
   }
 };
 
-// 검색 초기화
+
 export const initSearch = () => {
   const searchInput = document.getElementById("search-input");
   const searchResults = document.getElementById("search-results");
@@ -436,24 +436,24 @@ export const initSearch = () => {
     return;
   }
 
-  // 디바운스된 검색 핸들러
+  
   const debouncedSearch = debounce((term) => {
     renderSearchResults(term, searchInput, searchResults);
   }, 200);
 
-  // 입력 이벤트
+  
   searchInput.addEventListener("input", (e) => {
     const term = e.target.value.trim().toLowerCase();
     console.log("[Search] Input term:", term);
 
     if (term === "") {
-      // 디바운스 취소하고 즉시 닫기
+      
       debouncedSearch.cancel();
       hideSearchResults(searchResults);
       resetMarkerOpacity();
       expandedCategories.clear();
 
-      // 모든 지역과 카테고리 다시 활성화
+      
       restoreAllFilters();
       return;
     }
@@ -461,7 +461,7 @@ export const initSearch = () => {
     debouncedSearch(term);
   });
 
-  // blur 이벤트 - 검색 결과 내부 클릭 시에는 닫지 않음
+  
   let isClickInsideResults = false;
 
   searchResults.addEventListener("mousedown", () => {
@@ -477,7 +477,7 @@ export const initSearch = () => {
     }, 150);
   });
 
-  // focus 이벤트
+  
   searchInput.addEventListener("focus", () => {
     const term = searchInput.value.trim().toLowerCase();
     if (term.length >= 1) {
@@ -486,7 +486,7 @@ export const initSearch = () => {
   });
 };
 
-// 모달 검색 초기화 (기존 호환성)
+
 export const initModalSearch = (renderModalList) => {
   const modalSearchInput = document.getElementById("modal-search-input");
   if (modalSearchInput) {

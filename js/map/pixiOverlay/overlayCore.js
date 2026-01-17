@@ -32,7 +32,7 @@ export const isGpuRenderingAvailable = () => {
   const hasPixi =
     typeof window.PIXI !== "undefined" && typeof L.pixiOverlay !== "undefined";
 
-  // Check WebGL support
+  
   let hasWebGL = false;
   try {
     const canvas = document.createElement("canvas");
@@ -65,7 +65,7 @@ export const initPixiOverlay = async () => {
 
   pixiOverlay = L.pixiOverlay(
     (utils) => {
-      pixiUtils = utils; // utils 저장
+      pixiUtils = utils; 
       const zoom = utils.getMap().getZoom();
       const container = utils.getContainer();
       const renderer = utils.getRenderer();
@@ -73,18 +73,18 @@ export const initPixiOverlay = async () => {
       const scale = utils.getScale();
       const map = utils.getMap();
 
-      // 줌 레벨이 변경되었을 때 Spiderfy 해제
-      // 줌 레벨이 변경되었을 때 Spiderfy 해제
+      
+      
       if (prevZoom !== null && prevZoom !== zoom) {
         clearSpiderfy();
       } else {
         updateSpiderfyPositions(utils);
       }
 
-      // 클러스터링 활성화 여부 확인
+      
       const isSimpleCRS = map.options.crs === L.CRS.Simple;
       if (state.enableClustering && supercluster && !isSimpleCRS) {
-        // 1. 클러스터링 모드: 매 프레임 다시 그리기 (동적 구성)
+        
         pixiContainer.removeChildren();
         clearSpriteDataMap();
 
@@ -96,8 +96,8 @@ export const initPixiOverlay = async () => {
           bounds.getNorth(),
         ];
 
-        // 화면보다 조금 더 넓게 검색 (패딩)
-        const padding = 0.1; // 10%
+        
+        const padding = 0.1; 
         const width = bbox[2] - bbox[0];
         const height = bbox[3] - bbox[1];
         bbox[0] -= width * padding;
@@ -109,7 +109,7 @@ export const initPixiOverlay = async () => {
         const spiderfiedClusterId = getSpiderfiedClusterId();
 
         clusters.forEach((cluster) => {
-          // Spiderfy된 클러스터는 그리지 않음 (펼쳐진 상태로 표시해야 하므로)
+          
           if (cluster.id === spiderfiedClusterId) {
             return;
           }
@@ -118,23 +118,23 @@ export const initPixiOverlay = async () => {
           const coords = project([lat, lng]);
 
           if (cluster.properties.cluster) {
-            // 클러스터 렌더링
+            
             const count = cluster.properties.point_count;
             const clusterId = cluster.id;
 
-            // 클러스터 그래픽 생성 (원)
+            
             const graphics = new PIXI.Graphics();
-            let color = 0x66bb6a; // 기본 녹색
+            let color = 0x66bb6a; 
             let radius = 20;
 
             if (count > 100) {
               color = 0xffca28;
               radius = 30;
-            } // 노랑
+            } 
             if (count > 1000) {
               color = 0xef5350;
               radius = 40;
-            } // 빨강
+            } 
 
             graphics.beginFill(color, 0.8);
             graphics.lineStyle(2, 0xffffff, 1);
@@ -143,7 +143,7 @@ export const initPixiOverlay = async () => {
             graphics.x = coords.x;
             graphics.y = coords.y;
 
-            // 텍스트 생성
+            
             const text = new PIXI.Text(count.toString(), {
               fontFamily: "Arial",
               fontSize: 14,
@@ -154,7 +154,7 @@ export const initPixiOverlay = async () => {
             text.anchor.set(0.5);
             graphics.addChild(text);
 
-            // 인터랙션 데이터 설정
+            
             graphics.interactive = true;
             graphics.buttonMode = true;
             graphics.markerData = {
@@ -165,14 +165,14 @@ export const initPixiOverlay = async () => {
               lng: lng,
             };
 
-            // 스케일 역보정 (지도가 확대/축소되어도 크기 유지)
+            
             graphics.scale.set(1 / scale);
 
             pixiContainer.addChild(graphics);
           } else {
-            // 개별 마커 렌더링
-            // 원본 아이템 데이터 복원
-            const item = cluster.properties.item; // supercluster 로드 시 properties에 item 저장해야 함
+            
+            
+            const item = cluster.properties.item; 
             if (item) {
               const sprite = createSpriteForItem(item);
               if (sprite) {
@@ -183,7 +183,7 @@ export const initPixiOverlay = async () => {
                 sprite.width = targetSize;
                 sprite.height = targetSize;
 
-                // 필터 초기화
+                
                 if (sprite.filters === undefined || sprite.filters === null) {
                   sprite.filters = [];
                 }
@@ -195,13 +195,13 @@ export const initPixiOverlay = async () => {
           }
         });
 
-        // Spiderfy 컨테이너가 있다면 다시 추가 (removeChildren으로 삭제되었으므로)
+        
         const spiderfyContainer = getSpiderfyContainer();
         if (spiderfyContainer) {
           pixiContainer.addChild(spiderfyContainer);
         }
       } else {
-        // 2. 비클러스터링 모드 (기존 로직): 위치만 업데이트
+        
         pixiContainer.children.forEach((sprite) => {
           if (sprite.markerData && !sprite.markerData.isCluster) {
             const coords = project([
@@ -284,7 +284,7 @@ export const renderMarkersWithPixi = async (items) => {
 
   await preloadTextures(items);
 
-  // Supercluster 초기화 및 데이터 로드
+  
   if (typeof Supercluster !== "undefined") {
     supercluster = new Supercluster({
       radius: 60,
@@ -294,10 +294,10 @@ export const renderMarkersWithPixi = async (items) => {
 
     const points = items.map((item) => ({
       type: "Feature",
-      properties: { cluster: false, item: item }, // item 데이터 포함
+      properties: { cluster: false, item: item }, 
       geometry: {
         type: "Point",
-        coordinates: [parseFloat(item.y), parseFloat(item.x)], // [lng, lat]
+        coordinates: [parseFloat(item.y), parseFloat(item.x)], 
       },
     }));
 
@@ -309,13 +309,13 @@ export const renderMarkersWithPixi = async (items) => {
     console.warn("[PixiOverlay] Supercluster library not found");
   }
 
-  // 초기 렌더링
+  
   const isSimpleCRS = state.map && state.map.options.crs === L.CRS.Simple;
   if (state.enableClustering && !isSimpleCRS) {
-    // 클러스터링 모드면 drawCallback에서 처리하므로 여기선 redraw만 호출
+    
     pixiOverlay.redraw();
   } else {
-    // 비클러스터링 모드면 전체 마커 추가
+    
     pixiContainer.removeChildren();
     clearSpriteDataMap();
     state.allMarkers = new Map();

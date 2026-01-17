@@ -47,7 +47,7 @@ export const loadCategoryFilters = (mapKey) => {
           }
         });
       }
-      // 신규 카테고리 자동 활성화
+      
       validCategoryIds.forEach((id) => {
         if (!savedCatsSet.has(id)) {
           state.activeCategoryIds.add(id);

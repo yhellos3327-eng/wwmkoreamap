@@ -67,7 +67,7 @@ export const viewReport = (id, report) => {
     statusEl.textContent = statusText;
     statusEl.className = `status-badge status-${statusClass}`;
 
-    // 기존 관리자 컨트롤 제거
+    
     const existingStatusControls = document.getElementById('admin-status-controls');
     if (existingStatusControls) existingStatusControls.remove();
 
@@ -82,7 +82,7 @@ export const viewReport = (id, report) => {
             document.querySelector('.board-title').appendChild(adminIndicator);
         }
 
-        // 관리자 상태 컨트롤을 statusEl의 부모(detail-title)에 추가
+        
         const statusContainer = document.createElement('div');
         statusContainer.id = 'admin-status-controls';
         statusContainer.innerHTML = `
@@ -91,7 +91,7 @@ export const viewReport = (id, report) => {
             <button data-status="DONE">✅ 완료</button>
         `;
 
-        // 버튼 이벤트 바인딩
+        
         statusContainer.querySelectorAll('button').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const newStatus = btn.dataset.status;
@@ -111,7 +111,7 @@ export const viewReport = (id, report) => {
             });
         });
 
-        // statusEl의 부모 요소 뒤에 추가
+        
         statusEl.parentNode.insertBefore(statusContainer, statusEl.nextSibling);
     }
 
@@ -144,21 +144,21 @@ export const viewReport = (id, report) => {
 
     renderComments(`report_${id}`, 'report-comment-list');
 
-    // 맵 뷰어 처리
+    
     const mapContainer = document.getElementById('report-map-container');
     const btnViewMap = document.getElementById('btn-view-map');
     const mapModal = document.getElementById('map-modal');
     const mapFrame = document.getElementById('map-frame');
     const btnCloseMap = document.getElementById('btn-close-map');
 
-    // 초기화
+    
     mapContainer.style.display = 'none';
 
-    // 이벤트 리스너 중복 방지를 위해 새로 복제 (간단한 방법)
+    
     const newBtn = btnViewMap.cloneNode(true);
     btnViewMap.parentNode.replaceChild(newBtn, btnViewMap);
 
-    // 모달 닫기 이벤트 (한 번만 등록하면 되지만 여기서는 안전하게 처리)
+    
     btnCloseMap.onclick = () => {
         mapModal.style.display = 'none';
         mapFrame.src = '';
@@ -174,7 +174,7 @@ export const viewReport = (id, report) => {
     if (report.jsonData) {
         try {
             const data = JSON.parse(report.jsonData);
-            // lat, lng가 있거나 id가 있는 경우
+            
             if ((data.lat && data.lng) || data.id) {
                 mapContainer.style.display = 'block';
 
@@ -187,13 +187,13 @@ export const viewReport = (id, report) => {
 
                     let mapKey = data.map;
 
-                    // mapId로 확인
+                    
                     if (!mapKey) {
                         if (data.mapId == 3000 || data.map_id == 3000) mapKey = 'qinghe';
                         else if (data.mapId == 3003 || data.map_id == 3003) mapKey = 'kaifeng';
                     }
 
-                    // ID로 데이터 파일 조회하여 확인
+                    
                     if (!mapKey && data.id) {
                         const originalText = newBtn.textContent;
                         newBtn.disabled = true;
@@ -211,10 +211,10 @@ export const viewReport = (id, report) => {
                                 }
                             };
 
-                            // 청하 데이터 확인
+                            
                             mapKey = await checkMap('data.json', 'qinghe');
 
-                            // 없으면 개봉 데이터 확인
+                            
                             if (!mapKey) {
                                 mapKey = await checkMap('data2.json', 'kaifeng');
                             }

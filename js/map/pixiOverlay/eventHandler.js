@@ -25,8 +25,8 @@ let registeredHandlers = {
 export const calculateHitRadius = (lat, zoom) => {
   const map = state.map;
   if (map && map.options.crs === L.CRS.Simple) {
-    // Simple CRS (이미지 맵): 줌 레벨에 따라 픽셀 단위로 계산
-    // 줌 0에서 1단위가 1픽셀. 화면상 22픽셀 반경을 원함.
+    
+    
     return 22 / Math.pow(2, zoom);
   }
 
@@ -42,7 +42,7 @@ const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
 
   const map = state.map;
   if (map && map.options.crs === L.CRS.Simple) {
-    // Simple CRS: 단순 유클리드 거리 (또는 사각형 범위)
+    
     const dLat = Math.abs(clickLat - spriteLat);
     const dLng = Math.abs(clickLng - spriteLng);
     return dLat <= hitRadiusDeg && dLng <= hitRadiusDeg;
@@ -92,7 +92,7 @@ export const attachEventHandlers = (map, overlay, container) => {
   }
 
   const handleClick = (e) => {
-    // 개발자 도구 모드 처리
+    
     if (state.isDevMode && window.dev && window.dev.handleGpuClick) {
       const clickLat = e.latlng.lat;
       const clickLng = e.latlng.lng;
@@ -129,17 +129,17 @@ export const attachEventHandlers = (map, overlay, container) => {
     );
 
     if (sprite && sprite.markerData) {
-      // 클러스터 클릭 처리
+      
       if (sprite.markerData.isCluster) {
         const supercluster = getSupercluster();
         if (supercluster) {
           const clusterId = sprite.markerData.clusterId;
           const expansionZoom = supercluster.getClusterExpansionZoom(clusterId);
 
-          // Spiderfy 조건 체크
+          
           const leaves = supercluster.getLeaves(clusterId, Infinity);
 
-          // 위치 동일 여부 확인
+          
           let allSamePosition = true;
           if (leaves.length > 0) {
             const firstGeom = leaves[0].geometry.coordinates;
@@ -152,16 +152,16 @@ export const attachEventHandlers = (map, overlay, container) => {
             }
           }
 
-          // 줌 레벨이 최대치이거나 더 이상 확대할 수 없을 때 펼치기
+          
           const maxZoom = map.getMaxZoom();
           if (
             Number.isNaN(expansionZoom) ||
             expansionZoom > maxZoom ||
             allSamePosition
           ) {
-            // Spiderfy 실행
+            
             const utils = getPixiUtils();
-            const mainContainer = getPixiContainer(); // 메인 컨테이너
+            const mainContainer = getPixiContainer(); 
 
             if (utils && mainContainer) {
               spiderfyCluster(
@@ -172,11 +172,11 @@ export const attachEventHandlers = (map, overlay, container) => {
                 utils,
               );
 
-              // 지도가 중심을 잡도록 이동
+              
               map.panTo([sprite.markerData.lat, sprite.markerData.lng]);
             }
           } else {
-            // 일반 확대
+            
             map.flyTo(
               [sprite.markerData.lat, sprite.markerData.lng],
               expansionZoom,
@@ -189,7 +189,7 @@ export const attachEventHandlers = (map, overlay, container) => {
         return;
       }
 
-      // 일반 마커 (또는 Spiderfied 마커) 클릭 처리
+      
       hideCompletedTooltip();
       if (e.originalEvent) {
         e.originalEvent.stopPropagation();
@@ -260,7 +260,7 @@ export const attachEventHandlers = (map, overlay, container) => {
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-    // 재귀 탐색 필요 (Spiderfy 마커 툴팁 지원)
+    
     const sprite = findSpriteAtPosition(
       container,
       clickLat,
@@ -294,7 +294,7 @@ export const attachEventHandlers = (map, overlay, container) => {
   const handleMouseDown = (e) => {
     if (!container || container.children.length === 0) return;
 
-    // Check for middle click (button 1)
+    
     if (e.originalEvent.button !== 1) return;
 
     const clickLat = e.latlng.lat;

@@ -1,4 +1,4 @@
-/* ===== Base & Layout ===== */
+
 body {
     background-color: var(--bg-dark);
     color: var(--text-main);
@@ -21,7 +21,7 @@ li {
     margin-left: 18px;
 }
 
-/* ===== Animations ===== */
+
 @keyframes fadeIn {
     from {
         opacity: 0;

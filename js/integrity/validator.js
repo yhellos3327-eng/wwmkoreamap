@@ -318,7 +318,7 @@ export const validateBackupData = (data, context = {}, options = {}) => {
         }
     }
 
-    // 버전 검사 생략
+    
     result.steps.version = { valid: true };
 
     const completedResult = validateCompletedMarkers(data.completedMarkers, context);

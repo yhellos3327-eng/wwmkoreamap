@@ -17,7 +17,7 @@ import { initAds } from "./ads.js";
 import { initTheme } from "./theme.js";
 import { loadAllComponents } from "./component-loader.js";
 
-// 분리된 모듈들
+
 import { handleUrlParams, handleSharedLink } from "./urlHandler.js";
 import { initSyncHandler } from "./syncHandler.js";
 import { initDebug, loadDevToolsIfNeeded } from "./debug.js";
@@ -86,26 +86,26 @@ const loadMapDataWithProgress = async () => {
  * 비필수 모듈 지연 로딩
  */
 const loadOptionalModules = () => {
-  // WebLLM 초기화 (사전 캐시 시작)
+  
   import("./web-llm.js")
     .then((m) => m.initWebLLM())
     .catch((e) => console.warn("WebLLM init failed:", e));
 
-  // 설정 모듈
+  
   import("./settings.js").then(({ initSettingsModal, initAdToggle }) => {
     initSettingsModal();
     initAdToggle();
   });
 
-  // 백업 모듈
+  
   import("./backup.js").then(({ initBackupButtons }) => {
     initBackupButtons();
   });
 
-  // 댓글 모듈 (Side-effect import)
+  
   import("./comments.js");
 
-  // 개발자 도구 (조건부)
+  
   loadDevToolsIfNeeded();
 };
 
@@ -122,11 +122,11 @@ const loadTranslationData = () => {
  * 애플리케이션 초기화
  */
 const initializeApp = async () => {
-  // 1. 테마 및 마이그레이션 먼저 처리
+  
   initTheme();
   initMigration();
 
-  // 구 도메인이면 리다이렉트 처리 후 종료
+  
   if (isOldDomain()) {
     return;
   }
@@ -136,41 +136,41 @@ const initializeApp = async () => {
     favorites: localStorage.getItem("wwm_favorites"),
   });
 
-  // 2. URL 파라미터 처리
+  
   const urlParams = handleUrlParams();
 
   try {
-    // 3. HTML 컴포넌트 로딩
+    
     await loadAllComponents();
 
-    // 사이드바 기본 열기 (임베드 모드 제외)
+    
     if (!document.body.classList.contains("embed-mode")) {
       document.body.classList.add("sidebar-open");
     }
 
-    // 4. 구독 및 핸들러 설정
+    
     setupLoadingSubscription();
     initSyncHandler();
 
-    // 5. 인증 및 데이터 로딩
+    
     initAuth();
     loadTranslationData();
     initCustomDropdown();
 
-    // 6. 맵 데이터 로딩
+    
     await loadMapDataWithProgress();
 
-    // 7. 검색 및 이벤트 핸들러 초기화
+    
     initSearch();
     initModalSearch(renderModalList);
     initAllEventHandlers();
     initPopupEventDelegation();
 
-    // 8. 광고 및 UI 렌더링
+    
     initAds();
     renderFavorites();
 
-    // 9. 비필수 모듈 지연 로딩
+    
     loadOptionalModules();
   } catch (error) {
     console.error("초기화 실패:", error);
@@ -178,12 +178,12 @@ const initializeApp = async () => {
     return;
   }
 
-  // 10. 공유 링크 처리 (초기화 완료 후)
+  
   handleSharedLink(urlParams);
 };
 
-// 디버그 헬퍼 초기화 (즉시 실행)
+
 initDebug();
 
-// DOM 로드 후 앱 초기화
+
 document.addEventListener("DOMContentLoaded", initializeApp);

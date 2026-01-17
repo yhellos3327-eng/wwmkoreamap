@@ -1,4 +1,4 @@
-/* Map Markers */
+
 .route-marker-container {
     display: flex;
     align-items: center;
@@ -61,7 +61,7 @@
     }
 }
 
-/* Route Badge Markers */
+
 .route-badge-container {
     pointer-events: none !important;
 }

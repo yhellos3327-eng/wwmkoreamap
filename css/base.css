@@ -133,7 +133,7 @@ body {
     -webkit-user-select: none;
 }
 
-/* Low Spec Mode - Dark Theme */
+
 body.low-spec-mode {
     --glass-bg: #111;
     --glass-bg-hover: #222;
@@ -142,7 +142,7 @@ body.low-spec-mode {
     --glass-blur: none;
 }
 
-/* Low Spec Mode - Light Theme */
+
 [data-theme="light"] body.low-spec-mode {
     --glass-bg: #f5f5f7;
     --glass-bg-hover: #e8e8ea;

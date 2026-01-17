@@ -86,7 +86,7 @@
     border-bottom: 1px solid var(--border);
     flex-shrink: 0;
     position: relative;
-    z-index: 11; /* Higher than border animation */
+    z-index: 11; 
 }
 
 .web-llm-header h3 {
@@ -114,7 +114,7 @@
     overflow: hidden;
     padding: 0;
     position: relative;
-    z-index: 11; /* Higher than border animation */
+    z-index: 11; 
 }
 
 .web-llm-settings {
@@ -201,7 +201,7 @@
     border-color: var(--accent-hover);
 }
 
-/* Close button matching sidebar .close-btn */
+
 .web-llm-close-btn {
     background: var(--bg-item);
     border: none;
@@ -348,7 +348,7 @@
     background: var(--bg-item-hover);
 }
 
-/* Custom Model Modal (Nested) */
+
 #custom-model-modal {
     z-index: 2100;
     background: rgba(0, 0, 0, 0.6);
@@ -372,7 +372,7 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-/* Jump Link Style */
+
 .jump-link {
     color: var(--accent);
     text-decoration: none;

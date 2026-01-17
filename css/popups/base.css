@@ -7,7 +7,7 @@
     box-shadow: var(--glass-shadow);
     color: var(--text-main);
     padding: 0;
-    /* 패딩 제거하여 내부 요소가 꽉 차게 함 */
+    
     overflow: hidden;
 }
 
@@ -22,7 +22,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     padding: 0;
-    /* 내용 패딩 제거 */
+    
 }
 
 .leaflet-popup-content::-webkit-scrollbar {
@@ -49,7 +49,7 @@
     border: none;
 }
 
-/* 닫기 버튼 디자인 개선 (사이드바 close-btn 스타일 적용) */
+
 .leaflet-popup-close-button {
     width: 32px !important;
     height: 32px !important;
@@ -96,13 +96,13 @@
     justify-content: space-between;
     padding: 16px 20px;
     padding-right: 54px;
-    /* 닫기 버튼 공간 확보 */
+    
     background: var(--bg-item);
     border-bottom: 1px solid var(--border);
     width: 100%;
-    /* 가로 꽉 차게 */
+    
     box-sizing: border-box;
-    /* 패딩 포함 너비 계산 */
+    
     z-index: 10;
 }
 
@@ -132,7 +132,7 @@
     z-index: 1;
 }
 
-/* Replaced .popup-body p with .popup-content */
+
 .popup-content {
     margin: 0;
     font-size: 0.9rem;
@@ -232,7 +232,7 @@
     margin: 10px 0;
 }
 
-/* Markdown Styles */
+
 .popup-content h1,
 .popup-content h2,
 .popup-content h3 {

@@ -5,7 +5,7 @@
     height: 44px;
     padding: 0 18px 0 14px;
 
-    /* Glassmorphism Style matching Sidebar */
+    
     background: var(--bg-panel);
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
@@ -25,11 +25,11 @@
     transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
     overflow: hidden;
 
-    /* Heartbeat Animation */
+    
     animation: heartbeat 2s infinite ease-in-out;
 }
 
-/* Rotating Border Animation */
+
 .floating-sidebar-toggle::before {
     content: '';
     position: absolute;
@@ -73,7 +73,7 @@
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     animation: none;
-    /* Stop heartbeat on hover */
+    
 }
 
 .floating-sidebar-toggle:active {
@@ -87,7 +87,7 @@
     z-index: 20;
 }
 
-/* Show only when menu is on left AND sidebar is closed */
+
 body.menu-pos-left:not(.sidebar-open) .floating-sidebar-toggle {
     display: flex;
 }

@@ -1,4 +1,4 @@
-/* Skeleton Loading Animation */
+
 @keyframes skeleton-loading {
     0% {
         background-position: 200% 0;
@@ -19,7 +19,7 @@
     border-radius: 4px;
 }
 
-/* Comment Skeleton Structure */
+
 .skeleton-comment {
     padding: 12px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -55,7 +55,7 @@
     width: 70%;
 }
 
-/* Light Theme Adjustments (if applicable) */
+
 @media (prefers-color-scheme: light) {
     .skeleton {
         background: linear-gradient(90deg,

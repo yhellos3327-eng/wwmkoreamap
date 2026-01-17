@@ -8,9 +8,9 @@ import { logger } from "./logger.js";
 import { spatialIndex } from "./map/SpatialIndex.js";
 import { webWorkerManager } from "./web-worker-manager.js";
 
-// ============================================================================
-// 상수 및 설정
-// ============================================================================
+
+
+
 const STORAGE_KEYS = {
   MODEL_ID: "wwm_webllm_model_id",
   AUTO_MODEL: "wwm_webllm_auto_model",
@@ -20,7 +20,7 @@ const STORAGE_KEYS = {
   PRE_CACHE_DONE: "wwm_webllm_precache_done",
 };
 
-// 기본 모델 프리셋
+
 const MODEL_PRESETS = [
   {
     id: "Qwen2.5-0.5B-Instruct-q4f32_1-MLC",
@@ -56,7 +56,7 @@ const MODEL_PRESETS = [
 
 const DEFAULT_MODEL_ID = MODEL_PRESETS[1].id;
 
-// LLM 파라미터
+
 const LLM_PARAMS = {
   chat: {
     temperature: 0.4,
@@ -76,9 +76,9 @@ const LLM_PARAMS = {
   },
 };
 
-// ============================================================================
-// 엔진 상태 관리
-// ============================================================================
+
+
+
 let webllmModule = null;
 let mlcEngine = null;
 let currentModelId = null;
@@ -87,9 +87,9 @@ let engineLoadingProgress = { progress: 0, text: "" };
 let isPreCacheInProgress = false;
 let loadingMessageEl = null;
 
-// ============================================================================
-// 카테고리/정보 ID 후처리 맵
-// ============================================================================
+
+
+
 const categoryIdToKoreanMap = new Map();
 const infoIdToKoreanMap = new Map();
 
@@ -101,18 +101,18 @@ function initializeIdMaps() {
   categoryIdToKoreanMap.clear();
   infoIdToKoreanMap.clear();
 
-  // koDict에서 카테고리 및 아이템 번역 수집
+  
   if (state.koDict) {
     for (const [key, value] of Object.entries(state.koDict)) {
       if (key && value) {
-        // 카테고리 ID인지 아이템 ID인지 파악하여 분류
+        
         categoryIdToKoreanMap.set(key, value);
         infoIdToKoreanMap.set(key, value);
       }
     }
   }
 
-  // categoryItemTranslations에서 더 상세한 정보 수집
+  
   if (state.categoryItemTranslations) {
     for (const [catId, items] of Object.entries(
       state.categoryItemTranslations,
@@ -132,7 +132,7 @@ function initializeIdMaps() {
     }
   }
 
-  // mapData.categories에서 카테고리 정보 수집
+  
   if (state.mapData?.categories) {
     for (const cat of state.mapData.categories) {
       const koreanName =
@@ -147,7 +147,7 @@ function initializeIdMaps() {
     }
   }
 
-  // mapData.items에서 아이템 정보 수집
+  
   if (state.mapData?.items) {
     for (const item of state.mapData.items) {
       if (item.id) {
@@ -202,32 +202,32 @@ export function itemToRAGText(item) {
 
   const parts = [];
 
-  // 아이템 ID 및 이름 (Nullish coalescing으로 정확한 fallback)
+  
   if (item.id) parts.push(`ID: ${item.id}`);
   const name = item.nameKo ?? getInfoKorean(item.id) ?? item.name ?? item.id;
   if (name) parts.push(`이름/NPC: ${name}`);
 
-  // 카테고리
+  
   if (item.category) {
     const catKorean = getCategoryKorean(item.category);
     parts.push(`카테고리: ${catKorean}`);
   }
 
-  // 지역
+  
   if (item.regionName || item.region) {
     const region = item.regionName || item.region;
     const regionKorean = state.koDict?.[region] || region;
     parts.push(`지역: ${regionKorean}`);
   }
 
-  // 좌표
+  
   if (item.x !== undefined && item.y !== undefined) {
     parts.push(`좌표: [${item.x.toFixed(4)}, ${item.y.toFixed(4)}]`);
   }
 
-  // 설명
+  
   if (item.description) {
-    // HTML 태그 제거
+    
     const desc = item.description.replace(/<[^>]*>/g, " ").trim();
     if (desc) parts.push(`설명: ${desc}`);
   }
@@ -255,9 +255,9 @@ export function itemsToContext(items, maxItems = 20) {
   return lines.join("\n");
 }
 
-// ============================================================================
-// WebGPU 및 모델 캐시 관련
-// ============================================================================
+
+
+
 
 /**
  * WebGPU 지원 여부 확인
@@ -294,7 +294,7 @@ async function loadWebLLMModule() {
   if (webllmModule) return webllmModule;
 
   try {
-    // CDN에서 web-llm 로드
+    
     webllmModule = await import("https://esm.run/@mlc-ai/web-llm@0.2.78");
     logger.success("WebLLM", "WebLLM 모듈 로드 완료");
     return webllmModule;
@@ -311,7 +311,7 @@ async function hasModelInCache(modelId) {
   try {
     const module = await loadWebLLMModule();
     if (!module.hasModelInCache) {
-      // 폴백: Cache API 직접 확인
+      
       const cache = await caches.open("webllm-model-cache");
       const keys = await cache.keys();
       return keys.some((req) => req.url.includes(modelId));
@@ -349,9 +349,9 @@ async function getInstallState(modelId) {
   }
 }
 
-// ============================================================================
-// 엔진 관리 및 사전 캐시
-// ============================================================================
+
+
+
 
 /**
  * 진행 상태 콜백 생성
@@ -377,7 +377,7 @@ async function getOrCreateEngine(modelId, onProgress) {
     throw new Error("엔진이 이미 로딩 중입니다");
   }
 
-  // 같은 모델이 이미 로드되어 있으면 재사용
+  
   if (mlcEngine && currentModelId === modelId) {
     return mlcEngine;
   }
@@ -387,7 +387,7 @@ async function getOrCreateEngine(modelId, onProgress) {
   try {
     const module = await loadWebLLMModule();
 
-    // 기존 엔진이 있으면 언로드
+    
     if (mlcEngine && currentModelId !== modelId) {
       try {
         await mlcEngine.unload();
@@ -396,7 +396,7 @@ async function getOrCreateEngine(modelId, onProgress) {
       }
     }
 
-    // Web Worker 기반 엔진 생성
+    
     if (typeof Worker !== "undefined") {
       try {
         const worker = new Worker("./js/workers/webllm-worker.js", {
@@ -444,13 +444,13 @@ async function getOrCreateEngine(modelId, onProgress) {
 export async function preCacheModel(options = {}) {
   const { force = false, onProgress, onComplete, onError } = options;
 
-  // 이미 사전 캐시가 진행 중이면 스킵
+  
   if (isPreCacheInProgress) {
     logger.log("WebLLM", "사전 캐시 이미 진행 중");
     return;
   }
 
-  // WebGPU 지원 확인
+  
   const hasWebGPU = await checkWebGPUSupport();
   if (!hasWebGPU) {
     logger.warn("WebLLM", "WebGPU 미지원, 사전 캐시 스킵");
@@ -459,12 +459,12 @@ export async function preCacheModel(options = {}) {
 
   const modelId = getStoredModelId();
 
-  // 강제가 아니면 캐시 확인
+  
   if (!force) {
     const cached = await hasModelInCache(modelId);
     if (cached) {
       logger.log("WebLLM", `모델 이미 캐시됨: ${modelId}`);
-      // 캐시된 경우에도 엔진 워밍업
+      
       try {
         isPreCacheInProgress = true;
         await getOrCreateEngine(modelId, onProgress);
@@ -500,7 +500,7 @@ export async function preCacheModel(options = {}) {
 export function schedulePreCache(options = {}) {
   const { delay = 5000 } = options;
 
-  // 지연 후 idle 시점에 실행
+  
   setTimeout(() => {
     if ("requestIdleCallback" in window) {
       requestIdleCallback(
@@ -529,9 +529,9 @@ function getVisibleItems() {
   }
 }
 
-// ============================================================================
-// 검색 및 RAG 관련
-// ============================================================================
+
+
+
 
 /**
  * 사용자 쿼리에 기반하여 관련 아이템 검색 (RAG)
@@ -542,14 +542,14 @@ function searchItemsForContext(query) {
   const queryLower = query.toLowerCase().trim();
   const queryTerms = queryLower.split(/\s+/).filter((t) => t.length >= 1);
 
-  // 1. 가시성 기반 검색 (현재 화면, 여기, 이 근처 등)
+  
   const visibilityKeywords = ["여기", "현재", "화면", "보이는", "근처", "이곳"];
   const isVisibilityQuery = visibilityKeywords.some((k) =>
     queryLower.includes(k),
   );
   const visibleItems = getVisibleItems();
 
-  // 2. 지역명 추출 (번역명 대응)
+  
   let targetRegion = null;
   if (state.uniqueRegions) {
     for (const region of state.uniqueRegions) {
@@ -558,13 +558,13 @@ function searchItemsForContext(query) {
       const regionKo = (state.koDict?.[region] || region).toLowerCase();
 
       if (queryLower.includes(regionLower) || queryLower.includes(regionKo)) {
-        targetRegion = region; // 원본 지역명 저장
+        targetRegion = region; 
         break;
       }
     }
   }
 
-  // 3. 카테고리 및 특정 아이템 키워드 추출
+  
   const categoryKeywords = [
     "상자",
     "보물",
@@ -581,7 +581,7 @@ function searchItemsForContext(query) {
   ];
   const targetKeyword = categoryKeywords.find((k) => queryLower.includes(k));
 
-  // 4. 정밀 필터링 전략
+  
   let results = [];
 
   if (targetRegion || targetKeyword || isVisibilityQuery) {
@@ -625,12 +625,12 @@ function searchItemsForContext(query) {
       }
 
       if (targetKeyword) {
-        // '상자' 검색 시 이름이나 카테고리에 '상자'가 포함된 경우만 매칭 (설명 제외)
-        // 단, 설명에만 상자가 있는 경우는 '관련 아이템'으로는 볼 수 있지만 '상자' 자체는 아님
+        
+        
         const nameMatch = nameKo.includes(targetKeyword);
         const categoryMatch = categoryKo.includes(targetKeyword);
 
-        // 특정 카테고리 ID 매칭 (상자: 17310010006, 17310010007 등)
+        
         const isBoxCategory =
           item.category === "17310010006" ||
           item.category === "17310010007" ||
@@ -644,7 +644,7 @@ function searchItemsForContext(query) {
           const isFishingCategory = item.category === "17310010011";
           keywordMatch = keywordMatch || isFishingCategory;
         } else {
-          // 다른 키워드는 설명 포함 허용
+          
           keywordMatch =
             keywordMatch ||
             (item.description && item.description.includes(targetKeyword));
@@ -654,7 +654,7 @@ function searchItemsForContext(query) {
         match = true;
       }
 
-      // 추가 키워드 (지상, 지하 등)
+      
       if (queryLower.includes("지상") && !queryLower.includes("지하")) {
         const isGround =
           item.description &&
@@ -679,8 +679,8 @@ function searchItemsForContext(query) {
     }
   }
 
-  // 5. 점수 기반 검색 (폴백)
-  // 쿼리가 너무 짧으면 폴백하지 않음
+  
+  
   if (
     queryTerms.length === 0 ||
     (queryTerms.length === 1 && queryTerms[0].length < 2)
@@ -716,7 +716,7 @@ function searchItemsForContext(query) {
   });
 
   results = scoredItems
-    .filter((entry) => entry.score > 10) // 문턱값 상향
+    .filter((entry) => entry.score > 10) 
     .sort((a, b) => b.score - a.score)
     .slice(0, 30)
     .map((entry) => entry.item);
@@ -724,9 +724,9 @@ function searchItemsForContext(query) {
   return results;
 }
 
-// ============================================================================
-// 채팅 관련
-// ============================================================================
+
+
+
 
 /**
  * 시스템 프롬프트 생성
@@ -735,7 +735,7 @@ function buildSystemPrompt(context) {
   const mapKey = state.currentMapKey ?? "qinghe";
   const mapName = state.koDict?.[mapKey] ?? mapKey;
 
-  // 모델 크기에 따라 프롬프트 전략 수정 (0.5B 등 작은 모델은 단순하고 명확한 지시가 필요)
+  
   const isSmallModel = currentModelId && currentModelId.includes("0.5B");
 
   if (isSmallModel) {
@@ -782,15 +782,15 @@ export async function sendChatMessage(userMessage, options = {}) {
     enableThinking = false,
   } = options;
 
-  // ID 맵 초기화 확인
+  
   if (categoryIdToKoreanMap.size === 0) {
     initializeIdMaps();
   }
 
-  // 컨텍스트 생성 (토큰 제한 고려하여 15개로 제한)
+  
   const context = itemsToContext(items, 15);
 
-  // 엔진 확보
+  
   const modelId = getStoredModelId();
   let engine;
 
@@ -801,7 +801,7 @@ export async function sendChatMessage(userMessage, options = {}) {
     throw e;
   }
 
-  // 모델 프리셋 확인
+  
   const preset = MODEL_PRESETS.find((p) => p.id === modelId);
   const supportsThinking = preset?.supportsThinking || false;
   const useThinking = enableThinking && supportsThinking;
@@ -832,13 +832,13 @@ export async function sendChatMessage(userMessage, options = {}) {
       if (delta) {
         buffer += delta;
 
-        // <think> 태그 처리
+        
         if (supportsThinking) {
           while (true) {
             if (!inThinking) {
               const startIdx = buffer.indexOf("<think>");
               if (startIdx !== -1) {
-                // <think> 이전 내용은 fullContent에
+                
                 fullContent += buffer.slice(0, startIdx);
                 buffer = buffer.slice(startIdx + 7);
                 inThinking = true;
@@ -920,9 +920,9 @@ export function resetChat() {
   }
 }
 
-// ============================================================================
-// UI 관련
-// ============================================================================
+
+
+
 
 let chatHistory = [];
 let isGenerating = false;
@@ -936,13 +936,13 @@ export async function openWebLLMModal() {
 
   modal.classList.remove("hidden");
 
-  // ID 맵 초기화
+  
   initializeIdMaps();
 
-  // 상태 업데이트
+  
   await updateUIStatus();
 
-  // 입력 포커스
+  
   const textarea = modal.querySelector(".web-llm-textarea");
   if (textarea) textarea.focus();
 }
@@ -977,7 +977,7 @@ async function updateUIStatus() {
     return;
   }
 
-  // 로딩 중인 경우
+  
   if (isEngineLoading) {
     const progressPercent = (engineLoadingProgress?.progress ?? 0) * 100;
     const progressText = `[WebLLM] 사전 캐시: ${engineLoadingProgress?.text ?? "준비 중..."} (${progressPercent.toFixed(1)}%)`;
@@ -985,10 +985,10 @@ async function updateUIStatus() {
     statusEl.style.setProperty("--before-bg", "var(--warning)");
     if (sendBtn) sendBtn.disabled = true;
 
-    // 채팅창에 로딩 메시지 업데이트
+    
     const container = document.querySelector(".web-llm-chat-container");
     if (container) {
-      // loadingMessageEl이 없거나 문서에서 제거된 경우 새로 생성
+      
       if (!loadingMessageEl || !document.contains(loadingMessageEl)) {
         loadingMessageEl = renderChatMessage("system", progressText);
       } else {
@@ -996,7 +996,7 @@ async function updateUIStatus() {
       }
     }
 
-    // 진행바 표시
+    
     const progressBar = document.getElementById("llm-progress-bar");
     const progressFill = document.getElementById("llm-progress-fill");
     if (progressBar && progressFill) {
@@ -1005,11 +1005,11 @@ async function updateUIStatus() {
     }
     return;
   } else {
-    // 진행바 숨김
+    
     const progressBar = document.getElementById("llm-progress-bar");
     if (progressBar) progressBar.style.display = "none";
 
-    // 로딩 메시지 완료 처리
+    
     if (loadingMessageEl) {
       loadingMessageEl.textContent = `${preset?.label || "모델"} 로딩 완료!`;
       loadingMessageEl = null;
@@ -1044,12 +1044,12 @@ function formatChatMessage(content) {
     .replace(/>/g, "&gt;")
     .replace(/\n/g, "<br>");
 
-  // 1. 굵게 (**text**)
+  
   html = html.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-  // 2. 기울임 (*text*)
+  
   html = html.replace(/\*([^*]+)\*/g, "<em>$1</em>");
 
-  // 3. findItem 링크 파싱 ([텍스트](jumpToId:ID)) - 대소문자 구분 없음, ]와 ( 사이 공백 허용
+  
   const jumpRegex = /\[([^\]]+)\]\s*\(jumpToId:\s*(\d+)\s*\)/gi;
   html = html.replace(jumpRegex, (match, text, id) => {
     return `<a href="#" class="jump-link" onclick="event.preventDefault(); if(window.findItem) window.findItem('${id}'); return false;">${text}</a>`;
@@ -1091,19 +1091,19 @@ async function handleChatSubmit() {
   isGenerating = true;
   if (sendBtn) sendBtn.disabled = true;
 
-  // 사용자 메시지 표시
+  
   renderChatMessage("user", message);
   chatHistory.push({ role: "user", content: message });
 
-  // 어시스턴트 메시지 요소 생성
+  
   const assistantEl = renderChatMessage("assistant", "생각 중...");
 
   try {
-    // RAG: 질문과 관련된 아이템 검색
+    
     const relevantItems = searchItemsForContext(message);
 
-    // 검색 결과가 있으면 해당 결과 사용
-    // 만약 검색 결과가 전혀 없다면, 현재 화면에 보이는 아이템이라도 제공 (최대 10개)
+    
+    
     let contextItems = relevantItems;
     let isFallback = false;
 
@@ -1121,7 +1121,7 @@ async function handleChatSubmit() {
         `RAG 검색: "${message}" -> ${contextItems.length}개 아이템 발견${isFallback ? " (현재 화면 기준)" : ""}`,
       );
 
-      // 콘솔에 상세 정보 출력 (유지)
+      
       console.log(
         `%c[RAG Context] "${message}" -> ${contextItems.length}개 주입`,
         "color: #4CAF50; font-weight: bold;",
@@ -1140,7 +1140,7 @@ async function handleChatSubmit() {
       logger.log("WebLLM", `RAG 검색: "${message}" -> 관련 아이템 없음`);
     }
 
-    // AI 답변 생성 복구
+    
     await sendChatMessage(message, {
       items: contextItems,
       enableThinking:
@@ -1176,13 +1176,13 @@ async function handleChatSubmit() {
  * 이벤트 리스너 설정
  */
 function setupEventListeners() {
-  // 전송 버튼
+  
   const sendBtn = document.querySelector(".web-llm-send-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", handleChatSubmit);
   }
 
-  // 텍스트 영역 엔터키
+  
   const textarea = document.querySelector(".web-llm-textarea");
   if (textarea) {
     textarea.addEventListener("keydown", (e) => {
@@ -1193,7 +1193,7 @@ function setupEventListeners() {
     });
   }
 
-  // 닫기 버튼
+  
   const closeBtn = document.querySelector(
     '[data-action="close-web-llm-modal"]',
   );
@@ -1201,10 +1201,10 @@ function setupEventListeners() {
     closeBtn.addEventListener("click", closeWebLLMModal);
   }
 
-  // 모델 선택
+  
   const modelSelect = document.getElementById("web-llm-model-select");
   if (modelSelect) {
-    // 옵션 채우기
+    
     modelSelect.innerHTML = MODEL_PRESETS.map(
       (p) => `<option value="${p.id}">${p.label}</option>`,
     ).join("");
@@ -1216,20 +1216,20 @@ function setupEventListeners() {
       const preset = MODEL_PRESETS.find((p) => p.id === newModelId);
       localStorage.setItem(STORAGE_KEYS.MODEL_ID, newModelId);
 
-      // 채팅창에 로그 출력
+      
       renderChatMessage(
         "system",
         `모델을 ${preset?.label || "알 수 없음"}으로 변경합니다. 로딩을 기다려주세요...`,
       );
-      loadingMessageEl = null; // 새로운 로딩 메시지 생성을 위해 초기화
+      loadingMessageEl = null; 
 
-      // 즉시 상태 업데이트
+      
       updateUIStatus();
 
-      // 자동 다운로드 시작 (캐시 없으면)
+      
       preCacheModel({
         modelId: newModelId,
-        onProgress: () => updateUIStatus(), // 진행 상황 UI 반영
+        onProgress: () => updateUIStatus(), 
         onComplete: () => updateUIStatus(),
         onError: () => updateUIStatus(),
       });
@@ -1237,9 +1237,9 @@ function setupEventListeners() {
   }
 }
 
-// ============================================================================
-// 초기화
-// ============================================================================
+
+
+
 
 /**
  * WebLLM 모듈 초기화
@@ -1247,10 +1247,10 @@ function setupEventListeners() {
 export async function initWebLLM() {
   logger.log("WebLLM", "WebLLM 초기화 시작");
 
-  // 이벤트 리스너 설정
+  
   setupEventListeners();
 
-  // state 변경 구독
+  
   subscribe("mapData", () => {
     initializeIdMaps();
   });
@@ -1259,7 +1259,7 @@ export async function initWebLLM() {
     initializeIdMaps();
   });
 
-  // 사전 캐시 스케줄링 (페이지 로드 후 5초 뒤 idle 시점에)
+  
   schedulePreCache({
     delay: 5000,
     onProgress: (p) => {
@@ -1267,7 +1267,7 @@ export async function initWebLLM() {
         "WebLLM",
         `사전 캐시: ${p.text} (${(p.progress * 100).toFixed(1)}%)`,
       );
-      updateUIStatus(); // UI 실시간 업데이트 추가
+      updateUIStatus(); 
     },
     onComplete: () => {
       logger.success("WebLLM", "사전 캐시 완료");
@@ -1281,9 +1281,9 @@ export async function initWebLLM() {
   logger.success("WebLLM", "WebLLM 초기화 완료");
 }
 
-// ============================================================================
-// 외부 API
-// ============================================================================
+
+
+
 
 export {
   MODEL_PRESETS,
@@ -1297,7 +1297,7 @@ export {
   engineLoadingProgress,
 };
 
-// 기본 내보내기
+
 export default {
   initWebLLM,
   openWebLLMModal,

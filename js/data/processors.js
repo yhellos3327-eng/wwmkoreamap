@@ -106,7 +106,7 @@ const applyTranslations = (item, reverseRegionMap) => {
     }
   }
 
-  // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
+  
   if (!item.description || item.description.trim() === "") {
     const translatedName = t(item.name) || item.name;
     if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
@@ -359,19 +359,19 @@ export const parseCSVData = async (csvRes) => {
       const config = MAP_CONFIGS[state.currentMapKey];
       const isImageMap = config && config.type === "image";
 
-      // 이미지 맵인 경우: 좌표가 10보다 커야 함 (픽셀 좌표계)
-      // 일반 맵인 경우: 좌표가 10보다 작아야 함 (위경도 좌표계)
+      
+      
       const isLargeCoordinate =
         Math.abs(processedItem.latitude) > 10 ||
         Math.abs(processedItem.longitude) > 10;
 
       if (isImageMap) {
-        // 이미지 맵: 큰 좌표만 허용
+        
         if (isLargeCoordinate) {
           items.push(processedItem);
         }
       } else {
-        // 일반 맵: 작은 좌표만 허용
+        
         if (!isLargeCoordinate) {
           items.push(processedItem);
         }

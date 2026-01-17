@@ -844,7 +844,7 @@ input:checked+.slider:before {
     border: 1px dashed var(--border);
 }
 
-/* Chrome 번역기 카드 스타일 */
+
 .chrome-translator-card {
     background: var(--bg-item);
     border: 1px solid var(--border);

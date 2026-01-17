@@ -67,7 +67,7 @@
     transform: translateY(0) scale(1);
 }
 
-/* Sticker Grid */
+
 .sticker-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);

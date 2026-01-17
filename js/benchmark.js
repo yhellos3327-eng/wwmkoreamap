@@ -3,7 +3,7 @@ import { loadMapData } from './data.js';
 import { initMap } from './map/init.js';
 import { renderMapDataAndMarkers } from './map/markers.js';
 
-// UI Elements
+
 const logEl = document.getElementById('bench-log');
 const fpsEl = document.getElementById('stat-fps');
 const avgEl = document.getElementById('stat-avg');

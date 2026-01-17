@@ -53,7 +53,7 @@ const init = async () => {
             }
         }
 
-        // 데이터 렌더링
+        
         renderSystemUpdates();
         renderTranslationUpdates();
         renderNotices();
@@ -61,13 +61,13 @@ const init = async () => {
         renderReportBoardPosts();
     });
 
-    // 로그인 모달 이벤트
+    
     initLoginEvents();
 
-    // 링크 렌더링
+    
     renderLinks();
 
-    // 이벤트 초기화
+    
     initTabs();
     initBoardEvents();
     initFreeBoardEvents();
@@ -75,7 +75,7 @@ const init = async () => {
     initUpdateEvents();
     initNoticeEvents();
 
-    // 해시 기반 라우팅
+    
     handleHashRouting();
 };
 
@@ -145,7 +145,7 @@ const handleHashRouting = () => {
     }
 };
 
-// 초기화
+
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
 } else {

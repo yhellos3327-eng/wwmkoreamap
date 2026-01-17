@@ -57,7 +57,7 @@ const state = {
   closeOnComplete: localStorage.getItem("wwm_close_on_complete") === "true",
   regionMetaInfo: {},
   reverseRegionMap: {},
-  // Nullish coalescing으로 localStorage 기본값 설정 (null 처리)
+  
   savedAIProvider: localStorage.getItem("wwm_ai_provider") ?? "gemini",
   savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
   savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
@@ -78,7 +78,7 @@ const state = {
     localStorage.getItem("wwm_use_chrome_translator") === "true",
 
   get gpuRenderMode() {
-    // GPU 모드가 강제되므로 WebGL 가용 여부를 직접 반환합니다.
+    
     return checkWebGL();
   },
   set gpuRenderMode(value) {
@@ -96,7 +96,7 @@ const state = {
   },
 };
 
-// 카테고리 Map 캐시 (O(1) 조회용)
+
 let categoryMapCache = null;
 
 /**
@@ -107,7 +107,7 @@ let categoryMapCache = null;
 export const getCategoryMap = () => {
   if (!state.mapData?.categories?.length) return null;
 
-  // 캐시가 없거나 기존 캐시 크기와 다르면 재생성
+  
   if (
     !categoryMapCache ||
     categoryMapCache.size !== state.mapData.categories.length
@@ -174,7 +174,7 @@ export const notify = (key, value, oldValue) => {
   logger.stateChange(key, oldValue, value);
 
   if (listeners[key]) {
-    // Iterate backwards to allow safe removal
+    
     for (let i = listeners[key].length - 1; i >= 0; i--) {
       const listener = listeners[key][i];
 
@@ -188,17 +188,17 @@ export const notify = (key, value, oldValue) => {
               owner[listener.callbackOrMethod](value);
             }
           } else if (typeof listener.callbackOrMethod === "function") {
-            // CAUTION: If this function captures 'owner', it will prevent GC.
-            // Ideally use method name or a function that doesn't capture 'this'.
+            
+            
             listener.callbackOrMethod.call(owner, value);
           }
         } else {
-          // Owner collected, remove listener
+          
           listeners[key].splice(i, 1);
-          // console.log(`[State] Auto-unsubscribed collected listener for ${key}`);
+          
         }
       } else {
-        // Legacy support if any raw callbacks remain (shouldn't happen with new code)
+        
         if (typeof listener === "function") listener(value);
       }
     }

@@ -9,7 +9,7 @@ const parseCSV = (str) => {
   for (let row = 0; row < str.length; row++) {
     let cc = str[row],
       nc = str[row + 1];
-    // Logical nullish assignment
+    
     arr[col] ??= [];
     arr[col][c] ??= "";
 
@@ -94,7 +94,7 @@ const processJSONData = (
       commonDesc = catTrans._common_description;
     }
 
-    // 카테고리별 기본 이름 설정 (번역 개별 오버라이드가 없으면 이 이름 사용)
+    
     const categoryDefaultNames = {
       17310010006: "상자 (지상)",
       17310010007: "상자 (지하)",
@@ -115,7 +115,7 @@ const processJSONData = (
       }
 
       if (transData) {
-        // 번역 데이터에 개별 이름이 있으면 오버라이드
+        
         if (transData.name) {
           item.name = transData.name;
           item.isTranslated = true;
@@ -135,7 +135,7 @@ const processJSONData = (
         if (transData.video) {
           item.video_url = transData.video;
         }
-        // Apply custom position override [x|y] format
+        
         if (transData.customPosition) {
           item.x = transData.customPosition.x;
           item.y = transData.customPosition.y;
@@ -144,7 +144,7 @@ const processJSONData = (
       }
     }
 
-    // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
+    
     if (!item.description || item.description.trim() === "") {
       if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
         item.description = DEFAULT_DESCRIPTIONS[item.name];
@@ -153,7 +153,7 @@ const processJSONData = (
       }
     }
 
-    // Logical nullish assignment
+    
     itemsByCategory[item.category] ??= [];
     itemsByCategory[item.category].push(item);
   });
@@ -206,7 +206,7 @@ const processCSVData = (csvText) => {
       const catId = parsed[catIdx]?.trim();
       if (!catId) return;
 
-      // Logical nullish assignment
+      
       categoryItemTranslations[catId] ??= {};
 
       if (key === "_common_description") {
@@ -256,7 +256,7 @@ const processCSVData = (csvText) => {
           }
         }
 
-        // Parse CustomPosition in [x|y] format
+        
         let customPosition = null;
         const posRaw = posIdx !== -1 ? parsed[posIdx] : null;
         if (posRaw) {

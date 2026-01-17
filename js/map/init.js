@@ -10,7 +10,7 @@ export const initMap = async (mapKey) => {
   const targetCRS = config.crs === "Simple" ? L.CRS.Simple : L.CRS.EPSG3857;
 
   if (state.map && state.map.options.crs !== targetCRS) {
-    // GPU 모드 관련 리소스 정리
+    
     const pixi = await import("./pixiOverlay.js");
     if (pixi.disposePixiOverlay) pixi.disposePixiOverlay();
     if (pixi.resetEventHandlers) pixi.resetEventHandlers();
@@ -52,8 +52,8 @@ export const initMap = async (mapKey) => {
         mapContainer.classList.remove("low-quality-mode");
       }
 
-      // GPU 모드에서는 PixiOverlay가 줌/팬을 자동으로 처리하므로 별도 로직 불필요
-      // 단, 클러스터링이나 오버레이 업데이트 등은 필요할 수 있음
+      
+      
 
       import("./regions.js").then(({ updateRegionOverlay }) =>
         updateRegionOverlay(),

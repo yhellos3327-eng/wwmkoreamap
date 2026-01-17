@@ -1,36 +1,36 @@
 export class VirtualScroller {
     constructor(config) {
-        this.element = config.element; // The element where items are rendered
-        this.scrollContainer = config.scrollContainer || this.element; // The element that scrolls
+        this.element = config.element; 
+        this.scrollContainer = config.scrollContainer || this.element; 
         this.renderItem = config.renderItem;
         this.itemHeight = config.itemHeight || 60;
-        this.columns = config.columns || 1; // Number of columns in grid
+        this.columns = config.columns || 1; 
         this.items = config.items || [];
         this.buffer = config.buffer || 5;
 
         this.initDOM();
         this.bindEvents();
 
-        // Initial render
+        
         if (this.items.length > 0) {
             this.setItems(this.items);
         }
     }
 
     initDOM() {
-        // Ensure container is positioned
+        
         if (getComputedStyle(this.element).position === 'static') {
             this.element.style.position = 'relative';
         }
 
-        // Create spacer for total height
+        
         this.spacer = document.createElement('div');
         this.spacer.className = 'virtual-spacer';
         this.spacer.style.opacity = '0';
         this.spacer.style.pointerEvents = 'none';
         this.spacer.style.width = '1px';
 
-        // Create content wrapper
+        
         this.content = document.createElement('div');
         this.content.className = 'virtual-content';
         this.content.style.position = 'absolute';
@@ -64,15 +64,15 @@ export class VirtualScroller {
     }
 
     render(force = false) {
-        // Calculate scrollTop relative to the element
+        
         let scrollTop = this.scrollContainer.scrollTop;
 
-        // If scrollContainer is different from element, we need to adjust scrollTop
-        // based on element's position within scrollContainer
+        
+        
         if (this.scrollContainer !== this.element) {
             let offset = 0;
             let el = this.element;
-            // Traverse up to find offset relative to scrollContainer
+            
             while (el && el !== this.scrollContainer) {
                 offset += el.offsetTop;
                 el = el.offsetParent;
@@ -82,29 +82,29 @@ export class VirtualScroller {
 
         const viewportHeight = this.scrollContainer.clientHeight;
 
-        // Calculate row range
+        
         const startRow = Math.floor(scrollTop / this.itemHeight);
         const endRow = Math.ceil((scrollTop + viewportHeight) / this.itemHeight);
 
-        // Add buffer to rows
+        
         const bufferedStartRow = Math.max(0, startRow - this.buffer);
         const bufferedEndRow = Math.min(Math.ceil(this.items.length / this.columns), endRow + this.buffer);
 
-        // Convert rows to item indices
+        
         const start = bufferedStartRow * this.columns;
         const end = Math.min(this.items.length, bufferedEndRow * this.columns);
 
-        // Optimization: Don't re-render if range hasn't changed
+        
         if (!force && this.lastStart === start && this.lastEnd === end) {
             return;
         }
         this.lastStart = start;
         this.lastEnd = end;
 
-        // Update content position
+        
         this.content.style.transform = `translateY(${bufferedStartRow * this.itemHeight}px)`;
 
-        // Render items
+        
         const fragment = document.createDocumentFragment();
         for (let i = start; i < end; i++) {
             const item = this.items[i];
@@ -116,7 +116,7 @@ export class VirtualScroller {
         this.content.appendChild(fragment);
     }
 
-    // Clean up
+    
     destroy() {
         this.scrollContainer.removeEventListener('scroll', this.onScroll.bind(this));
         this.element.innerHTML = '';

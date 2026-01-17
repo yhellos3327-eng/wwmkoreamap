@@ -42,7 +42,7 @@ export class MemoryManager {
     track(target, label, cleanupCallback = null) {
         if (!this.registry) return;
 
-        // Update stats
+        
         this.activeCount++;
         if (label.includes('Marker')) this.stats.markers++;
         else if (label.includes('Sprite')) this.stats.sprites++;

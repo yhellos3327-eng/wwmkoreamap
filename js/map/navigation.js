@@ -27,7 +27,7 @@ export const moveToLocation = (
   const targetZoom = currentZoom > 11 ? currentZoom : 11;
   state.map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
 
-  // GPU Mode handling
+  
   if (isGpuRenderingAvailable()) {
     const id =
       itemId ||
@@ -43,7 +43,7 @@ export const moveToLocation = (
     return;
   }
 
-  // CPU Mode handling
+  
   if (marker) {
     const catId = marker.options.alt;
     if (catId && !state.activeCategoryIds.has(catId)) {
@@ -52,7 +52,7 @@ export const moveToLocation = (
       if (btn) btn.classList.add("active");
     }
 
-    // 클러스터링 사용 시 해당 마커로 줌인 후 팝업 오픈
+    
     if (state.enableClustering && state.markerClusterGroup) {
       state.markerClusterGroup.zoomToShowLayer(marker, () => {
         setTimeout(() => marker.openPopup(), 100);

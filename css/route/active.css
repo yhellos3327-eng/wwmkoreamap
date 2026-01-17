@@ -1,11 +1,11 @@
-/* Active Route Section */
+
 .route-active-section {
     display: flex;
     flex-direction: column;
     gap: 28px;
 }
 
-/* Progress Section */
+
 .route-progress {
     display: flex;
     flex-direction: column;
@@ -39,7 +39,7 @@
     font-weight: 600;
 }
 
-/* Navigation Buttons */
+
 .route-navigation {
     display: flex;
     gap: 10px;
@@ -83,7 +83,7 @@
     color: #000;
 }
 
-/* Current Item Display */
+
 .route-current-item {
     background: linear-gradient(135deg, rgba(218, 172, 113, 0.1) 0%, rgba(218, 172, 113, 0.05) 100%);
     border: 1px solid rgba(218, 172, 113, 0.2);
@@ -131,7 +131,7 @@
     align-items: center;
     gap: 6px;
 }
-/* Light Theme Support */
+
 [data-theme="light"] .route-progress {
     background: rgba(0, 0, 0, 0.02);
     border-color: rgba(0, 0, 0, 0.06);

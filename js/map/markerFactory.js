@@ -105,12 +105,12 @@ export const createMarkerForItem = (item) => {
     });
 
     marker.on('mousedown', (e) => {
-        if (e.originalEvent.button === 1) { // Middle click (Mouse wheel)
+        if (e.originalEvent.button === 1) { 
             e.originalEvent.preventDefault();
             const textToCopy = `Override,"${catId}","${item.id}"`;
             navigator.clipboard.writeText(textToCopy).then(() => {
                 console.log('Copied to clipboard:', textToCopy);
-                // Optional: Visual feedback could be added here
+                
             }).catch(err => {
                 console.error('Failed to copy:', err);
             });

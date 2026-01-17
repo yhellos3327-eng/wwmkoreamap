@@ -1,4 +1,4 @@
-/* ===== Admin Styles ===== */
+
 .admin-text {
     background: linear-gradient(135deg, #ff4d4d, #ff9a44);
     -webkit-background-clip: text;
@@ -38,7 +38,7 @@ input.admin-text {
     transform: translateY(-1px);
 }
 
-/* ===== Status Badge ===== */
+
 .status-badge {
     display: inline-block;
     padding: 5px 12px;

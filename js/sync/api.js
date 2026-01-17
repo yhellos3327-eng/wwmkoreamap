@@ -20,7 +20,7 @@ export const saveCloudData = async (data) => {
     return await response.json();
 };
 
-// ============== BACKUP HISTORY API ==============
+
 
 export const fetchBackupList = async () => {
     const response = await fetch(`${BACKEND_URL}/api/backup/list`, {

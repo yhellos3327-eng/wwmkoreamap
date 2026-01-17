@@ -135,7 +135,7 @@ const renderRegionItem = (region) => {
     }
   });
 
-  // Hover effects
+  
   btn.addEventListener("mouseenter", () => {
     if (state.regionLayerGroup) {
       state.regionLayerGroup.eachLayer((layer) => {

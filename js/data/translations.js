@@ -9,7 +9,7 @@ export const loadTranslations = async (mapKey) => {
     const processCSVChunk = (chunkData, rawHeaders) => {
         if (!rawHeaders) return;
 
-        // 헤더 공백 제거
+        
         const headers = rawHeaders.map(h => h.trim());
 
         if (state.parsedCSV.length === 0) {
@@ -129,12 +129,12 @@ const parseVideoField = (videoUrl) => {
     }
 };
 
-// Parse CustomPosition in [x|y] format
+
 const parseCustomPosition = (positionRaw) => {
     if (!positionRaw) return null;
 
     const trimmed = positionRaw.trim();
-    // Format: [x|y] e.g. [1.283662|-1.102238]
+    
     if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
         const content = trimmed.slice(1, -1);
         const parts = content.split('|');

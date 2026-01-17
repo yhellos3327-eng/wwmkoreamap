@@ -9,7 +9,7 @@ import {
 } from "./markerFactory.js";
 import { webWorkerManager } from "../web-worker-manager.js";
 
-// Dynamic import wrapper for PixiOverlay
+
 let pixiModule = null;
 const getPixiModule = async () => {
   if (!pixiModule) {
@@ -51,7 +51,7 @@ export const initLazyLoading = async () => {
 };
 
 export const renderMapDataAndMarkers = async () => {
-  // Always use GPU mode
+  
   const pixi = await getPixiModule();
 
   if (pixi.isGpuRenderingAvailable()) {
@@ -93,4 +93,4 @@ export const renderMapDataAndMarkers = async () => {
   }
 };
 
-// CPU 렌더링 관련 함수들 제거됨 (updateViewportMarkers, forceFullRender, initCpuInteraction 등)
+

@@ -16,13 +16,13 @@ export const enableDevMode = () => {
     let editingItem = null;
     let uploadedImages = [];
 
-    // Region Editor State
+    
     let isRegionMode = false;
     let currentPolygon = null;
     let polygonHandles = [];
     let regionEditorUI = null;
 
-    // --- Region Editor UI ---
+    
     const createRegionEditorUI = () => {
         if (document.getElementById('region-editor-ui')) return;
 
@@ -80,7 +80,7 @@ export const enableDevMode = () => {
             btn.style.background = "var(--accent)";
             btn.style.color = "black";
             controls.style.display = 'flex';
-            // Disable item edit mode interactions if needed
+            
         } else {
             btn.textContent = "Start Region Mode";
             btn.style.background = "";
@@ -146,14 +146,14 @@ export const enableDevMode = () => {
             return;
         }
 
-        const latlngs = currentPolygon.getLatLngs()[0]; // Assuming simple polygon
-        // Format: [ [lon, lat], ... ] as strings
+        const latlngs = currentPolygon.getLatLngs()[0]; 
+        
         const coordinates = latlngs.map(ll => [
             String(ll.lng),
             String(ll.lat)
         ]);
 
-        // Close the loop
+        
         if (coordinates.length > 0) {
             coordinates.push(coordinates[0]);
         }
@@ -161,28 +161,28 @@ export const enableDevMode = () => {
         const center = currentPolygon.getBounds().getCenter();
 
         const json = {
-            mapId: 3003, // Default to Kaifeng/current, maybe make selectable
+            mapId: 3003, 
             title: "New Region",
             zoom: 12,
             latitude: String(center.lat),
             longitude: String(center.lng),
             coordinates: coordinates,
-            id: Date.now(), // Temp ID
+            id: Date.now(), 
             map_id: 3003
         };
 
         console.log(JSON.stringify(json, null, 4));
         
-        // Copy to clipboard
+        
         navigator.clipboard.writeText(JSON.stringify(json, null, 4)).then(() => {
             alert("Region JSON copied to clipboard! (Check console for full output)");
         });
     };
 
-    // Initialize UI
+    
     createRegionEditorUI();
 
-    // --- Existing Item Editor Code ---
+    
 
     if (categorySelect && state.mapData.categories) {
         categorySelect.innerHTML = '';
@@ -237,7 +237,7 @@ export const enableDevMode = () => {
 
     const onMarkerClick = (e) => {
         if (!state.isDevMode) return;
-        if (isRegionMode) return; // Disable item editing in region mode
+        if (isRegionMode) return; 
 
         const marker = e.target;
         marker.closePopup();

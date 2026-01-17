@@ -40,7 +40,7 @@ export const parseCSV = (str) => {
   for (let row = 0; row < str.length; row++) {
     let cc = str[row],
       nc = str[row + 1];
-    // Logical nullish assignment (ES2021+)
+    
     arr[col] ??= [];
     arr[col][c] ??= "";
 
@@ -103,7 +103,7 @@ export const fetchAndParseCSVChunks = async (
   const blob = await fetchWithProgress(url, onProgress);
 
   let text = await blob.text();
-  // Remove BOM if present
+  
   if (text.charCodeAt(0) === 0xfeff) {
     text = text.slice(1);
   }
@@ -141,7 +141,7 @@ export const fetchAndParseCSVChunks = async (
   if (onComplete) onComplete();
 };
 
-// IP utility with caching
+
 let cachedIp = null;
 let cachedMaskedIp = null;
 
@@ -152,7 +152,7 @@ export const fetchUserIp = async (masked = true) => {
   const getMasked = (ip) => ip.split(".").slice(0, 2).join(".");
 
   try {
-    // Primary: ipify
+    
     const response = await fetch("https://api.ipify.org?format=json");
     if (!response.ok) throw new Error("ipify failed");
     const data = await response.json();
@@ -162,11 +162,11 @@ export const fetchUserIp = async (masked = true) => {
   } catch (e) {
     console.warn("Primary IP fetch failed, trying backup...", e);
     try {
-      // Backup: db-ip
+      
       const response = await fetch("https://api.db-ip.com/v2/free/self");
       if (!response.ok) throw new Error("db-ip failed");
       const data = await response.json();
-      const ip = data.ipAddress || data.ip; // db-ip uses ipAddress
+      const ip = data.ipAddress || data.ip; 
       cachedIp = ip;
       cachedMaskedIp = getMasked(ip);
       return masked ? cachedMaskedIp : cachedIp;
@@ -187,29 +187,29 @@ export const parseMarkdown = (text) => {
   if (!text) return "";
   let html = text;
 
-  // Headers
+  
   html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
   html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
 
-  // Bold (**text** or __text__)
+  
   html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
 
-  // Italic (*text* or _text_)
+  
   html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
   html = html.replace(/_(.*?)_/g, "<em>$1</em>");
 
-  // Strikethrough (~~text~~)
+  
   html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
 
-  // Blockquote (> text)
+  
   html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
 
-  // Code block (```text```)
+  
   html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
 
-  // Inline code (`text`)
+  
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
 
   // Horizontal Rule (---)
@@ -230,7 +230,7 @@ export const parseMarkdown = (text) => {
     },
   );
 
-  // Links ([text](url))
+  
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',

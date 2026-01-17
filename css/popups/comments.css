@@ -272,7 +272,7 @@
     border-radius: 8px;
 }
 
-/* Reply/Thread Styles */
+
 .comment-reply {
     position: relative;
     margin-left: 24px;
@@ -391,7 +391,7 @@
     color: var(--text-main);
 }
 
-/* Password input */
+
 .comment-password,
 .reply-password {
     width: 70px;

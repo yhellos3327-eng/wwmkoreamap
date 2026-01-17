@@ -18,8 +18,8 @@ export class LazyLoader {
                                 img.src = src;
                                 img.classList.add('loaded');
                                 img.removeAttribute('data-src');
-                                // Debug log
-                                //console.log(`[LazyLoader] Loaded: ${src.substring(0, 50)}...`);
+                                
+                                
                             };
                             tempImg.src = src;
                         }

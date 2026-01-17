@@ -21,14 +21,14 @@ export const getLocalData = () => {
         try { settingsTimestamps = JSON.parse(settingsUpdatedAt) || {}; } catch (e) { }
     }
 
-    // Helper to get boolean with default
+    
     const getBool = (key, defaultVal) => {
         const val = localStorage.getItem(key);
         if (val === null) return defaultVal;
         return val === 'true';
     };
 
-    // Helper to get JSON with default
+    
     const getJson = (key, defaultVal = []) => {
         const val = localStorage.getItem(key);
         if (!val) return defaultVal;
@@ -43,7 +43,7 @@ export const getLocalData = () => {
         showAd: getBool('wwm_show_ad', true),
         regionColor: localStorage.getItem('wwm_region_color'),
         regionFillColor: localStorage.getItem('wwm_region_fill_color'),
-        gpuMode: localStorage.getItem('wwm_gpu_setting') || localStorage.getItem('wwm_gpu_mode'), // Handle both keys if needed, but settings.js uses wwm_gpu_setting
+        gpuMode: localStorage.getItem('wwm_gpu_setting') || localStorage.getItem('wwm_gpu_mode'), 
         activeCatsQinghe: getJson('wwm_active_cats_qinghe'),
         activeCatsKaifeng: getJson('wwm_active_cats_kaifeng'),
         activeRegsQinghe: getJson('wwm_active_regs_qinghe'),
@@ -53,7 +53,7 @@ export const getLocalData = () => {
         _updatedAt: settingsTimestamps
     };
 
-    // Remove null/undefined values (except _updatedAt which is always object)
+    
     Object.keys(settings).forEach(key => {
         if (settings[key] === null || settings[key] === undefined) {
             if (key !== '_updatedAt') delete settings[key];
@@ -84,13 +84,13 @@ export const setLocalData = (data) => {
         if (s.regionColor !== undefined) localStorage.setItem('wwm_region_color', s.regionColor);
         if (s.regionFillColor !== undefined) localStorage.setItem('wwm_region_fill_color', s.regionFillColor);
 
-        // Handle GPU setting key consistency
+        
         if (s.gpuMode !== undefined) {
             localStorage.setItem('wwm_gpu_setting', s.gpuMode);
-            localStorage.setItem('wwm_gpu_mode', s.gpuMode); // Keep legacy for safety
+            localStorage.setItem('wwm_gpu_mode', s.gpuMode); 
         }
 
-        // Use JSON.stringify for arrays
+        
         if (s.activeCatsQinghe !== undefined) localStorage.setItem('wwm_active_cats_qinghe', JSON.stringify(s.activeCatsQinghe));
         if (s.activeCatsKaifeng !== undefined) localStorage.setItem('wwm_active_cats_kaifeng', JSON.stringify(s.activeCatsKaifeng));
         if (s.activeRegsQinghe !== undefined) localStorage.setItem('wwm_active_regs_qinghe', JSON.stringify(s.activeRegsQinghe));

@@ -23,7 +23,7 @@
     background: linear-gradient(90deg, var(--border), transparent);
 }
 
-/* 그룹별 토글 버튼 */
+
 .group-toggle-btn {
     display: flex;
     align-items: center;
@@ -54,7 +54,7 @@
 
 .group-toggle-btn.all-active:hover {
     background: var(--accent-bg);
-    /* Hover effect for active state */
+    
     opacity: 0.8;
 }
 
@@ -211,7 +211,7 @@
 
 .cate-item.active .cate-name {
     color: var(--text-main);
-    /* Active state text color */
+    
 }
 
 .cate-meta {
@@ -314,7 +314,7 @@
     transform: scale(1.1) rotate(90deg);
 }
 
-/* Virtual Scroller Support for Region Grid */
+
 .region-grid {
     display: block !important;
 }

@@ -267,7 +267,7 @@ let selectedRegion = '';
 const updateRegionSelector = () => {
     const regions = getAvailableRegions();
 
-    // Set first region as default if none selected
+    
     if (!selectedRegion && regions.length > 0) {
         selectedRegion = regions[0];
         const hiddenInput = document.getElementById('route-region-select');
@@ -306,15 +306,15 @@ const openRegionModal = () => {
 
     document.body.appendChild(modal);
 
-    // Close on overlay click
+    
     modal.addEventListener('click', (e) => {
         if (e.target === modal) closeRegionModal();
     });
 
-    // Close button
+    
     document.getElementById('route-region-modal-close')?.addEventListener('click', closeRegionModal);
 
-    // Region selection
+    
     modal.querySelectorAll('.route-region-option').forEach(opt => {
         opt.addEventListener('click', () => {
             const region = opt.dataset.region;
@@ -623,7 +623,7 @@ const attachRouteEventListeners = () => {
     document.getElementById('route-mode-manual')?.addEventListener('click', () => switchRouteMode('manual'));
     document.getElementById('route-region-trigger')?.addEventListener('click', openRegionModal);
 
-    // Category Toggle
+    
     document.getElementById('route-cat-toggle')?.addEventListener('click', () => {
         const items = document.querySelectorAll('.route-category-item');
         const checkedItems = document.querySelectorAll('.route-category-item.checked');
@@ -640,7 +640,7 @@ const attachRouteEventListeners = () => {
         updateCategoryToggleBtn();
     });
 
-    // Exclude completed checkbox toggle
+    
     const excludeLabel = document.getElementById('route-exclude-completed-label');
     const excludeCheckbox = document.getElementById('route-exclude-completed');
     excludeLabel?.addEventListener('click', () => {

@@ -35,7 +35,7 @@ const preloadIcon = (iconUrl) => {
  */
 const resolveCategoryId = (categoryId) => {
   if (ICON_MAPPING && ICON_MAPPING.hasOwnProperty(categoryId)) {
-    return ICON_MAPPING[categoryId]; // mapped 또는 null 반환
+    return ICON_MAPPING[categoryId]; 
   }
   return categoryId;
 };
@@ -51,7 +51,7 @@ const getIconUrl = (categoryId) => {
 
   const categoryMap = getCategoryMap();
   if (categoryMap) {
-    const catObj = categoryMap.get(finalCatId); // O(1) 조회
+    const catObj = categoryMap.get(finalCatId); 
     if (catObj?.image) {
       return catObj.image;
     }

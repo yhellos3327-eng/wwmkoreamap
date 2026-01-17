@@ -77,7 +77,7 @@ export const loadMapData = async (mapKey, onProgress) => {
       regionResult.reverseRegionMap,
     );
 
-    // 지역 메타 정보 보완 (이미지 맵 등에서 지역 파일이 없는 경우)
+    
     const currentMeta = state.regionMetaInfo || {};
     uniqueRegions.forEach((regionName) => {
       if (!currentMeta[regionName]) {

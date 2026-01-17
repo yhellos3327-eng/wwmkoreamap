@@ -1,4 +1,4 @@
-/* Route List */
+
 .route-list-container {
     margin-top: 16px;
     padding-top: 20px;
@@ -101,7 +101,7 @@
     font-weight: 700;
 }
 
-/* Action Buttons */
+
 .route-actions {
     display: flex;
     gap: 8px;
@@ -137,7 +137,7 @@
     color: var(--text-main);
 }
 
-/* Saved Routes */
+
 .route-saved-section {
     margin-top: 4px;
     padding-top: 16px;
@@ -233,7 +233,7 @@
     color: var(--text-muted);
     font-size: 0.85rem;
 }
-/* Light Theme Support */
+
 [data-theme="light"] .route-action-btn {
     background: rgba(0, 0, 0, 0.05);
     border-color: rgba(0, 0, 0, 0.1);

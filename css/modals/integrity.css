@@ -331,7 +331,7 @@
     transform: none;
 }
 
-/*  ˸  */
+
 #result-alert-modal {
     position: fixed;
     top: 0;
@@ -461,7 +461,7 @@
     background: var(--accent-hover);
 }
 
-/* ͹̳ α â */
+
 .integrity-console {
     margin-top: 16px;
     border-radius: 10px;

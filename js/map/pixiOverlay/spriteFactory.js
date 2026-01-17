@@ -104,7 +104,7 @@ export const createSpriteForItem = (item) => {
 
   sprite.alpha = isCompleted ? 0.4 : 1.0;
 
-  // 명시적으로 필터 초기화 - 의도치 않은 색상 변화 방지
+  
   if (isCompleted) {
     const colorMatrix = new PIXI.ColorMatrixFilter();
     colorMatrix.desaturate();
@@ -122,7 +122,7 @@ export const createSpriteForItem = (item) => {
     completedAt: completedItem?.completedAt,
   };
 
-  // Track sprite memory
+  
   memoryManager.track(sprite, `Sprite-${item.id}`);
   memoryManager.setMeta(sprite, {
     created: Date.now(),

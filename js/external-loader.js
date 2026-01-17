@@ -149,7 +149,7 @@ const processJsonData = (data, id, container, origin) => {
     contentDiv.className = 'quest-detail-container';
     contentDiv.innerHTML = html;
 
-    // Attach click handlers to images
+    
     const images = contentDiv.querySelectorAll('img');
     images.forEach(img => {
         img.style.cursor = 'pointer';

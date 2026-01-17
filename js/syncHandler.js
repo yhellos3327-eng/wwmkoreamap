@@ -26,7 +26,7 @@ const applyCloudSettings = (settings) => {
     }
   });
 
-  // 색상 설정
+  
   if (settings.regionColor !== undefined) {
     setState("savedRegionColor", settings.regionColor);
   }
@@ -34,7 +34,7 @@ const applyCloudSettings = (settings) => {
     setState("savedRegionFillColor", settings.regionFillColor);
   }
 
-  // GPU 모드 설정
+  
   if (settings.gpuMode !== undefined) {
     let gpuSetting = settings.gpuMode;
     if (gpuSetting === "true" || gpuSetting === true) gpuSetting = "on";
@@ -56,10 +56,10 @@ export const applySyncData = (cloudData) => {
 
   console.log("[SyncHandler] Sync data loaded, updating state...", cloudData);
 
-  // 완료 마커 동기화
+  
   if (cloudData.completedMarkers) {
     let markers = cloudData.completedMarkers;
-    // 레거시 포맷 마이그레이션 (ID만 있는 경우 → 객체 형태로)
+    
     if (markers.length > 0 && typeof markers[0] !== "object") {
       markers = markers.map((id) => ({ id, completedAt: null }));
     }
@@ -70,21 +70,21 @@ export const applySyncData = (cloudData) => {
     );
   }
 
-  // 즐겨찾기 동기화
+  
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
   }
 
-  // 설정 동기화
+  
   if (cloudData.settings) {
     applyCloudSettings(cloudData.settings);
   }
 
-  // UI 갱신
+  
   renderMapDataAndMarkers();
   renderFavorites();
 
-  // 설정 모달이 열려있으면 갱신
+  
   const settingsModal = document.getElementById("settings-modal");
   if (settingsModal && !settingsModal.classList.contains("hidden")) {
     import("./settings.js").then((m) => m.initSettingsModal());

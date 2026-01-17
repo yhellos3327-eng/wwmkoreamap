@@ -98,7 +98,7 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   text.textContent = message;
   tooltip.style.display = "flex";
 
-  // Force reflow
+  
   tooltip.offsetHeight;
   tooltip.classList.remove("hidden");
 };
@@ -112,7 +112,7 @@ export const hideSyncTooltip = (delay = 0) => {
         if (tooltip.classList.contains("hidden")) {
           tooltip.style.display = "none";
         }
-      }, 400); // Match transition duration
+      }, 400); 
     }
   }, delay);
 };
