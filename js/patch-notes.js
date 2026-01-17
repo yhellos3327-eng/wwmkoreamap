@@ -1,14 +1,47 @@
 /**
  * 패치 노트 관리 모듈
- * patch-notes.json 파일을 읽어와서 패널에 표시합니다.
+ * GitHub API를 통해 Merged PR 정보를 가져와서 패널에 표시합니다.
  */
+
+const REPO_OWNER = "yhellos3327-eng";
+const REPO_NAME = "wwmkoreamap";
 
 export const loadPatchNotes = async () => {
   try {
-    const response = await fetch("./patch-notes.json");
-    if (!response.ok) throw new Error("패치 노트를 불러올 수 없습니다.");
-    const notes = await response.json();
-    return notes;
+    // Merged된 PR만 가져오기 (최신순 30개)
+    const response = await fetch(
+      `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/pulls?state=closed&sort=updated&direction=desc&per_page=30`,
+    );
+
+    if (!response.ok) throw new Error("GitHub API 호출 실패");
+
+    const pulls = await response.json();
+
+    // Merged된 PR이고, CodeRabbit 요약이 있는 것만 필터링
+    const patchNotes = pulls
+      .filter((pr) => pr.merged_at !== null) // Merge된 것만
+      .map((pr) => {
+        const body = pr.body || "";
+        // CodeRabbit 요약 추출 (Walkthrough 또는 Summary 섹션)
+        const summaryMatch = body.match(
+          /## (Summary|Walkthrough|Changes)([\s\S]*?)(##|$)/i,
+        );
+
+        // 요약이 없으면 스킵 (또는 제목만 표시하려면 로직 변경 가능)
+        if (!summaryMatch) return null;
+
+        return {
+          id: pr.number,
+          date: new Date(pr.merged_at).toISOString().split("T")[0],
+          title: pr.title,
+          content: summaryMatch[2].trim(),
+          url: pr.html_url,
+          author: pr.user.login,
+        };
+      })
+      .filter((note) => note !== null); // null 제거
+
+    return patchNotes;
   } catch (error) {
     console.error("Patch notes load error:", error);
     return [];
