@@ -4,7 +4,7 @@ export function initAds() {
   const ads = [
     {
       type: "google",
-      weight: 100,
+      weight: 0,
       render: (container) => {
         container.innerHTML = "";
         const script = document.createElement("script");
@@ -17,7 +17,7 @@ export function initAds() {
     },
     {
       type: "coffee",
-      weight: 0,
+      weight: 80,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -43,7 +43,7 @@ export function initAds() {
     },
     {
       type: "wwmtips",
-      weight: 0,
+      weight: 50,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
