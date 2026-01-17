@@ -1,311 +1,502 @@
 ﻿<div id="settings-modal" class="modal-overlay hidden">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3>
-                <div class="icon-mask"
-                    style="width: 22px; height: 22px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E&quot;);">
-                </div>
-                설정
-            </h3>
-            <button id="close-settings" class="close-modal-btn" title="닫기">
-                <div class="icon-mask"
-                    style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);">
-                </div>
-            </button>
-        </div>
-        <div class="modal-body settings-modal-body">
-            
-            <div class="settings-auth-section" id="auth-section">
-                <div class="auth-header">
-                    <div class="icon-mask auth-icon"
-                        style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E&quot;);">
-                    </div>
-                    <span class="auth-title">로그인</span>
-                </div>
-                <div id="auth-logged-out" class="auth-content">
-                    <p class="auth-description">로그인하면 진행 상황을 클라우드에 동기화할 수 있습니다.</p>
-                    <div class="auth-buttons">
-                        <button id="btn-kakao-login" class="auth-btn kakao-btn">
-                            <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png"
-                                alt="Kakao" class="auth-btn-icon">
-                            <span>카카오 로그인</span>
-                        </button>
-                        <button id="btn-google-login" class="auth-btn google-btn">
-                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
-                                class="auth-btn-icon">
-                            <span>Google 로그인</span>
-                        </button>
-                    </div>
-                    <div id="local-dev-auth" class="local-dev-section" style="display: none;">
-                        <p class="local-dev-notice">로컬 개발 모드</p>
-                        <button id="btn-test-login" class="auth-btn test-btn">테스트 로그인</button>
-                    </div>
-                </div>
-                <div id="auth-logged-in" class="auth-content" style="display: none;">
-                    <div class="auth-user-info">
-                        <div class="auth-avatar-wrapper">
-                            <img id="auth-user-avatar" class="auth-avatar" src="" alt="프로필">
-                            <div class="auth-avatar-fallback">
-                                <div class="icon-mask"
-                                    style="width: 24px; height: 24px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="auth-user-details">
-                            <span id="auth-user-name" class="auth-user-name">사용자</span>
-                            <span id="auth-user-provider" class="auth-user-provider">Kakao</span>
-                        </div>
-                    </div>
-                    <button id="btn-logout" class="auth-btn logout-btn">로그아웃</button>
-                </div>
-            </div>
-
-            
-            <div id="sync-section" class="settings-group settings-card" style="display: none;">
-                <div class="card-header">
-                    <span class="card-title">데이터 동기화</span>
-                </div>
-                <div class="card-body">
-                    <div class="sync-info-grid">
-                        <div class="sync-info-item">
-                            <span class="sync-info-label">상태</span>
-                            <span id="sync-status-text" class="sync-info-value status-online">연결됨</span>
-                        </div>
-                        <div class="sync-info-item">
-                            <span class="sync-info-label">마지막 동기화</span>
-                            <span id="last-sync-time" class="sync-info-value">-</span>
-                        </div>
-                    </div>
-                    <button id="btn-manual-sync" class="auth-btn sync-btn">지금 동기화</button>
-                </div>
-            </div>
-
-            
-            <div id="chrome-translator-status" class="chrome-translator-card" style="display: none;">
-                <div class="chrome-card-header">
-                    <div class="chrome-card-title">
-                        <span>Chrome 번역 엔진</span>
-                    </div>
-                    <div class="chrome-badge" id="chrome-badge">
-                        <span>확인 중</span>
-                    </div>
-                </div>
-                <div class="chrome-status-grid">
-                    <div class="chrome-status-item">
-                        <div class="chrome-status-info">
-                            <span class="chrome-status-label">Translator API</span>
-                            <span class="chrome-status-value" id="translator-status">확인 중...</span>
-                        </div>
-                    </div>
-                    <div class="chrome-status-item">
-                        <div class="chrome-status-info">
-                            <span class="chrome-status-label">Language Detector</span>
-                            <span class="chrome-status-value" id="detector-status">확인 중...</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="external-ai-settings">
-                <div class="settings-group">
-                    <label class="settings-label" style="margin-top: 15px;">AI Service Provider <span
-                            class="settings-subtitle">(AI 서비스 선택)</span></label>
-                    <select id="api-provider-select" class="settings-input"
-                        style="background-color: var(--bg-dark); color: var(--text-main); margin-bottom: 15px;">
-                        <option value="gemini">Google Gemini</option>
-                        <option value="openai">OpenAI (ChatGPT)</option>
-                        <option value="claude">Anthropic (Claude)</option>
-                    </select>
-                    <label class="settings-label">API Key <span class="settings-subtitle">(선택한 서비스의 키)</span></label>
-                    <input type="password" id="api-key-input" class="settings-input" placeholder="API Key 입력">
-                    <p class="settings-security-note">API 키는 보안을 위해 이 브라우저에만 저장됩니다.</p>
-                </div>
-                <div class="settings-group">
-                    <label class="settings-label">AI Model <span class="settings-subtitle">(모델 선택)</span></label>
-                    <select id="api-model-select" class="settings-input"
-                        style="background-color: var(--bg-dark); color: var(--text-main);"></select>
-                </div>
-            </div>
-
-            
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">테마 설정</span>
-                    <span class="settings-subtitle">(화면 스타일)</span>
-                </div>
-                <select id="theme-select" class="settings-input"
-                    style="background-color: var(--bg-dark); color: var(--text-main); width: auto; margin-left: auto;">
-                    <option value="system">시스템 설정 (자동)</option>
-                    <option value="dark">다크 모드</option>
-                    <option value="light">라이트 모드</option>
-                </select>
-            </div>
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">광고 표시</span>
-                    <span class="settings-subtitle">(화면 설정)</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-ad" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">완료된 항목 숨기기</span>
-                    <span class="settings-subtitle">(필터링 옵션)</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-hide-completed">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">마커 클러스터링</span>
-                    <span class="settings-subtitle">(최적화 옵션)</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-cluster">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">메뉴 위치</span>
-                    <span class="settings-subtitle">(UI 설정)</span>
-                </div>
-                <select id="menu-position-select" class="settings-input"
-                    style="background-color: var(--bg-dark); color: var(--text-main); width: auto; margin-left: auto;">
-                    <option value="left">왼쪽 (사이드바 옆)</option>
-                    <option value="center">중앙 (기본)</option>
-                    <option value="right">오른쪽 (주의)</option>
-                </select>
-            </div>
-
-            
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">이정표 표시</span>
-                    <span class="settings-subtitle">(팝업 옵션)</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-comments" checked>
-                    <span class="slider round"></span>
-                </label>
-            </div>
-            <div class="settings-group settings-toggle-wrapper">
-                <div class="settings-label-container">
-                    <span class="settings-toggle-label">완료 체크 시 팝업 닫기</span>
-                    <span class="settings-subtitle">(팝업 옵션)</span>
-                </div>
-                <label class="switch">
-                    <input type="checkbox" id="toggle-close-on-complete">
-                    <span class="slider round"></span>
-                </label>
-            </div>
-
-            
-            <div class="settings-group">
-                <label class="settings-label">지역 경계선 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
-                <div class="color-picker-wrapper">
-                    <div class="color-input-container">
-                        <input type="color" id="region-line-color" value="#242424" class="color-input">
-                        <span class="color-value" id="region-line-color-value">#242424</span>
-                    </div>
-                    <span class="color-label">기본값: #242424</span>
-                </div>
-            </div>
-            <div class="settings-group">
-                <label class="settings-label">지역 채우기 색상 <span class="settings-subtitle">(지도 스타일)</span></label>
-                <div class="color-picker-wrapper">
-                    <div class="color-input-container">
-                        <input type="color" id="region-fill-color" value="#ffbd53" class="color-input">
-                        <span class="color-value" id="region-fill-color-value">#ffbd53</span>
-                    </div>
-                    <span class="color-label">기본값: #ffbd53</span>
-                </div>
-            </div>
-
-            
-            <div class="settings-shortcuts-section">
-                <div class="shortcuts-header">
-                    <div class="shortcuts-title-wrapper">
-                        <div class="icon-mask"
-                            style="width: 18px; height: 18px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);">
-                        </div>
-                        <h4>키보드 단축키</h4>
-                    </div>
-                    <label class="switch">
-                        <input type="checkbox" id="toggle-shortcuts" checked>
-                        <span class="slider round"></span>
-                    </label>
-                </div>
-
-                <div class="shortcuts-description">
-                    <p>자주 사용하는 기능에 단축키를 지정할 수 있습니다.</p>
-                </div>
-
-                
-                <button id="btn-open-keyboard" class="open-keyboard-btn">
-                    <div class="icon-mask"
-                        style="width: 20px; height: 20px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);">
-                    </div>
-                    키보드로 단축키 설정하기
-                </button>
-
-                <button id="btn-reset-shortcuts" class="modal-btn shortcuts-reset-btn">
-                    <div class="icon-mask"
-                        style="width: 14px; height: 14px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3C/svg%3E&quot;);">
-                    </div>
-                    기본값으로 초기화
-                </button>
-            </div>
-
-            
-            <div class="settings-backup-section">
-                <h4>
-                    <span class="icon-mask"
-                        style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E&quot;);"></span>
-                    데이터 백업 및 복구
-                </h4>
-                <p>현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br>
-                    <span style="color: #d9534f; font-size: 0.8em;">
-                        <li style="margin-left: 20px;margin-bottom: 10px;">불러오기 시 현재 데이터는 덮어씌워집니다.</li>
-                    </span>
-                </p>
-                <div class="backup-buttons" style="display: flex; gap: 10px;">
-                    <button id="btn-backup-save" class="modal-btn save-btn"
-                        style="flex: 1; padding: 8px; cursor: pointer;">파일로 저장</button>
-                    <button id="btn-backup-load" class="modal-btn load-btn"
-                        style="flex: 1; padding: 8px; cursor: pointer;">파일 불러오기</button>
-                    <input type="file" id="inp-backup-file" accept=".json" style="display: none;">
-                </div>
-            </div>
-
-            
-            <div id="cloud-backup-section" class="settings-backup-section" style="display: none; margin-top: 15px;">
-                <h4>
-                    <span class="icon-mask"
-                        style="width: 18px; height: 18px; display: inline-block; vertical-align: middle; margin-right: 6px; --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E&quot;);"></span>
-                    클라우드 백업 히스토리
-                </h4>
-                <p style="margin-bottom: 10px; font-size: 0.85em;">클라우드에 최대 3개의 스냅샷을 저장하고 복원할 수 있습니다.</p>
-                <div id="cloud-backup-list" class="cloud-backup-list">
-                    <div class="backup-empty-state">저장된 백업이 없습니다.</div>
-                </div>
-                <button id="btn-cloud-backup-save" class="modal-btn"
-                    style="width: 100%; margin-top: 10px; padding: 8px;">현재 상태를 클라우드에 스냅샷 저장</button>
-            </div>
-
-            
-            <button id="save-api-key" class="action-btn"
-                style="width:100%; background:var(--accent); color:black; font-weight:bold;">저장</button>
-            <ul class="settings-note">
-                <li>API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지 않습니다.</li>
-                <li>미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.</li>
-                <li>Chrome 번역은 무료/빠르지만 단순 번역만 가능, AI 번역은 게임 맥락과 사전을 참조합니다.</li>
-            </ul>
-        </div>
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>
+        <div
+          class="icon-mask"
+          style="
+            width: 22px;
+            height: 22px;
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='12' cy='12' r='3'/%3E%3Cpath d='M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+        설정
+      </h3>
+      <button id="close-settings" class="close-modal-btn" title="닫기">
+        <div
+          class="icon-mask"
+          style="
+            --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cline x1='18' y1='6' x2='6' y2='18'/%3E%3Cline x1='6' y1='6' x2='18' y2='18'/%3E%3C/svg%3E&quot;);
+          "
+        ></div>
+      </button>
     </div>
+    <div class="modal-body settings-modal-body">
+      <div class="settings-auth-section" id="auth-section">
+        <div class="auth-header">
+          <div
+            class="icon-mask auth-icon"
+            style="
+              --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='11' width='18' height='11' rx='2' ry='2'/%3E%3Cpath d='M7 11V7a5 5 0 0 1 10 0v4'/%3E%3C/svg%3E&quot;);
+            "
+          ></div>
+          <span class="auth-title">로그인</span>
+        </div>
+        <div id="auth-logged-out" class="auth-content">
+          <p class="auth-description">
+            로그인하면 진행 상황을 클라우드에 동기화할 수 있습니다.
+          </p>
+          <div class="auth-buttons">
+            <button id="btn-kakao-login" class="auth-btn kakao-btn">
+              <img
+                src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_small.png"
+                alt="Kakao"
+                class="auth-btn-icon"
+              />
+              <span>카카오 로그인</span>
+            </button>
+            <button id="btn-google-login" class="auth-btn google-btn">
+              <img
+                src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                alt="Google"
+                class="auth-btn-icon"
+              />
+              <span>Google 로그인</span>
+            </button>
+          </div>
+          <div
+            id="local-dev-auth"
+            class="local-dev-section"
+            style="display: none"
+          >
+            <p class="local-dev-notice">로컬 개발 모드</p>
+            <button id="btn-test-login" class="auth-btn test-btn">
+              테스트 로그인
+            </button>
+          </div>
+        </div>
+        <div id="auth-logged-in" class="auth-content" style="display: none">
+          <div class="auth-user-info">
+            <div class="auth-avatar-wrapper">
+              <img
+                id="auth-user-avatar"
+                class="auth-avatar"
+                src=""
+                alt="프로필"
+              />
+              <div class="auth-avatar-fallback">
+                <div
+                  class="icon-mask"
+                  style="
+                    width: 24px;
+                    height: 24px;
+                    --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2'/%3E%3Ccircle cx='12' cy='7' r='4'/%3E%3C/svg%3E&quot;);
+                  "
+                ></div>
+              </div>
+            </div>
+            <div class="auth-user-details">
+              <span id="auth-user-name" class="auth-user-name">사용자</span>
+              <span id="auth-user-provider" class="auth-user-provider"
+                >Kakao</span
+              >
+            </div>
+          </div>
+          <button id="btn-logout" class="auth-btn logout-btn">로그아웃</button>
+        </div>
+      </div>
+
+      <div
+        id="sync-section"
+        class="settings-group settings-card"
+        style="display: none"
+      >
+        <div class="card-header">
+          <span class="card-title">데이터 동기화</span>
+        </div>
+        <div class="card-body">
+          <div class="sync-info-grid">
+            <div class="sync-info-item">
+              <span class="sync-info-label">상태</span>
+              <span id="sync-status-text" class="sync-info-value status-online"
+                >연결됨</span
+              >
+            </div>
+            <div class="sync-info-item">
+              <span class="sync-info-label">마지막 동기화</span>
+              <span id="last-sync-time" class="sync-info-value">-</span>
+            </div>
+          </div>
+          <button id="btn-manual-sync" class="auth-btn sync-btn">
+            지금 동기화
+          </button>
+        </div>
+      </div>
+
+      <div
+        id="chrome-translator-status"
+        class="chrome-translator-card"
+        style="display: none"
+      >
+        <div class="chrome-card-header">
+          <div class="chrome-card-title">
+            <span>Chrome 번역 엔진</span>
+          </div>
+          <div class="chrome-badge" id="chrome-badge">
+            <span>확인 중</span>
+          </div>
+        </div>
+        <div class="chrome-status-grid">
+          <div class="chrome-status-item">
+            <div class="chrome-status-info">
+              <span class="chrome-status-label">Translator API</span>
+              <span class="chrome-status-value" id="translator-status"
+                >확인 중...</span
+              >
+            </div>
+          </div>
+          <div class="chrome-status-item">
+            <div class="chrome-status-info">
+              <span class="chrome-status-label">Language Detector</span>
+              <span class="chrome-status-value" id="detector-status"
+                >확인 중...</span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="external-ai-settings">
+        <div class="settings-group">
+          <label class="settings-label" style="margin-top: 15px"
+            >AI Service Provider
+            <span class="settings-subtitle">(AI 서비스 선택)</span></label
+          >
+          <select
+            id="api-provider-select"
+            class="settings-input"
+            style="
+              background-color: var(--bg-dark);
+              color: var(--text-main);
+              margin-bottom: 15px;
+            "
+          >
+            <option value="gemini">Google Gemini</option>
+            <option value="openai">OpenAI (ChatGPT)</option>
+            <option value="claude">Anthropic (Claude)</option>
+          </select>
+          <label class="settings-label"
+            >API Key
+            <span class="settings-subtitle">(선택한 서비스의 키)</span></label
+          >
+          <input
+            type="password"
+            id="api-key-input"
+            class="settings-input"
+            placeholder="API Key 입력"
+          />
+          <p class="settings-security-note">
+            API 키는 보안을 위해 이 브라우저에만 저장됩니다.
+          </p>
+        </div>
+        <div class="settings-group">
+          <label class="settings-label"
+            >AI Model <span class="settings-subtitle">(모델 선택)</span></label
+          >
+          <select
+            id="api-model-select"
+            class="settings-input"
+            style="background-color: var(--bg-dark); color: var(--text-main)"
+          ></select>
+        </div>
+      </div>
+
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">테마 설정</span>
+          <span class="settings-subtitle">(화면 스타일)</span>
+        </div>
+        <select
+          id="theme-select"
+          class="settings-input"
+          style="
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            width: auto;
+            margin-left: auto;
+          "
+        >
+          <option value="system">시스템 설정 (자동)</option>
+          <option value="dark">다크 모드</option>
+          <option value="light">라이트 모드</option>
+        </select>
+      </div>
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">광고 표시</span>
+          <span class="settings-subtitle">(화면 설정)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-ad" checked />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">완료된 항목 숨기기</span>
+          <span class="settings-subtitle">(필터링 옵션)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-hide-completed" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">마커 클러스터링</span>
+          <span class="settings-subtitle">(최적화 옵션)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-cluster" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">메뉴 위치</span>
+          <span class="settings-subtitle">(UI 설정)</span>
+        </div>
+        <select
+          id="menu-position-select"
+          class="settings-input"
+          style="
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            width: auto;
+            margin-left: auto;
+          "
+        >
+          <option value="left">왼쪽 (사이드바 옆)</option>
+          <option value="center">중앙 (기본)</option>
+          <option value="right">오른쪽 (주의)</option>
+        </select>
+      </div>
+
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">지역 클릭 시 이동 방지</span>
+          <span class="settings-subtitle">(지도 동작)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-disable-region-pan" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">이정표 표시</span>
+          <span class="settings-subtitle">(팝업 옵션)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-comments" checked />
+          <span class="slider round"></span>
+        </label>
+      </div>
+      <div class="settings-group settings-toggle-wrapper">
+        <div class="settings-label-container">
+          <span class="settings-toggle-label">완료 체크 시 팝업 닫기</span>
+          <span class="settings-subtitle">(팝업 옵션)</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="toggle-close-on-complete" />
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div class="settings-group">
+        <label class="settings-label"
+          >지역 경계선 색상
+          <span class="settings-subtitle">(지도 스타일)</span></label
+        >
+        <div class="color-picker-wrapper">
+          <div class="color-input-container">
+            <input
+              type="color"
+              id="region-line-color"
+              value="#242424"
+              class="color-input"
+            />
+            <span class="color-value" id="region-line-color-value"
+              >#242424</span
+            >
+          </div>
+          <span class="color-label">기본값: #242424</span>
+        </div>
+      </div>
+      <div class="settings-group">
+        <label class="settings-label"
+          >지역 채우기 색상
+          <span class="settings-subtitle">(지도 스타일)</span></label
+        >
+        <div class="color-picker-wrapper">
+          <div class="color-input-container">
+            <input
+              type="color"
+              id="region-fill-color"
+              value="#ffbd53"
+              class="color-input"
+            />
+            <span class="color-value" id="region-fill-color-value"
+              >#ffbd53</span
+            >
+          </div>
+          <span class="color-label">기본값: #ffbd53</span>
+        </div>
+      </div>
+
+      <div class="settings-shortcuts-section">
+        <div class="shortcuts-header">
+          <div class="shortcuts-title-wrapper">
+            <div
+              class="icon-mask"
+              style="
+                width: 18px;
+                height: 18px;
+                --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);
+              "
+            ></div>
+            <h4>키보드 단축키</h4>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="toggle-shortcuts" checked />
+            <span class="slider round"></span>
+          </label>
+        </div>
+
+        <div class="shortcuts-description">
+          <p>자주 사용하는 기능에 단축키를 지정할 수 있습니다.</p>
+        </div>
+
+        <button id="btn-open-keyboard" class="open-keyboard-btn">
+          <div
+            class="icon-mask"
+            style="
+              width: 20px;
+              height: 20px;
+              --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='2' y='4' width='20' height='16' rx='2' ry='2'/%3E%3Cpath d='M6 8h.001'/%3E%3Cpath d='M10 8h.001'/%3E%3Cpath d='M14 8h.001'/%3E%3Cpath d='M18 8h.001'/%3E%3Cpath d='M8 12h.001'/%3E%3Cpath d='M12 12h.001'/%3E%3Cpath d='M16 12h.001'/%3E%3Cpath d='M7 16h10'/%3E%3C/svg%3E&quot;);
+            "
+          ></div>
+          키보드로 단축키 설정하기
+        </button>
+
+        <button id="btn-reset-shortcuts" class="modal-btn shortcuts-reset-btn">
+          <div
+            class="icon-mask"
+            style="
+              width: 14px;
+              height: 14px;
+              --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/%3E%3Cpath d='M3 3v5h5'/%3E%3C/svg%3E&quot;);
+            "
+          ></div>
+          기본값으로 초기화
+        </button>
+      </div>
+
+      <div class="settings-backup-section">
+        <h4>
+          <span
+            class="icon-mask"
+            style="
+              width: 18px;
+              height: 18px;
+              display: inline-block;
+              vertical-align: middle;
+              margin-right: 6px;
+              --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z'/%3E%3Cpolyline points='17 21 17 13 7 13 7 21'/%3E%3Cpolyline points='7 3 7 8 15 8'/%3E%3C/svg%3E&quot;);
+            "
+          ></span>
+          데이터 백업 및 복구
+        </h4>
+        <p>
+          현재까지의 진행 상황을 파일로 저장하거나 불러옵니다.<br />
+          <span style="color: #d9534f; font-size: 0.8em">
+            <li style="margin-left: 20px; margin-bottom: 10px">
+              불러오기 시 현재 데이터는 덮어씌워집니다.
+            </li>
+          </span>
+        </p>
+        <div class="backup-buttons" style="display: flex; gap: 10px">
+          <button
+            id="btn-backup-save"
+            class="modal-btn save-btn"
+            style="flex: 1; padding: 8px; cursor: pointer"
+          >
+            파일로 저장
+          </button>
+          <button
+            id="btn-backup-load"
+            class="modal-btn load-btn"
+            style="flex: 1; padding: 8px; cursor: pointer"
+          >
+            파일 불러오기
+          </button>
+          <input
+            type="file"
+            id="inp-backup-file"
+            accept=".json"
+            style="display: none"
+          />
+        </div>
+      </div>
+
+      <div
+        id="cloud-backup-section"
+        class="settings-backup-section"
+        style="display: none; margin-top: 15px"
+      >
+        <h4>
+          <span
+            class="icon-mask"
+            style="
+              width: 18px;
+              height: 18px;
+              display: inline-block;
+              vertical-align: middle;
+              margin-right: 6px;
+              --mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z'/%3E%3C/svg%3E&quot;);
+            "
+          ></span>
+          클라우드 백업 히스토리
+        </h4>
+        <p style="margin-bottom: 10px; font-size: 0.85em">
+          클라우드에 최대 3개의 스냅샷을 저장하고 복원할 수 있습니다.
+        </p>
+        <div id="cloud-backup-list" class="cloud-backup-list">
+          <div class="backup-empty-state">저장된 백업이 없습니다.</div>
+        </div>
+        <button
+          id="btn-cloud-backup-save"
+          class="modal-btn"
+          style="width: 100%; margin-top: 10px; padding: 8px"
+        >
+          현재 상태를 클라우드에 스냅샷 저장
+        </button>
+      </div>
+
+      <button
+        id="save-api-key"
+        class="action-btn"
+        style="
+          width: 100%;
+          background: var(--accent);
+          color: black;
+          font-weight: bold;
+        "
+      >
+        저장
+      </button>
+      <ul class="settings-note">
+        <li>
+          API Key는 브라우저(Local Storage)에만 저장되며 서버로 전송되지
+          않습니다.
+        </li>
+        <li>미번역 항목에 대해 수동으로 번역 버튼을 눌렀을 때만 사용됩니다.</li>
+        <li>
+          Chrome 번역은 무료/빠르지만 단순 번역만 가능, AI 번역은 게임 맥락과
+          사전을 참조합니다.
+        </li>
+      </ul>
+    </div>
+  </div>
 </div>

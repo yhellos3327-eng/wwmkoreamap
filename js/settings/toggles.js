@@ -22,7 +22,6 @@ export const initAdToggle = () => {
 };
 
 export const applyLowSpecMode = (isLowSpec) => {
-  
   document.body.classList.remove("low-spec-mode");
 };
 
@@ -30,7 +29,6 @@ export const updateClusteringToggleState = () => {
   const clusterToggleInput = document.getElementById("toggle-cluster");
   if (!clusterToggleInput) return;
 
-  
   clusterToggleInput.disabled = false;
   const wrapper = clusterToggleInput.closest(".settings-toggle-wrapper");
   if (wrapper) {
@@ -51,18 +49,18 @@ export const initToggles = () => {
   const closeOnCompleteInput = document.getElementById(
     "toggle-close-on-complete",
   );
+  const disableRegionPanInput = document.getElementById(
+    "toggle-disable-region-pan",
+  );
   const adToggleInput = document.getElementById("toggle-ad");
 
-  
   const chromeTranslatorStatus = document.getElementById(
     "chrome-translator-status",
   );
 
   if (chromeTranslatorStatus) {
-    
     chromeTranslatorStatus.style.display = "block";
 
-    
     const updateChromeStatusUI = (status) => {
       const badge = document.getElementById("chrome-badge");
       const translatorStatusEl = document.getElementById("translator-status");
@@ -103,7 +101,6 @@ export const initToggles = () => {
           detectorStatusEl.className = "chrome-status-value unavailable";
         }
       } else {
-        
         let overallStatus = "available";
         if (
           status.translatorStatus !== "available" ||
@@ -140,7 +137,6 @@ export const initToggles = () => {
       }
     };
 
-    
     setTimeout(async () => {
       try {
         const { checkStatus } = await import("../chromeTranslator.js");
@@ -163,7 +159,6 @@ export const initToggles = () => {
       setState("enableClustering", e.target.checked);
       updateSettingWithTimestamp("enable_clustering", e.target.checked);
 
-      
       renderMapDataAndMarkers();
     });
   }
@@ -192,6 +187,14 @@ export const initToggles = () => {
     });
   }
 
+  if (disableRegionPanInput) {
+    disableRegionPanInput.checked = state.disableRegionClickPan;
+    disableRegionPanInput.addEventListener("change", (e) => {
+      setState("disableRegionClickPan", e.target.checked);
+      localStorage.setItem("wwm_disable_region_click_pan", e.target.checked);
+    });
+  }
+
   return {
     loadValues: () => {
       if (adToggleInput) {
@@ -201,6 +204,8 @@ export const initToggles = () => {
       if (clusterToggleInput)
         clusterToggleInput.checked = state.enableClustering;
       if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
+      if (disableRegionPanInput)
+        disableRegionPanInput.checked = state.disableRegionClickPan;
 
       updateClusteringToggleState();
     },
