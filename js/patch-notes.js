@@ -201,9 +201,22 @@ const renderPatchNotesList = async (container) => {
     await Promise.all([
       loadScript("https://cdn.jsdelivr.net/npm/marked/marked.min.js"),
       loadScript("https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"),
+      loadScript(
+        "https://cdn.jsdelivr.net/npm/dompurify@3.2.3/dist/purify.min.js",
+      ),
     ]);
   } catch (e) {
     console.error("Failed to load libraries", e);
+    container.innerHTML =
+      '<div class="error-notes">필수 라이브러리를 불러오지 못했습니다. 네트워크 상태를 확인해주세요.</div>';
+    return;
+  }
+
+  // 라이브러리 로드 성공 후 객체 존재 여부 재확인
+  if (!window.marked || !window.DOMPurify) {
+    container.innerHTML =
+      '<div class="error-notes">라이브러리 초기화에 실패했습니다.</div>';
+    return;
   }
 
   let notes = [];
@@ -269,7 +282,7 @@ const renderPatchNotesList = async (container) => {
 
     const body = document.createElement("div");
     body.className = "timeline-body markdown-body";
-    body.innerHTML = htmlContent;
+    body.innerHTML = window.DOMPurify.sanitize(htmlContent);
     content.appendChild(body);
 
     item.appendChild(content);
