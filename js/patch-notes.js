@@ -94,7 +94,7 @@ export const loadPatchNotes = async () => {
 
             let end = -1;
             for (const marker of endMarkers) {
-              const idx = content.indexOf(marker);
+              const idx = content.indexOf(marker, start);
               if (idx !== -1 && (end === -1 || idx < end)) {
                 end = idx;
               }
