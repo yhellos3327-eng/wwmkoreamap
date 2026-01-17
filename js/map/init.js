@@ -3,15 +3,30 @@ import { state, setState } from "../state.js";
 import { toggleSidebar } from "../ui.js";
 import { updateMapVisibility } from "./visibility.js";
 
-export const initMap = (mapKey) => {
+export const initMap = async (mapKey) => {
   const config = MAP_CONFIGS[mapKey];
   if (!config) return;
+
+  const targetCRS = config.crs === "Simple" ? L.CRS.Simple : L.CRS.EPSG3857;
+
+  if (state.map && state.map.options.crs !== targetCRS) {
+    // GPU 모드 관련 리소스 정리
+    const pixi = await import("./pixiOverlay.js");
+    if (pixi.disposePixiOverlay) pixi.disposePixiOverlay();
+    if (pixi.resetEventHandlers) pixi.resetEventHandlers();
+
+    state.map.remove();
+    setState("map", null);
+    setState("regionLayerGroup", null);
+    setState("markerClusterGroup", null);
+  }
 
   if (!state.map) {
     const isMobile = window.innerWidth <= 768;
     const initialZoom = isMobile ? config.zoom - 1 : config.zoom;
 
     const map = L.map("map", {
+      crs: targetCRS,
       center: config.center,
       zoom: initialZoom,
       minZoom: config.minZoom,
@@ -66,14 +81,21 @@ export const initMap = (mapKey) => {
   if (state.currentTileLayer) {
     state.map.removeLayer(state.currentTileLayer);
   }
-  const tileLayer = L.tileLayer(config.tileUrl, {
-    tms: false,
-    noWrap: true,
-    tileSize: 256,
-    minZoom: config.minZoom,
-    maxZoom: config.maxZoom,
-    maxNativeZoom: config.maxNativeZoom || config.maxZoom,
-  }).addTo(state.map);
+
+  let tileLayer;
+  if (config.type === "image") {
+    tileLayer = L.imageOverlay(config.imageUrl, config.bounds).addTo(state.map);
+  } else {
+    tileLayer = L.tileLayer(config.tileUrl, {
+      tms: false,
+      noWrap: true,
+      tileSize: 256,
+      minZoom: config.minZoom,
+      maxZoom: config.maxZoom,
+      maxNativeZoom: config.maxNativeZoom || config.maxZoom,
+    }).addTo(state.map);
+  }
+
   setState("currentTileLayer", tileLayer);
 
   if (state.regionLayerGroup) {

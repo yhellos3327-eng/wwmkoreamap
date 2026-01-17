@@ -3,43 +3,42 @@
  * 콘솔에서 dev() 로 활성화
  */
 
-import { state } from './state.js';
-import { t, isPointInPolygon } from './utils.js';
-import { getRegionPolygonsCache } from './map/markerFactory.js';
-
+import { state } from "./state.js";
+import { t, isPointInPolygon } from "./utils.js";
+import { getRegionPolygonsCache } from "./map/markerFactory.js";
 
 // 개발자 도구 상태
 const devState = {
-    isActive: false,
-    currentMode: null, // 'move', 'coords', 'inspect'
-    selectedMarker: null,
-    selectedMarkerData: null,
-    changes: new Map(), // id -> { original: {lat, lng}, modified: {lat, lng} }
-    newMarkers: [], // 신규 추가된 마커들
-    originalPositions: new Map(), // 백업용
-    regionMode: false, // 영역 편집 모드
-    currentPolygon: null, // 현재 편집 중인 폴리곤
-    polygonHandles: [], // 폴리곤 핸들 마커들
-    regionEditorUI: null // 영역 편집 UI
+  isActive: false,
+  currentMode: null, // 'move', 'coords', 'inspect'
+  selectedMarker: null,
+  selectedMarkerData: null,
+  changes: new Map(), // id -> { original: {lat, lng}, modified: {lat, lng} }
+  newMarkers: [], // 신규 추가된 마커들
+  originalPositions: new Map(), // 백업용
+  regionMode: false, // 영역 편집 모드
+  currentPolygon: null, // 현재 편집 중인 폴리곤
+  polygonHandles: [], // 폴리곤 핸들 마커들
+  regionEditorUI: null, // 영역 편집 UI
 };
 
-
 // 스타일 정의
-const HIGHLIGHT_STYLE = 'filter: drop-shadow(0 0 8px #00ff00) drop-shadow(0 0 16px #00ff00); transform: scale(1.3);';
+const HIGHLIGHT_STYLE =
+  "filter: drop-shadow(0 0 8px #00ff00) drop-shadow(0 0 16px #00ff00); transform: scale(1.3);";
 
 /**
  * 개발자 도구 모달 생성
  */
 const createDevModal = () => {
-    // 이미 존재하면 반환
-    if (document.getElementById('dev-tools-modal')) {
-        return document.getElementById('dev-tools-modal');
-    }
+  // 이미 존재하면 반환
+  if (document.getElementById("dev-tools-modal")) {
+    return document.getElementById("dev-tools-modal");
+  }
 
-    const modal = document.createElement('div');
-    modal.id = 'dev-tools-modal';
-    modal.className = 'dev-tools-panel';
-    modal.innerHTML = `
+  const modal = document.createElement("div");
+  modal.id = "dev-tools-modal";
+  modal.className = "dev-tools-panel";
+  modal.innerHTML = `
         <div class="dev-tools-header">
             <span class="dev-tools-title">🔧 개발자 도구</span>
             <button class="dev-tools-close" id="dev-close-btn">×</button>
@@ -109,37 +108,92 @@ const createDevModal = () => {
         </div>
     `;
 
-    document.body.appendChild(modal);
-    addDevStyles();
-    bindDevEvents();
+  document.body.appendChild(modal);
+  addDevStyles();
+  bindDevEvents();
 
-    return modal;
+  return modal;
 };
 
 /**
  * 새 마커 추가 모달 생성
  */
 const createAddMarkerModal = (lat, lng) => {
-    let modal = document.getElementById('dev-add-marker-modal');
-    if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'dev-add-marker-modal';
-        modal.className = 'dev-modal-overlay';
-        document.body.appendChild(modal);
-    }
+  let modal = document.getElementById("dev-add-marker-modal");
+  if (!modal) {
+    modal = document.createElement("div");
+    modal.id = "dev-add-marker-modal";
+    modal.className = "dev-modal-overlay";
+    document.body.appendChild(modal);
+  }
 
-    const categories = state.mapData.categories || [];
-    // 카테고리 정렬 (이름순)
-    const sortedCategories = [...categories].sort((a, b) => t(a.name).localeCompare(t(b.name)));
+  let categories = state.mapData.categories || [];
 
-    const categoryItems = sortedCategories.map(cat => `
-        <div class="dev-cat-item ${cat.id === '17310010006' ? 'active' : ''}" data-id="${cat.id}" title="${t(cat.name)} (${cat.id})">
+  // 만약 현재 맵에 카테고리 정보가 없다면(예: 이미지 맵), 청하(qinghe) 맵 데이터에서 가져옴
+  if (categories.length === 0) {
+    // 임시로 청하 데이터 로드 시도 (캐시되어 있을 수 있음)
+    // 주의: 비동기로 로드해야 하지만, 여기서는 이미 로드된 데이터가 있거나 하드코딩된 기본값이 필요할 수 있음.
+    // 간단히 해결하기 위해, localStorage나 전역 변수에 저장된 다른 맵의 카테고리를 참조하거나,
+    // 필수 카테고리를 하드코딩할 수 있음.
+    // 여기서는 가장 일반적인 방법으로, 만약 categories가 비어있으면 기본 카테고리 목록을 생성하거나
+    // 사용자가 이전에 로드했던 맵의 카테고리를 재사용하는 방식을 제안.
+
+    // 더 나은 방법: Config에서 정의된 기본 카테고리나, 모든 맵 공통 카테고리 정의 사용
+    // 현재는 하드코딩된 예시 또는 빈 상태 처리
+
+    // 1. 다른 맵 데이터가 메모리에 있다면 그것을 사용
+    // (구조상 state.mapData는 현재 맵 데이터만 가짐)
+
+    // 2. fetch로 data.json을 가져와서 파싱 (비동기라 모달 생성 흐름 끊김)
+
+    // 3. 하드코딩 (가장 빠름)
+    categories = [
+      {
+        id: "17310010006",
+        name: "상자 (지상)",
+        image: "./icons/17310010006.png",
+      },
+      {
+        id: "17310010007",
+        name: "상자 (지하)",
+        image: "./icons/17310010007.png",
+      },
+      {
+        id: "17310010012",
+        name: "곡경심유 (파랑나비)",
+        image: "./icons/17310010012.png",
+      },
+      {
+        id: "17310010015",
+        name: "만물의 울림 (노랑나비)",
+        image: "./icons/17310010015.png",
+      },
+      {
+        id: "17310010090",
+        name: "야외 제사 (빨간나비)",
+        image: "./icons/17310010090.png",
+      },
+      { id: "17310010083", name: "지역", image: "./icons/17310010083.png" },
+      { id: "17310010084", name: "포탈", image: "./icons/17310010084.png" },
+    ];
+  }
+  // 카테고리 정렬 (이름순)
+  const sortedCategories = [...categories].sort((a, b) =>
+    t(a.name).localeCompare(t(b.name)),
+  );
+
+  const categoryItems = sortedCategories
+    .map(
+      (cat) => `
+        <div class="dev-cat-item ${cat.id === "17310010006" ? "active" : ""}" data-id="${cat.id}" title="${t(cat.name)} (${cat.id})">
             <img src="${cat.image}" onerror="this.src='./icons/default.png'">
             <span class="dev-cat-name">${t(cat.name)}</span>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 
-    modal.innerHTML = `
+  modal.innerHTML = `
         <div class="dev-modal-content" style="width: 400px;">
             <div class="dev-modal-header">
                 <span class="dev-modal-title">✨ 새 마커 추가</span>
@@ -182,124 +236,128 @@ const createAddMarkerModal = (lat, lng) => {
         </div>
     `;
 
-    modal.style.display = 'flex';
+  modal.style.display = "flex";
 
-    // 지역 자동 감지
-    let detectedRegion = '';
-    const regionPolygonsCache = getRegionPolygonsCache();
-    if (regionPolygonsCache.length > 0) {
-        for (const polyObj of regionPolygonsCache) {
-            if (isPointInPolygon([parseFloat(lat), parseFloat(lng)], polyObj.coords)) {
-                detectedRegion = polyObj.title;
-                break;
-            }
-        }
+  // 지역 자동 감지
+  let detectedRegion = "";
+  const regionPolygonsCache = getRegionPolygonsCache();
+  if (regionPolygonsCache.length > 0) {
+    for (const polyObj of regionPolygonsCache) {
+      if (
+        isPointInPolygon([parseFloat(lat), parseFloat(lng)], polyObj.coords)
+      ) {
+        detectedRegion = polyObj.title;
+        break;
+      }
     }
-    document.getElementById('dev-add-region').value = detectedRegion;
+  }
+  document.getElementById("dev-add-region").value = detectedRegion;
 
-    // 이벤트 바인딩
-    const close = () => modal.style.display = 'none';
-    document.getElementById('dev-add-close').onclick = close;
-    document.getElementById('dev-add-cancel').onclick = close;
+  // 이벤트 바인딩
+  const close = () => (modal.style.display = "none");
+  document.getElementById("dev-add-close").onclick = close;
+  document.getElementById("dev-add-cancel").onclick = close;
 
-    const catGrid = document.getElementById('dev-cat-grid');
-    const catInput = document.getElementById('dev-add-cat');
-    const catSearch = document.getElementById('dev-cat-search');
+  const catGrid = document.getElementById("dev-cat-grid");
+  const catInput = document.getElementById("dev-add-cat");
+  const catSearch = document.getElementById("dev-cat-search");
 
-    // 카테고리 선택 이벤트
-    catGrid.addEventListener('click', (e) => {
-        const item = e.target.closest('.dev-cat-item');
-        if (!item) return;
+  // 카테고리 선택 이벤트
+  catGrid.addEventListener("click", (e) => {
+    const item = e.target.closest(".dev-cat-item");
+    if (!item) return;
 
-        catGrid.querySelectorAll('.dev-cat-item').forEach(el => el.classList.remove('active'));
-        item.classList.add('active');
-        catInput.value = item.dataset.id;
+    catGrid
+      .querySelectorAll(".dev-cat-item")
+      .forEach((el) => el.classList.remove("active"));
+    item.classList.add("active");
+    catInput.value = item.dataset.id;
+  });
+
+  // 카테고리 검색 이벤트
+  catSearch.addEventListener("input", (e) => {
+    const term = e.target.value.toLowerCase();
+    catGrid.querySelectorAll(".dev-cat-item").forEach((item) => {
+      const name = item
+        .querySelector(".dev-cat-name")
+        .textContent.toLowerCase();
+      const id = item.dataset.id.toLowerCase();
+      const isMatch = name.includes(term) || id.includes(term);
+      item.style.display = isMatch ? "flex" : "none";
     });
+  });
 
-    // 카테고리 검색 이벤트
-    catSearch.addEventListener('input', (e) => {
-        const term = e.target.value.toLowerCase();
-        catGrid.querySelectorAll('.dev-cat-item').forEach(item => {
-            const name = item.querySelector('.dev-cat-name').textContent.toLowerCase();
-            const id = item.dataset.id.toLowerCase();
-            const isMatch = name.includes(term) || id.includes(term);
-            item.style.display = isMatch ? 'flex' : 'none';
-        });
-    });
+  document.getElementById("dev-add-save").onclick = () => {
+    const catId = document.getElementById("dev-add-cat").value;
+    const title = document.getElementById("dev-add-title").value;
+    const desc = document.getElementById("dev-add-desc").value;
+    const region = document.getElementById("dev-add-region").value;
 
-    document.getElementById('dev-add-save').onclick = () => {
-        const catId = document.getElementById('dev-add-cat').value;
-        const title = document.getElementById('dev-add-title').value;
-        const desc = document.getElementById('dev-add-desc').value;
-        const region = document.getElementById('dev-add-region').value;
+    if (!catId || !title) {
+      alert("카테고리와 이름을 입력해주세요.");
+      return;
+    }
 
-        if (!catId || !title) {
-            alert("카테고리와 이름을 입력해주세요.");
-            return;
-        }
-
-        saveNewMarker(lat, lng, catId, title, desc, region);
-        close();
-    };
+    saveNewMarker(lat, lng, catId, title, desc, region);
+    close();
+  };
 };
-
-
 
 /**
  * 신규 마커 저장 및 표시
  */
 const saveNewMarker = (lat, lng, catId, title, desc, region) => {
-    const newId = Date.now();
-    const newMarker = {
-        id: newId,
-        category: catId,
-        title: title,
-        originalName: title,
-        description: desc,
-        lat: parseFloat(lat),
-        lng: parseFloat(lng),
-        region: region,
-        regionId: 0
-    };
+  const newId = Date.now();
+  const newMarker = {
+    id: newId,
+    category: catId,
+    title: title,
+    originalName: title,
+    description: desc,
+    lat: parseFloat(lat),
+    lng: parseFloat(lng),
+    region: region,
+    regionId: 0,
+  };
 
-    devState.newMarkers.push(newMarker);
+  devState.newMarkers.push(newMarker);
 
-    // 임시 마커 표시
-    const emojiIcon = L.divIcon({
-        className: '',
-        html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">✨</div>',
-        iconSize: [36, 36],
-        iconAnchor: [18, 36]
-    });
+  // 임시 마커 표시
+  const emojiIcon = L.divIcon({
+    className: "",
+    html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">✨</div>',
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+  });
 
-    const popupContent = `
+  const popupContent = `
         <div style="font-size:12px; line-height:1.4; text-align: center;">
             <b style="font-size:14px; color:#daac71;">${title}</b><br>
             <span style="color:#888;">ID: ${newId}</span><br>
             <span style="color:#aaa;">카테고리: ${catId}</span><br>
-            <span style="color:#aaa;">지역: ${region || '미지정'}</span><br>
+            <span style="color:#aaa;">지역: ${region || "미지정"}</span><br>
             <span style="color:#aaa;">좌표: ${lat}, ${lng}</span><br>
-            <p style="margin-top:4px; color:#ddd;">${desc || ''}</p>
+            <p style="margin-top:4px; color:#ddd;">${desc || ""}</p>
         </div>
     `;
 
-    L.marker([parseFloat(lat), parseFloat(lng)], { icon: emojiIcon }).addTo(state.map)
-        .bindPopup(popupContent);
+  L.marker([parseFloat(lat), parseFloat(lng)], { icon: emojiIcon })
+    .addTo(state.map)
+    .bindPopup(popupContent);
 
-    addLog(`추가됨: ${title} (${newId})`, 'success');
-    updateUI();
+  addLog(`추가됨: ${title} (${newId})`, "success");
+  updateUI();
 };
-
 
 /**
  * CSS 스타일 추가
  */
 const addDevStyles = () => {
-    if (document.getElementById('dev-tools-styles')) return;
+  if (document.getElementById("dev-tools-styles")) return;
 
-    const style = document.createElement('style');
-    style.id = 'dev-tools-styles';
-    style.textContent = `
+  const style = document.createElement("style");
+  style.id = "dev-tools-styles";
+  style.textContent = `
         .dev-tools-panel {
             position: fixed;
             top: 80px;
@@ -765,522 +823,572 @@ const addDevStyles = () => {
         }
     `;
 
-
-
-    document.head.appendChild(style);
+  document.head.appendChild(style);
 };
 
 /**
  * 로그 출력
  */
-const addLog = (message, type = 'info') => {
-    const logContent = document.getElementById('dev-log-content');
-    if (!logContent) return;
+const addLog = (message, type = "info") => {
+  const logContent = document.getElementById("dev-log-content");
+  if (!logContent) return;
 
-    const time = new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const entry = document.createElement('div');
-    entry.className = `dev-log-entry dev-log-${type}`;
-    entry.innerHTML = `<span class="dev-log-time">${time}</span>${message}`;
+  const time = new Date().toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+  const entry = document.createElement("div");
+  entry.className = `dev-log-entry dev-log-${type}`;
+  entry.innerHTML = `<span class="dev-log-time">${time}</span>${message}`;
 
-    logContent.insertBefore(entry, logContent.firstChild);
+  logContent.insertBefore(entry, logContent.firstChild);
 
-    // 최대 20개 로그 유지
-    while (logContent.children.length > 20) {
-        logContent.removeChild(logContent.lastChild);
-    }
+  // 최대 20개 로그 유지
+  while (logContent.children.length > 20) {
+    logContent.removeChild(logContent.lastChild);
+  }
 };
 
 /**
  * UI 업데이트
  */
 const updateUI = () => {
-    // 현재 모드 표시
-    const modeDisplay = document.getElementById('dev-current-mode');
-    if (modeDisplay) {
-        const modeNames = {
-            'move': '📍 마커 이동',
-            'coords': '📋 좌표 복사',
-            'inspect': '🔍 정보 보기',
-            'region': '📐 영역 편집'
-        };
-        modeDisplay.textContent = devState.currentMode ? modeNames[devState.currentMode] : '없음';
+  // 현재 모드 표시
+  const modeDisplay = document.getElementById("dev-current-mode");
+  if (modeDisplay) {
+    const modeNames = {
+      move: "📍 마커 이동",
+      coords: "📋 좌표 복사",
+      inspect: "🔍 정보 보기",
+      region: "📐 영역 편집",
+    };
+    modeDisplay.textContent = devState.currentMode
+      ? modeNames[devState.currentMode]
+      : "없음";
+  }
+
+  // 변경 개수
+  const changeCount = document.getElementById("dev-change-count");
+  if (changeCount) {
+    const total = devState.changes.size + devState.newMarkers.length;
+    changeCount.textContent = `${total}개 (수정:${devState.changes.size}, 추가:${devState.newMarkers.length})`;
+  }
+
+  // 버튼 active 상태
+  ["move", "coords", "inspect", "add", "region"].forEach((mode) => {
+    const btn = document.getElementById(`dev-btn-${mode}`);
+    if (btn) {
+      btn.classList.toggle("active", devState.currentMode === mode);
     }
+  });
 
-    // 변경 개수
-    const changeCount = document.getElementById('dev-change-count');
-    if (changeCount) {
-        const total = devState.changes.size + devState.newMarkers.length;
-        changeCount.textContent = `${total}개 (수정:${devState.changes.size}, 추가:${devState.newMarkers.length})`;
-    }
-
-    // 버튼 active 상태
-    ['move', 'coords', 'inspect', 'add', 'region'].forEach(mode => {
-
-        const btn = document.getElementById(`dev-btn-${mode}`);
-        if (btn) {
-            btn.classList.toggle('active', devState.currentMode === mode);
-        }
-    });
-
-    // 선택된 마커 정보
-    const selectedInfo = document.getElementById('dev-selected-info');
-    if (selectedInfo) {
-        if (devState.selectedMarkerData) {
-            const m = devState.selectedMarkerData;
-            selectedInfo.style.display = 'flex';
-            selectedInfo.style.flexDirection = 'column';
-            selectedInfo.style.gap = '4px';
-            selectedInfo.innerHTML = `
+  // 선택된 마커 정보
+  const selectedInfo = document.getElementById("dev-selected-info");
+  if (selectedInfo) {
+    if (devState.selectedMarkerData) {
+      const m = devState.selectedMarkerData;
+      selectedInfo.style.display = "flex";
+      selectedInfo.style.flexDirection = "column";
+      selectedInfo.style.gap = "4px";
+      selectedInfo.innerHTML = `
                 <div class="dev-info-row"><span class="dev-info-label">이름</span><span class="dev-info-value" style="color:#daac71">${m.originalName || m.title || m.name}</span></div>
                 <div class="dev-info-row"><span class="dev-info-label">ID</span><span class="dev-info-value">${m.id}</span></div>
-                <div class="dev-info-row"><span class="dev-info-label">지역</span><span class="dev-info-value">${m.region || '-'}</span></div>
+                <div class="dev-info-row"><span class="dev-info-label">지역</span><span class="dev-info-value">${m.region || "-"}</span></div>
                 <div class="dev-info-row"><span class="dev-info-label">좌표</span><span class="dev-info-value">${parseFloat(m.lat).toFixed(4)}, ${parseFloat(m.lng).toFixed(4)}</span></div>
                 <div class="dev-info-row"><span class="dev-info-label">카테고리</span><span class="dev-info-value">${m.category}</span></div>
             `;
-        } else {
-            selectedInfo.style.display = 'none';
-        }
+    } else {
+      selectedInfo.style.display = "none";
     }
+  }
 };
 
 /**
  * 모드 설정
  */
 const setMode = (mode) => {
-    // 이전 모드가 region이었다면 정리
-    if (devState.currentMode === 'region' && mode !== 'region') {
-        stopRegionMode();
+  // 이전 모드가 region이었다면 정리
+  if (devState.currentMode === "region" && mode !== "region") {
+    stopRegionMode();
+  }
+
+  // 같은 모드 클릭시 해제
+  if (devState.currentMode === mode) {
+    if (mode === "region") {
+      stopRegionMode();
     }
+    devState.currentMode = null;
+    clearSelection();
+    addLog(`모드 해제`, "info");
+  } else {
+    devState.currentMode = mode;
+    clearSelection();
+    const modeMessages = {
+      move: "마커를 클릭하세요",
+      coords: "맵을 클릭하면 좌표가 복사됩니다",
+      inspect: "마커를 클릭하면 정보가 출력됩니다",
+      add: "맵을 클릭하여 새 마커를 추가하세요",
+      region: "영역 편집 패널을 사용하여 폴리곤을 그리세요",
+    };
 
-    // 같은 모드 클릭시 해제
-    if (devState.currentMode === mode) {
-        if (mode === 'region') {
-            stopRegionMode();
-        }
-        devState.currentMode = null;
-        clearSelection();
-        addLog(`모드 해제`, 'info');
-    } else {
-        devState.currentMode = mode;
-        clearSelection();
-        const modeMessages = {
-            'move': '마커를 클릭하세요',
-            'coords': '맵을 클릭하면 좌표가 복사됩니다',
-            'inspect': '마커를 클릭하면 정보가 출력됩니다',
-            'add': '맵을 클릭하여 새 마커를 추가하세요',
-            'region': '영역 편집 패널을 사용하여 폴리곤을 그리세요'
-        };
+    addLog(modeMessages[mode], "info");
 
-        addLog(modeMessages[mode], 'info');
-
-        if (mode === 'region') {
-            startRegionMode();
-        }
+    if (mode === "region") {
+      startRegionMode();
     }
-    document.body.setAttribute('data-dev-mode', devState.currentMode || 'none');
-    updateUI();
+  }
+  document.body.setAttribute("data-dev-mode", devState.currentMode || "none");
+  updateUI();
 };
-
 
 /**
  * 선택 해제
  */
 const clearSelection = () => {
-    if (devState.selectedMarker) {
-        const icon = devState.selectedMarker.getElement?.();
-        if (icon) {
-            icon.classList.remove('dev-selected-marker');
-        }
+  if (devState.selectedMarker) {
+    const icon = devState.selectedMarker.getElement?.();
+    if (icon) {
+      icon.classList.remove("dev-selected-marker");
     }
-    devState.selectedMarker = null;
-    devState.selectedMarkerData = null;
-    updateUI();
+  }
+  devState.selectedMarker = null;
+  devState.selectedMarkerData = null;
+  updateUI();
 };
 
 /**
  * 마커 클릭 핸들러 (CPU 모드 Leaflet 마커용)
  */
 const handleMarkerClick = (e) => {
-    if (!devState.isActive || !devState.currentMode) return;
+  if (!devState.isActive || !devState.currentMode) return;
 
-    const marker = e.target;
-    const markerData = Array.from(state.allMarkers.values()).find(m => m.marker === marker);
+  const marker = e.target;
+  const markerData = Array.from(state.allMarkers.values()).find(
+    (m) => m.marker === marker,
+  );
 
-    if (!markerData) return;
+  if (!markerData) return;
 
-    // 팝업 닫기
-    marker.closePopup();
+  // 팝업 닫기
+  marker.closePopup();
 
-    handleMarkerAction(markerData, marker);
+  handleMarkerAction(markerData, marker);
 
-    e.originalEvent?.stopPropagation();
+  e.originalEvent?.stopPropagation();
 };
 
 /**
  * GPU 모드 마커 클릭 핸들러 (ID 기반)
  */
 const handleGpuMarkerClick = (markerId) => {
-    if (!devState.isActive || !devState.currentMode) return;
+  if (!devState.isActive || !devState.currentMode) return;
 
-    const markerData = state.allMarkers.get(markerId) || state.allMarkers.get(String(markerId));
-    if (!markerData) return;
+  const markerData =
+    state.allMarkers.get(markerId) || state.allMarkers.get(String(markerId));
+  if (!markerData) return;
 
-    // GPU 모드에서는 팝업을 맵에서 닫음
-    if (state.map && state.map._popup) {
-        state.map.closePopup();
-    }
+  // GPU 모드에서는 팝업을 맵에서 닫음
+  if (state.map && state.map._popup) {
+    state.map.closePopup();
+  }
 
-    handleMarkerAction(markerData, null);
+  handleMarkerAction(markerData, null);
 };
 
 /**
  * 마커 액션 처리 (공통)
  */
 const handleMarkerAction = (markerData, leafletMarker) => {
-    if (devState.currentMode === 'move') {
-        // 이미 선택된 마커가 있으면 해제
-        clearSelection();
+  if (devState.currentMode === "move") {
+    // 이미 선택된 마커가 있으면 해제
+    clearSelection();
 
-        // 새 마커 선택
-        devState.selectedMarker = leafletMarker;
-        devState.selectedMarkerData = markerData;
+    // 새 마커 선택
+    devState.selectedMarker = leafletMarker;
+    devState.selectedMarkerData = markerData;
 
-        // 하이라이트 (CPU 모드만)
-        if (leafletMarker) {
-            const icon = leafletMarker.getElement?.();
-            if (icon) {
-                icon.classList.add('dev-selected-marker');
-            }
-        }
-
-        addLog(`선택: ${markerData.originalName || markerData.id}`, 'info');
-        updateUI();
-
-    } else if (devState.currentMode === 'inspect') {
-        // 정보 출력
-        const info = {
-            id: markerData.id,
-            name: markerData.originalName,
-            category: markerData.category,
-            lat: markerData.lat,
-            lng: markerData.lng,
-            region: markerData.region
-        };
-
-        console.log('%c🔍 마커 정보', 'color: #60a5fa; font-size: 14px; font-weight: bold;');
-        console.table(info);
-
-        addLog(`정보 출력: ${markerData.originalName || markerData.id}`, 'success');
+    // 하이라이트 (CPU 모드만)
+    if (leafletMarker) {
+      const icon = leafletMarker.getElement?.();
+      if (icon) {
+        icon.classList.add("dev-selected-marker");
+      }
     }
+
+    addLog(`선택: ${markerData.originalName || markerData.id}`, "info");
+    updateUI();
+  } else if (devState.currentMode === "inspect") {
+    // 정보 출력
+    const info = {
+      id: markerData.id,
+      name: markerData.originalName,
+      category: markerData.category,
+      lat: markerData.lat,
+      lng: markerData.lng,
+      region: markerData.region,
+    };
+
+    console.log(
+      "%c🔍 마커 정보",
+      "color: #60a5fa; font-size: 14px; font-weight: bold;",
+    );
+    console.table(info);
+
+    addLog(`정보 출력: ${markerData.originalName || markerData.id}`, "success");
+  }
 };
 
 /**
  * 맵 클릭 핸들러
  */
 const handleMapClick = (e) => {
-    if (!devState.isActive || !devState.currentMode) return;
+  if (!devState.isActive || !devState.currentMode) return;
 
-    const lat = e.latlng.lat.toFixed(6);
-    const lng = e.latlng.lng.toFixed(6);
+  const lat = e.latlng.lat.toFixed(6);
+  const lng = e.latlng.lng.toFixed(6);
 
-    if (devState.currentMode === 'coords') {
-        // 좌표 복사 - CSV 형식에 맞게 ["lat"|"lng"] 형태로 복사
-        const coordsText = `["${lat}"|"${lng}"]`;
-        navigator.clipboard.writeText(coordsText).then(() => {
-            addLog(`복사됨: ${coordsText}`, 'success');
-        }).catch(() => {
-            addLog(`좌표: ${coordsText}`, 'info');
-        });
+  if (devState.currentMode === "coords") {
+    // 좌표 복사 - CSV 형식에 맞게 ["lat"|"lng"] 형태로 복사
+    const coordsText = `["${lat}"|"${lng}"]`;
+    navigator.clipboard
+      .writeText(coordsText)
+      .then(() => {
+        addLog(`복사됨: ${coordsText}`, "success");
+      })
+      .catch(() => {
+        addLog(`좌표: ${coordsText}`, "info");
+      });
+  } else if (devState.currentMode === "move" && devState.selectedMarkerData) {
+    // 마커 이동
+    const markerData = devState.selectedMarkerData;
+    const originalLat = markerData.lat;
+    const originalLng = markerData.lng;
 
-    } else if (devState.currentMode === 'move' && devState.selectedMarkerData) {
-        // 마커 이동
-        const markerData = devState.selectedMarkerData;
-        const originalLat = markerData.lat;
-        const originalLng = markerData.lng;
-
-        // 원본 위치 저장 (처음 이동시에만)
-        if (!devState.originalPositions.has(markerData.id)) {
-            devState.originalPositions.set(markerData.id, { lat: originalLat, lng: originalLng });
-        }
-
-        // 마커 위치 변경
-        if (devState.selectedMarker && typeof devState.selectedMarker.setLatLng === 'function') {
-            devState.selectedMarker.setLatLng([parseFloat(lat), parseFloat(lng)]);
-        }
-
-        if (state.gpuRenderMode) {
-            import('./map/pixiOverlay/overlayCore.js').then(m => m.updatePixiMarkers());
-        }
-        markerData.lat = parseFloat(lat);
-        markerData.lng = parseFloat(lng);
-
-        // 변경 기록
-        devState.changes.set(markerData.id, {
-            id: markerData.id,
-            name: markerData.originalName,
-            category: markerData.category,
-            original: devState.originalPositions.get(markerData.id),
-            modified: { lat: parseFloat(lat), lng: parseFloat(lng) }
-        });
-
-        // 수정된 마커 표시
-        const icon = devState.selectedMarker.getElement?.();
-        if (icon) {
-            icon.classList.remove('dev-selected-marker');
-            icon.classList.add('dev-modified-marker');
-        }
-
-        addLog(`이동 완료: ${markerData.originalName || markerData.id}`, 'success');
-        console.log(`%c✅ 마커 이동`, 'color: #4ade80; font-weight: bold;', {
-            id: markerData.id,
-            name: markerData.originalName,
-            from: `${originalLat}, ${originalLng}`,
-            to: `${lat}, ${lng}`
-        });
-
-        clearSelection();
-    } else if (devState.currentMode === 'add') {
-        // 새 마커 추가 모달 표시
-        createAddMarkerModal(lat, lng);
-    } else if (devState.currentMode === 'region') {
-        addPolygonPoint(e.latlng);
+    // 원본 위치 저장 (처음 이동시에만)
+    if (!devState.originalPositions.has(markerData.id)) {
+      devState.originalPositions.set(markerData.id, {
+        lat: originalLat,
+        lng: originalLng,
+      });
     }
+
+    // 마커 위치 변경
+    if (
+      devState.selectedMarker &&
+      typeof devState.selectedMarker.setLatLng === "function"
+    ) {
+      devState.selectedMarker.setLatLng([parseFloat(lat), parseFloat(lng)]);
+    }
+
+    if (state.gpuRenderMode) {
+      import("./map/pixiOverlay/overlayCore.js").then((m) =>
+        m.updatePixiMarkers(),
+      );
+    }
+    markerData.lat = parseFloat(lat);
+    markerData.lng = parseFloat(lng);
+
+    // 변경 기록
+    devState.changes.set(markerData.id, {
+      id: markerData.id,
+      name: markerData.originalName,
+      category: markerData.category,
+      original: devState.originalPositions.get(markerData.id),
+      modified: { lat: parseFloat(lat), lng: parseFloat(lng) },
+    });
+
+    // 수정된 마커 표시
+    const icon = devState.selectedMarker.getElement?.();
+    if (icon) {
+      icon.classList.remove("dev-selected-marker");
+      icon.classList.add("dev-modified-marker");
+    }
+
+    addLog(`이동 완료: ${markerData.originalName || markerData.id}`, "success");
+    console.log(`%c✅ 마커 이동`, "color: #4ade80; font-weight: bold;", {
+      id: markerData.id,
+      name: markerData.originalName,
+      from: `${originalLat}, ${originalLng}`,
+      to: `${lat}, ${lng}`,
+    });
+
+    clearSelection();
+  } else if (devState.currentMode === "add") {
+    // 새 마커 추가 모달 표시
+    createAddMarkerModal(lat, lng);
+  } else if (devState.currentMode === "region") {
+    addPolygonPoint(e.latlng);
+  }
 };
-
-
 
 /**
  * 마우스 이동 핸들러 (좌표 표시)
  */
 const handleMouseMove = (e) => {
-    if (!devState.isActive) return;
+  if (!devState.isActive) return;
 
-    const coordsDisplay = document.getElementById('dev-mouse-coords');
-    if (coordsDisplay) {
-        coordsDisplay.textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
-    }
+  const coordsDisplay = document.getElementById("dev-mouse-coords");
+  if (coordsDisplay) {
+    coordsDisplay.textContent = `${e.latlng.lat.toFixed(4)}, ${e.latlng.lng.toFixed(4)}`;
+  }
 };
 
 /**
  * 변경사항 내보내기
  */
 const exportChanges = () => {
-    if (devState.changes.size === 0) {
-        addLog('변경된 마커가 없습니다', 'warn');
-        return;
-    }
+  if (devState.changes.size === 0) {
+    addLog("변경된 마커가 없습니다", "warn");
+    return;
+  }
 
-    const changesArray = Array.from(devState.changes.values());
+  const changesArray = Array.from(devState.changes.values());
 
-    // JSON 형식
-    const jsonOutput = changesArray.map(c => ({
-        id: c.id,
-        name: c.name,
-        category: c.category,
-        latitude: c.modified.lat,
-        longitude: c.modified.lng,
-        customPosition: `[${c.modified.lat}|${c.modified.lng}]`,
-        _original: c.original
-    }));
+  // JSON 형식
+  const jsonOutput = changesArray.map((c) => ({
+    id: c.id,
+    name: c.name,
+    category: c.category,
+    latitude: c.modified.lat,
+    longitude: c.modified.lng,
+    customPosition: `[${c.modified.lat}|${c.modified.lng}]`,
+    _original: c.original,
+  }));
 
-    // CSV 형식 - translation.csv에 붙여넣기용
-    const csvLines = changesArray.map(c => {
-        const category = c.category || '';
-        const id = c.id;
-        const name = c.name || '';
-        // 형식: Override,"category","id","name","","","","","[x|y]"
-        return `Override,"${category}","${id}","${name}","","","","","[${c.modified.lat}|${c.modified.lng}]"`;
-    });
-    const csvOutput = csvLines.join('\n');
+  // CSV 형식 - translation.csv에 붙여넣기용
+  const csvLines = changesArray.map((c) => {
+    const category = c.category || "";
+    const id = c.id;
+    const name = c.name || "";
+    // 형식: Override,"category","id","name","","","","","[x|y]"
+    return `Override,"${category}","${id}","${name}","","","","","[${c.modified.lat}|${c.modified.lng}]"`;
+  });
+  const csvOutput = csvLines.join("\n");
 
-    // 콘솔 출력
-    console.log('%c📋 변경된 마커 목록 (JSON)', 'color: #daac71; font-size: 16px; font-weight: bold;');
-    console.log(JSON.stringify(jsonOutput, null, 2));
+  // 콘솔 출력
+  console.log(
+    "%c📋 변경된 마커 목록 (JSON)",
+    "color: #daac71; font-size: 16px; font-weight: bold;",
+  );
+  console.log(JSON.stringify(jsonOutput, null, 2));
 
-    console.log('%c📋 CSV 형식 (translation.csv에 붙여넣기)', 'color: #4ade80; font-size: 14px; font-weight: bold;');
-    console.log(csvOutput);
+  console.log(
+    "%c📋 CSV 형식 (translation.csv에 붙여넣기)",
+    "color: #4ade80; font-size: 14px; font-weight: bold;",
+  );
+  console.log(csvOutput);
 
-    // 클립보드 복사 (CSV 형식)
-    navigator.clipboard.writeText(csvOutput).then(() => {
-        addLog(`${changesArray.length}개 마커 CSV 복사됨`, 'success');
-    });
+  // 클립보드 복사 (CSV 형식)
+  navigator.clipboard.writeText(csvOutput).then(() => {
+    addLog(`${changesArray.length}개 마커 CSV 복사됨`, "success");
+  });
 
-    // 신규 마커 내보내기 (data3.csv / data4.csv 형식)
-    if (devState.newMarkers.length > 0) {
-        const newMarkersCsv = devState.newMarkers.map(m =>
-            `${m.id},${m.category_id},"${m.title}","${m.description}",${m.latitude},${m.longitude},${m.regionId},,""`
-        ).join('\n');
+  // 신규 마커 내보내기 (data3.csv / data4.csv 형식)
+  if (devState.newMarkers.length > 0) {
+    const newMarkersCsv = devState.newMarkers
+      .map(
+        (m) =>
+          `${m.id},${m.category_id},"${m.title}","${m.description}",${m.latitude},${m.longitude},${m.regionId},,""`,
+      )
+      .join("\n");
 
-        const currentMap = state.currentMapKey === 'qinghe' ? 'data3.csv' : 'data4.csv';
+    const currentMap =
+      state.currentMapKey === "qinghe" ? "data3.csv" : "data4.csv";
 
-        console.log(`%c📋 신규 마커 목록 (${currentMap}용)`, 'color: #daac71; font-size: 16px; font-weight: bold;');
-        console.log('id,category_id,title,description,latitude,longitude,regionId,image,video_url');
-        console.log(newMarkersCsv);
+    console.log(
+      `%c📋 신규 마커 목록 (${currentMap}용)`,
+      "color: #daac71; font-size: 16px; font-weight: bold;",
+    );
+    console.log(
+      "id,category_id,title,description,latitude,longitude,regionId,image,video_url",
+    );
+    console.log(newMarkersCsv);
 
-        addLog(`${devState.newMarkers.length}개 신규 마커 콘솔 출력됨`, 'success');
-    }
+    addLog(`${devState.newMarkers.length}개 신규 마커 콘솔 출력됨`, "success");
+  }
 
-    // JSON 파일 다운로드
+  // JSON 파일 다운로드
 
-    const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `marker-changes-${Date.now()}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
+  const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], {
+    type: "application/json",
+  });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `marker-changes-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 };
 
 /**
  * 모든 변경 초기화
  */
 const resetAllChanges = () => {
-    if (devState.changes.size === 0) {
-        addLog('초기화할 변경사항이 없습니다', 'warn');
-        return;
-    }
+  if (devState.changes.size === 0) {
+    addLog("초기화할 변경사항이 없습니다", "warn");
+    return;
+  }
 
-    // 원래 위치로 복구
-    devState.changes.forEach((change, id) => {
-        const markerData = state.allMarkers.get(id);
-        if (markerData && markerData.marker) {
-            const original = devState.originalPositions.get(id);
-            if (original) {
-                markerData.marker.setLatLng([original.lat, original.lng]);
-                markerData.lat = original.lat;
-                markerData.lng = original.lng;
+  // 원래 위치로 복구
+  devState.changes.forEach((change, id) => {
+    const markerData = state.allMarkers.get(id);
+    if (markerData && markerData.marker) {
+      const original = devState.originalPositions.get(id);
+      if (original) {
+        markerData.marker.setLatLng([original.lat, original.lng]);
+        markerData.lat = original.lat;
+        markerData.lng = original.lng;
 
-                const icon = markerData.marker.getElement?.();
-                if (icon) {
-                    icon.classList.remove('dev-modified-marker');
-                }
-            }
+        const icon = markerData.marker.getElement?.();
+        if (icon) {
+          icon.classList.remove("dev-modified-marker");
         }
-    });
+      }
+    }
+  });
 
-    const count = devState.changes.size + devState.newMarkers.length;
-    devState.changes.clear();
-    devState.newMarkers.clear ? devState.newMarkers.clear() : devState.newMarkers = [];
-    devState.originalPositions.clear();
+  const count = devState.changes.size + devState.newMarkers.length;
+  devState.changes.clear();
+  devState.newMarkers.clear
+    ? devState.newMarkers.clear()
+    : (devState.newMarkers = []);
+  devState.originalPositions.clear();
 
-    addLog(`${count}개 변경사항 초기화됨`, 'success');
-    updateUI();
+  addLog(`${count}개 변경사항 초기화됨`, "success");
+  updateUI();
 };
-
 
 /**
  * 이벤트 바인딩
  */
 const bindDevEvents = () => {
-    // 닫기 버튼
-    document.getElementById('dev-close-btn')?.addEventListener('click', () => {
-        stopDev();
-    });
+  // 닫기 버튼
+  document.getElementById("dev-close-btn")?.addEventListener("click", () => {
+    stopDev();
+  });
 
-    // 모드 버튼들
-    document.getElementById('dev-btn-move')?.addEventListener('click', () => setMode('move'));
-    document.getElementById('dev-btn-coords')?.addEventListener('click', () => setMode('coords'));
-    document.getElementById('dev-btn-inspect')?.addEventListener('click', () => setMode('inspect'));
-    document.getElementById('dev-btn-add')?.addEventListener('click', () => setMode('add'));
-    document.getElementById('dev-btn-region')?.addEventListener('click', () => toggleRegionEditor());
+  // 모드 버튼들
+  document
+    .getElementById("dev-btn-move")
+    ?.addEventListener("click", () => setMode("move"));
+  document
+    .getElementById("dev-btn-coords")
+    ?.addEventListener("click", () => setMode("coords"));
+  document
+    .getElementById("dev-btn-inspect")
+    ?.addEventListener("click", () => setMode("inspect"));
+  document
+    .getElementById("dev-btn-add")
+    ?.addEventListener("click", () => setMode("add"));
+  document
+    .getElementById("dev-btn-region")
+    ?.addEventListener("click", () => toggleRegionEditor());
 
+  // 액션 버튼들
+  document
+    .getElementById("dev-btn-export")
+    ?.addEventListener("click", exportChanges);
+  document
+    .getElementById("dev-btn-reset")
+    ?.addEventListener("click", resetAllChanges);
 
-    // 액션 버튼들
-    document.getElementById('dev-btn-export')?.addEventListener('click', exportChanges);
-    document.getElementById('dev-btn-reset')?.addEventListener('click', resetAllChanges);
-
-    // ESC 키로 선택 해제
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && devState.isActive) {
-            if (devState.selectedMarker) {
-                clearSelection();
-                addLog('선택 해제됨', 'info');
-            } else if (devState.currentMode) {
-                setMode(devState.currentMode); // 토글로 해제
-            }
-        }
-    });
+  // ESC 키로 선택 해제
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && devState.isActive) {
+      if (devState.selectedMarker) {
+        clearSelection();
+        addLog("선택 해제됨", "info");
+      } else if (devState.currentMode) {
+        setMode(devState.currentMode); // 토글로 해제
+      }
+    }
+  });
 };
 
 /**
  * 마커들에 이벤트 연결
  */
 const attachMarkerListeners = () => {
-    if (!state.allMarkers) return;
+  if (!state.allMarkers) return;
 
-    state.allMarkers.forEach((data) => {
-        if (data.marker) {
-            data.marker.off('click', handleMarkerClick);
-            data.marker.on('click', handleMarkerClick);
-        }
-    });
+  state.allMarkers.forEach((data) => {
+    if (data.marker) {
+      data.marker.off("click", handleMarkerClick);
+      data.marker.on("click", handleMarkerClick);
+    }
+  });
 };
 
 /**
  * 개발자 도구 시작
  */
 const startDev = () => {
-    if (devState.isActive) {
-        console.log('%c🔧 개발자 도구가 이미 활성화되어 있습니다.', 'color: #fbbf24;');
-        return;
-    }
+  if (devState.isActive) {
+    console.log(
+      "%c🔧 개발자 도구가 이미 활성화되어 있습니다.",
+      "color: #fbbf24;",
+    );
+    return;
+  }
 
-    devState.isActive = true;
-    document.body.classList.add('dev-mode-active');
-    if (state.isDevMode === false) state.isDevMode = true;
+  devState.isActive = true;
+  document.body.classList.add("dev-mode-active");
+  if (state.isDevMode === false) state.isDevMode = true;
 
+  // 모달 생성 및 표시
+  const modal = createDevModal();
+  modal.style.display = "block";
 
-    // 모달 생성 및 표시
-    const modal = createDevModal();
-    modal.style.display = 'block';
+  // 맵 이벤트 연결
+  if (state.map) {
+    state.map.on("click", handleMapClick);
+    state.map.on("mousemove", handleMouseMove);
+  }
 
-    // 맵 이벤트 연결
-    if (state.map) {
-        state.map.on('click', handleMapClick);
-        state.map.on('mousemove', handleMouseMove);
-    }
+  // 마커 이벤트 연결
+  attachMarkerListeners();
 
-    // 마커 이벤트 연결
-    attachMarkerListeners();
+  console.log(
+    "%c🔧 개발자 도구가 활성화되었습니다!",
+    "color: #4ade80; font-size: 16px; font-weight: bold;",
+  );
+  console.log("%c사용법: 모달에서 모드를 선택하세요.", "color: #888;");
 
-    console.log('%c🔧 개발자 도구가 활성화되었습니다!', 'color: #4ade80; font-size: 16px; font-weight: bold;');
-    console.log('%c사용법: 모달에서 모드를 선택하세요.', 'color: #888;');
-
-    addLog('개발자 도구 시작!', 'success');
-    updateUI();
+  addLog("개발자 도구 시작!", "success");
+  updateUI();
 };
 
 /**
  * 개발자 도구 종료
  */
 const stopDev = () => {
-    devState.isActive = false;
-    document.body.classList.remove('dev-mode-active');
-    document.body.removeAttribute('data-dev-mode');
-    state.isDevMode = false;
+  devState.isActive = false;
+  document.body.classList.remove("dev-mode-active");
+  document.body.removeAttribute("data-dev-mode");
+  state.isDevMode = false;
 
+  devState.currentMode = null;
+  clearSelection();
 
-    devState.currentMode = null;
-    clearSelection();
+  // 모달 숨기기
+  const modal = document.getElementById("dev-tools-modal");
+  if (modal) {
+    modal.style.display = "none";
+  }
 
-    // 모달 숨기기
-    const modal = document.getElementById('dev-tools-modal');
-    if (modal) {
-        modal.style.display = 'none';
-    }
+  // 맵 이벤트 제거
+  if (state.map) {
+    state.map.off("click", handleMapClick);
+    state.map.off("mousemove", handleMouseMove);
+  }
 
-    // 맵 이벤트 제거
-    if (state.map) {
-        state.map.off('click', handleMapClick);
-        state.map.off('mousemove', handleMouseMove);
-    }
-
-    console.log('%c🔧 개발자 도구가 비활성화되었습니다.', 'color: #888;');
+  console.log("%c🔧 개발자 도구가 비활성화되었습니다.", "color: #888;");
 };
 
 // 전역 함수로 노출
 const dev = () => {
-    startDev();
+  startDev();
 };
 
 dev.stop = stopDev;
@@ -1289,7 +1397,8 @@ dev.reset = resetAllChanges;
 dev.changes = () => devState.changes;
 dev.handleGpuClick = handleGpuMarkerClick;
 dev.help = () => {
-    console.log(`
+  console.log(
+    `
 %c🔧 개발자 도구 도움말
 %c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
@@ -1305,15 +1414,16 @@ dev.help = () => {
   dev.changes() - 현재 변경 목록 확인
   dev.help()    - 이 도움말 표시
     `,
-        'color: #daac71; font-size: 16px; font-weight: bold;',
-        'color: #444;',
-        'color: #4ade80; font-weight: bold;', 'color: #888;',
-        'color: #60a5fa; font-weight: bold;', 'color: #888;',
-        'color: #fbbf24; font-weight: bold;', 'color: #888;'
-    );
+    "color: #daac71; font-size: 16px; font-weight: bold;",
+    "color: #444;",
+    "color: #4ade80; font-weight: bold;",
+    "color: #888;",
+    "color: #60a5fa; font-weight: bold;",
+    "color: #888;",
+    "color: #fbbf24; font-weight: bold;",
+    "color: #888;",
+  );
 };
-
-
 
 // window에 노출
 window.dev = dev;
@@ -1321,34 +1431,34 @@ window.dev = dev;
 // --- Region Editor Logic ---
 
 const toggleRegionEditor = () => {
-    if (devState.currentMode === 'region') {
-        setMode(null);
-    } else {
-        setMode('region');
-    }
+  if (devState.currentMode === "region") {
+    setMode(null);
+  } else {
+    setMode("region");
+  }
 };
 
 const startRegionMode = () => {
-    devState.regionMode = true;
-    createRegionEditorUI();
-    document.getElementById('region-editor-ui').style.display = 'flex';
-    addLog("영역 편집 모드 시작", 'info');
+  devState.regionMode = true;
+  createRegionEditorUI();
+  document.getElementById("region-editor-ui").style.display = "flex";
+  addLog("영역 편집 모드 시작", "info");
 };
 
 const stopRegionMode = () => {
-    devState.regionMode = false;
-    const ui = document.getElementById('region-editor-ui');
-    if (ui) ui.style.display = 'none';
-    clearPolygon();
-    addLog("영역 편집 모드 종료", 'info');
+  devState.regionMode = false;
+  const ui = document.getElementById("region-editor-ui");
+  if (ui) ui.style.display = "none";
+  clearPolygon();
+  addLog("영역 편집 모드 종료", "info");
 };
 
 const createRegionEditorUI = () => {
-    if (document.getElementById('region-editor-ui')) return;
+  if (document.getElementById("region-editor-ui")) return;
 
-    const container = document.createElement('div');
-    container.id = 'region-editor-ui';
-    container.style.cssText = `
+  const container = document.createElement("div");
+  container.id = "region-editor-ui";
+  container.style.cssText = `
         position: fixed;
         top: 80px;
         right: 320px; /* dev panel width + margin */
@@ -1366,7 +1476,7 @@ const createRegionEditorUI = () => {
         backdrop-filter: blur(10px);
     `;
 
-    container.innerHTML = `
+  container.innerHTML = `
         <h4 style="margin: 0 0 5px 0; color: var(--accent); text-align: center; font-size: 14px;">📐 Region Editor</h4>
         <div style="display: flex; flex-direction: column; gap: 8px;">
             <button id="btn-clear-polygon" class="dev-btn" style="justify-content: center; border-color: #ff6b6b; color: #ff6b6b;">Reset (Clear)</button>
@@ -1379,150 +1489,155 @@ const createRegionEditorUI = () => {
         </div>
     `;
 
-    document.body.appendChild(container);
+  document.body.appendChild(container);
 
-    document.getElementById('btn-clear-polygon').onclick = clearPolygon;
-    document.getElementById('btn-export-region').onclick = exportRegionJSON;
+  document.getElementById("btn-clear-polygon").onclick = clearPolygon;
+  document.getElementById("btn-export-region").onclick = exportRegionJSON;
 };
 
 const startNewPolygon = () => {
-    clearPolygon();
-    devState.currentPolygon = L.polygon([], { color: '#ff4444', weight: 3 }).addTo(state.map);
-    addLog("새 폴리곤 그리기 시작", 'info');
+  clearPolygon();
+  devState.currentPolygon = L.polygon([], {
+    color: "#ff4444",
+    weight: 3,
+  }).addTo(state.map);
+  addLog("새 폴리곤 그리기 시작", "info");
 };
 
-
-
 const clearPolygon = () => {
-    if (devState.currentPolygon) {
-        state.map.removeLayer(devState.currentPolygon);
-        devState.currentPolygon = null;
-    }
-    devState.polygonHandles.forEach(h => state.map.removeLayer(h));
-    devState.polygonHandles = [];
+  if (devState.currentPolygon) {
+    state.map.removeLayer(devState.currentPolygon);
+    devState.currentPolygon = null;
+  }
+  devState.polygonHandles.forEach((h) => state.map.removeLayer(h));
+  devState.polygonHandles = [];
 };
 
 const updatePolygonShape = () => {
-    if (!devState.currentPolygon) return;
-    const latlngs = devState.polygonHandles.map(h => h.getLatLng());
-    devState.currentPolygon.setLatLngs(latlngs);
+  if (!devState.currentPolygon) return;
+  const latlngs = devState.polygonHandles.map((h) => h.getLatLng());
+  devState.currentPolygon.setLatLngs(latlngs);
 };
 
 const addPolygonPoint = (latlng) => {
-    if (!devState.currentPolygon) startNewPolygon();
+  if (!devState.currentPolygon) startNewPolygon();
 
-    const handle = L.marker(latlng, {
-        draggable: true,
-        icon: L.divIcon({
-            className: 'region-handle',
-            html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
-            iconSize: [16, 16],
-            iconAnchor: [8, 8]
-        })
-    }).addTo(state.map);
+  const handle = L.marker(latlng, {
+    draggable: true,
+    icon: L.divIcon({
+      className: "region-handle",
+      html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    }),
+  }).addTo(state.map);
 
-    handle.on('drag', updatePolygonShape);
-    handle.on('contextmenu', () => {
-        state.map.removeLayer(handle);
-        devState.polygonHandles = devState.polygonHandles.filter(h => h !== handle);
-        updatePolygonShape();
-    });
-
-    devState.polygonHandles.push(handle);
+  handle.on("drag", updatePolygonShape);
+  handle.on("contextmenu", () => {
+    state.map.removeLayer(handle);
+    devState.polygonHandles = devState.polygonHandles.filter(
+      (h) => h !== handle,
+    );
     updatePolygonShape();
+  });
+
+  devState.polygonHandles.push(handle);
+  updatePolygonShape();
 };
 
 const exportRegionJSON = () => {
-    if (!devState.currentPolygon) {
-        alert("내보낼 폴리곤이 없습니다!");
-        return;
-    }
+  if (!devState.currentPolygon) {
+    alert("내보낼 폴리곤이 없습니다!");
+    return;
+  }
 
-    const latlngs = devState.currentPolygon.getLatLngs()[0]; // Assuming simple polygon
-    if (!latlngs || latlngs.length < 3) {
-        alert("최소 3개의 점이 필요합니다.");
-        return;
-    }
+  const latlngs = devState.currentPolygon.getLatLngs()[0]; // Assuming simple polygon
+  if (!latlngs || latlngs.length < 3) {
+    alert("최소 3개의 점이 필요합니다.");
+    return;
+  }
 
-    const coordinates = latlngs.map(ll => [
-        String(ll.lng),
-        String(ll.lat)
-    ]);
+  const coordinates = latlngs.map((ll) => [String(ll.lng), String(ll.lat)]);
 
-    // Close the loop
-    if (coordinates.length > 0) {
-        coordinates.push(coordinates[0]);
-    }
+  // Close the loop
+  if (coordinates.length > 0) {
+    coordinates.push(coordinates[0]);
+  }
 
-    const center = devState.currentPolygon.getBounds().getCenter();
+  const center = devState.currentPolygon.getBounds().getCenter();
 
-    const json = {
-        mapId: 3003,
-        title: "New Region",
-        zoom: 12,
-        latitude: String(center.lat),
-        longitude: String(center.lng),
-        coordinates: coordinates,
-        id: Date.now(),
-        map_id: 3003
-    };
+  const json = {
+    mapId: 3003,
+    title: "New Region",
+    zoom: 12,
+    latitude: String(center.lat),
+    longitude: String(center.lng),
+    coordinates: coordinates,
+    id: Date.now(),
+    map_id: 3003,
+  };
 
-    console.log(JSON.stringify(json, null, 4));
-    
-    navigator.clipboard.writeText(JSON.stringify(json, null, 4)).then(() => {
-        alert("JSON이 클립보드에 복사되었습니다! (콘솔 확인)");
-        addLog("Region JSON 복사됨", 'success');
-    });
+  console.log(JSON.stringify(json, null, 4));
+
+  navigator.clipboard.writeText(JSON.stringify(json, null, 4)).then(() => {
+    alert("JSON이 클립보드에 복사되었습니다! (콘솔 확인)");
+    addLog("Region JSON 복사됨", "success");
+  });
 };
 
-
-
 const loadRegion = (region) => {
-    if (devState.currentMode !== 'region') {
-        setMode('region');
-    }
+  if (devState.currentMode !== "region") {
+    setMode("region");
+  }
 
-    clearPolygon();
-    
-    if (!region.coordinates || region.coordinates.length === 0) {
-        alert("좌표 데이터가 없는 지역입니다.");
-        return;
-    }
+  clearPolygon();
 
-    // 원본 데이터는 [lon, lat] 순서 (문자열일 수 있음)
-    // regions.js: const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
-    const latlngs = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
-    
-    // 폴리곤 생성
-    devState.currentPolygon = L.polygon(latlngs, { color: '#4444ff', weight: 3 }).addTo(state.map);
-    
-    // 핸들 생성
-    latlngs.forEach(ll => {
-        const handle = L.marker(ll, {
-            draggable: true,
-            icon: L.divIcon({
-                className: 'region-handle',
-                html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
-                iconSize: [16, 16],
-                iconAnchor: [8, 8]
-            })
-        }).addTo(state.map);
+  if (!region.coordinates || region.coordinates.length === 0) {
+    alert("좌표 데이터가 없는 지역입니다.");
+    return;
+  }
 
-        handle.on('drag', updatePolygonShape);
-        handle.on('contextmenu', () => {
-            state.map.removeLayer(handle);
-            devState.polygonHandles = devState.polygonHandles.filter(h => h !== handle);
-            updatePolygonShape();
-        });
+  // 원본 데이터는 [lon, lat] 순서 (문자열일 수 있음)
+  // regions.js: const polygonCoords = region.coordinates.map(coord => [parseFloat(coord[1]), parseFloat(coord[0])]);
+  const latlngs = region.coordinates.map((coord) => [
+    parseFloat(coord[1]),
+    parseFloat(coord[0]),
+  ]);
 
-        devState.polygonHandles.push(handle);
+  // 폴리곤 생성
+  devState.currentPolygon = L.polygon(latlngs, {
+    color: "#4444ff",
+    weight: 3,
+  }).addTo(state.map);
+
+  // 핸들 생성
+  latlngs.forEach((ll) => {
+    const handle = L.marker(ll, {
+      draggable: true,
+      icon: L.divIcon({
+        className: "region-handle",
+        html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
+        iconSize: [16, 16],
+        iconAnchor: [8, 8],
+      }),
+    }).addTo(state.map);
+
+    handle.on("drag", updatePolygonShape);
+    handle.on("contextmenu", () => {
+      state.map.removeLayer(handle);
+      devState.polygonHandles = devState.polygonHandles.filter(
+        (h) => h !== handle,
+      );
+      updatePolygonShape();
     });
 
-    addLog(`${region.title} 영역 편집 시작`, 'success');
+    devState.polygonHandles.push(handle);
+  });
+
+  addLog(`${region.title} 영역 편집 시작`, "success");
 };
 
 dev.loadRegion = loadRegion;
-dev.isRegionMode = () => devState.currentMode === 'region';
+dev.isRegionMode = () => devState.currentMode === "region";
 
 export { dev, startDev, stopDev };
-

@@ -1,331 +1,383 @@
-import { state, setState } from '../state.js';
-import { t } from '../utils.js';
-import { webWorkerManager } from '../web-worker-manager.js';
-import { DEFAULT_DESCRIPTIONS } from '../config.js';
+import { state, setState } from "../state.js";
+import { t } from "../utils.js";
+import { webWorkerManager } from "../web-worker-manager.js";
+import { DEFAULT_DESCRIPTIONS, MAP_CONFIGS } from "../config.js";
 
 export const USE_WORKERS = true;
 
 export const processRegionDataSync = (regionJson) => {
-    const regionData = regionJson.data || [];
-    const regionIdMap = {};
-    const regionMetaInfo = {};
-    const reverseRegionMap = {};
-    const boundsCoords = [];
+  const regionData = regionJson.data || [];
+  const regionIdMap = {};
+  const regionMetaInfo = {};
+  const reverseRegionMap = {};
+  const boundsCoords = [];
 
-    regionData.forEach(region => {
-        regionIdMap[region.id] = region.title;
-        regionMetaInfo[region.title] = {
-            lat: parseFloat(region.latitude),
-            lng: parseFloat(region.longitude),
-            zoom: region.zoom || 12
-        };
+  regionData.forEach((region) => {
+    regionIdMap[region.id] = region.title;
+    regionMetaInfo[region.title] = {
+      lat: parseFloat(region.latitude),
+      lng: parseFloat(region.longitude),
+      zoom: region.zoom || 12,
+    };
 
-        reverseRegionMap[region.title] = region.title;
-        const translatedTitle = t(region.title);
-        if (translatedTitle) {
-            reverseRegionMap[translatedTitle] = region.title;
-        }
+    reverseRegionMap[region.title] = region.title;
+    const translatedTitle = t(region.title);
+    if (translatedTitle) {
+      reverseRegionMap[translatedTitle] = region.title;
+    }
 
-        if (region.coordinates && region.coordinates.length > 0) {
-            const coords = region.coordinates.map(c => [parseFloat(c[1]), parseFloat(c[0])]);
-            boundsCoords.push(...coords);
-        }
-    });
+    if (region.coordinates && region.coordinates.length > 0) {
+      const coords = region.coordinates.map((c) => [
+        parseFloat(c[1]),
+        parseFloat(c[0]),
+      ]);
+      boundsCoords.push(...coords);
+    }
+  });
 
-    return { regionData, regionIdMap, regionMetaInfo, reverseRegionMap, boundsCoords };
+  return {
+    regionData,
+    regionIdMap,
+    regionMetaInfo,
+    reverseRegionMap,
+    boundsCoords,
+  };
 };
 
 export const processRegionData = async (regionJson) => {
-    if (USE_WORKERS && webWorkerManager.isSupported) {
-        return webWorkerManager.processRegionData(regionJson, state.koDict);
-    }
-    return processRegionDataSync(regionJson);
+  if (USE_WORKERS && webWorkerManager.isSupported) {
+    return webWorkerManager.processRegionData(regionJson, state.koDict);
+  }
+  return processRegionDataSync(regionJson);
 };
 
 const applyTranslations = (item, reverseRegionMap) => {
-    const catTrans = state.categoryItemTranslations[item.category];
-    let commonDesc = null;
+  const catTrans = state.categoryItemTranslations[item.category];
+  let commonDesc = null;
 
-    if (catTrans && catTrans._common_description) {
-        commonDesc = catTrans._common_description;
+  if (catTrans && catTrans._common_description) {
+    commonDesc = catTrans._common_description;
+  }
+
+  const categoryDefaultNames = {
+    17310010006: "상자 (지상)",
+    17310010007: "상자 (지하)",
+    17310010012: "곡경심유 (파랑나비)",
+    17310010015: "만물의 울림 (노랑나비)",
+    17310010090: "야외 제사 (빨간나비)",
+  };
+
+  if (categoryDefaultNames[item.category]) {
+    item.name = categoryDefaultNames[item.category];
+    item.isTranslated = true;
+  }
+
+  if (catTrans) {
+    let transData = catTrans[item.id];
+    if (!transData && item.name) {
+      transData = catTrans[item.name];
     }
 
-    const categoryDefaultNames = {
-        '17310010006': '상자 (지상)',
-        '17310010007': '상자 (지하)',
-        '17310010012': '곡경심유 (파랑나비)',
-        '17310010015': '만물의 울림 (노랑나비)',
-        '17310010090': '야외 제사 (빨간나비)'
-    };
-
-    if (categoryDefaultNames[item.category]) {
-        item.name = categoryDefaultNames[item.category];
+    if (transData) {
+      if (transData.name) {
+        item.name = transData.name;
         item.isTranslated = true;
+      }
+      if (transData.description) {
+        item.description = transData.description;
+      }
+      if (transData.region) {
+        item.forceRegion =
+          reverseRegionMap[transData.region] || transData.region;
+      }
+      if (transData.image) {
+        item.images = Array.isArray(transData.image)
+          ? transData.image
+          : [transData.image];
+      }
+      if (transData.video) {
+        item.video_url = transData.video;
+      }
+      if (transData.customPosition) {
+        item.x = transData.customPosition.x;
+        item.y = transData.customPosition.y;
+        item.hasCustomPosition = true;
+      }
     }
+  }
 
-    if (catTrans) {
-        let transData = catTrans[item.id];
-        if (!transData && item.name) {
-            transData = catTrans[item.name];
-        }
-
-        if (transData) {
-            if (transData.name) {
-                item.name = transData.name;
-                item.isTranslated = true;
-            }
-            if (transData.description) {
-                item.description = transData.description;
-            }
-            if (transData.region) {
-                item.forceRegion = reverseRegionMap[transData.region] || transData.region;
-            }
-            if (transData.image) {
-                item.images = Array.isArray(transData.image) ? transData.image : [transData.image];
-            }
-            if (transData.video) {
-                item.video_url = transData.video;
-            }
-            if (transData.customPosition) {
-                item.x = transData.customPosition.x;
-                item.y = transData.customPosition.y;
-                item.hasCustomPosition = true;
-            }
-        }
+  // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
+  if (!item.description || item.description.trim() === "") {
+    const translatedName = t(item.name) || item.name;
+    if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
+      item.description = DEFAULT_DESCRIPTIONS[translatedName];
+    } else if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
+      item.description = DEFAULT_DESCRIPTIONS[item.name];
+    } else if (commonDesc) {
+      item.description = commonDesc;
     }
-
-    // 설명이 비어있는 경우: 아이템 이름별 공용 설명을 먼저 체크, 없으면 카테고리 공용 설명 적용
-    if (!item.description || item.description.trim() === "") {
-        const translatedName = t(item.name) || item.name;
-        if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
-            item.description = DEFAULT_DESCRIPTIONS[translatedName];
-        } else if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
-            item.description = DEFAULT_DESCRIPTIONS[item.name];
-        } else if (commonDesc) {
-            item.description = commonDesc;
-        }
-    }
+  }
 };
 
-export const processMapDataSync = (rawItems, regionIdMap, missingItems, reverseRegionMap) => {
-    const mapData = { categories: [], items: [] };
-    const itemsByCategory = {};
+export const processMapDataSync = (
+  rawItems,
+  regionIdMap,
+  missingItems,
+  reverseRegionMap,
+) => {
+  const mapData = { categories: [], items: [] };
+  const itemsByCategory = {};
 
-    mapData.items = rawItems
-        .filter(item => !missingItems.has(`${item.category_id}_${item.id}`))
-        .map(item => {
-            const catId = String(item.category_id);
-            const regionName = regionIdMap[item.regionId] || "알 수 없음";
+  mapData.items = rawItems
+    .filter((item) => !missingItems.has(`${item.category_id}_${item.id}`))
+    .map((item) => {
+      const catId = String(item.category_id);
+      const regionName = regionIdMap[item.regionId] || "알 수 없음";
 
-            let imgList = [];
-            if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-                imgList = item.images;
-            } else if (item.image) {
-                imgList = [item.image];
-            }
+      let imgList = [];
+      if (item.images && Array.isArray(item.images) && item.images.length > 0) {
+        imgList = item.images;
+      } else if (item.image) {
+        imgList = [item.image];
+      }
 
-            return {
-                ...item,
-                id: item.id,
-                category: catId,
-                name: item.title || "Unknown",
-                description: item.description || "",
-                x: item.latitude,
-                y: item.longitude,
-                region: regionName,
-                images: imgList,
-                imageSizeW: 44,
-                imageSizeH: 44,
-                isTranslated: item.isTranslated || false
-
-            };
-        });
-
-    const uniqueCategoryIds = new Set(mapData.items.map(i => i.category));
-    mapData.categories = Array.from(uniqueCategoryIds).map(catId => ({
-        id: catId,
-        name: catId,
-        image: `./icons/${catId}.png`
-    }));
-
-    mapData.items.forEach(item => {
-        applyTranslations(item, reverseRegionMap);
-
-        if (!itemsByCategory[item.category]) {
-            itemsByCategory[item.category] = [];
-        }
-        itemsByCategory[item.category].push(item);
+      return {
+        ...item,
+        id: item.id,
+        category: catId,
+        name: item.title || "Unknown",
+        description: item.description || "",
+        x: item.latitude,
+        y: item.longitude,
+        region: regionName,
+        images: imgList,
+        imageSizeW: 44,
+        imageSizeH: 44,
+        isTranslated: item.isTranslated || false,
+      };
     });
 
-    return { mapData, itemsByCategory };
+  const uniqueCategoryIds = new Set(mapData.items.map((i) => i.category));
+  mapData.categories = Array.from(uniqueCategoryIds).map((catId) => ({
+    id: catId,
+    name: catId,
+    image: `./icons/${catId}.png`,
+  }));
+
+  mapData.items.forEach((item) => {
+    applyTranslations(item, reverseRegionMap);
+
+    if (!itemsByCategory[item.category]) {
+      itemsByCategory[item.category] = [];
+    }
+    itemsByCategory[item.category].push(item);
+  });
+
+  return { mapData, itemsByCategory };
 };
 
-export const processMapData = async (rawItems, regionIdMap, missingItems, reverseRegionMap) => {
-    if (USE_WORKERS && webWorkerManager.isSupported) {
-        return webWorkerManager.processMapData(
-            rawItems,
-            regionIdMap,
-            missingItems,
-            state.categoryItemTranslations,
-            reverseRegionMap
-        );
-    }
-    return processMapDataSync(rawItems, regionIdMap, missingItems, reverseRegionMap);
+export const processMapData = async (
+  rawItems,
+  regionIdMap,
+  missingItems,
+  reverseRegionMap,
+) => {
+  if (USE_WORKERS && webWorkerManager.isSupported) {
+    return webWorkerManager.processMapData(
+      rawItems,
+      regionIdMap,
+      missingItems,
+      state.categoryItemTranslations,
+      reverseRegionMap,
+    );
+  }
+  return processMapDataSync(
+    rawItems,
+    regionIdMap,
+    missingItems,
+    reverseRegionMap,
+  );
 };
 
 export const parseMissingItems = async (missingRes) => {
-    const missingItems = new Set();
+  const missingItems = new Set();
 
-    if (missingRes.ok) {
-        const missingText = await missingRes.text();
-        const lines = missingText.split('\n');
-        lines.forEach(line => {
-            const parts = line.split(',');
-            if (parts.length >= 2) {
-                const catId = parts[0].trim();
-                const itemId = parts[1].trim();
-                if (catId && itemId && catId !== 'CategoryID') {
-                    missingItems.add(`${catId}_${itemId}`);
-                }
-            }
-        });
-    }
+  if (missingRes.ok) {
+    const missingText = await missingRes.text();
+    const lines = missingText.split("\n");
+    lines.forEach((line) => {
+      const parts = line.split(",");
+      if (parts.length >= 2) {
+        const catId = parts[0].trim();
+        const itemId = parts[1].trim();
+        if (catId && itemId && catId !== "CategoryID") {
+          missingItems.add(`${catId}_${itemId}`);
+        }
+      }
+    });
+  }
 
-    return missingItems;
+  return missingItems;
 };
 
 export const parseJSONData = async (dataBlob, regionBlob) => {
-    if (USE_WORKERS && webWorkerManager.isSupported) {
-        const dataText = await dataBlob.text();
-        const regionText = await regionBlob.text();
+  if (USE_WORKERS && webWorkerManager.isSupported) {
+    const dataText = await dataBlob.text();
+    const regionText = await regionBlob.text();
 
-        const [dataJson, regionJson] = await Promise.all([
-            webWorkerManager.parseJSON(dataText),
-            webWorkerManager.parseJSON(regionText)
-        ]);
+    const [dataJson, regionJson] = await Promise.all([
+      webWorkerManager.parseJSON(dataText),
+      webWorkerManager.parseJSON(regionText),
+    ]);
 
-        return { dataJson, regionJson };
-    }
+    return { dataJson, regionJson };
+  }
 
-    return {
-        dataJson: JSON.parse(await dataBlob.text()),
-        regionJson: JSON.parse(await regionBlob.text())
-    };
+  return {
+    dataJson: JSON.parse(await dataBlob.text()),
+    regionJson: JSON.parse(await regionBlob.text()),
+  };
 };
 
 export const sortItemsByCategory = (itemsByCategory) => {
-    for (const key in itemsByCategory) {
-        itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
-    }
+  for (const key in itemsByCategory) {
+    itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
+  }
 };
 
-export const collectUniqueRegions = (regionData, mapDataItems, reverseRegionMap = {}) => {
-    const regions = new Set();
+export const collectUniqueRegions = (
+  regionData,
+  mapDataItems,
+  reverseRegionMap = {},
+) => {
+  const regions = new Set();
 
-    regionData.forEach(r => regions.add(r.title));
+  regionData.forEach((r) => regions.add(r.title));
 
-    mapDataItems.forEach(i => {
-        const effectiveRegion = i.forceRegion || i.region;
-        if (effectiveRegion) {
-            const normalizedRegion = reverseRegionMap[effectiveRegion] || effectiveRegion;
-            regions.add(normalizedRegion);
-        }
-    });
-    return regions;
+  mapDataItems.forEach((i) => {
+    const effectiveRegion = i.forceRegion || i.region;
+    if (effectiveRegion) {
+      const normalizedRegion =
+        reverseRegionMap[effectiveRegion] || effectiveRegion;
+      regions.add(normalizedRegion);
+    }
+  });
+  return regions;
 };
 
 export const parseCSVData = async (csvRes) => {
-    if (!csvRes || !csvRes.ok) return [];
-    const text = await csvRes.text();
-    const lines = text.split(/\r?\n/);
-    if (lines.length <= 1) return [];
+  if (!csvRes || !csvRes.ok) return [];
+  const text = await csvRes.text();
+  const lines = text.split(/\r?\n/);
+  if (lines.length <= 1) return [];
 
-    const headerLine = lines.shift();
-    const headers = headerLine.split(',').map(h => h.trim());
+  const headerLine = lines.shift();
+  const headers = headerLine.split(",").map((h) => h.trim());
 
-    const items = [];
-    lines.forEach(line => {
-        if (!line.trim()) return;
-        const parts = [];
-        let current = '';
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i++) {
-            const char = line[i];
-            if (char === '"') inQuotes = !inQuotes;
-            else if (char === ',' && !inQuotes) {
-                parts.push(current);
-                current = '';
-            } else {
-                current += char;
-            }
-        }
+  const items = [];
+  lines.forEach((line) => {
+    if (!line.trim()) return;
+    const parts = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') inQuotes = !inQuotes;
+      else if (char === "," && !inQuotes) {
         parts.push(current);
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+    parts.push(current);
 
-        if (parts.length < 6) return;
+    if (parts.length < 6) return;
 
-        const item = {};
-        headers.forEach((h, idx) => {
-            item[h] = parts[idx]?.trim();
-        });
-        const regionIdRaw = item.regionId;
-        const regionIdNum = parseInt(regionIdRaw);
-        const isNumericRegion = !isNaN(regionIdNum) && String(regionIdNum) === regionIdRaw;
-        let imgList = [];
-        let mainImg = "";
-
-        if (item.image) {
-            let rawImg = item.image.trim();
-            if (rawImg.includes('{id}')) {
-                rawImg = rawImg.replace(/{id}/g, item.id);
-            }
-
-            if (rawImg.startsWith('[') && rawImg.endsWith(']')) {
-                const content = rawImg.slice(1, -1);
-                if (content.includes('|')) {
-                    imgList = content.split('|').map(s => s.trim()).filter(s => s !== "");
-                } else {
-                    try {
-                        const parsed = JSON.parse(rawImg);
-                        if (Array.isArray(parsed)) {
-                            imgList = parsed;
-                        } else {
-                            imgList = [content.trim()];
-                        }
-                    } catch (e) {
-                        imgList = [content.trim()];
-                    }
-                }
-            } else {
-                imgList = [rawImg];
-            }
-
-            if (imgList.length > 0) mainImg = imgList[0];
-        }
-
-        const processedItem = {
-            id: item.id,
-            category_id: item.category_id,
-            title: item.title,
-            description: item.description || "",
-            latitude: parseFloat(item.latitude),
-            longitude: parseFloat(item.longitude),
-            regionId: isNumericRegion ? regionIdNum : 0,
-            image: mainImg,
-            video_url: item.video_url || "",
-            images: imgList,
-            isTranslated: true
-        };
-
-        if (!isNumericRegion && regionIdRaw) {
-            processedItem.forceRegion = regionIdRaw;
-        }
-
-
-        if (!isNaN(processedItem.latitude) && !isNaN(processedItem.longitude)) {
-            items.push(processedItem);
-        }
+    const item = {};
+    headers.forEach((h, idx) => {
+      item[h] = parts[idx]?.trim();
     });
+    const regionIdRaw = item.regionId;
+    const regionIdNum = parseInt(regionIdRaw);
+    const isNumericRegion =
+      !isNaN(regionIdNum) && String(regionIdNum) === regionIdRaw;
+    let imgList = [];
+    let mainImg = "";
 
-    return items;
+    if (item.image) {
+      let rawImg = item.image.trim();
+      if (rawImg.includes("{id}")) {
+        rawImg = rawImg.replace(/{id}/g, item.id);
+      }
+
+      if (rawImg.startsWith("[") && rawImg.endsWith("]")) {
+        const content = rawImg.slice(1, -1);
+        if (content.includes("|")) {
+          imgList = content
+            .split("|")
+            .map((s) => s.trim())
+            .filter((s) => s !== "");
+        } else {
+          try {
+            const parsed = JSON.parse(rawImg);
+            if (Array.isArray(parsed)) {
+              imgList = parsed;
+            } else {
+              imgList = [content.trim()];
+            }
+          } catch (e) {
+            imgList = [content.trim()];
+          }
+        }
+      } else {
+        imgList = [rawImg];
+      }
+
+      if (imgList.length > 0) mainImg = imgList[0];
+    }
+
+    const processedItem = {
+      id: item.id,
+      category_id: item.category_id,
+      title: item.title,
+      description: item.description || "",
+      latitude: parseFloat(item.latitude),
+      longitude: parseFloat(item.longitude),
+      regionId: isNumericRegion ? regionIdNum : 0,
+      image: mainImg,
+      video_url: item.video_url || "",
+      images: imgList,
+      isTranslated: true,
+    };
+
+    if (!isNumericRegion && regionIdRaw) {
+      processedItem.forceRegion = regionIdRaw;
+    }
+
+    if (!isNaN(processedItem.latitude) && !isNaN(processedItem.longitude)) {
+      const config = MAP_CONFIGS[state.currentMapKey];
+      const isImageMap = config && config.type === "image";
+
+      // 이미지 맵인 경우: 좌표가 10보다 커야 함 (픽셀 좌표계)
+      // 일반 맵인 경우: 좌표가 10보다 작아야 함 (위경도 좌표계)
+      const isLargeCoordinate =
+        Math.abs(processedItem.latitude) > 10 ||
+        Math.abs(processedItem.longitude) > 10;
+
+      if (isImageMap) {
+        // 이미지 맵: 큰 좌표만 허용
+        if (isLargeCoordinate) {
+          items.push(processedItem);
+        }
+      } else {
+        // 일반 맵: 작은 좌표만 허용
+        if (!isLargeCoordinate) {
+          items.push(processedItem);
+        }
+      }
+    }
+  });
+
+  return items;
 };
-

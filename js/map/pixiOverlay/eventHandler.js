@@ -23,6 +23,13 @@ let registeredHandlers = {
 };
 
 export const calculateHitRadius = (lat, zoom) => {
+  const map = state.map;
+  if (map && map.options.crs === L.CRS.Simple) {
+    // Simple CRS (이미지 맵): 줌 레벨에 따라 픽셀 단위로 계산
+    // 줌 0에서 1단위가 1픽셀. 화면상 22픽셀 반경을 원함.
+    return 22 / Math.pow(2, zoom);
+  }
+
   const metersPerPixel =
     (40075016.686 * Math.cos((lat * Math.PI) / 180)) / Math.pow(2, zoom + 8);
   const hitRadiusMeters = 22 * metersPerPixel;
@@ -32,6 +39,14 @@ export const calculateHitRadius = (lat, zoom) => {
 const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
   const spriteLat = sprite.markerData.lat;
   const spriteLng = sprite.markerData.lng;
+
+  const map = state.map;
+  if (map && map.options.crs === L.CRS.Simple) {
+    // Simple CRS: 단순 유클리드 거리 (또는 사각형 범위)
+    const dLat = Math.abs(clickLat - spriteLat);
+    const dLng = Math.abs(clickLng - spriteLng);
+    return dLat <= hitRadiusDeg && dLng <= hitRadiusDeg;
+  }
 
   const dLat = Math.abs(clickLat - spriteLat);
   const dLng =

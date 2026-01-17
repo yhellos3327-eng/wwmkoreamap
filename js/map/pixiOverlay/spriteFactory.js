@@ -1,11 +1,15 @@
-import { state } from '../../state.js';
-import { ICON_MAPPING } from '../../config.js';
-import { isPointInPolygon } from '../../utils.js';
-import { getRegionPolygonsCache } from '../markerFactory.js';
-import { createPopupHtml } from '../popup.js';
-import { getIconUrl, getCachedTexture, getDefaultTexture } from './textureManager.js';
-import { loadComments } from '../../comments.js';
-import { fetchVoteCounts } from '../../votes.js';
+import { state } from "../../state.js";
+import { ICON_MAPPING } from "../../config.js";
+import { isPointInPolygon } from "../../utils.js";
+import { getRegionPolygonsCache } from "../markerFactory.js";
+import { createPopupHtml } from "../popup.js";
+import {
+  getIconUrl,
+  getCachedTexture,
+  getDefaultTexture,
+} from "./textureManager.js";
+import { loadComments } from "../../comments.js";
+import { fetchVoteCounts } from "../../votes.js";
 
 const spriteDataMap = new Map();
 const itemIdToSpriteMap = new Map();
@@ -14,115 +18,123 @@ export const getSpriteDataMap = () => spriteDataMap;
 export const getSpriteById = (id) => itemIdToSpriteMap.get(String(id));
 
 export const clearSpriteDataMap = () => {
-    spriteDataMap.clear();
-    itemIdToSpriteMap.clear();
+  spriteDataMap.clear();
+  itemIdToSpriteMap.clear();
 };
 
 export const showPopupForSprite = (sprite) => {
-    if (!sprite.markerData) return null;
+  if (!sprite.markerData) return null;
 
-    const { item, lat, lng, region } = sprite.markerData;
-    const popupContent = createPopupHtml(item, lat, lng, region);
+  const { item, lat, lng, region } = sprite.markerData;
+  const popupContent = createPopupHtml(item, lat, lng, region);
 
-    const popup = L.popup({
-        offset: L.point(0, 0)
-    })
-        .setLatLng([lat, lng])
-        .setContent(popupContent);
+  const popup = L.popup({
+    offset: L.point(0, 0),
+  })
+    .setLatLng([lat, lng])
+    .setContent(popupContent);
 
-    popup.itemId = item.id;
+  popup.itemId = item.id;
 
-    popup.openOn(state.map);
+  popup.openOn(state.map);
 
-    if (loadComments) {
-        loadComments(item.id);
-    }
-    fetchVoteCounts(item.id);
+  if (loadComments) {
+    loadComments(item.id);
+  }
+  fetchVoteCounts(item.id);
 
-    return popup;
+  return popup;
 };
 
-import { memoryManager } from '../../memory.js';
+import { memoryManager } from "../../memory.js";
 
 export const createSpriteForItem = (item) => {
-    let catId = item.category;
+  let catId = item.category;
 
-    if (typeof ICON_MAPPING !== 'undefined' && ICON_MAPPING.hasOwnProperty(catId)) {
-        const mappedValue = ICON_MAPPING[catId];
-        if (mappedValue === null) return null;
-        catId = mappedValue;
+  if (
+    typeof ICON_MAPPING !== "undefined" &&
+    ICON_MAPPING.hasOwnProperty(catId)
+  ) {
+    const mappedValue = ICON_MAPPING[catId];
+    if (mappedValue === null) return null;
+    catId = mappedValue;
+  }
+
+  const lat = parseFloat(item.x);
+  const lng = parseFloat(item.y);
+  if (isNaN(lat) || isNaN(lng)) return null;
+
+  let finalRegionName = item.forceRegion || item.region || "알 수 없음";
+
+  finalRegionName = state.reverseRegionMap[finalRegionName] || finalRegionName;
+
+  const regionPolygonsCache = getRegionPolygonsCache();
+
+  if (!item.forceRegion && regionPolygonsCache.length > 0) {
+    for (const polyObj of regionPolygonsCache) {
+      if (isPointInPolygon([lat, lng], polyObj.coords)) {
+        finalRegionName = polyObj.title;
+        item.region = polyObj.title;
+        break;
+      }
     }
+  }
 
-    const lat = parseFloat(item.x);
-    const lng = parseFloat(item.y);
-    if (isNaN(lat) || isNaN(lng)) return null;
+  const isCatActive = state.activeCategoryIds.has(catId);
+  const isRegActive = state.activeRegionNames.has(finalRegionName);
 
-    let finalRegionName = item.forceRegion || item.region || "알 수 없음";
+  if (!isCatActive || !isRegActive) {
+    return null;
+  }
 
-    finalRegionName = state.reverseRegionMap[finalRegionName] || finalRegionName;
+  const completedItem = state.completedList.find(
+    (c) => String(c.id) === String(item.id),
+  );
+  const isCompleted = !!completedItem;
+  if (state.hideCompleted && isCompleted) return null;
 
-    const regionPolygonsCache = getRegionPolygonsCache();
+  const iconUrl = getIconUrl(item.category);
+  if (!iconUrl) return null;
 
-    if (!item.forceRegion && regionPolygonsCache.length > 0) {
-        for (const polyObj of regionPolygonsCache) {
-            if (isPointInPolygon([lat, lng], polyObj.coords)) {
-                finalRegionName = polyObj.title;
-                item.region = polyObj.title;
-                break;
-            }
-        }
-    }
+  const texture = getCachedTexture(iconUrl) || getDefaultTexture();
+  if (!texture) return null;
 
-    const isCatActive = state.activeCategoryIds.has(catId);
-    const isRegActive = state.activeRegionNames.has(finalRegionName);
-    if (!isCatActive || !isRegActive) return null;
+  const sprite = new PIXI.Sprite(texture);
+  sprite.anchor.set(0.5, 0.5);
 
-    const completedItem = state.completedList.find(c => String(c.id) === String(item.id));
-    const isCompleted = !!completedItem;
-    if (state.hideCompleted && isCompleted) return null;
+  sprite.alpha = isCompleted ? 0.4 : 1.0;
 
-    const iconUrl = getIconUrl(item.category);
-    if (!iconUrl) return null;
+  // 명시적으로 필터 초기화 - 의도치 않은 색상 변화 방지
+  if (isCompleted) {
+    const colorMatrix = new PIXI.ColorMatrixFilter();
+    colorMatrix.desaturate();
+    sprite.filters = [colorMatrix];
+  } else {
+    sprite.filters = [];
+  }
 
-    const texture = getCachedTexture(iconUrl) || getDefaultTexture();
-    if (!texture) return null;
+  sprite.markerData = {
+    item: item,
+    lat: lat,
+    lng: lng,
+    region: finalRegionName,
+    isCompleted: isCompleted,
+    completedAt: completedItem?.completedAt,
+  };
 
-    const sprite = new PIXI.Sprite(texture);
-    sprite.anchor.set(0.5, 0.5);
+  // Track sprite memory
+  memoryManager.track(sprite, `Sprite-${item.id}`);
+  memoryManager.setMeta(sprite, {
+    created: Date.now(),
+    itemId: item.id,
+    type: "PixiSprite",
+  });
 
-    sprite.alpha = isCompleted ? 0.4 : 1.0;
+  itemIdToSpriteMap.set(String(item.id), sprite);
 
-    // 명시적으로 필터 초기화 - 의도치 않은 색상 변화 방지
-    if (isCompleted) {
-        const colorMatrix = new PIXI.ColorMatrixFilter();
-        colorMatrix.desaturate();
-        sprite.filters = [colorMatrix];
-    } else {
-        sprite.filters = [];
-    }
-
-    sprite.markerData = {
-        item: item,
-        lat: lat,
-        lng: lng,
-        region: finalRegionName,
-        isCompleted: isCompleted,
-        completedAt: completedItem?.completedAt
-    };
-
-    // Track sprite memory
-    memoryManager.track(sprite, `Sprite-${item.id}`);
-    memoryManager.setMeta(sprite, {
-        created: Date.now(),
-        itemId: item.id,
-        type: 'PixiSprite'
-    });
-
-    itemIdToSpriteMap.set(String(item.id), sprite);
-
-    return sprite;
+  return sprite;
 };
 
 export const addSpriteToDataMap = (sprite, item) => {
-    spriteDataMap.set(sprite, item);
+  spriteDataMap.set(sprite, item);
 };

@@ -82,7 +82,8 @@ export const initPixiOverlay = async () => {
       }
 
       // 클러스터링 활성화 여부 확인
-      if (state.enableClustering && supercluster) {
+      const isSimpleCRS = map.options.crs === L.CRS.Simple;
+      if (state.enableClustering && supercluster && !isSimpleCRS) {
         // 1. 클러스터링 모드: 매 프레임 다시 그리기 (동적 구성)
         pixiContainer.removeChildren();
         clearSpriteDataMap();
@@ -309,7 +310,8 @@ export const renderMarkersWithPixi = async (items) => {
   }
 
   // 초기 렌더링
-  if (state.enableClustering) {
+  const isSimpleCRS = state.map && state.map.options.crs === L.CRS.Simple;
+  if (state.enableClustering && !isSimpleCRS) {
     // 클러스터링 모드면 drawCallback에서 처리하므로 여기선 redraw만 호출
     pixiOverlay.redraw();
   } else {
@@ -319,6 +321,7 @@ export const renderMarkersWithPixi = async (items) => {
     state.allMarkers = new Map();
 
     let addedCount = 0;
+    let skippedCount = 0;
     for (const item of items) {
       const sprite = createSpriteForItem(item);
       if (sprite) {
@@ -337,14 +340,13 @@ export const renderMarkersWithPixi = async (items) => {
         state.allMarkers.set(item.id, markerInfo);
 
         addedCount++;
+      } else {
+        skippedCount++;
       }
     }
 
     console.log(
-      "%c[GPU Render] ✓ " +
-        addedCount +
-        " markers rendered with WebGL (No Clustering)",
-      "color: #4CAF50; font-weight: bold; font-size: 12px;",
+      `[GPU Render] ${addedCount} markers rendered, ${skippedCount} markers skipped (filtered).`,
     );
     logger.success("PixiOverlay", `Rendered ${addedCount} markers with GPU`);
   }
@@ -408,7 +410,6 @@ import { memoryManager } from "../../memory.js";
 
 export const clearPixiOverlay = () => {
   if (pixiContainer) {
-    // Track children removal for memory debugging
     if (memoryManager.debugMode) {
       console.log(
         `[PixiOverlay] Clearing ${pixiContainer.children.length} sprites from container`,
@@ -452,6 +453,7 @@ export const disposePixiOverlay = () => {
 
   pixiOverlay = null;
   pixiContainer = null;
+  supercluster = null;
   isInitialized = false;
   firstDraw = true;
   prevZoom = null;
