@@ -27,7 +27,7 @@ export const loadPatchNotes = async () => {
               const comments = await commentsRes.json();
               const rabbitComment = comments.find(
                 (c) =>
-                  c.user.login === "coderabbitai[bot]" &&
+                  c.user?.login === "coderabbitai[bot]" &&
                   (c.body.includes("Walkthrough") ||
                     c.body.includes("Summary")),
               );
@@ -230,7 +230,7 @@ const renderPatchNotesList = async (container) => {
       window.mermaid.initialize({
         startOnLoad: false,
         theme: "dark",
-        securityLevel: "loose",
+        securityLevel: "strict",
         fontFamily: "inherit",
       });
       setTimeout(async () => {
