@@ -1,6 +1,5 @@
 export {
   createPopupHtml,
-  updateViewportMarkers,
   initMap,
   renderMapDataAndMarkers,
   updateMapVisibility,

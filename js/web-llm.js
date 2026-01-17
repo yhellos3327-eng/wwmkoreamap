@@ -136,9 +136,9 @@ function initializeIdMaps() {
   if (state.mapData?.categories) {
     for (const cat of state.mapData.categories) {
       const koreanName =
-        state.koDict?.[cat.id] ||
-        state.koDict?.[cat.name] ||
-        cat.name ||
+        state.koDict?.[cat.id] ??
+        state.koDict?.[cat.name] ??
+        cat.name ??
         cat.id;
       categoryIdToKoreanMap.set(cat.id, koreanName);
       if (cat.name) {
@@ -174,9 +174,9 @@ function initializeIdMaps() {
 export function getCategoryKorean(categoryId) {
   if (!categoryId) return categoryId;
   return (
-    categoryIdToKoreanMap.get(categoryId) ||
-    categoryIdToKoreanMap.get(String(categoryId)) ||
-    state.koDict?.[categoryId] ||
+    categoryIdToKoreanMap.get(categoryId) ??
+    categoryIdToKoreanMap.get(String(categoryId)) ??
+    state.koDict?.[categoryId] ??
     categoryId
   );
 }
@@ -187,9 +187,9 @@ export function getCategoryKorean(categoryId) {
 export function getInfoKorean(infoId) {
   if (!infoId) return infoId;
   return (
-    infoIdToKoreanMap.get(infoId) ||
-    infoIdToKoreanMap.get(String(infoId)) ||
-    state.koDict?.[infoId] ||
+    infoIdToKoreanMap.get(infoId) ??
+    infoIdToKoreanMap.get(String(infoId)) ??
+    state.koDict?.[infoId] ??
     infoId
   );
 }
@@ -202,9 +202,9 @@ export function itemToRAGText(item) {
 
   const parts = [];
 
-  // 아이템 ID 및 이름
+  // 아이템 ID 및 이름 (Nullish coalescing으로 정확한 fallback)
   if (item.id) parts.push(`ID: ${item.id}`);
-  const name = item.nameKo || getInfoKorean(item.id) || item.name || item.id;
+  const name = item.nameKo ?? getInfoKorean(item.id) ?? item.name ?? item.id;
   if (name) parts.push(`이름/NPC: ${name}`);
 
   // 카테고리
@@ -345,7 +345,7 @@ async function getInstallState(modelId) {
     }
     return { kind: "not-installed" };
   } catch (e) {
-    return { kind: "error", message: e.message || "상태 확인 실패" };
+    return { kind: "error", message: e.message ?? "상태 확인 실패" };
   }
 }
 
@@ -732,8 +732,8 @@ function searchItemsForContext(query) {
  * 시스템 프롬프트 생성
  */
 function buildSystemPrompt(context) {
-  const mapKey = state.currentMapKey || "qinghe";
-  const mapName = state.koDict?.[mapKey] || mapKey;
+  const mapKey = state.currentMapKey ?? "qinghe";
+  const mapName = state.koDict?.[mapKey] ?? mapKey;
 
   // 모델 크기에 따라 프롬프트 전략 수정 (0.5B 등 작은 모델은 단순하고 명확한 지시가 필요)
   const isSmallModel = currentModelId && currentModelId.includes("0.5B");
@@ -827,7 +827,7 @@ export async function sendChatMessage(userMessage, options = {}) {
     let buffer = "";
 
     for await (const chunk of stream) {
-      const delta = chunk.choices?.[0]?.delta?.content || "";
+      const delta = chunk.choices?.[0]?.delta?.content ?? "";
 
       if (delta) {
         buffer += delta;
@@ -979,8 +979,8 @@ async function updateUIStatus() {
 
   // 로딩 중인 경우
   if (isEngineLoading) {
-    const progressPercent = (engineLoadingProgress?.progress || 0) * 100;
-    const progressText = `[WebLLM] 사전 캐시: ${engineLoadingProgress?.text || "준비 중..."} (${progressPercent.toFixed(1)}%)`;
+    const progressPercent = (engineLoadingProgress?.progress ?? 0) * 100;
+    const progressText = `[WebLLM] 사전 캐시: ${engineLoadingProgress?.text ?? "준비 중..."} (${progressPercent.toFixed(1)}%)`;
     statusEl.textContent = progressText;
     statusEl.style.setProperty("--before-bg", "var(--warning)");
     if (sendBtn) sendBtn.disabled = true;

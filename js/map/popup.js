@@ -1,120 +1,145 @@
-import { state } from '../state.js';
-import { t, getJosa } from '../utils.js';
-import { formatCompletedTime } from '../ui/navigation.js';
+import { state } from "../state.js";
+import { t, getJosa } from "../utils.js";
+import { formatCompletedTime } from "../ui/navigation.js";
 import {
-    openLightbox,
-    openVideoLightbox,
-    switchImage,
-    translateItem,
-    openRelatedModal,
-    toggleFavorite,
-    toggleCompleted,
-    shareLocation,
-    openReportPage
-} from '../ui.js';
-import { toggleStickerModal, submitAnonymousComment } from '../comments.js';
-import { renderVoteButtons, toggleVote } from '../votes.js';
+  openLightbox,
+  openVideoLightbox,
+  switchImage,
+  translateItem,
+  openRelatedModal,
+  toggleFavorite,
+  toggleCompleted,
+  shareLocation,
+  openReportPage,
+} from "../ui.js";
+import { toggleStickerModal, submitAnonymousComment } from "../comments.js";
+import { renderVoteButtons, toggleVote } from "../votes.js";
+import { lazyLoader } from "../ui/lazy-loader.js";
 
 export const createPopupHtml = (item, lat, lng, regionName) => {
-    const isFav = state.favorites.includes(String(item.id)) || state.favorites.includes(item.id);
-    const completedItem = state.completedList.find(c => String(c.id) === String(item.id));
-    const isCompleted = !!completedItem;
-    const completedTimeStr = completedItem && completedItem.completedAt
-        ? formatCompletedTime(completedItem.completedAt)
-        : '';
-    const displayRegion = item.forceRegion || regionName;
-    let translatedName = t(item.name);
-    if (translatedName) {
-        translatedName = translatedName.replace(/{region}/g, displayRegion);
+  const isFav =
+    state.favorites.includes(String(item.id)) ||
+    state.favorites.includes(item.id);
+  const completedItem = state.completedList.find(
+    (c) => String(c.id) === String(item.id),
+  );
+  const isCompleted = !!completedItem;
+  const completedTimeStr =
+    completedItem && completedItem.completedAt
+      ? formatCompletedTime(completedItem.completedAt)
+      : "";
+  const displayRegion = item.forceRegion || regionName;
+  let translatedName = t(item.name);
+  if (translatedName) {
+    translatedName = translatedName.replace(/{region}/g, displayRegion);
+  }
+  const categoryName = t(item.category);
+
+  let itemDescription = (item.description || "").trim();
+  let replaceName = translatedName;
+  const josa =
+    typeof getJosa === "function" ? getJosa(translatedName, "으로/로") : "로";
+  replaceName = translatedName + josa;
+
+  let isExternalContent = false;
+  if (
+    itemDescription &&
+    (itemDescription.startsWith("http://") ||
+      itemDescription.startsWith("https://") ||
+      itemDescription.startsWith("json:"))
+  ) {
+    isExternalContent = true;
+  }
+
+  if (!isExternalContent) {
+    if (itemDescription) {
+      itemDescription = itemDescription.replace(
+        /\[([^\]]+)\]\(([^)]+)\)/g,
+        '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
+      );
+      itemDescription = itemDescription.replace(/\n/g, "<br>");
+      itemDescription = itemDescription.replace(/{name}/g, replaceName);
+      itemDescription = itemDescription.replace(/{region}/g, displayRegion);
+      // 스포일러 처리: {spoiler}...{/spoiler} -> 클릭 가능한 스포일러 span
+      itemDescription = itemDescription.replace(
+        /{spoiler}([\s\S]*?){\/spoiler}/g,
+        '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
+      );
+    } else {
+      itemDescription = "";
     }
-    const categoryName = t(item.category);
+  }
 
-    let itemDescription = (item.description || '').trim()
-    let replaceName = translatedName;
-    const josa = typeof getJosa === 'function' ? getJosa(translatedName, '으로/로') : '로';
-    replaceName = translatedName + josa;
+  let mediaHtml = "";
+  const mediaItems = [];
 
-    let isExternalContent = false;
-    if (itemDescription && (itemDescription.startsWith('http://') || itemDescription.startsWith('https://') || itemDescription.startsWith('json:'))) {
-        isExternalContent = true;
+  if (item.images && item.images.length > 0) {
+    item.images.forEach((src, idx) => {
+      mediaItems.push({
+        type: "image",
+        src: src,
+        index: idx,
+      });
+    });
+  }
+
+  if (item.video_url) {
+    if (Array.isArray(item.video_url)) {
+      item.video_url.forEach((url) => {
+        if (url && typeof url === "string" && url.trim() !== "") {
+          mediaItems.push({
+            type: "video",
+            src: url.trim(),
+          });
+        }
+      });
+    } else if (
+      typeof item.video_url === "string" &&
+      item.video_url.trim() !== ""
+    ) {
+      mediaItems.push({
+        type: "video",
+        src: item.video_url.trim(),
+      });
     }
+  }
 
-    if (!isExternalContent) {
-        if (itemDescription) {
-            itemDescription = itemDescription.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>');
-            itemDescription = itemDescription.replace(/\n/g, '<br>');
-            itemDescription = itemDescription.replace(/{name}/g, replaceName);
-            itemDescription = itemDescription.replace(/{region}/g, displayRegion);
-            // 스포일러 처리: {spoiler}...{/spoiler} -> 클릭 가능한 스포일러 span
-            itemDescription = itemDescription.replace(/{spoiler}([\s\S]*?){\/spoiler}/g, '<span class="spoiler" data-action="reveal-spoiler">$1</span>');
+  if (mediaItems.length > 0) {
+    const slides = mediaItems
+      .map((media, index) => {
+        const activeClass = index === 0 ? "active" : "";
+
+        if (media.type === "image") {
+          // Lazy load images in popup
+          const placeholder =
+            "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+          return `<img data-src="${media.src}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
         } else {
-            itemDescription = '';
-        }
-    }
+          let videoSrc = media.src.replace(/^http:/, "https:");
+          if (videoSrc.startsWith("//")) videoSrc = "https:" + videoSrc;
 
-    let mediaHtml = '';
-    const mediaItems = [];
+          let thumbSrc = videoSrc;
+          let lightboxSrc = videoSrc;
 
-    if (item.images && item.images.length > 0) {
-        item.images.forEach((src, idx) => {
-            mediaItems.push({
-                type: 'image',
-                src: src,
-                index: idx
-            });
-        });
-    }
+          const ytMatch = videoSrc.match(
+            /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
+          );
+          if (ytMatch && ytMatch[1]) {
+            const ytId = ytMatch[1];
+            thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0`;
+            lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+          }
 
-    if (item.video_url) {
-        if (Array.isArray(item.video_url)) {
-            item.video_url.forEach(url => {
-                if (url && typeof url === 'string' && url.trim() !== "") {
-                    mediaItems.push({
-                        type: 'video',
-                        src: url.trim()
-                    });
-                }
-            });
-        } else if (typeof item.video_url === 'string' && item.video_url.trim() !== "") {
-            mediaItems.push({
-                type: 'video',
-                src: item.video_url.trim()
-            });
-        }
-    }
+          if (videoSrc.includes("bilibili.com")) {
+            const separator = videoSrc.includes("?") ? "&" : "?";
+            lightboxSrc = videoSrc.replace(/&?autoplay=\d/, "");
+            lightboxSrc += `${separator}autoplay=1&high_quality=1`;
 
-    if (mediaItems.length > 0) {
-        const slides = mediaItems.map((media, index) => {
-            const activeClass = index === 0 ? 'active' : '';
+            thumbSrc = videoSrc.replace(/&?autoplay=\d/, "");
+            thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
+          }
 
-            if (media.type === 'image') {
-                // Lazy load images in popup
-                const placeholder = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-                return `<img data-src="${media.src}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
-            } else {
-                let videoSrc = media.src.replace(/^http:/, 'https:');
-                if (videoSrc.startsWith('//')) videoSrc = 'https:' + videoSrc;
-
-                let thumbSrc = videoSrc;
-                let lightboxSrc = videoSrc;
-
-                const ytMatch = videoSrc.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/);
-                if (ytMatch && ytMatch[1]) {
-                    const ytId = ytMatch[1];
-                    thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0`;
-                    lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
-                }
-
-                if (videoSrc.includes('bilibili.com')) {
-                    const separator = videoSrc.includes('?') ? '&' : '?';
-                    lightboxSrc = videoSrc.replace(/&?autoplay=\d/, '');
-                    lightboxSrc += `${separator}autoplay=1&high_quality=1`;
-
-                    thumbSrc = videoSrc.replace(/&?autoplay=\d/, '');
-                    thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
-                }
-
-                return `
+          return `
                     <div class="popup-media popup-video-wrapper ${activeClass}" data-action="video-lightbox" data-src="${lightboxSrc}">
                         <iframe 
                             src="${thumbSrc}" 
@@ -128,26 +153,35 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                         </div>
                     </div>
                 `;
-            }
-        }).join('');
+        }
+      })
+      .join("");
 
-        const navBtns = mediaItems.length > 1 ? `
+    const navBtns =
+      mediaItems.length > 1
+        ? `
             <button class="img-nav-btn prev" data-action="switch-image" data-dir="-1" style="display:block">❮</button>
             <button class="img-nav-btn next" data-action="switch-image" data-dir="1" style="display:block">❯</button>
             <span class="img-counter">1 / ${mediaItems.length}</span>
-        ` : '';
+        `
+        : "";
 
-        mediaHtml = `
+    mediaHtml = `
             <div class="popup-image-container" data-idx="0" data-total="${mediaItems.length}">
                 ${slides}
                 ${navBtns}
             </div>
         `;
-    }
+  }
 
-    let translateBtnHtml = '';
-    if (!item.isTranslated && item.description && item.description.trim() !== "" && !isExternalContent) {
-        translateBtnHtml = `
+  let translateBtnHtml = "";
+  if (
+    !item.isTranslated &&
+    item.description &&
+    item.description.trim() !== "" &&
+    !isExternalContent
+  ) {
+    translateBtnHtml = `
             <div class="translate-buttons" style="display: flex; gap: 8px;">
                 <button class="btn-translate btn-translate-chrome" data-action="translate" data-translate-type="chrome" data-item-id="${item.id}" 
                     title="Chrome 내장 번역&#10;• 무료, 빠름&#10;• 단순 번역만 가능&#10;• 게임 용어 인식 불가"
@@ -174,11 +208,11 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                 </button>
             </div>
         `;
-    }
+  }
 
-    let relatedHtml = '';
-    if (state.showComments) {
-        relatedHtml = `
+  let relatedHtml = "";
+  if (state.showComments) {
+    relatedHtml = `
         <div class="popup-related">
             <div class="popup-related-header">
                 <h5>
@@ -233,17 +267,17 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
             </div>
         </div>
     `;
-    }
+  }
 
-    const contentId = `popup-content-${item.id}`;
+  const contentId = `popup-content-${item.id}`;
 
+  const bodyContent = isExternalContent
+    ? `<div id="${contentId}"></div>`
+    : itemDescription.startsWith("<p")
+      ? itemDescription
+      : `<p>${itemDescription}</p>`;
 
-
-    const bodyContent = isExternalContent
-        ? `<div id="${contentId}"></div>`
-        : (itemDescription.startsWith('<p') ? itemDescription : `<p>${itemDescription}</p>`);
-
-    return `
+  return `
     <div class="popup-container" data-id="${item.id}" data-lat="${lat}" data-lng="${lng}">
         <div class="popup-header">
             <div style="display: flex; align-items: center;">
@@ -259,12 +293,12 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
         </div>
         ${relatedHtml}
         <div class="popup-actions">
-            <button class="action-btn btn-fav ${isFav ? 'active' : ''}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            <button class="action-btn btn-fav ${isFav ? "active" : ""}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </button>
-            <button class="action-btn btn-complete ${isCompleted ? 'active' : ''}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">
+            <button class="action-btn btn-complete ${isCompleted ? "active" : ""}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                ${isCompleted ? `완료${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ''}` : '완료'}
+                ${isCompleted ? `완료${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ""}` : "완료"}
             </button>
             <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${item.id}" title="경로에 추가">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
@@ -288,112 +322,120 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
 `;
 };
 
-import { lazyLoader } from '../ui/lazy-loader.js';
-
 // 이벤트 위임으로 팝업 내 이벤트 처리
 export const initPopupEventDelegation = () => {
-    // Trigger lazy loading when popup opens
-    if (state.map) {
-        state.map.on('popupopen', (e) => {
-            const popupNode = e.popup.getElement();
-            if (popupNode) {
-                lazyLoader.observeAll('.lazy-load', popupNode);
+  // Trigger lazy loading when popup opens
+  if (state.map) {
+    state.map.on("popupopen", (e) => {
+      const popupNode = e.popup.getElement();
+      if (popupNode) {
+        lazyLoader.observeAll(".lazy-load", popupNode);
+      }
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    const target = e.target.closest("[data-action]");
+    if (!target) return;
+
+    const action = target.dataset.action;
+    const itemId = target.dataset.itemId;
+    const popupContainer = target.closest(".popup-container");
+
+    e.stopPropagation();
+
+    switch (action) {
+      case "lightbox":
+        openLightbox(parseInt(itemId), parseInt(target.dataset.index));
+        break;
+      case "video-lightbox":
+        openVideoLightbox(target.dataset.src);
+        break;
+      case "switch-image":
+        switchImage(target, parseInt(target.dataset.dir));
+        break;
+      case "translate":
+        const translateType = target.dataset.translateType || "ai";
+        translateItem(parseInt(itemId), translateType);
+        break;
+      case "open-modal":
+        openRelatedModal(target.dataset.category);
+        break;
+      case "toggle-guide":
+        document
+          .getElementById(target.dataset.target)
+          ?.classList.toggle("hidden");
+        break;
+      case "reveal-spoiler":
+        target.classList.add("revealed");
+        break;
+      case "toggle-sticker":
+        toggleStickerModal(parseInt(itemId));
+        break;
+      case "toggle-fav":
+        toggleFavorite(parseInt(itemId));
+        break;
+      case "toggle-complete":
+        toggleCompleted(itemId);
+        break;
+      case "share":
+        shareLocation(parseInt(itemId));
+        break;
+      case "report":
+        openReportPage(parseInt(itemId));
+        break;
+      case "add-to-route":
+        import("../route/index.js")
+          .then((routeModule) => {
+            if (routeModule.isManualRouteMode()) {
+              const added = routeModule.addToManualRoute(itemId);
+              if (added) {
+                target.textContent = "✓";
+                target.style.background = "var(--success)";
+                target.style.color = "white";
+              }
+            } else {
+              alert(
+                '수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.',
+              );
             }
+          })
+          .catch((err) => {
+            console.error("Route module load failed:", err);
+            alert("경로 모듈을 불러올 수 없습니다.");
+          });
+        break;
+      case "vote":
+        const type = target.dataset.type;
+        toggleVote(itemId, type).then((result) => {
+          const voteContainer = target.closest(".vote-container");
+          if (voteContainer && result && result.counts) {
+            const upBtn = voteContainer.querySelector(".btn-up");
+            const downBtn = voteContainer.querySelector(".btn-down");
+            const upCount = upBtn.querySelector(".vote-count");
+            const downCount = downBtn.querySelector(".vote-count");
+
+            if (upCount) upCount.textContent = result.counts.up;
+            if (downCount) downCount.textContent = result.counts.down;
+
+            if (upBtn)
+              upBtn.classList.toggle("active", result.userVote === "up");
+            if (downBtn)
+              downBtn.classList.toggle("active", result.userVote === "down");
+          }
         });
+        break;
     }
+  });
 
-    document.addEventListener('click', (e) => {
-        const target = e.target.closest('[data-action]');
-        if (!target) return;
-
-        const action = target.dataset.action;
-        const itemId = target.dataset.itemId;
-        const popupContainer = target.closest('.popup-container');
-
-        e.stopPropagation();
-
-        switch (action) {
-            case 'lightbox':
-                openLightbox(parseInt(itemId), parseInt(target.dataset.index));
-                break;
-            case 'video-lightbox':
-                openVideoLightbox(target.dataset.src);
-                break;
-            case 'switch-image':
-                switchImage(target, parseInt(target.dataset.dir));
-                break;
-            case 'translate':
-                const translateType = target.dataset.translateType || 'ai';
-                translateItem(parseInt(itemId), translateType);
-                break;
-            case 'open-modal':
-                openRelatedModal(target.dataset.category);
-                break;
-            case 'toggle-guide':
-                document.getElementById(target.dataset.target)?.classList.toggle('hidden');
-                break;
-            case 'reveal-spoiler':
-                target.classList.add('revealed');
-                break;
-            case 'toggle-sticker':
-                toggleStickerModal(parseInt(itemId));
-                break;
-            case 'toggle-fav':
-                toggleFavorite(parseInt(itemId));
-                break;
-            case 'toggle-complete':
-                toggleCompleted(itemId);
-                break;
-            case 'share':
-                shareLocation(parseInt(itemId));
-                break;
-            case 'report':
-                openReportPage(parseInt(itemId));
-                break;
-            case 'add-to-route':
-                import('../route/index.js').then(routeModule => {
-                    if (routeModule.isManualRouteMode()) {
-                        const added = routeModule.addToManualRoute(itemId);
-                        if (added) {
-                            target.textContent = '✓';
-                            target.style.background = 'var(--success)';
-                            target.style.color = 'white';
-                        }
-                    } else {
-                        alert('수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.');
-                    }
-                    alert('경로 모듈을 불러올 수 없습니다.');
-                });
-                break;
-            case 'vote':
-                const type = target.dataset.type;
-                toggleVote(itemId, type).then(result => {
-                    const voteContainer = target.closest('.vote-container');
-                    if (voteContainer && result && result.counts) {
-                        const upBtn = voteContainer.querySelector('.btn-up');
-                        const downBtn = voteContainer.querySelector('.btn-down');
-                        const upCount = upBtn.querySelector('.vote-count');
-                        const downCount = downBtn.querySelector('.vote-count');
-
-                        if (upCount) upCount.textContent = result.counts.up;
-                        if (downCount) downCount.textContent = result.counts.down;
-
-                        if (upBtn) upBtn.classList.toggle('active', result.userVote === 'up');
-                        if (downBtn) downBtn.classList.toggle('active', result.userVote === 'down');
-                    }
-                });
-                break;
-        }
-    });
-
-    document.addEventListener('submit', (e) => {
-        const form = e.target.closest('.comment-form');
-        if (form) {
-            e.preventDefault();
-            const itemId = form.dataset.itemId;
-            if (itemId && submitAnonymousComment) {
-                submitAnonymousComment(e, parseInt(itemId));
-            }
-        }
-    });
+  document.addEventListener("submit", (e) => {
+    const form = e.target.closest(".comment-form");
+    if (form) {
+      e.preventDefault();
+      const itemId = form.dataset.itemId;
+      if (itemId && submitAnonymousComment) {
+        submitAnonymousComment(e, parseInt(itemId));
+      }
+    }
+  });
 };

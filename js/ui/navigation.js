@@ -14,24 +14,25 @@ import { triggerSync } from "../sync.js";
 import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
 
 export const toggleCompleted = (id) => {
-  const strId = String(id);
+  const targetId = String(id);
   const numId = Number(id);
   const index = state.completedList.findIndex(
-    (item) => String(item.id) === strId,
+    (item) => String(item.id) === targetId,
   );
+  // Optional chaining으로 안전한 Map 접근
   const target =
-    state.allMarkers.get(id) ||
-    state.allMarkers.get(strId) ||
+    state.allMarkers.get(id) ??
+    state.allMarkers.get(targetId) ??
     state.allMarkers.get(numId);
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
   if (isNowCompleted) {
-    state.completedList.push({ id: strId, completedAt });
-    if (target && target.marker) {
-      if (target.marker._icon)
-        target.marker._icon.classList.add("completed-marker");
-      if (target.marker.options.icon && target.marker.options.icon.options) {
+    state.completedList.push({ id: targetId, completedAt });
+    if (target?.marker) {
+      target.marker._icon?.classList.add("completed-marker");
+      // Optional chaining으로 중첩 속성 안전 접근
+      if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className += " completed-marker";
       }
 
@@ -53,10 +54,10 @@ export const toggleCompleted = (id) => {
     }
   } else {
     state.completedList.splice(index, 1);
-    if (target && target.marker) {
-      if (target.marker._icon)
-        target.marker._icon.classList.remove("completed-marker");
-      if (target.marker.options.icon && target.marker.options.icon.options) {
+    if (target?.marker) {
+      target.marker._icon?.classList.remove("completed-marker");
+      // Optional chaining으로 중첩 속성 안전 접근
+      if (target.marker.options?.icon?.options) {
         target.marker.options.icon.options.className =
           target.marker.options.icon.options.className.replace(
             " completed-marker",
@@ -77,7 +78,7 @@ export const toggleCompleted = (id) => {
   triggerSync();
 
   if (state.gpuRenderMode) {
-    updateSinglePixiMarker(strId);
+    updateSinglePixiMarker(targetId);
   }
 
   const popupContainer = document.querySelector(
@@ -91,10 +92,9 @@ export const toggleCompleted = (id) => {
         const completedItem = state.completedList.find(
           (item) => String(item.id) === strId,
         );
-        const timeStr =
-          completedItem && completedItem.completedAt
-            ? formatCompletedTime(completedItem.completedAt)
-            : "";
+        const timeStr = completedItem?.completedAt
+          ? formatCompletedTime(completedItem.completedAt)
+          : "";
         completeBtn.innerHTML = `완료됨${timeStr ? `<span class="completed-time">${timeStr}</span>` : ""}`;
       } else {
         completeBtn.textContent = "완료 체크";
@@ -111,7 +111,7 @@ export const toggleCompleted = (id) => {
       ) {
         state.map.closePopup();
       }
-    } else if (target && target.marker && target.marker.isPopupOpen()) {
+    } else if (target?.marker?.isPopupOpen?.()) {
       target.marker.closePopup();
     }
   }
@@ -171,7 +171,7 @@ export const toggleFavorite = (id) => {
 };
 
 export const shareLocation = (id) => {
-  const mapKey = state.currentMapKey || "qinghe";
+  const mapKey = state.currentMapKey ?? "qinghe";
   const shareUrl = `https://wwmmap.kr?map=${mapKey}&id=${id}`;
   navigator.clipboard
     .writeText(shareUrl)

@@ -1,121 +1,110 @@
-import { MAP_CONFIGS } from '../config.js';
-import { state, setState } from '../state.js';
-import { toggleSidebar } from '../ui.js';
-import { updateViewportMarkers } from './viewport.js';
-import { updateMapVisibility } from './visibility.js';
+import { MAP_CONFIGS } from "../config.js";
+import { state, setState } from "../state.js";
+import { toggleSidebar } from "../ui.js";
+import { updateMapVisibility } from "./visibility.js";
 
 export const initMap = (mapKey) => {
-    const config = MAP_CONFIGS[mapKey];
-    if (!config) return;
+  const config = MAP_CONFIGS[mapKey];
+  if (!config) return;
 
-    if (!state.map) {
-        const isMobile = window.innerWidth <= 768;
-        const initialZoom = isMobile ? config.zoom - 1 : config.zoom;
+  if (!state.map) {
+    const isMobile = window.innerWidth <= 768;
+    const initialZoom = isMobile ? config.zoom - 1 : config.zoom;
 
-        const map = L.map('map', {
-            center: config.center,
-            zoom: initialZoom,
-            minZoom: config.minZoom,
-            maxZoom: config.maxZoom,
-            zoomControl: false,
-            attributionControl: false,
-            maxBoundsViscosity: 1.0,
-            preferCanvas: true,
-            markerZoomAnimation: false
-        });
-        setState('map', map);
-        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    const map = L.map("map", {
+      center: config.center,
+      zoom: initialZoom,
+      minZoom: config.minZoom,
+      maxZoom: config.maxZoom,
+      zoomControl: false,
+      attributionControl: false,
+      maxBoundsViscosity: 1.0,
+      preferCanvas: true,
+      markerZoomAnimation: false,
+    });
+    setState("map", map);
 
-        map.on('zoomend', () => {
-            const zoom = map.getZoom();
-            const mapContainer = map.getContainer();
+    L.control.zoom({ position: "bottomright" }).addTo(map);
 
-            if (zoom < 4) {
-                mapContainer.classList.add('low-quality-mode');
-            } else {
-                mapContainer.classList.remove('low-quality-mode');
-            }
+    map.on("zoomend", () => {
+      const zoom = map.getZoom();
+      const mapContainer = map.getContainer();
 
-            // Low Spec Mode Optimization: Hide markers at low zoom levels
-            if (!state.gpuRenderMode) {
-                if (zoom < 5) {
-                    if (state.markerClusterGroup && map.hasLayer(state.markerClusterGroup)) {
-                        map.removeLayer(state.markerClusterGroup);
-                    }
-                } else {
-                    if (state.enableClustering && state.markerClusterGroup && !map.hasLayer(state.markerClusterGroup)) {
-                        map.addLayer(state.markerClusterGroup);
-                    }
-                }
-            }
+      if (zoom < 4) {
+        mapContainer.classList.add("low-quality-mode");
+      } else {
+        mapContainer.classList.remove("low-quality-mode");
+      }
 
-            if (!state.enableClustering) {
-                updateViewportMarkers();
-            }
+      // GPU 모드에서는 PixiOverlay가 줌/팬을 자동으로 처리하므로 별도 로직 불필요
+      // 단, 클러스터링이나 오버레이 업데이트 등은 필요할 수 있음
 
-            import('./regions.js').then(({ updateRegionOverlay }) => updateRegionOverlay());
-        });
+      import("./regions.js").then(({ updateRegionOverlay }) =>
+        updateRegionOverlay(),
+      );
+    });
 
-        map.on('movestart', () => {
-            setState('isDragging', true);
-        });
+    map.on("movestart", () => {
+      setState("isDragging", true);
+    });
 
-        map.on('moveend', () => {
-            setState('isDragging', false);
-            if (state.enableClustering) {
-                // updateMapVisibility(); // Clustering handles move automatically
-            } else {
-                updateViewportMarkers();
-            }
+    map.on("moveend", () => {
+      setState("isDragging", false);
 
-            import('./regions.js').then(({ updateRegionOverlay }) => updateRegionOverlay());
-        });
+      import("./regions.js").then(({ updateRegionOverlay }) =>
+        updateRegionOverlay(),
+      );
+    });
 
-        map.on('click', () => { if (window.innerWidth <= 768) toggleSidebar('close'); });
-    } else {
-        state.map.setView(config.center, config.zoom);
-    }
+    map.on("click", () => {
+      if (window.innerWidth <= 768) toggleSidebar("close");
+    });
+  } else {
+    state.map.setView(config.center, config.zoom);
+  }
 
-    if (state.currentTileLayer) {
-        state.map.removeLayer(state.currentTileLayer);
-    }
-    const tileLayer = L.tileLayer(config.tileUrl, {
-        tms: false,
-        noWrap: true,
-        tileSize: 256,
-        minZoom: config.minZoom,
-        maxZoom: config.maxZoom,
-        maxNativeZoom: config.maxNativeZoom || config.maxZoom
-    }).addTo(state.map);
-    setState('currentTileLayer', tileLayer);
+  if (state.currentTileLayer) {
+    state.map.removeLayer(state.currentTileLayer);
+  }
+  const tileLayer = L.tileLayer(config.tileUrl, {
+    tms: false,
+    noWrap: true,
+    tileSize: 256,
+    minZoom: config.minZoom,
+    maxZoom: config.maxZoom,
+    maxNativeZoom: config.maxNativeZoom || config.maxZoom,
+  }).addTo(state.map);
+  setState("currentTileLayer", tileLayer);
 
-    if (state.regionLayerGroup) {
-        state.regionLayerGroup.clearLayers();
-    } else {
-        const regionLayerGroup = L.layerGroup().addTo(state.map);
-        setState('regionLayerGroup', regionLayerGroup);
-    }
+  if (state.regionLayerGroup) {
+    state.regionLayerGroup.clearLayers();
+  } else {
+    const regionLayerGroup = L.layerGroup().addTo(state.map);
+    setState("regionLayerGroup", regionLayerGroup);
+  }
 
-    if (!state.markerClusterGroup) {
-        const isMobile = window.innerWidth <= 768;
-        const markerClusterGroup = L.markerClusterGroup({
-            maxClusterRadius: isMobile ? 40 : 30,
-            spiderfyOnMaxZoom: true,
-            showCoverageOnHover: false,
-            zoomToBoundsOnClick: false,
-            disableClusteringAtZoom: 14,
-            spiderfyDistanceMultiplier: 2,
-            chunkedLoading: true
-        });
+  if (!state.markerClusterGroup) {
+    const isMobile = window.innerWidth <= 768;
+    const markerClusterGroup = L.markerClusterGroup({
+      maxClusterRadius: isMobile ? 40 : 30,
+      spiderfyOnMaxZoom: true,
+      showCoverageOnHover: false,
+      zoomToBoundsOnClick: false,
+      disableClusteringAtZoom: 14,
+      spiderfyDistanceMultiplier: 2,
+      chunkedLoading: true,
+    });
 
-        markerClusterGroup.on('clusterclick', function (a) {
-            a.layer.spiderfy();
-        });
+    markerClusterGroup.on("clusterclick", function (a) {
+      a.layer.spiderfy();
+    });
 
-        // Only add cluster group to map if not in GPU mode and clustering is enabled
-        if (!state.gpuRenderMode && state.enableClustering) {
-            state.map.addLayer(markerClusterGroup);
-        }
-        setState('markerClusterGroup', markerClusterGroup);
-    }
+    // GPU 모드에서는 클러스터링을 직접 사용하지 않거나, Pixi와 연동해야 함.
+    // 현재 구조상 GPU 모드에서는 클러스터링을 비활성화하는 것이 일반적이나,
+    // 사용자가 GL만 사용한다고 했으므로 클러스터링 관련 로직은 유지하되,
+    // CPU 렌더링과 섞이지 않도록 주의.
+    // (기존 코드에서도 GPU 모드일 땐 markerClusterGroup을 map에 add하지 않았음)
+
+    setState("markerClusterGroup", markerClusterGroup);
+  }
 };

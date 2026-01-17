@@ -1,276 +1,96 @@
-import { state, setState } from '../state.js';
-import { refreshSidebarLists } from '../ui.js';
-import { markerPool } from './MarkerPool.js';
-import { renderRegionPolygons } from './regions.js';
-import { spatialIndex } from './SpatialIndex.js';
-import { logger } from '../logger.js';
-import { createMarkerForItem, setRegionPolygonsCache } from './markerFactory.js';
-import { webWorkerManager } from '../web-worker-manager.js';
+import { state, setState } from "../state.js";
+import { refreshSidebarLists } from "../ui.js";
+import { markerPool } from "./MarkerPool.js";
+import { renderRegionPolygons } from "./regions.js";
+import { logger } from "../logger.js";
+import {
+  createMarkerForItem,
+  setRegionPolygonsCache,
+} from "./markerFactory.js";
+import { webWorkerManager } from "../web-worker-manager.js";
 
 // Dynamic import wrapper for PixiOverlay
 let pixiModule = null;
 const getPixiModule = async () => {
-    if (!pixiModule) {
-        pixiModule = await import('./pixiOverlay.js');
-    }
-    return pixiModule;
+  if (!pixiModule) {
+    pixiModule = await import("./pixiOverlay.js");
+  }
+  return pixiModule;
 };
 
-export { showCompletedTooltip, hideCompletedTooltip } from './completedTooltip.js';
-
-
-const VIEWPORT_PADDING = 0.3;
-const MAX_MARKERS_PER_FRAME = 50;
+export {
+  showCompletedTooltip,
+  hideCompletedTooltip,
+} from "./completedTooltip.js";
 
 export const initLazyLoading = async () => {
-    const items = state.mapData.items;
+  const items = state.mapData.items;
 
-    if (webWorkerManager.isSupported) {
-        const result = await webWorkerManager.buildSpatialIndex(items);
-        if (result && result.success) {
-            logger.success('LazyLoading', `워커 공간 인덱스 생성 완료: ${result.count} items`);
-        }
-    } else {
-        spatialIndex.buildIndex(items);
-        const stats = spatialIndex.getStats();
-        logger.success('LazyLoading', `공간 인덱스 생성 (메인 스레드): ${stats.totalItems} items in ${stats.cellCount} cells`);
+  if (webWorkerManager.isSupported) {
+    const result = await webWorkerManager.buildSpatialIndex(items);
+    if (result && result.success) {
+      logger.success(
+        "LazyLoading",
+        `워커 공간 인덱스 생성 완료: ${result.count} items`,
+      );
     }
+  }
 
-    const filteredRegions = state.regionData;
-    const regionPolygonsCache = renderRegionPolygons(filteredRegions);
-    setRegionPolygonsCache(regionPolygonsCache);
+  const filteredRegions = state.regionData;
+  const regionPolygonsCache = renderRegionPolygons(filteredRegions);
+  setRegionPolygonsCache(regionPolygonsCache);
 
-    state.uniqueRegions.clear();
-    items.forEach(item => {
-        const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
+  state.uniqueRegions.clear();
+  items.forEach((item) => {
+    const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
 
-        const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
-        state.uniqueRegions.add(normalizedRegion);
-    });
+    const normalizedRegion =
+      state.reverseRegionMap[effectiveRegion] || effectiveRegion;
+    state.uniqueRegions.add(normalizedRegion);
+  });
 };
 
 export const renderMapDataAndMarkers = async () => {
-    // Check GPU mode preference first
-    const preferGpu = state.gpuRenderMode;
+  // Always use GPU mode
+  const pixi = await getPixiModule();
 
-    if (preferGpu) {
-        const pixi = await getPixiModule();
-        if (pixi.isGpuRenderingAvailable()) {
-            console.log('%c[Markers] 🚀 GPU 모드로 렌더링 시작...', 'color: #4CAF50; font-weight: bold;');
-            logger.log('Markers', 'Rendering with GPU mode (PixiOverlay)');
-
-            if (state.markerClusterGroup) {
-                state.markerClusterGroup.clearLayers();
-                if (state.map.hasLayer(state.markerClusterGroup)) {
-                    state.map.removeLayer(state.markerClusterGroup);
-                }
-            }
-
-            if (state.allMarkers) {
-                state.allMarkers.forEach(item => {
-                    if (item.marker && state.map.hasLayer(item.marker)) {
-                        state.map.removeLayer(item.marker);
-                    }
-                });
-            }
-
-            markerPool.clearAll();
-            state.allMarkers = new Map();
-            setState('pendingMarkers', []);
-            setState('visibleMarkerIds', new Set());
-
-            await initLazyLoading();
-
-            await pixi.renderMarkersWithPixi(state.mapData.items);
-
-            refreshSidebarLists();
-            return;
-        }
-    }
-
-    // Fallback to CPU mode or if GPU not available
-    if (preferGpu) {
-        // If we preferred GPU but it wasn't available (and we loaded the module to check)
-        // We might want to log that fallback happened.
-        // But pixi.renderMarkersWithPixi already handles fallback logging if called.
-        // Here we just proceed to CPU logic.
-    }
-
-    console.log('%c[Markers] 🖥️ CPU 모드 렌더링', 'color: #2196F3; font-weight: bold;');
-    logger.log('Markers', 'Rendering with CPU mode (Leaflet markers)');
-
-    // Ensure Pixi overlay is cleared if it was loaded
-    if (pixiModule) {
-        pixiModule.clearPixiOverlay();
-    }
+  if (pixi.isGpuRenderingAvailable()) {
+    console.log(
+      "%c[Markers] 🚀 GPU 모드로 렌더링 시작...",
+      "color: #4CAF50; font-weight: bold;",
+    );
+    logger.log("Markers", "Rendering with GPU mode (PixiOverlay)");
 
     if (state.markerClusterGroup) {
-        state.markerClusterGroup.clearLayers();
+      state.markerClusterGroup.clearLayers();
+      if (state.map.hasLayer(state.markerClusterGroup)) {
+        state.map.removeLayer(state.markerClusterGroup);
+      }
     }
 
     if (state.allMarkers) {
-        state.allMarkers.forEach(item => {
-            if (item.marker && state.map.hasLayer(item.marker)) {
-                state.map.removeLayer(item.marker);
-            }
-        });
+      state.allMarkers.forEach((item) => {
+        if (item.marker && state.map.hasLayer(item.marker)) {
+          state.map.removeLayer(item.marker);
+        }
+      });
     }
 
     markerPool.clearAll();
     state.allMarkers = new Map();
-    setState('pendingMarkers', []);
-    setState('visibleMarkerIds', new Set());
+    setState("pendingMarkers", []);
+    setState("visibleMarkerIds", new Set());
 
     await initLazyLoading();
 
-    if (state.enableClustering) {
-        if (pixiModule) pixiModule.showRenderModeIndicator('CPU');
-        renderAllMarkersForClustering();
-    } else {
-        if (pixiModule) pixiModule.showRenderModeIndicator('CPU');
-        updateViewportMarkers();
-    }
+    await pixi.renderMarkersWithPixi(state.mapData.items);
 
     refreshSidebarLists();
+    return;
+  } else {
+    console.error("WebGL is not available. Cannot render markers.");
+    alert("WebGL을 지원하지 않는 브라우저입니다. 지도를 표시할 수 없습니다.");
+  }
 };
 
-const renderAllMarkersForClustering = () => {
-    // Clear Pixi overlay if it was loaded (safe call with optional chaining)
-    if (pixiModule) {
-        pixiModule.clearPixiOverlay();
-    }
-
-    if (state.markerClusterGroup) {
-        state.markerClusterGroup.clearLayers();
-    }
-
-    const filteredItems = state.mapData.items;
-    const markersToAdd = [];
-
-    filteredItems.forEach(item => {
-        const markerData = createMarkerForItem(item);
-        if (markerData) {
-            markersToAdd.push(markerData.marker);
-            state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
-        }
-    });
-
-    if (state.markerClusterGroup) {
-        state.markerClusterGroup.addLayers(markersToAdd);
-        if (!state.map.hasLayer(state.markerClusterGroup)) {
-            state.map.addLayer(state.markerClusterGroup);
-        }
-    }
-};
-
-export const updateViewportMarkers = async () => {
-    // If GPU mode is active, we don't need to do anything here as Pixi handles it
-    // But we need to check if pixiModule is loaded to be sure
-    if (state.gpuRenderMode) {
-        const pixi = await getPixiModule();
-        if (pixi.isGpuRenderingAvailable()) return;
-    }
-
-    if (!state.map || state.enableClustering || state.isDragging) return;
-
-    // Low Spec Mode Optimization: Hide markers at low zoom levels
-    // Note: We assume CPU mode here because of the check above
-    if (state.map.getZoom() < 5) {
-        const visibleMarkerIds = state.visibleMarkerIds || new Set();
-        visibleMarkerIds.forEach(id => {
-            const markerInfo = state.allMarkers.get(id);
-            if (markerInfo && state.map.hasLayer(markerInfo.marker)) {
-                state.map.removeLayer(markerInfo.marker);
-            }
-        });
-        setState('visibleMarkerIds', new Set());
-        return;
-    }
-
-    performViewportUpdate();
-};
-
-const performViewportUpdate = async () => {
-    const bounds = state.map.getBounds();
-    const visibleMarkerIds = state.visibleMarkerIds || new Set();
-    const newVisibleIds = new Set();
-
-    let visibleItems = [];
-
-    if (webWorkerManager.isSupported) {
-        visibleItems = await webWorkerManager.filterByBounds(state.mapData.items, {
-            south: bounds.getSouth(),
-            north: bounds.getNorth(),
-            west: bounds.getWest(),
-            east: bounds.getEast()
-        }, VIEWPORT_PADDING);
-    } else {
-        visibleItems = spatialIndex.getItemsInBounds(bounds, VIEWPORT_PADDING);
-    }
-
-    renderMarkersInChunks(visibleItems, visibleMarkerIds, newVisibleIds, 0);
-};
-
-const renderMarkersInChunks = (visibleItems, oldVisibleIds, newVisibleIds, startIndex) => {
-    if (!state.map) return;
-
-    let addedCount = 0;
-    let currentIndex = startIndex;
-
-    while (currentIndex < visibleItems.length && addedCount < MAX_MARKERS_PER_FRAME) {
-        const item = visibleItems[currentIndex];
-        const existingMarker = state.allMarkers.get(item.id);
-
-        if (existingMarker && existingMarker.marker) {
-            newVisibleIds.add(item.id);
-            if (!state.map.hasLayer(existingMarker.marker)) {
-                state.map.addLayer(existingMarker.marker);
-            }
-        } else if (!existingMarker) {
-            const markerData = createMarkerForItem(item);
-            if (markerData) {
-                newVisibleIds.add(item.id);
-                state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
-                state.map.addLayer(markerData.marker);
-                addedCount++;
-            }
-        }
-        currentIndex++;
-    }
-
-    if (currentIndex < visibleItems.length) {
-        requestAnimationFrame(() => {
-            renderMarkersInChunks(visibleItems, oldVisibleIds, newVisibleIds, currentIndex);
-        });
-    } else {
-        oldVisibleIds.forEach(id => {
-            if (!newVisibleIds.has(id)) {
-                const markerInfo = state.allMarkers.get(id);
-                if (markerInfo && markerInfo.marker && state.map.hasLayer(markerInfo.marker)) {
-                    state.map.removeLayer(markerInfo.marker);
-                }
-            }
-        });
-        setState('visibleMarkerIds', newVisibleIds);
-    }
-};
-
-export const forceFullRender = async () => {
-    if (state.gpuRenderMode) {
-        const pixi = await getPixiModule();
-        if (pixi.isGpuRenderingAvailable()) return;
-    }
-
-    if (state.enableClustering) return;
-
-    const allItems = state.mapData.items;
-    allItems.forEach(item => {
-        const existingMarker = state.allMarkers.get(item.id);
-        if (!existingMarker) {
-            const markerData = createMarkerForItem(item);
-            if (markerData) {
-                state.allMarkers.set(markerData.markerInfo.id, markerData.markerInfo);
-            }
-        }
-    });
-};
+// CPU 렌더링 관련 함수들 제거됨 (updateViewportMarkers, forceFullRender, initCpuInteraction 등)

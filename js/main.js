@@ -1,28 +1,12 @@
-import { state, setState, subscribe, dispatch } from "./state.js";
+/**
+ * 애플리케이션 메인 엔트리 포인트
+ * - 앱 초기화 오케스트레이션
+ * - 각 모듈의 초기화 함수 호출
+ */
+import { state, setState, subscribe } from "./state.js";
 import { loadMapData } from "./data.js";
-import { renderMapDataAndMarkers, moveToLocation } from "./map.js";
-import {
-  toggleSidebar,
-  renderFavorites,
-  initCustomDropdown,
-  openRelatedModal,
-  closeModal,
-  renderModalList,
-  openLightbox,
-  switchLightbox,
-  closeLightbox,
-  openVideoLightbox,
-  closeVideoLightbox,
-  viewFullImage,
-  switchImage,
-  toggleCompleted,
-  toggleFavorite,
-  shareLocation,
-  expandRelated,
-  jumpToId,
-  findItem,
-} from "./ui.js";
-import { translateItem } from "./translation.js";
+import { renderMapDataAndMarkers } from "./map.js";
+import { renderFavorites, initCustomDropdown, renderModalList } from "./ui.js";
 import { initMainNotice } from "./main-notice.js";
 import { initAuth } from "./auth.js";
 import { initSearch, initModalSearch } from "./search.js";
@@ -30,56 +14,17 @@ import { initAllEventHandlers } from "./events.js";
 import { initPopupEventDelegation } from "./map/popup.js";
 import { initMigration, isOldDomain } from "./migration.js";
 import { initAds } from "./ads.js";
-
-import { memoryManager } from "./memory.js";
 import { initTheme } from "./theme.js";
+import { loadAllComponents } from "./component-loader.js";
 
-window.state = state;
-window.setState = setState;
-window.dispatch = dispatch;
-window.subscribe = subscribe;
-window.findItem = findItem;
-window.finditem = findItem;
-window.jumpToId = jumpToId;
-window.memoryManager = memoryManager;
+// 분리된 모듈들
+import { handleUrlParams, handleSharedLink } from "./urlHandler.js";
+import { initSyncHandler } from "./syncHandler.js";
+import { initDebug, loadDevToolsIfNeeded } from "./debug.js";
 
-// 개발자 도구 활성화 함수 (콘솔용)
-window.dev = async () => {
-  const { dev } = await import("./dev-tools.js");
-  return dev();
-};
-
-subscribe("isDevMode", (isDev) => {
-  memoryManager.setDebug(isDev);
-  if (isDev) {
-    console.log(
-      "%c[MemoryManager] Debug mode enabled. Watch console for GC events.",
-      "color: #ff00ff",
-    );
-  }
-});
-
-const handleUrlParams = () => {
-  const urlParams = new URLSearchParams(window.location.search);
-
-  const mapParam = urlParams.get("map");
-  if (mapParam && (mapParam === "qinghe" || mapParam === "kaifeng")) {
-    setState("currentMapKey", mapParam);
-  }
-
-  if (urlParams.get("embed") === "true") {
-    document.body.classList.add("embed-mode");
-    const sidebar = document.getElementById("sidebar");
-    if (sidebar) sidebar.classList.add("collapsed");
-  }
-
-  if (urlParams.get("overlay") === "true") {
-    document.body.classList.add("overlay-mode");
-  }
-
-  return urlParams;
-};
-
+/**
+ * 로딩 화면 구독 설정
+ */
 const setupLoadingSubscription = () => {
   subscribe("loadingState", (loadingState) => {
     const loadingScreen = document.getElementById("loading-screen");
@@ -105,40 +50,83 @@ const setupLoadingSubscription = () => {
   });
 };
 
-const handleSharedLink = (urlParams) => {
-  const sharedId = parseInt(urlParams.get("id"));
-  const sharedLat = parseFloat(urlParams.get("lat"));
-  const sharedLng = parseFloat(urlParams.get("lng"));
-  const routeParam = urlParams.get("route");
+/**
+ * 맵 데이터 로딩 및 진행률 표시
+ */
+const loadMapDataWithProgress = async () => {
+  setState("loadingState", {
+    ...state.loadingState,
+    csvProgress: 100,
+    message: "지도 데이터 불러오는 중...",
+  });
 
-  if (routeParam) {
-    import("./route/index.js")
-      .then((routeModule) => {
-        routeModule.loadRouteFromUrl();
-      })
-      .catch((err) => {
-        console.error("Failed to load shared route:", err);
+  await loadMapData(state.currentMapKey, (loaded, total) => {
+    if (total > 0) {
+      const percent = Math.min(100, (loaded / total) * 100);
+      setState("loadingState", {
+        ...state.loadingState,
+        mapProgress: percent,
+        detail: `지도 데이터: ${Math.round(percent)}%`,
       });
-    return;
-  }
+    }
+  });
 
-  if (sharedId) {
-    setTimeout(() => findItem(sharedId), 1000);
-  } else if (!isNaN(sharedLat) && !isNaN(sharedLng)) {
-    setTimeout(() => {
-      if (state.map) {
-        state.map.flyTo([sharedLat, sharedLng], 17, { animate: true });
-      }
-    }, 1000);
-  }
+  setState("loadingState", {
+    ...state.loadingState,
+    mapProgress: 100,
+    message: "준비 완료!",
+  });
+
+  setTimeout(() => {
+    setState("loadingState", { ...state.loadingState, isVisible: false });
+  }, 500);
 };
 
-import { loadAllComponents } from "./component-loader.js";
+/**
+ * 비필수 모듈 지연 로딩
+ */
+const loadOptionalModules = () => {
+  // WebLLM 초기화 (사전 캐시 시작)
+  import("./web-llm.js")
+    .then((m) => m.initWebLLM())
+    .catch((e) => console.warn("WebLLM init failed:", e));
 
-document.addEventListener("DOMContentLoaded", async () => {
+  // 설정 모듈
+  import("./settings.js").then(({ initSettingsModal, initAdToggle }) => {
+    initSettingsModal();
+    initAdToggle();
+  });
+
+  // 백업 모듈
+  import("./backup.js").then(({ initBackupButtons }) => {
+    initBackupButtons();
+  });
+
+  // 댓글 모듈 (Side-effect import)
+  import("./comments.js");
+
+  // 개발자 도구 (조건부)
+  loadDevToolsIfNeeded();
+};
+
+/**
+ * 번역 CSV 로딩
+ */
+const loadTranslationData = () => {
+  fetch("./translation.csv")
+    .then((res) => res.text())
+    .then((text) => setState("rawCSV", text));
+};
+
+/**
+ * 애플리케이션 초기화
+ */
+const initializeApp = async () => {
+  // 1. 테마 및 마이그레이션 먼저 처리
   initTheme();
   initMigration();
 
+  // 구 도메인이면 리다이렉트 처리 후 종료
   if (isOldDomain()) {
     return;
   }
@@ -148,154 +136,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     favorites: localStorage.getItem("wwm_favorites"),
   });
 
+  // 2. URL 파라미터 처리
   const urlParams = handleUrlParams();
 
   try {
+    // 3. HTML 컴포넌트 로딩
     await loadAllComponents();
 
+    // 사이드바 기본 열기 (임베드 모드 제외)
     if (!document.body.classList.contains("embed-mode")) {
       document.body.classList.add("sidebar-open");
     }
 
+    // 4. 구독 및 핸들러 설정
     setupLoadingSubscription();
+    initSyncHandler();
 
-    window.addEventListener("syncDataLoaded", (e) => {
-      const cloudData = e.detail;
-      if (!cloudData) return;
-
-      console.log("[Main] Sync data loaded, updating state...", cloudData);
-
-      if (cloudData.completedMarkers) {
-        let markers = cloudData.completedMarkers;
-        if (markers.length > 0 && typeof markers[0] !== "object") {
-          markers = markers.map((id) => ({ id, completedAt: null }));
-        }
-        setState("completedList", markers);
-        console.log(
-          "[Main] State updated. LocalStorage check:",
-          localStorage.getItem("wwm_completed"),
-        );
-      }
-
-      if (cloudData.favorites) {
-        setState("favorites", cloudData.favorites);
-      }
-
-      if (cloudData.settings) {
-        const s = cloudData.settings;
-        if (s.showComments !== undefined)
-          setState(
-            "showComments",
-            s.showComments === "true" || s.showComments === true,
-          );
-        if (s.closeOnComplete !== undefined)
-          setState(
-            "closeOnComplete",
-            s.closeOnComplete === "true" || s.closeOnComplete === true,
-          );
-        if (s.hideCompleted !== undefined)
-          setState(
-            "hideCompleted",
-            s.hideCompleted === "true" || s.hideCompleted === true,
-          );
-        if (s.enableClustering !== undefined)
-          setState(
-            "enableClustering",
-            s.enableClustering === "true" || s.enableClustering === true,
-          );
-        if (s.regionColor !== undefined)
-          setState("savedRegionColor", s.regionColor);
-        if (s.regionFillColor !== undefined)
-          setState("savedRegionFillColor", s.regionFillColor);
-        if (s.gpuMode !== undefined) {
-          let gpuSetting = s.gpuMode;
-          if (gpuSetting === "true" || gpuSetting === true) gpuSetting = "on";
-          else if (gpuSetting === "false" || gpuSetting === false)
-            gpuSetting = "off";
-          if (["on", "off", "auto"].includes(gpuSetting)) {
-            state.savedGpuSetting = gpuSetting;
-            localStorage.setItem("wwm_gpu_setting", gpuSetting);
-          }
-        }
-      }
-
-      renderMapDataAndMarkers();
-      renderFavorites();
-
-      const settingsModal = document.getElementById("settings-modal");
-      if (settingsModal && !settingsModal.classList.contains("hidden")) {
-        import("./settings.js").then((m) => m.initSettingsModal());
-      }
-    });
-
+    // 5. 인증 및 데이터 로딩
     initAuth();
-    fetch("./translation.csv")
-      .then((res) => res.text())
-      .then((text) => setState("rawCSV", text));
-
+    loadTranslationData();
     initCustomDropdown();
 
-    setState("loadingState", {
-      ...state.loadingState,
-      csvProgress: 100,
-      message: "지도 데이터 불러오는 중...",
-    });
+    // 6. 맵 데이터 로딩
+    await loadMapDataWithProgress();
 
-    await loadMapData(state.currentMapKey, (loaded, total) => {
-      if (total > 0) {
-        const percent = Math.min(100, (loaded / total) * 100);
-        setState("loadingState", {
-          ...state.loadingState,
-          mapProgress: percent,
-          detail: `지도 데이터: ${Math.round(percent)}%`,
-        });
-      }
-    });
-
-    setState("loadingState", {
-      ...state.loadingState,
-      mapProgress: 100,
-      message: "준비 완료!",
-    });
-
-    setTimeout(() => {
-      setState("loadingState", { ...state.loadingState, isVisible: false });
-    }, 500);
-
+    // 7. 검색 및 이벤트 핸들러 초기화
     initSearch();
     initModalSearch(renderModalList);
     initAllEventHandlers();
-
-    // WebLLM 초기화 (사전 캐시 시작)
-    import("./web-llm.js")
-      .then((m) => m.initWebLLM())
-      .catch((e) => console.warn("WebLLM init failed:", e));
-
     initPopupEventDelegation();
 
-    // Dynamic imports for non-critical modules
-    import("./settings.js").then(({ initSettingsModal, initAdToggle }) => {
-      initSettingsModal();
-      initAdToggle();
-    });
-
-    import("./backup.js").then(({ initBackupButtons }) => {
-      initBackupButtons();
-    });
-
-    import("./comments.js"); // Side-effect import
-
-    if (state.isDevMode || localStorage.getItem("wwm_dev_mode") === "true") {
-      import("./dev-tools.js");
-    }
-
+    // 8. 광고 및 UI 렌더링
     initAds();
     renderFavorites();
+
+    // 9. 비필수 모듈 지연 로딩
+    loadOptionalModules();
   } catch (error) {
     console.error("초기화 실패:", error);
     alert("맵 초기화에 실패했습니다.\n" + error.message);
     return;
   }
 
+  // 10. 공유 링크 처리 (초기화 완료 후)
   handleSharedLink(urlParams);
-});
+};
+
+// 디버그 헬퍼 초기화 (즉시 실행)
+initDebug();
+
+// DOM 로드 후 앱 초기화
+document.addEventListener("DOMContentLoaded", initializeApp);

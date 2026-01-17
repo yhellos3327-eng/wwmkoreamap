@@ -8,11 +8,14 @@ import { loadComments } from '../../comments.js';
 import { fetchVoteCounts } from '../../votes.js';
 
 const spriteDataMap = new Map();
+const itemIdToSpriteMap = new Map();
 
 export const getSpriteDataMap = () => spriteDataMap;
+export const getSpriteById = (id) => itemIdToSpriteMap.get(String(id));
 
 export const clearSpriteDataMap = () => {
     spriteDataMap.clear();
+    itemIdToSpriteMap.clear();
 };
 
 export const showPopupForSprite = (sprite) => {
@@ -114,6 +117,8 @@ export const createSpriteForItem = (item) => {
         itemId: item.id,
         type: 'PixiSprite'
     });
+
+    itemIdToSpriteMap.set(String(item.id), sprite);
 
     return sprite;
 };
