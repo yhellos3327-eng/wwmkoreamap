@@ -114,7 +114,9 @@ export const renderRegionPolygons = (filteredRegions) => {
           state.map._popup && state.map.hasLayer(state.map._popup);
 
         if (!isPopupOpen) {
-          state.map.panTo(this.getBounds().getCenter());
+          if (!state.disableRegionClickPan) {
+            state.map.panTo(this.getBounds().getCenter());
+          }
           L.DomEvent.stopPropagation(e);
         }
       });

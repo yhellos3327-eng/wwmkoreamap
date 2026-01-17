@@ -57,7 +57,7 @@ const state = {
   closeOnComplete: localStorage.getItem("wwm_close_on_complete") === "true",
   regionMetaInfo: {},
   reverseRegionMap: {},
-  
+
   savedAIProvider: localStorage.getItem("wwm_ai_provider") ?? "gemini",
   savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
   savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
@@ -76,9 +76,10 @@ const state = {
   savedMenuPosition: localStorage.getItem("wwm_menu_position") ?? "center",
   useChromeTranslator:
     localStorage.getItem("wwm_use_chrome_translator") === "true",
+  disableRegionClickPan:
+    localStorage.getItem("wwm_disable_region_click_pan") === "true",
 
   get gpuRenderMode() {
-    
     return checkWebGL();
   },
   set gpuRenderMode(value) {
@@ -96,7 +97,6 @@ const state = {
   },
 };
 
-
 let categoryMapCache = null;
 
 /**
@@ -107,7 +107,6 @@ let categoryMapCache = null;
 export const getCategoryMap = () => {
   if (!state.mapData?.categories?.length) return null;
 
-  
   if (
     !categoryMapCache ||
     categoryMapCache.size !== state.mapData.categories.length
@@ -174,7 +173,6 @@ export const notify = (key, value, oldValue) => {
   logger.stateChange(key, oldValue, value);
 
   if (listeners[key]) {
-    
     for (let i = listeners[key].length - 1; i >= 0; i--) {
       const listener = listeners[key][i];
 
@@ -188,17 +186,12 @@ export const notify = (key, value, oldValue) => {
               owner[listener.callbackOrMethod](value);
             }
           } else if (typeof listener.callbackOrMethod === "function") {
-            
-            
             listener.callbackOrMethod.call(owner, value);
           }
         } else {
-          
           listeners[key].splice(i, 1);
-          
         }
       } else {
-        
         if (typeof listener === "function") listener(value);
       }
     }
