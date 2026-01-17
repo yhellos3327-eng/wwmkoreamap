@@ -1,0 +1,255 @@
+/* 패치 노트 타임라인 스타일 */
+.patch-notes-list-container {
+    padding: 20px 20px 40px 20px;
+}
+
+.timeline-container {
+    position: relative;
+    padding-left: 20px;
+}
+
+/* 타임라인 수직선 */
+.timeline-container::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(99, 99, 99, 0.2);
+    border-radius: 2px;
+    display: block;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 40px;
+    animation: slideIn 0.4s ease-out forwards;
+    opacity: 0;
+}
+
+.timeline-item:nth-child(1) { animation-delay: 0.1s; }
+.timeline-item:nth-child(2) { animation-delay: 0.2s; }
+.timeline-item:nth-child(3) { animation-delay: 0.3s; }
+
+/* 타임라인 마커 (부드러운 L자형 곡선) */
+.timeline-marker {
+    position: absolute;
+    left: -13px;
+    top: 24px;
+    width: 16px;
+    height: 16px;
+    background: transparent;
+    border-left: 2px solid rgba(99, 99, 99, 0.2);
+    border-bottom: 2px solid rgba(99, 99, 99, 0.2);
+    border-bottom-left-radius: 12px;
+    box-shadow: none;
+    z-index: 2;
+}
+
+.timeline-content {
+    background: var(--bg-secondary);
+    border: 1px solid var(--glass-border);
+    border-radius: 16px;
+    padding: 24px;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timeline-content:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    border-color: var(--accent);
+}
+
+/* 말풍선 화살표 제거 */
+.timeline-content::before {
+    display: none;
+}
+
+.timeline-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.timeline-date {
+    font-size: 0.9em;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.timeline-version {
+    background: rgba(0,0,0,0.1);
+    color: var(--text-main);
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8em;
+    font-weight: 600;
+}
+
+.timeline-title {
+    margin: 0 0 20px 0;
+    font-size: 1.4em;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.3;
+}
+
+.timeline-body {
+    color: var(--text-main);
+    font-size: 0.95em;
+    line-height: 1.6;
+}
+
+/* 마크다운 스타일 재정의 */
+.timeline-body h1, .timeline-body h2 {
+    font-size: 1.1em;
+    margin: 20px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--glass-border);
+    color: var(--text-main);
+}
+
+.timeline-body h3 {
+    font-size: 1em;
+    margin: 16px 0 8px 0;
+    color: var(--accent);
+}
+
+.timeline-body ul, .timeline-body ol {
+    padding-left: 20px;
+    margin-bottom: 16px;
+}
+
+.timeline-body li {
+    margin-bottom: 6px;
+}
+
+.timeline-body p {
+    margin-bottom: 12px;
+}
+
+.timeline-body p:empty {
+    display: none;
+}
+
+/* 코드 블록 스타일 개선 */
+.timeline-body code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 5px;
+    border-radius: 4px;
+    font-family: 'Menlo', 'Monaco', 'Consolas', monospace;
+    font-size: 0.85em;
+    color: var(--text-main);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    vertical-align: middle;
+}
+
+.timeline-body pre {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin-bottom: 16px;
+    border: 1px solid var(--glass-border);
+}
+
+.timeline-body pre code {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    border: none;
+    font-size: 0.9em;
+    vertical-align: baseline;
+}
+
+/* CodeRabbit 테이블 스타일링 (복구 및 개선) */
+.timeline-body table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+    font-size: 0.9em;
+}
+
+.timeline-body thead {
+    display: table-header-group;
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.timeline-body tbody {
+    display: table-row-group;
+}
+
+.timeline-body tr {
+    display: table-row;
+    background: transparent;
+    border: none;
+}
+
+.timeline-body tr:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.timeline-body th, .timeline-body td {
+    display: table-cell;
+    padding: 8px 12px;
+    border: 1px solid var(--glass-border);
+    vertical-align: top;
+    text-align: left;
+}
+
+.timeline-body th {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+/* 첫 번째 컬럼 너비 조정 (선택적) */
+.timeline-body td:first-child {
+    min-width: auto;
+    color: inherit;
+    font-weight: normal;
+}
+
+.timeline-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 20px;
+    padding: 10px 16px;
+    background: var(--bg-item);
+    border-radius: 8px;
+    color: var(--text-main);
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.timeline-link:hover {
+    background: var(--accent);
+    color: #000;
+    transform: translateY(-2px);
+}
+
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-20px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* CodeRabbit 잡다한 요소 숨김 */
+.timeline-body sub, .timeline-body br {
+    display: none;
+}
+
+/* Mermaid 다이어그램 스타일 */
+.mermaid {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    overflow-x: auto;
+    display: flex;
+    justify-content: center;
+}

@@ -9,6 +9,7 @@
 @import 'sidebar/routes.css';
 @import 'sidebar/arca-panel.css';
 @import 'sidebar/report-panel.css';
+@import 'sidebar/patch-notes.css';
 
 .spoiler {
     position: relative;

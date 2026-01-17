@@ -132,8 +132,6 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    padding: 24px;
-    text-align: center;
     color: var(--text-muted);
     background: var(--bg-panel);
 }
