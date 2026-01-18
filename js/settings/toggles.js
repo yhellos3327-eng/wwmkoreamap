@@ -53,6 +53,7 @@ export const initToggles = () => {
     "toggle-disable-region-pan",
   );
   const adToggleInput = document.getElementById("toggle-ad");
+  const webLLMToggleInput = document.getElementById("toggle-web-llm");
 
   const chromeTranslatorStatus = document.getElementById(
     "chrome-translator-status",
@@ -153,6 +154,14 @@ export const initToggles = () => {
     }, 100);
   }
 
+  if (webLLMToggleInput) {
+    webLLMToggleInput.checked = state.enableWebLLM;
+    webLLMToggleInput.addEventListener("change", (e) => {
+      setState("enableWebLLM", e.target.checked);
+      localStorage.setItem("wwm_enable_web_llm", e.target.checked);
+    });
+  }
+
   if (clusterToggleInput) {
     clusterToggleInput.checked = state.enableClustering;
     clusterToggleInput.addEventListener("change", (e) => {
@@ -206,12 +215,14 @@ export const initToggles = () => {
       if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
       if (disableRegionPanInput)
         disableRegionPanInput.checked = state.disableRegionClickPan;
+      if (webLLMToggleInput) webLLMToggleInput.checked = state.enableWebLLM;
 
       updateClusteringToggleState();
     },
     getInitialState: () => ({
       clustering: state.enableClustering,
       useChromeTranslator: state.useChromeTranslator,
+      webLLM: state.enableWebLLM,
     }),
   };
 };
