@@ -32,7 +32,6 @@ export const isGpuRenderingAvailable = () => {
   const hasPixi =
     typeof window.PIXI !== "undefined" && typeof L.pixiOverlay !== "undefined";
 
-  
   let hasWebGL = false;
   try {
     const canvas = document.createElement("canvas");
@@ -65,7 +64,7 @@ export const initPixiOverlay = async () => {
 
   pixiOverlay = L.pixiOverlay(
     (utils) => {
-      pixiUtils = utils; 
+      pixiUtils = utils;
       const zoom = utils.getMap().getZoom();
       const container = utils.getContainer();
       const renderer = utils.getRenderer();
@@ -73,18 +72,14 @@ export const initPixiOverlay = async () => {
       const scale = utils.getScale();
       const map = utils.getMap();
 
-      
-      
       if (prevZoom !== null && prevZoom !== zoom) {
         clearSpiderfy();
       } else {
         updateSpiderfyPositions(utils);
       }
 
-      
       const isSimpleCRS = map.options.crs === L.CRS.Simple;
       if (state.enableClustering && supercluster && !isSimpleCRS) {
-        
         pixiContainer.removeChildren();
         clearSpriteDataMap();
 
@@ -96,8 +91,7 @@ export const initPixiOverlay = async () => {
           bounds.getNorth(),
         ];
 
-        
-        const padding = 0.1; 
+        const padding = 0.1;
         const width = bbox[2] - bbox[0];
         const height = bbox[3] - bbox[1];
         bbox[0] -= width * padding;
@@ -109,7 +103,6 @@ export const initPixiOverlay = async () => {
         const spiderfiedClusterId = getSpiderfiedClusterId();
 
         clusters.forEach((cluster) => {
-          
           if (cluster.id === spiderfiedClusterId) {
             return;
           }
@@ -118,23 +111,21 @@ export const initPixiOverlay = async () => {
           const coords = project([lat, lng]);
 
           if (cluster.properties.cluster) {
-            
             const count = cluster.properties.point_count;
             const clusterId = cluster.id;
 
-            
             const graphics = new PIXI.Graphics();
-            let color = 0x66bb6a; 
+            let color = 0x66bb6a;
             let radius = 20;
 
             if (count > 100) {
               color = 0xffca28;
               radius = 30;
-            } 
+            }
             if (count > 1000) {
               color = 0xef5350;
               radius = 40;
-            } 
+            }
 
             graphics.beginFill(color, 0.8);
             graphics.lineStyle(2, 0xffffff, 1);
@@ -143,7 +134,6 @@ export const initPixiOverlay = async () => {
             graphics.x = coords.x;
             graphics.y = coords.y;
 
-            
             const text = new PIXI.Text(count.toString(), {
               fontFamily: "Arial",
               fontSize: 14,
@@ -154,7 +144,6 @@ export const initPixiOverlay = async () => {
             text.anchor.set(0.5);
             graphics.addChild(text);
 
-            
             graphics.interactive = true;
             graphics.buttonMode = true;
             graphics.markerData = {
@@ -165,14 +154,11 @@ export const initPixiOverlay = async () => {
               lng: lng,
             };
 
-            
             graphics.scale.set(1 / scale);
 
             pixiContainer.addChild(graphics);
           } else {
-            
-            
-            const item = cluster.properties.item; 
+            const item = cluster.properties.item;
             if (item) {
               const sprite = createSpriteForItem(item);
               if (sprite) {
@@ -183,7 +169,6 @@ export const initPixiOverlay = async () => {
                 sprite.width = targetSize;
                 sprite.height = targetSize;
 
-                
                 if (sprite.filters === undefined || sprite.filters === null) {
                   sprite.filters = [];
                 }
@@ -195,13 +180,11 @@ export const initPixiOverlay = async () => {
           }
         });
 
-        
         const spiderfyContainer = getSpiderfyContainer();
         if (spiderfyContainer) {
           pixiContainer.addChild(spiderfyContainer);
         }
       } else {
-        
         pixiContainer.children.forEach((sprite) => {
           if (sprite.markerData && !sprite.markerData.isCluster) {
             const coords = project([
@@ -284,7 +267,6 @@ export const renderMarkersWithPixi = async (items) => {
 
   await preloadTextures(items);
 
-  
   if (typeof Supercluster !== "undefined") {
     supercluster = new Supercluster({
       radius: 60,
@@ -294,10 +276,10 @@ export const renderMarkersWithPixi = async (items) => {
 
     const points = items.map((item) => ({
       type: "Feature",
-      properties: { cluster: false, item: item }, 
+      properties: { cluster: false, item: item },
       geometry: {
         type: "Point",
-        coordinates: [parseFloat(item.y), parseFloat(item.x)], 
+        coordinates: [parseFloat(item.y), parseFloat(item.x)],
       },
     }));
 
@@ -309,13 +291,10 @@ export const renderMarkersWithPixi = async (items) => {
     console.warn("[PixiOverlay] Supercluster library not found");
   }
 
-  
   const isSimpleCRS = state.map && state.map.options.crs === L.CRS.Simple;
   if (state.enableClustering && !isSimpleCRS) {
-    
     pixiOverlay.redraw();
   } else {
-    
     pixiContainer.removeChildren();
     clearSpriteDataMap();
     state.allMarkers = new Map();
@@ -376,7 +355,10 @@ export const updateSinglePixiMarker = (itemId) => {
   if (!pixiContainer) return;
 
   const sprite = pixiContainer.children.find(
-    (s) => s.markerData && String(s.markerData.item.id) === String(itemId),
+    (s) =>
+      s.markerData &&
+      s.markerData.item &&
+      String(s.markerData.item.id) === String(itemId),
   );
 
   if (sprite) {
