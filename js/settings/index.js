@@ -67,7 +67,10 @@ export const initSettingsModal = () => {
     const closeSettingsBtn = document.getElementById("close-settings");
     if (closeSettingsBtn) {
       closeSettingsBtn.addEventListener("click", () => {
-        if (state.enableClustering !== initialState.clustering) {
+        if (
+          state.enableClustering !== initialState.clustering ||
+          state.enableWebLLM !== initialState.webLLM
+        ) {
           alert("설정이 변경되었습니다. 적용을 위해 페이지를 새로고침합니다.");
           location.reload();
         } else {

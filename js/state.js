@@ -67,7 +67,8 @@ const state = {
   savedRegionFillColor:
     localStorage.getItem("wwm_region_fill_color") ?? "#ffbd53",
   hideCompleted: localStorage.getItem("wwm_hide_completed") === "true",
-  enableClustering: localStorage.getItem("wwm_enable_clustering") !== "false",
+  enableClustering: localStorage.getItem("wwm_enable_clustering") === "true",
+  enableWebLLM: localStorage.getItem("wwm_enable_web_llm") === "true",
   currentGuideStep: 0,
   rawCSV: null,
   parsedCSV: null,

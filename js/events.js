@@ -93,10 +93,17 @@ export const initWebLLMModal = () => {
   const webLLMModal = document.getElementById("web-llm-modal");
   const openWebLLMModalBtn = document.getElementById("open-web-llm-modal");
 
-  if (openWebLLMModalBtn && webLLMModal) {
-    openWebLLMModalBtn.addEventListener("click", () => {
-      import("./web-llm.js").then((m) => m.openWebLLMModal());
-    });
+  if (openWebLLMModalBtn) {
+    if (!state.enableWebLLM) {
+      openWebLLMModalBtn.style.display = "none";
+    } else {
+      openWebLLMModalBtn.style.display = "flex";
+      if (webLLMModal) {
+        openWebLLMModalBtn.addEventListener("click", () => {
+          import("./web-llm.js").then((m) => m.openWebLLMModal());
+        });
+      }
+    }
   }
 };
 
