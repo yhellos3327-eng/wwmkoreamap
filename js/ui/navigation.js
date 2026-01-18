@@ -39,7 +39,7 @@ export const toggleCompleted = (id) => {
       const mouseoverHandler = (e) => {
         showCompletedTooltip(
           e,
-          strId,
+          targetId,
           target.originalName || target.name,
           completedAt,
         );
@@ -88,7 +88,7 @@ export const toggleCompleted = (id) => {
       completeBtn.classList.toggle("active", isNowCompleted);
       if (isNowCompleted) {
         const completedItem = state.completedList.find(
-          (item) => String(item.id) === strId,
+          (item) => String(item.id) === targetId,
         );
         const timeStr = completedItem?.completedAt
           ? formatCompletedTime(completedItem.completedAt)
@@ -104,7 +104,7 @@ export const toggleCompleted = (id) => {
     if (
       state.map &&
       state.map._popup &&
-      String(state.map._popup.itemId) === strId
+      String(state.map._popup.itemId) === targetId
     ) {
       state.map.closePopup();
     } else if (target?.marker?.isPopupOpen?.()) {

@@ -36,6 +36,5 @@ export const loadAllComponents = async () => {
     loadComponent("components/result-alert-modal.html"),
     loadComponent("components/arca-panel.html"),
     loadComponent("components/report-panel.html"),
-    loadComponent("components/patch-notes-panel.html"),
   ]);
 };

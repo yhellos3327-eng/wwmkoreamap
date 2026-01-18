@@ -206,10 +206,6 @@ export const initReportPanel = () => {
   }
 };
 
-export const initPatchNotes = () => {
-  import("./patch-notes.js").then((m) => m.initPatchNotesPanel());
-};
-
 export const initAllEventHandlers = () => {
   initTabs();
   initToggleButtons();
@@ -221,5 +217,4 @@ export const initAllEventHandlers = () => {
   initRouteMode();
   initArcaChannel();
   initReportPanel();
-  initPatchNotes();
 };
