@@ -85,11 +85,12 @@ const loadMapDataWithProgress = async () => {
  * 비필수 모듈 지연 로딩
  */
 const loadOptionalModules = () => {
-  if (state.enableWebLLM) {
-    import("./web-llm.js")
-      .then((m) => m.initWebLLM())
-      .catch((e) => console.warn("WebLLM init failed:", e));
-  }
+  // WebLLM은 버튼 클릭 시 동적으로 로드되므로 여기서 미리 로드하지 않음
+  // if (state.enableWebLLM) {
+  //   import("./web-llm.js")
+  //     .then((m) => m.initWebLLM())
+  //     .catch((e) => console.warn("WebLLM init failed:", e));
+  // }
 
   import("./settings.js").then(({ initSettingsModal, initAdToggle }) => {
     initSettingsModal();

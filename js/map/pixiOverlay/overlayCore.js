@@ -428,10 +428,22 @@ export const redrawPixiOverlay = () => {
   }
 };
 
-export const disposePixiOverlay = () => {
+export const disposePixiOverlay = async () => {
   clearPixiOverlay();
 
-  clearTextureCache();
+  if (pixiUtils) {
+    try {
+      const renderer = pixiUtils.getRenderer();
+      if (renderer && !renderer.destroyed) {
+        renderer.destroy(true);
+      }
+    } catch (e) {
+      console.warn("Failed to destroy PIXI renderer", e);
+    }
+    pixiUtils = null;
+  }
+
+  await clearTextureCache();
 
   pixiOverlay = null;
   pixiContainer = null;
@@ -444,4 +456,33 @@ export const disposePixiOverlay = () => {
   setState("pixiContainer", null);
 
   logger.log("PixiOverlay", "GPU overlay disposed");
+};
+
+export const resetPixiOverlay = () => {
+  clearPixiOverlay();
+
+  if (pixiUtils) {
+    try {
+      const renderer = pixiUtils.getRenderer();
+      if (renderer && !renderer.destroyed) {
+        renderer.destroy(true);
+      }
+    } catch (e) {
+      console.warn("Failed to destroy PIXI renderer", e);
+    }
+    pixiUtils = null;
+  }
+
+  // Do NOT clear textures
+  pixiOverlay = null;
+  pixiContainer = null;
+  supercluster = null;
+  isInitialized = false;
+  firstDraw = true;
+  prevZoom = null;
+
+  setState("pixiOverlay", null);
+  setState("pixiContainer", null);
+
+  logger.log("PixiOverlay", "GPU overlay reset (textures preserved)");
 };

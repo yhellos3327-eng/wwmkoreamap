@@ -19,6 +19,8 @@ import {
   collectUniqueRegions,
 } from "./processors.js";
 import { initializeFiltersFromStorage, saveFilterState } from "./storage.js";
+import { resetPixiOverlay } from "../map/pixiOverlay.js";
+import { closeModal } from "../ui/modal.js";
 
 export const loadMapData = async (mapKey, onProgress) => {
   const config = MAP_CONFIGS[mapKey];
@@ -28,6 +30,15 @@ export const loadMapData = async (mapKey, onProgress) => {
     const totalTimer = perfTimer.start("Performance", "loadMapData total");
 
     await loadTranslations(mapKey);
+
+    if (state.map) {
+      state.map.closePopup();
+    }
+    closeModal();
+
+    // Reset PixiOverlay to ensure fresh state for new map, preventing flickering/artifacts
+    resetPixiOverlay();
+
     await initMap(mapKey);
 
     const { dataBlob, regionBlob, missingRes, newDataRes } = await fetchAllData(
@@ -87,10 +98,9 @@ export const loadMapData = async (mapKey, onProgress) => {
         };
       }
     });
+
     setState("regionMetaInfo", currentMeta);
-
     setState("uniqueRegions", uniqueRegions);
-
     initializeFiltersFromStorage(mapKey);
 
     perfTimer.end(totalTimer);

@@ -1,4 +1,9 @@
 import { state } from "./state.js";
+import Papa from "https://esm.run/papaparse@5.4.1";
+import { josa } from "https://esm.run/es-hangul@2.3.0";
+import pointInPolygon from "https://esm.run/point-in-polygon@1.1.0";
+import { debounce } from "https://esm.run/lodash-es@4.17.22";
+import axios from "https://esm.run/axios@1.12.0";
 
 export const t = (key) => {
   if (!key) return "";
@@ -8,90 +13,37 @@ export const t = (key) => {
 
 export const getJosa = (word, type) => {
   if (!word || typeof word !== "string") return type.split("/")[0];
-  const lastChar = word.charCodeAt(word.length - 1);
-  if (lastChar < 0xac00 || lastChar > 0xd7a3) return type.split("/")[0];
-  const hasJongsung = (lastChar - 0xac00) % 28 !== 0;
-  const [josa1, josa2] = type.split("/");
-  return hasJongsung ? josa1 : josa2;
+  // es-hangul returns "word+particle", so we slice off the word to get just the particle
+  // to maintain backward compatibility with the existing getJosa signature
+  const full = josa(word, type);
+  return full.slice(word.length);
 };
-
 export const isPointInPolygon = (point, vs) => {
-  let x = point[0],
-    y = point[1];
-  let inside = false;
-  for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-    let xi = vs[i][0],
-      yi = vs[i][1];
-    let xj = vs[j][0],
-      yj = vs[j][1];
-    let intersect =
-      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-    if (intersect) inside = !inside;
-  }
-  return inside;
+  return pointInPolygon(point, vs);
 };
 
 export const parseCSV = (str) => {
-  const arr = [];
-  let quote = false;
-  let col = 0,
-    c = 0;
-
-  for (let row = 0; row < str.length; row++) {
-    let cc = str[row],
-      nc = str[row + 1];
-    
-    arr[col] ??= [];
-    arr[col][c] ??= "";
-
-    if (cc == '"' && quote && nc == '"') {
-      arr[col][c] += cc;
-      ++row;
-    } else if (cc == "\\" && quote && nc == '"') {
-      arr[col][c] += nc;
-      ++row;
-    } else if (cc == '"') {
-      quote = !quote;
-    } else if (cc == "," && !quote) {
-      ++c;
-    } else if (cc == "\r" && nc == "\n" && !quote) {
-      ++col;
-      c = 0;
-      ++row;
-    } else if ((cc == "\n" || cc == "\r") && !quote) {
-      ++col;
-      c = 0;
-    } else {
-      arr[col][c] += cc;
-    }
-  }
-  return arr;
+  const results = Papa.parse(str, {
+    header: false,
+    skipEmptyLines: false,
+  });
+  return results.data;
 };
 
 export const fetchWithProgress = async (url, onProgress) => {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`${url} 로드 실패: ${response.statusText}`);
-
-  const contentLength = response.headers.get("content-length");
-  const total = contentLength ? parseInt(contentLength, 10) : 0;
-  let loaded = 0;
-
-  const reader = response.body.getReader();
-  const chunks = [];
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    chunks.push(value);
-    loaded += value.length;
-    if (total && onProgress) {
-      onProgress(loaded, total);
-    }
+  try {
+    const response = await axios.get(url, {
+      responseType: "blob",
+      onDownloadProgress: (progressEvent) => {
+        if (onProgress) {
+          onProgress(progressEvent.loaded, progressEvent.total || 0);
+        }
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw new Error(`${url} 로드 실패: ${error.message}`);
   }
-
-  const blob = new Blob(chunks);
-  return blob;
 };
 
 export const fetchAndParseCSVChunks = async (
@@ -103,7 +55,7 @@ export const fetchAndParseCSVChunks = async (
   const blob = await fetchWithProgress(url, onProgress);
 
   let text = await blob.text();
-  
+
   if (text.charCodeAt(0) === 0xfeff) {
     text = text.slice(1);
   }
@@ -141,7 +93,6 @@ export const fetchAndParseCSVChunks = async (
   if (onComplete) onComplete();
 };
 
-
 let cachedIp = null;
 let cachedMaskedIp = null;
 
@@ -149,24 +100,52 @@ export const fetchUserIp = async (masked = true) => {
   if (masked && cachedMaskedIp) return cachedMaskedIp;
   if (!masked && cachedIp) return cachedIp;
 
-  const getMasked = (ip) => ip.split(".").slice(0, 2).join(".");
+  const getMasked = (ip) => {
+    if (ip.includes(":")) {
+      // Handle IPv6
+      let fullIp = ip;
+      // Remove zone identifier if present
+      const zoneIndex = fullIp.indexOf("%");
+      if (zoneIndex !== -1) {
+        fullIp = fullIp.substring(0, zoneIndex);
+      }
+
+      const parts = fullIp.split("::");
+      let segments = [];
+
+      if (parts.length === 2) {
+        const left = parts[0].split(":").filter((s) => s !== "");
+        const right = parts[1].split(":").filter((s) => s !== "");
+        const missing = 8 - (left.length + right.length);
+        const zeros = Array(missing).fill("0");
+        segments = [...left, ...zeros, ...right];
+      } else {
+        segments = fullIp.split(":");
+      }
+
+      // Just to be safe, ensure we have at least 3 segments
+      if (segments.length < 3) {
+        return segments.join(":");
+      }
+
+      return segments.slice(0, 3).join(":");
+    }
+    // IPv4: mask to first 2 octets
+    return ip.split(".").slice(0, 2).join(".");
+  };
 
   try {
-    
-    const response = await fetch("https://api.ipify.org?format=json");
-    if (!response.ok) throw new Error("ipify failed");
-    const data = await response.json();
+    const response = await axios.get("https://api.ipify.org?format=json");
+    const data = response.data;
     cachedIp = data.ip;
     cachedMaskedIp = getMasked(data.ip);
     return masked ? cachedMaskedIp : cachedIp;
   } catch (e) {
     console.warn("Primary IP fetch failed, trying backup...", e);
     try {
-      
-      const response = await fetch("https://api.db-ip.com/v2/free/self");
-      if (!response.ok) throw new Error("db-ip failed");
-      const data = await response.json();
-      const ip = data.ipAddress || data.ip; 
+      const response = await axios.get("https://api.db-ip.com/v2/free/self");
+      const data = response.data;
+      const ip = data.ipAddress || data.ip;
       cachedIp = ip;
       cachedMaskedIp = getMasked(ip);
       return masked ? cachedMaskedIp : cachedIp;
@@ -187,35 +166,24 @@ export const parseMarkdown = (text) => {
   if (!text) return "";
   let html = text;
 
-  
   html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
   html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
   html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
 
-  
   html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
   html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
 
-  
   html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
   html = html.replace(/_(.*?)_/g, "<em>$1</em>");
 
-  
   html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
 
-  
   html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
-
-  
   html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-
-  
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-  // Horizontal Rule (---)
   html = html.replace(/^---$/gm, "<hr>");
 
-  // Lists (Unordered)
+  // Lists
   html = html.replace(
     /(^|\n)((?:[-*] .+(?:\n|$))+)/g,
     (match, prefix, list) => {
@@ -230,11 +198,41 @@ export const parseMarkdown = (text) => {
     },
   );
 
-  
+  const sanitizeUrl = (url) => {
+    // Decode URL to catch encoded attacks
+    let decoded;
+    try {
+      decoded = decodeURIComponent(url.trim()).toLowerCase();
+    } catch {
+      decoded = url.trim().toLowerCase();
+    }
+    const dangerousProtocols = ["javascript:", "data:", "vbscript:", "file:"];
+    if (dangerousProtocols.some((p) => decoded.startsWith(p))) {
+      return "#";
+    }
+    return url;
+  };
+
+  const escapeHtml = (str) =>
+    str.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
+    (match, text, url) =>
+      `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${escapeHtml(text)}</a>`,
   );
 
   return html;
 };
+
+export { debounce };

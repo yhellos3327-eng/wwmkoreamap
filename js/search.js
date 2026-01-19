@@ -8,7 +8,8 @@ import { t } from "./utils.js";
 import { saveFilterState } from "./data.js";
 import { renderMapDataAndMarkers } from "./map.js";
 import { updateToggleButtonsState } from "./ui.js";
-
+import Fuse from "https://esm.run/fuse.js@7.1.0";
+import { debounce } from "https://esm.run/lodash-es@4.17.22";
 
 const SVG_ICONS = {
   map: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -32,33 +33,21 @@ const SVG_ICONS = {
     </svg>`,
 };
 
-
-const debounce = (func, wait) => {
-  let timeout;
-  const debouncedFn = (...args) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func.apply(this, args), wait);
-  };
-  debouncedFn.cancel = () => clearTimeout(timeout);
-  return debouncedFn;
-};
-
+// Custom debounce removed in favor of lodash debounce imported above
 
 const getCategoryItemsByRegion = (categoryId) => {
   const regionCounts = {};
   for (const m of state.allMarkers.values()) {
     if (m.category === categoryId) {
       const region = m.region ?? "알 수 없음";
-      regionCounts[region] ??= 0; 
+      regionCounts[region] ??= 0;
       regionCounts[region]++;
     }
   }
   return regionCounts;
 };
 
-
 let expandedCategories = new Set();
-
 
 const renderSearchResults = (term, searchInput, searchResults) => {
   if (!term || term.length < 1) {
@@ -69,24 +58,37 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     return;
   }
 
-  
-  const matchedRegions = Array.from(state.uniqueRegions)
-    .filter((r) => t(r).toLowerCase().includes(term))
-    .slice(0, 5);
+  // Fuse.js options for fuzzy search
+  const fuseOptions = {
+    includeScore: true,
+    threshold: 0.3,
+    keys: ["name", "id", "translatedName"],
+  };
 
-  
-  const matchedCategories = [];
-  
-  for (const cat of state.mapData?.categories ?? []) {
-    if (matchedCategories.length >= 8) break;
-    const catId = cat.id ?? "";
-    const catName = t(cat.name ?? cat.id).toLowerCase();
-    if (catName.includes(term) || catId.toLowerCase().includes(term)) {
-      matchedCategories.push(cat);
-    }
-  }
+  // Prepare data for Fuse
+  const regionData = Array.from(state.uniqueRegions).map((r) => ({
+    id: r,
+    name: r,
+    translatedName: t(r),
+    type: "region",
+  }));
 
-  
+  const categoryData = (state.mapData?.categories ?? []).map((c) => ({
+    id: c.id,
+    name: c.name || c.id,
+    translatedName: t(c.name || c.id),
+    type: "category",
+  }));
+
+  const regionFuse = new Fuse(regionData, fuseOptions);
+  const categoryFuse = new Fuse(categoryData, fuseOptions);
+
+  const regionResults = regionFuse.search(term).map((r) => r.item.id);
+  const categoryResults = categoryFuse.search(term).map((r) => r.item);
+
+  const matchedRegions = regionResults.slice(0, 5);
+  const matchedCategories = categoryResults.slice(0, 8);
+
   if (matchedRegions.length === 0 && matchedCategories.length === 0) {
     searchResults.innerHTML = `
             <div class="search-no-results">
@@ -98,10 +100,8 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     return;
   }
 
-  
   let html = "";
 
-  
   if (matchedRegions.length > 0) {
     html += `
             <div class="search-section">
@@ -138,7 +138,6 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     html += "</div></div>";
   }
 
-  
   if (matchedCategories.length > 0) {
     matchedCategories.forEach((cat) => {
       const catId = cat.id;
@@ -171,7 +170,6 @@ const renderSearchResults = (term, searchInput, searchResults) => {
                     <div class="search-section-items">
             `;
 
-      
       displayRegions.forEach((region) => {
         const count = regionCounts[region];
         const isActive =
@@ -194,7 +192,6 @@ const renderSearchResults = (term, searchInput, searchResults) => {
                 `;
       });
 
-      
       if (hasMore) {
         const remainingCount = regions.length - 6;
         html += `
@@ -210,7 +207,6 @@ const renderSearchResults = (term, searchInput, searchResults) => {
 
   searchResults.innerHTML = html;
 
-  
   searchResults.querySelectorAll(".search-embed-item").forEach((item) => {
     item.addEventListener("click", () => {
       const type = item.dataset.type;
@@ -231,10 +227,9 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     });
   });
 
-  
   searchResults.querySelectorAll(".search-more-regions").forEach((btn) => {
     btn.addEventListener("mousedown", (e) => {
-      e.preventDefault(); 
+      e.preventDefault();
       e.stopPropagation();
     });
     btn.addEventListener("click", (e) => {
@@ -242,10 +237,10 @@ const renderSearchResults = (term, searchInput, searchResults) => {
       e.stopPropagation();
       const catId = btn.dataset.category;
       expandedCategories.add(catId);
-      
+
       const term = searchInput.value.trim().toLowerCase();
       renderSearchResults(term, searchInput, searchResults);
-      
+
       searchInput.focus();
     });
   });
@@ -253,7 +248,6 @@ const renderSearchResults = (term, searchInput, searchResults) => {
   showSearchResults(searchResults);
   highlightMatchingMarkers(term);
 };
-
 
 const showSearchResults = (searchResults) => {
   searchResults.classList.remove("hidden");
@@ -263,7 +257,6 @@ const showSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "auto";
 };
 
-
 const hideSearchResults = (searchResults) => {
   searchResults.classList.add("hidden");
   searchResults.style.display = "none";
@@ -272,21 +265,17 @@ const hideSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "none";
 };
 
-
 const restoreAllFilters = () => {
-  
   state.activeCategoryIds.clear();
   state.mapData?.categories?.forEach((cat) => {
     state.activeCategoryIds.add(cat.id);
   });
 
-  
   state.activeRegionNames.clear();
   state.uniqueRegions.forEach((region) => {
     state.activeRegionNames.add(region);
   });
 
-  
   const catBtns = document.querySelectorAll("#category-list .cate-item");
   catBtns.forEach((btn) => btn.classList.add("active"));
 
@@ -298,16 +287,14 @@ const restoreAllFilters = () => {
   saveFilterState();
 };
 
-
 const resetMarkerOpacity = () => {
   state.allMarkers.forEach((m) => {
     if (m.marker) m.marker.setOpacity(1);
     else if (m.sprite) m.sprite.alpha = 1;
   });
-  
+
   state.pixiOverlay?.redraw();
 };
-
 
 const highlightMatchingMarkers = (term) => {
   if (!term) {
@@ -334,10 +321,8 @@ const highlightMatchingMarkers = (term) => {
     }
   });
 
-  
   state.pixiOverlay?.redraw();
 };
-
 
 const handleRegionClick = (region, searchInput, searchResults) => {
   searchInput.value = t(region);
@@ -370,7 +355,6 @@ const handleRegionClick = (region, searchInput, searchResults) => {
   }
 };
 
-
 const handleCategoryRegionClick = (
   categoryId,
   region,
@@ -383,14 +367,12 @@ const handleCategoryRegionClick = (
   hideSearchResults(searchResults);
   resetMarkerOpacity();
 
-  
   state.activeCategoryIds.clear();
   state.activeCategoryIds.add(categoryId);
 
   state.activeRegionNames.clear();
   state.activeRegionNames.add(region);
 
-  
   const catBtns = document.querySelectorAll("#category-list .cate-item");
   catBtns.forEach((btn) => {
     if (btn.dataset.id === categoryId) {
@@ -400,7 +382,6 @@ const handleCategoryRegionClick = (
     }
   });
 
-  
   const regBtns = document.querySelectorAll("#region-list .cate-item");
   regBtns.forEach((btn) => {
     if (btn.dataset.region === region) {
@@ -414,7 +395,6 @@ const handleCategoryRegionClick = (
   renderMapDataAndMarkers();
   saveFilterState();
 
-  
   const meta = state.regionMetaInfo[region];
   if (meta) {
     state.map.flyTo([meta.lat, meta.lng], meta.zoom, {
@@ -423,7 +403,6 @@ const handleCategoryRegionClick = (
     });
   }
 };
-
 
 export const initSearch = () => {
   const searchInput = document.getElementById("search-input");
@@ -436,24 +415,20 @@ export const initSearch = () => {
     return;
   }
 
-  
   const debouncedSearch = debounce((term) => {
     renderSearchResults(term, searchInput, searchResults);
   }, 200);
 
-  
   searchInput.addEventListener("input", (e) => {
     const term = e.target.value.trim().toLowerCase();
     console.log("[Search] Input term:", term);
 
     if (term === "") {
-      
       debouncedSearch.cancel();
       hideSearchResults(searchResults);
       resetMarkerOpacity();
       expandedCategories.clear();
 
-      
       restoreAllFilters();
       return;
     }
@@ -461,7 +436,6 @@ export const initSearch = () => {
     debouncedSearch(term);
   });
 
-  
   let isClickInsideResults = false;
 
   searchResults.addEventListener("mousedown", () => {
@@ -477,7 +451,6 @@ export const initSearch = () => {
     }, 150);
   });
 
-  
   searchInput.addEventListener("focus", () => {
     const term = searchInput.value.trim().toLowerCase();
     if (term.length >= 1) {
@@ -485,7 +458,6 @@ export const initSearch = () => {
     }
   });
 };
-
 
 export const initModalSearch = (renderModalList) => {
   const modalSearchInput = document.getElementById("modal-search-input");

@@ -10,9 +10,8 @@ export const initMap = async (mapKey) => {
   const targetCRS = config.crs === "Simple" ? L.CRS.Simple : L.CRS.EPSG3857;
 
   if (state.map && state.map.options.crs !== targetCRS) {
-    
     const pixi = await import("./pixiOverlay.js");
-    if (pixi.disposePixiOverlay) pixi.disposePixiOverlay();
+    if (pixi.disposePixiOverlay) await pixi.disposePixiOverlay();
     if (pixi.resetEventHandlers) pixi.resetEventHandlers();
 
     state.map.remove();
@@ -52,9 +51,6 @@ export const initMap = async (mapKey) => {
         mapContainer.classList.remove("low-quality-mode");
       }
 
-      
-      
-
       import("./regions.js").then(({ updateRegionOverlay }) =>
         updateRegionOverlay(),
       );
@@ -77,6 +73,8 @@ export const initMap = async (mapKey) => {
     });
   } else {
     state.map.setView(config.center, config.zoom);
+    if (config.minZoom !== undefined) state.map.setMinZoom(config.minZoom);
+    if (config.maxZoom !== undefined) state.map.setMaxZoom(config.maxZoom);
   }
 
   if (state.currentTileLayer) {

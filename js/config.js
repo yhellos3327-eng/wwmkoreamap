@@ -217,6 +217,7 @@ export const MAP_CONFIGS = {
     newDataFile: "./data4.csv",
     regionFile: "./regions2.json",
     minZoom: 9,
+    maxZoom: 14,
     maxNativeZoom: 13,
     center: [0.5, -0.5],
     zoom: 11,

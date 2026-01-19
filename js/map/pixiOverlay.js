@@ -23,6 +23,7 @@ export {
   disposePixiOverlay,
   getPixiOverlay,
   getPixiContainer,
+  resetPixiOverlay,
   attachEventHandlers,
   detachEventHandlers,
   isEventHandlersAttached,
