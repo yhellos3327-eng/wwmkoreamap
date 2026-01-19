@@ -194,12 +194,11 @@ export const setDeep = (path, value) => {
   const rootValue = store.getState()[rootKey];
 
   // Helper to deep clone/update
-  // Helper to deep clone/update
   const deepUpdate = (obj, pathKeys, val) => {
     if (pathKeys.length === 0) return val;
     const [current, ...rest] = pathKeys;
     // Handle case where obj is undefined/null
-    const safeObj = obj || {};
+    const safeObj = obj ?? {};
     const newObj = Array.isArray(safeObj) ? [...safeObj] : { ...safeObj };
     newObj[current] = deepUpdate(safeObj[current], rest, val);
     return newObj;

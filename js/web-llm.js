@@ -1133,19 +1133,15 @@ function setupEventListeners() {
   }
 }
 
-/**
- * WebLLM 모듈 초기화
- */
-let initializationPromise = null;
+let isInitialized = false;
+let initPromise = null;
 
-/**
- * WebLLM 모듈 초기화
- */
 export async function initWebLLM() {
-  if (isInitialized) return;
-  if (initializationPromise) return initializationPromise;
+  if (initPromise) return initPromise;
 
-  initializationPromise = (async () => {
+  initPromise = (async () => {
+    if (isInitialized) return;
+
     logger.log("WebLLM", "WebLLM 초기화 시작");
 
     setupEventListeners();
@@ -1162,7 +1158,7 @@ export async function initWebLLM() {
     logger.success("WebLLM", "WebLLM 초기화 완료");
   })();
 
-  return initializationPromise;
+  return initPromise;
 }
 
 export {

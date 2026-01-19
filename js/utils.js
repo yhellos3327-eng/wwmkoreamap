@@ -102,8 +102,33 @@ export const fetchUserIp = async (masked = true) => {
 
   const getMasked = (ip) => {
     if (ip.includes(":")) {
-      // IPv6: mask to first 3 segments (approx /48)
-      return ip.split(":").slice(0, 3).join(":");
+      // Handle IPv6
+      let fullIp = ip;
+      // Remove zone identifier if present
+      const zoneIndex = fullIp.indexOf("%");
+      if (zoneIndex !== -1) {
+        fullIp = fullIp.substring(0, zoneIndex);
+      }
+
+      const parts = fullIp.split("::");
+      let segments = [];
+
+      if (parts.length === 2) {
+        const left = parts[0].split(":").filter((s) => s !== "");
+        const right = parts[1].split(":").filter((s) => s !== "");
+        const missing = 8 - (left.length + right.length);
+        const zeros = Array(missing).fill("0");
+        segments = [...left, ...zeros, ...right];
+      } else {
+        segments = fullIp.split(":");
+      }
+
+      // Just to be safe, ensure we have at least 3 segments
+      if (segments.length < 3) {
+        return segments.join(":");
+      }
+
+      return segments.slice(0, 3).join(":");
     }
     // IPv4: mask to first 2 octets
     return ip.split(".").slice(0, 2).join(".");
@@ -154,15 +179,11 @@ export const parseMarkdown = (text) => {
   html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
 
   html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
-
   html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-
   html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-  // Horizontal Rule (---)
   html = html.replace(/^---$/gm, "<hr>");
 
-  // Lists (Unordered)
+  // Lists
   html = html.replace(
     /(^|\n)((?:[-*] .+(?:\n|$))+)/g,
     (match, prefix, list) => {
@@ -178,17 +199,37 @@ export const parseMarkdown = (text) => {
   );
 
   const sanitizeUrl = (url) => {
-    const trimmed = url.trim().toLowerCase();
-    if (trimmed.startsWith("javascript:") || trimmed.startsWith("data:")) {
+    // Decode URL to catch encoded attacks
+    let decoded;
+    try {
+      decoded = decodeURIComponent(url.trim()).toLowerCase();
+    } catch {
+      decoded = url.trim().toLowerCase();
+    }
+    const dangerousProtocols = ["javascript:", "data:", "vbscript:", "file:"];
+    if (dangerousProtocols.some((p) => decoded.startsWith(p))) {
       return "#";
     }
     return url;
   };
 
+  const escapeHtml = (str) =>
+    str.replace(
+      /[&<>"']/g,
+      (c) =>
+        ({
+          "&": "&amp;",
+          "<": "&lt;",
+          ">": "&gt;",
+          '"': "&quot;",
+          "'": "&#39;",
+        })[c],
+    );
+
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     (match, text, url) =>
-      `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${text}</a>`,
+      `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${escapeHtml(text)}</a>`,
   );
 
   return html;
