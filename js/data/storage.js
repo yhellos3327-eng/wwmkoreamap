@@ -47,12 +47,12 @@ export const loadCategoryFilters = (mapKey) => {
           }
         });
       }
-      
-      validCategoryIds.forEach((id) => {
-        if (!savedCatsSet.has(id)) {
-          state.activeCategoryIds.add(id);
-        }
-      });
+
+      // validCategoryIds.forEach((id) => {
+      //   if (!savedCatsSet.has(id)) {
+      //     state.activeCategoryIds.add(id);
+      //   }
+      // });
     } catch (e) {
       console.error("Failed to parse saved categories:", e);
       if (validCategoryIds.has(DEFAULT_CAT_ID)) {
@@ -80,7 +80,7 @@ export const loadRegionFilters = (mapKey) => {
   }
 
   const savedRegs = JSON.parse(savedRegsRaw) || [];
-  const savedRegsSet = new Set(savedRegs);
+  // const savedRegsSet = new Set(savedRegs);
 
   savedRegs.forEach((r) => {
     if (state.uniqueRegions.has(r)) {
@@ -88,11 +88,11 @@ export const loadRegionFilters = (mapKey) => {
     }
   });
 
-  state.uniqueRegions.forEach((r) => {
-    if (!savedRegsSet.has(r)) {
-      state.activeRegionNames.add(r);
-    }
-  });
+  // state.uniqueRegions.forEach((r) => {
+  //   if (!savedRegsSet.has(r)) {
+  //     state.activeRegionNames.add(r);
+  //   }
+  // });
 };
 
 export const initializeFiltersFromStorage = (mapKey) => {
