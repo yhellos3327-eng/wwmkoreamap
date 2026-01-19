@@ -11,6 +11,7 @@ export {
   disposePixiOverlay,
   getPixiOverlay,
   getPixiContainer,
+  resetPixiOverlay,
 } from "./overlayCore.js";
 
 export {
