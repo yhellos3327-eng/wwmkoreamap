@@ -1,8 +1,3 @@
-/**
- * WebLLM RAG Module - 사전 캐시 + 완전한 후처리 로직
- * 참조: backup/cf6688bd817a6c00.js, backup/537384ee85d67bd9.js
- */
-
 import { state, subscribe } from "./state.js";
 import { logger } from "./logger.js";
 import { webWorkerManager } from "./web-worker-manager.js";
@@ -84,8 +79,12 @@ const categoryIdToKoreanMap = new Map();
 const infoIdToKoreanMap = new Map();
 
 /**
- * 카테고리/정보 ID 맵 초기화
- * state.koDict와 state.categoryItemTranslations를 기반으로 맵 생성
+ * Initialize mappings from category and info IDs to their Korean display names.
+ *
+ * Populates the module-level maps `categoryIdToKoreanMap` and `infoIdToKoreanMap`
+ * using available translation sources in `state` (including `koDict`,
+ * `categoryItemTranslations`, and `mapData`). Existing entries in both maps are
+ * cleared before population. The function also logs the resulting map sizes.
  */
 function initializeIdMaps() {
   categoryIdToKoreanMap.clear();
@@ -180,42 +179,60 @@ export function getInfoKorean(infoId) {
 }
 
 /**
- * 아이템 데이터를 RAG용 텍스트로 변환 (완전한 한국어 후처리)
+ * Convert an item object into a single RAG-formatted Korean text line.
+ *
+ * Builds a compact, pipe-separated string containing available item fields
+ * (ID, Korean name / NPC, category, region, coordinates, and sanitized description).
+ *
+ * @param {Object} item - Item data; commonly includes: `id`, `nameKo`, `name`, `category`, `regionName`, `region`, `x`, `y`, `description`.
+ * @returns {string} The formatted RAG text (pipe-separated). Returns an empty string if `item` is falsy or contains no usable fields.
  */
 export function itemToRAGText(item) {
   if (!item) return "";
 
   const parts = [];
 
-  if (item.id) parts.push(`ID: ${item.id}`);
+  // ID와 이름 (가장 중요)
+  if (item.id) parts.push(`ID:${item.id}`);
   const name = item.nameKo ?? getInfoKorean(item.id) ?? item.name ?? item.id;
-  if (name) parts.push(`이름/NPC: ${name}`);
+  if (name) parts.push(`이름:${name}`);
 
+  // 카테고리 및 지역
   if (item.category) {
     const catKorean = getCategoryKorean(item.category);
-    parts.push(`카테고리: ${catKorean}`);
+    parts.push(`유형:${catKorean}`);
   }
 
   if (item.regionName || item.region) {
     const region = item.regionName || item.region;
     const regionKorean = state.koDict?.[region] || region;
-    parts.push(`지역: ${regionKorean}`);
+    parts.push(`지역:${regionKorean}`);
   }
 
+  // 좌표 (덜 중요하지만 위치 파악용)
   if (item.x !== undefined && item.y !== undefined) {
-    parts.push(`좌표: [${item.x.toFixed(4)}, ${item.y.toFixed(4)}]`);
+    parts.push(`좌표:[${item.x.toFixed(1)},${item.y.toFixed(1)}]`);
   }
 
+  // 설명 (매우 중요)
   if (item.description) {
     const desc = item.description.replace(/<[^>]*>/g, " ").trim();
-    if (desc) parts.push(`설명: ${desc}`);
+    if (desc) parts.push(`설명:${desc}`);
   }
 
   return parts.join(" | ");
 }
 
 /**
- * 여러 아이템을 컨텍스트 문자열로 변환
+ * Format a list of items into a RAG context string for LLM consumption.
+ *
+ * The returned string begins with a header stating the total number of matched items,
+ * followed by numbered lines describing up to `maxItems` items, and ends with a
+ * summary line indicating how many items were omitted when the list is truncated.
+ *
+ * @param {Array<Object>} items - Array of item objects to include in the context.
+ * @param {number} [maxItems=20] - Maximum number of items to include in the detailed list.
+ * @returns {string} A formatted context string containing the total count, numbered item entries, and an omission summary when applicable.
  */
 export function itemsToContext(items, maxItems = 20) {
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -263,7 +280,12 @@ async function checkWebGPUSupport() {
 }
 
 /**
- * WebLLM 모듈 동적 로드
+ * Dynamically loads and caches the WebLLM runtime module.
+ *
+ * If the module was previously loaded, the cached instance is returned.
+ *
+ * @returns {Promise<unknown>} The loaded WebLLM module.
+ * @throws {Error} The original import error if the module fails to load.
  */
 async function loadWebLLMModule() {
   if (webllmModule) return webllmModule;
@@ -279,7 +301,9 @@ async function loadWebLLMModule() {
 }
 
 /**
- * 모델이 캐시에 있는지 확인
+ * Check whether a model is present in the local WebLLM model cache.
+ * @param {string} modelId - The identifier of the model to check.
+ * @returns {boolean} `true` if the model is found in the cache, `false` otherwise (also `false` if an error occurs).
  */
 async function hasModelInCache(modelId) {
   try {
@@ -308,7 +332,12 @@ function getStoredModelId() {
 }
 
 /**
- * 모델 설치 상태 확인
+ * Check the installation status of a model by its identifier.
+ * @param {string} modelId - The model identifier to check.
+ * @returns {{kind: "installed"} | {kind: "not-installed"} | {kind: "error", message: string}} The install state:
+ * - `{kind: "installed"}` if the model is cached,
+ * - `{kind: "not-installed"}` if it is not cached,
+ * - `{kind: "error", message}` if the check failed.
  */
 async function getInstallState(modelId) {
   try {
@@ -339,7 +368,11 @@ function createProgressCallback(onProgress) {
 }
 
 /**
- * 엔진 생성 또는 재사용
+ * Create or reuse the ML engine for the specified model id.
+ * @param {string} modelId - Identifier of the model to load or reuse.
+ * @param {function} [onProgress] - Optional callback invoked with progress updates (object with `text` and `ratio` properties).
+ * @returns {object} The created or reused MLCEngine instance.
+ * @throws {Error} If an engine is already loading or if engine creation fails.
  */
 async function getOrCreateEngine(modelId, onProgress) {
   if (isEngineLoading) {
@@ -404,8 +437,15 @@ async function getOrCreateEngine(modelId, onProgress) {
 }
 
 /**
- * 사전 캐시 - 페이지 로드 시 호출하여 모델을 미리 준비
- * 이렇게 하면 채팅 시작 시 대기열이 없음
+ * Preloads and warms the selected model so chat generation starts without delay.
+ *
+ * Attempts to ensure a model engine is created and ready. If WebGPU is unavailable the operation is skipped. By default it will skip work when the model is already cached unless `force` is true. Progress, completion, and error events can be observed via callbacks.
+ *
+ * @param {Object} [options] - Precache options.
+ * @param {boolean} [options.force=false] - If true, recreate or warm the engine even when the model appears cached.
+ * @param {(progress: { text?: string, percent?: number }) => void} [options.onProgress] - Called with progress updates during engine creation.
+ * @param {() => void} [options.onComplete] - Called when precache completes successfully.
+ * @param {(err: any) => void} [options.onError] - Called if precache fails with an error.
  */
 export async function preCacheModel(options = {}) {
   const { force = false, onProgress, onComplete, onError } = options;
@@ -458,7 +498,9 @@ export async function preCacheModel(options = {}) {
 }
 
 /**
- * 백그라운드 사전 캐시 - requestIdleCallback 사용
+ * Schedules a background model precache to run after an optional delay, using requestIdleCallback when available.
+ * @param {Object} [options] - Configuration for scheduling.
+ * @param {number} [options.delay=5000] - Milliseconds to wait before scheduling the precache.
  */
 export function schedulePreCache(options = {}) {
   const { delay = 5000 } = options;
@@ -478,7 +520,14 @@ export function schedulePreCache(options = {}) {
 }
 
 /**
- * 사용자 쿼리에 기반하여 관련 아이템 검색 (RAG)
+ * Finds map items relevant to a user's query for retrieval-augmented generation (RAG) context.
+ *
+ * Attempts a targeted search using region and category keyword heuristics (e.g., treasure, box, fishing),
+ * including handling of "ground"/"underground" qualifiers, and falls back to a scored relevance search
+ * across item name, region, category, description, and id when no precise match is found.
+ *
+ * @param {string} query - The user's search query string.
+ * @returns {Array<Object>} An array of map item objects that match the query, which may be empty if no relevant items are found.
  */
 function searchItemsForContext(query) {
   if (!state.mapData?.items) return [];
@@ -632,10 +681,18 @@ function searchItemsForContext(query) {
     const desc = (item.description || "").toLowerCase();
 
     queryTerms.forEach((term) => {
-      if (name.includes(term)) score += 10;
-      if (region.includes(term)) score += 8;
-      if (category.includes(term)) score += 12;
-      if (desc.includes(term)) score += 3;
+      // 정확한 일치에 높은 가중치
+      if (name === term) score += 30;
+      else if (name.startsWith(term)) score += 20;
+      else if (name.includes(term)) score += 10;
+
+      if (region === term) score += 15;
+      else if (region.includes(term)) score += 8;
+
+      if (category === term) score += 20;
+      else if (category.includes(term)) score += 12;
+
+      if (desc.includes(term)) score += 5;
       if (item.id && String(item.id).includes(term)) score += 15;
     });
 
@@ -652,7 +709,9 @@ function searchItemsForContext(query) {
 }
 
 /**
- * 시스템 프롬프트 생성
+ * Build the system prompt used by the LLM, customized for the current map and model size.
+ * @param {string} context - Formatted RAG context containing relevant map items and their details.
+ * @returns {string} The complete system prompt in Korean tailored to either a compact or full instruction set depending on the selected model.
  */
 function buildSystemPrompt(context) {
   const mapKey = state.currentMapKey ?? "qinghe";
@@ -661,39 +720,51 @@ function buildSystemPrompt(context) {
   const isSmallModel = currentModelId && currentModelId.includes("0.5B");
 
   if (isSmallModel) {
-    return `당신은 ${mapName} 지도 도우미입니다. 반드시 다음 규칙을 지켜 한국어로 답변하세요.
+    return `당신은 ${mapName} 지도 도우미입니다. 한국어로 답변하세요.
 
 ## 데이터
 ${context}
 
 ## 규칙
-1. 아이템 개수를 가장 먼저 말하세요.
-2. [아이템이름](jumpToId:ID) 형식의 링크를 반드시 포함하세요.
-3. 아이템 설명과 NPC 이름을 포함하세요.
-4. 모르는 내용은 모른다고 하세요.
-
-## 답변 예시
-"완석포에 1개의 낚시터가 있습니다. 
-- [초수양](jumpToId:181105668096) (NPC): 아이 앞에서 태극권을 사용하세요."`;
+1. 아이템 개수 요약
+2. [이름](jumpToId:ID) 링크 필수
+3. 설명 포함
+4. 모르면 모른다고 하기`;
   }
 
-  return `당신은 ${mapName} 지도의 도우미 AI입니다.
-사용자가 특정 위치나 아이템에 대해 질문하면, 아래 컨텍스트를 참고하여 한국어로 친절하게 답변하세요.
+  return `당신은 ${mapName} 지도의 전문가 AI 가이드입니다.
+사용자의 질문에 대해 제공된 [검색 결과]를 바탕으로 정확하고 도움이 되는 답변을 제공하세요.
 
-## 현재 지도 정보 (검색 결과)
+## 역할 및 태도
+- 친절하고 전문적인 가이드처럼 행동하세요.
+- 추측하지 말고, 오직 제공된 데이터에 기반해서만 답변하세요.
+- 데이터가 부족하면 "정보가 없습니다"라고 솔직히 말하세요.
+
+## 답변 작성 규칙
+1. **요약 먼저**: 질문과 관련된 아이템이 총 몇 개인지 먼저 요약하세요.
+2. **링크 필수**: 위치나 아이템을 언급할 때는 반드시 \`[이름](jumpToId:ID)\` 형식을 사용하세요. (예: [상자](jumpToId:12345))
+3. **상세 정보**: 아이템의 설명, NPC 이름, 획득 방법 등이 있다면 포함하세요.
+4. **논리적 구성**: 
+   - 사용자의 의도를 파악하고,
+   - 검색 결과에서 관련 정보를 찾은 뒤,
+   - 이를 종합하여 답변을 구성하세요.
+
+## 검색 결과 데이터
 ${context}
 
-## 지침
-- 질문과 관련된 아이템이 몇 개인지 수량을 먼저 언급하세요 (예: "완석포 지역에는 2개의 낚시 포인트가 있습니다.")
-- 위치 정보를 제공할 때는 반드시 \`[아이템이름](jumpToId:아이템ID)\` 형식을 사용하여 사용자가 바로 이동할 수 있게 하세요. (예: "[초수양](jumpToId:181105668096)")
-- 아이템의 '이름/NPC' 필드는 해당 위치에 있는 NPC의 이름일 가능성이 높습니다.
-- 아이템의 '설명' 정보가 있다면 반드시 답변에 포함하세요.
-- 찾을 수 없는 정보는 솔직히 모른다고 말하세요
-- 항상 한국어로 답변하세요`;
+항상 한국어로 답변하세요.`;
 }
 
 /**
- * 채팅 메시지 전송
+ * Send a chat message to the WebLLM engine using optional RAG context and streaming callbacks.
+ * @param {string} userMessage - The user's message to send to the model.
+ * @param {Object} [options] - Optional settings for the request.
+ * @param {Array} [options.items] - Context items to include for RAG; formatted via itemsToContext.
+ * @param {function(Object): void} [options.onStream] - Called repeatedly with streaming updates: `{ content, thinking, isThinking }` where `content` is the assistant-visible text, `thinking` is interim thinking text, and `isThinking` indicates whether a thinking block is active.
+ * @param {function(Object): void} [options.onComplete] - Called once when generation finishes with the final result: `{ content, thinking }`.
+ * @param {function(Error): void} [options.onError] - Called on errors that occur during engine retrieval or generation.
+ * @param {boolean} [options.enableThinking=false] - If true and the selected model supports it, enable the model's "thinking" mode (internal deliberation blocks).
+ * @returns {{content: string, thinking: string}} The final assistant-visible text in `content` and any accumulated thinking text in `thinking`.
  */
 export async function sendChatMessage(userMessage, options = {}) {
   const {
@@ -823,7 +894,9 @@ export function interruptGeneration() {
 }
 
 /**
- * 채팅 리셋
+ * Reset the active engine's chat context.
+ *
+ * If an engine is loaded, instructs it to clear its current conversation state; does nothing when no engine is available.
  */
 export function resetChat() {
   if (mlcEngine) {
@@ -840,7 +913,11 @@ let chatHistory = [];
 let isGenerating = false;
 
 /**
- * WebLLM 모달 열기
+ * Open the WebLLM modal, ensure the module is initialized, and start model precaching.
+ *
+ * Ensures WebLLM is initialized, makes the modal visible, initializes ID mappings,
+ * begins background model precaching (with UI progress/error hooks), updates UI status,
+ * and focuses the modal's textarea when available.
  */
 export async function openWebLLMModal() {
   if (!isInitialized) {
@@ -882,7 +959,10 @@ export function closeWebLLMModal() {
 }
 
 /**
- * UI 상태 업데이트
+ * Update the WebLLM UI status indicators based on environment, engine loading, and model install state.
+ *
+ * Adjusts the status text and visual indicators (status color, send button enabled state, loading message, and progress bar)
+ * to reflect WebGPU availability, ongoing engine loading progress, and whether the selected model is installed.
  */
 async function updateUIStatus() {
   const statusEl = document.querySelector(".web-llm-status");
@@ -950,7 +1030,11 @@ async function updateUIStatus() {
 }
 
 /**
- * 채팅 메시지 마크다운 및 특수 링크 파싱
+ * Convert chat message text with simple markdown and `jumpToId` links into sanitized HTML.
+ *
+ * Escapes HTML special characters, replaces newlines with `<br>`, renders `**bold**` as `<strong>` and `*italic*` as `<em>`, and converts links of the form `[text](jumpToId:<id>)` into clickable anchor elements that invoke `window.findItem(id)` when clicked.
+ * @param {string} content - The raw chat message text to format; may include newlines, `**bold**`, `*italic*`, and `jumpToId` links.
+ * @returns {string} The formatted HTML string.
  */
 function formatChatMessage(content) {
   if (!content) return "";
@@ -991,7 +1075,14 @@ function renderChatMessage(role, content) {
 }
 
 /**
- * 채팅 전송 핸들러
+ * Handle chat input submission and orchestrate sending the message to the model.
+ *
+ * Reads and validates the textarea input; if valid and not already generating or loading an engine,
+ * it renders the user's message, performs a retrieval-augmented search for relevant context items,
+ * inserts an assistant placeholder, sends the message to the model with streaming callbacks,
+ * updates the assistant message and chat history as partial and final responses arrive, and displays
+ * any errors inline. The function is a no-op when the input is empty or when a generation/engine load
+ * is already in progress.
  */
 async function handleChatSubmit() {
   const textarea = document.querySelector(".web-llm-textarea");
@@ -1077,7 +1168,15 @@ async function handleChatSubmit() {
 }
 
 /**
- * 이벤트 리스너 설정
+ * Attach UI event handlers for the WebLLM modal and chat controls.
+ *
+ * Sets up:
+ * - Click handler for the send button to submit chat.
+ * - Keyboard shortcut (Ctrl/Cmd+Enter) on the textarea to submit chat.
+ * - Click handler for the modal close button to close the WebLLM modal.
+ * - Population of the model selection dropdown with presets and a change handler that
+ *   persists the selected model, updates UI status, displays a system message, and
+ *   triggers model precaching with progress and completion callbacks.
  */
 function setupEventListeners() {
   const sendBtn = document.querySelector(".web-llm-send-btn");
@@ -1132,9 +1231,6 @@ function setupEventListeners() {
     });
   }
 }
-
-let isInitialized = false;
-let initPromise = null;
 
 export async function initWebLLM() {
   if (initPromise) return initPromise;
