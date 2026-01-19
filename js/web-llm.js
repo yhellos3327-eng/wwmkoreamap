@@ -79,8 +79,12 @@ const categoryIdToKoreanMap = new Map();
 const infoIdToKoreanMap = new Map();
 
 /**
- * 카테고리/정보 ID 맵 초기화
- * state.koDict와 state.categoryItemTranslations를 기반으로 맵 생성
+ * Initialize mappings from category and info IDs to their Korean display names.
+ *
+ * Populates the module-level maps `categoryIdToKoreanMap` and `infoIdToKoreanMap`
+ * using available translation sources in `state` (including `koDict`,
+ * `categoryItemTranslations`, and `mapData`). Existing entries in both maps are
+ * cleared before population. The function also logs the resulting map sizes.
  */
 function initializeIdMaps() {
   categoryIdToKoreanMap.clear();
@@ -175,7 +179,13 @@ export function getInfoKorean(infoId) {
 }
 
 /**
- * 아이템 데이터를 RAG용 텍스트로 변환 (완전한 한국어 후처리)
+ * Convert an item object into a single RAG-formatted Korean text line.
+ *
+ * Builds a compact, pipe-separated string containing available item fields
+ * (ID, Korean name / NPC, category, region, coordinates, and sanitized description).
+ *
+ * @param {Object} item - Item data; commonly includes: `id`, `nameKo`, `name`, `category`, `regionName`, `region`, `x`, `y`, `description`.
+ * @returns {string} The formatted RAG text (pipe-separated). Returns an empty string if `item` is falsy or contains no usable fields.
  */
 export function itemToRAGText(item) {
   if (!item) return "";
@@ -214,7 +224,15 @@ export function itemToRAGText(item) {
 }
 
 /**
- * 여러 아이템을 컨텍스트 문자열로 변환
+ * Format a list of items into a RAG context string for LLM consumption.
+ *
+ * The returned string begins with a header stating the total number of matched items,
+ * followed by numbered lines describing up to `maxItems` items, and ends with a
+ * summary line indicating how many items were omitted when the list is truncated.
+ *
+ * @param {Array<Object>} items - Array of item objects to include in the context.
+ * @param {number} [maxItems=20] - Maximum number of items to include in the detailed list.
+ * @returns {string} A formatted context string containing the total count, numbered item entries, and an omission summary when applicable.
  */
 export function itemsToContext(items, maxItems = 20) {
   if (!items || !Array.isArray(items) || items.length === 0) {
@@ -262,7 +280,12 @@ async function checkWebGPUSupport() {
 }
 
 /**
- * WebLLM 모듈 동적 로드
+ * Dynamically loads and caches the WebLLM runtime module.
+ *
+ * If the module was previously loaded, the cached instance is returned.
+ *
+ * @returns {Promise<unknown>} The loaded WebLLM module.
+ * @throws {Error} The original import error if the module fails to load.
  */
 async function loadWebLLMModule() {
   if (webllmModule) return webllmModule;
@@ -278,7 +301,9 @@ async function loadWebLLMModule() {
 }
 
 /**
- * 모델이 캐시에 있는지 확인
+ * Check whether a model is present in the local WebLLM model cache.
+ * @param {string} modelId - The identifier of the model to check.
+ * @returns {boolean} `true` if the model is found in the cache, `false` otherwise (also `false` if an error occurs).
  */
 async function hasModelInCache(modelId) {
   try {
@@ -307,7 +332,12 @@ function getStoredModelId() {
 }
 
 /**
- * 모델 설치 상태 확인
+ * Check the installation status of a model by its identifier.
+ * @param {string} modelId - The model identifier to check.
+ * @returns {{kind: "installed"} | {kind: "not-installed"} | {kind: "error", message: string}} The install state:
+ * - `{kind: "installed"}` if the model is cached,
+ * - `{kind: "not-installed"}` if it is not cached,
+ * - `{kind: "error", message}` if the check failed.
  */
 async function getInstallState(modelId) {
   try {
@@ -338,7 +368,11 @@ function createProgressCallback(onProgress) {
 }
 
 /**
- * 엔진 생성 또는 재사용
+ * Create or reuse the ML engine for the specified model id.
+ * @param {string} modelId - Identifier of the model to load or reuse.
+ * @param {function} [onProgress] - Optional callback invoked with progress updates (object with `text` and `ratio` properties).
+ * @returns {object} The created or reused MLCEngine instance.
+ * @throws {Error} If an engine is already loading or if engine creation fails.
  */
 async function getOrCreateEngine(modelId, onProgress) {
   if (isEngineLoading) {
@@ -403,8 +437,15 @@ async function getOrCreateEngine(modelId, onProgress) {
 }
 
 /**
- * 사전 캐시 - 페이지 로드 시 호출하여 모델을 미리 준비
- * 이렇게 하면 채팅 시작 시 대기열이 없음
+ * Preloads and warms the selected model so chat generation starts without delay.
+ *
+ * Attempts to ensure a model engine is created and ready. If WebGPU is unavailable the operation is skipped. By default it will skip work when the model is already cached unless `force` is true. Progress, completion, and error events can be observed via callbacks.
+ *
+ * @param {Object} [options] - Precache options.
+ * @param {boolean} [options.force=false] - If true, recreate or warm the engine even when the model appears cached.
+ * @param {(progress: { text?: string, percent?: number }) => void} [options.onProgress] - Called with progress updates during engine creation.
+ * @param {() => void} [options.onComplete] - Called when precache completes successfully.
+ * @param {(err: any) => void} [options.onError] - Called if precache fails with an error.
  */
 export async function preCacheModel(options = {}) {
   const { force = false, onProgress, onComplete, onError } = options;
@@ -457,7 +498,9 @@ export async function preCacheModel(options = {}) {
 }
 
 /**
- * 백그라운드 사전 캐시 - requestIdleCallback 사용
+ * Schedules a background model precache to run after an optional delay, using requestIdleCallback when available.
+ * @param {Object} [options] - Configuration for scheduling.
+ * @param {number} [options.delay=5000] - Milliseconds to wait before scheduling the precache.
  */
 export function schedulePreCache(options = {}) {
   const { delay = 5000 } = options;
@@ -477,7 +520,14 @@ export function schedulePreCache(options = {}) {
 }
 
 /**
- * 사용자 쿼리에 기반하여 관련 아이템 검색 (RAG)
+ * Finds map items relevant to a user's query for retrieval-augmented generation (RAG) context.
+ *
+ * Attempts a targeted search using region and category keyword heuristics (e.g., treasure, box, fishing),
+ * including handling of "ground"/"underground" qualifiers, and falls back to a scored relevance search
+ * across item name, region, category, description, and id when no precise match is found.
+ *
+ * @param {string} query - The user's search query string.
+ * @returns {Array<Object>} An array of map item objects that match the query, which may be empty if no relevant items are found.
  */
 function searchItemsForContext(query) {
   if (!state.mapData?.items) return [];
@@ -659,7 +709,9 @@ function searchItemsForContext(query) {
 }
 
 /**
- * 시스템 프롬프트 생성
+ * Build the system prompt used by the LLM, customized for the current map and model size.
+ * @param {string} context - Formatted RAG context containing relevant map items and their details.
+ * @returns {string} The complete system prompt in Korean tailored to either a compact or full instruction set depending on the selected model.
  */
 function buildSystemPrompt(context) {
   const mapKey = state.currentMapKey ?? "qinghe";
@@ -704,7 +756,15 @@ ${context}
 }
 
 /**
- * 채팅 메시지 전송
+ * Send a chat message to the WebLLM engine using optional RAG context and streaming callbacks.
+ * @param {string} userMessage - The user's message to send to the model.
+ * @param {Object} [options] - Optional settings for the request.
+ * @param {Array} [options.items] - Context items to include for RAG; formatted via itemsToContext.
+ * @param {function(Object): void} [options.onStream] - Called repeatedly with streaming updates: `{ content, thinking, isThinking }` where `content` is the assistant-visible text, `thinking` is interim thinking text, and `isThinking` indicates whether a thinking block is active.
+ * @param {function(Object): void} [options.onComplete] - Called once when generation finishes with the final result: `{ content, thinking }`.
+ * @param {function(Error): void} [options.onError] - Called on errors that occur during engine retrieval or generation.
+ * @param {boolean} [options.enableThinking=false] - If true and the selected model supports it, enable the model's "thinking" mode (internal deliberation blocks).
+ * @returns {{content: string, thinking: string}} The final assistant-visible text in `content` and any accumulated thinking text in `thinking`.
  */
 export async function sendChatMessage(userMessage, options = {}) {
   const {
@@ -834,7 +894,9 @@ export function interruptGeneration() {
 }
 
 /**
- * 채팅 리셋
+ * Reset the active engine's chat context.
+ *
+ * If an engine is loaded, instructs it to clear its current conversation state; does nothing when no engine is available.
  */
 export function resetChat() {
   if (mlcEngine) {
@@ -851,7 +913,11 @@ let chatHistory = [];
 let isGenerating = false;
 
 /**
- * WebLLM 모달 열기
+ * Open the WebLLM modal, ensure the module is initialized, and start model precaching.
+ *
+ * Ensures WebLLM is initialized, makes the modal visible, initializes ID mappings,
+ * begins background model precaching (with UI progress/error hooks), updates UI status,
+ * and focuses the modal's textarea when available.
  */
 export async function openWebLLMModal() {
   if (!isInitialized) {
@@ -893,7 +959,10 @@ export function closeWebLLMModal() {
 }
 
 /**
- * UI 상태 업데이트
+ * Update the WebLLM UI status indicators based on environment, engine loading, and model install state.
+ *
+ * Adjusts the status text and visual indicators (status color, send button enabled state, loading message, and progress bar)
+ * to reflect WebGPU availability, ongoing engine loading progress, and whether the selected model is installed.
  */
 async function updateUIStatus() {
   const statusEl = document.querySelector(".web-llm-status");
@@ -961,7 +1030,11 @@ async function updateUIStatus() {
 }
 
 /**
- * 채팅 메시지 마크다운 및 특수 링크 파싱
+ * Convert chat message text with simple markdown and `jumpToId` links into sanitized HTML.
+ *
+ * Escapes HTML special characters, replaces newlines with `<br>`, renders `**bold**` as `<strong>` and `*italic*` as `<em>`, and converts links of the form `[text](jumpToId:<id>)` into clickable anchor elements that invoke `window.findItem(id)` when clicked.
+ * @param {string} content - The raw chat message text to format; may include newlines, `**bold**`, `*italic*`, and `jumpToId` links.
+ * @returns {string} The formatted HTML string.
  */
 function formatChatMessage(content) {
   if (!content) return "";
@@ -1002,7 +1075,14 @@ function renderChatMessage(role, content) {
 }
 
 /**
- * 채팅 전송 핸들러
+ * Handle chat input submission and orchestrate sending the message to the model.
+ *
+ * Reads and validates the textarea input; if valid and not already generating or loading an engine,
+ * it renders the user's message, performs a retrieval-augmented search for relevant context items,
+ * inserts an assistant placeholder, sends the message to the model with streaming callbacks,
+ * updates the assistant message and chat history as partial and final responses arrive, and displays
+ * any errors inline. The function is a no-op when the input is empty or when a generation/engine load
+ * is already in progress.
  */
 async function handleChatSubmit() {
   const textarea = document.querySelector(".web-llm-textarea");
@@ -1088,7 +1168,15 @@ async function handleChatSubmit() {
 }
 
 /**
- * 이벤트 리스너 설정
+ * Attach UI event handlers for the WebLLM modal and chat controls.
+ *
+ * Sets up:
+ * - Click handler for the send button to submit chat.
+ * - Keyboard shortcut (Ctrl/Cmd+Enter) on the textarea to submit chat.
+ * - Click handler for the modal close button to close the WebLLM modal.
+ * - Population of the model selection dropdown with presets and a change handler that
+ *   persists the selected model, updates UI status, displays a system message, and
+ *   triggers model precaching with progress and completion callbacks.
  */
 function setupEventListeners() {
   const sendBtn = document.querySelector(".web-llm-send-btn");
