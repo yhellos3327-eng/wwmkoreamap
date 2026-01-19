@@ -9,7 +9,7 @@ import { saveFilterState } from "./data.js";
 import { renderMapDataAndMarkers } from "./map.js";
 import { updateToggleButtonsState } from "./ui.js";
 import Fuse from "https://esm.run/fuse.js@7.1.0";
-import { debounce } from "https://esm.run/lodash-es@4.17.21";
+import { debounce } from "https://esm.run/lodash-es@4.17.22";
 
 const SVG_ICONS = {
   map: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

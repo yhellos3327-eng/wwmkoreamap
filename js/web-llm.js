@@ -487,6 +487,7 @@ function searchItemsForContext(query) {
   const queryTerms = queryLower.split(/\s+/).filter((t) => t.length >= 1);
 
   const visibleItems = [];
+  const isVisibilityQuery = false;
 
   let targetRegion = null;
   if (state.uniqueRegions) {
@@ -1135,23 +1136,33 @@ function setupEventListeners() {
 /**
  * WebLLM 모듈 초기화
  */
+let initializationPromise = null;
+
+/**
+ * WebLLM 모듈 초기화
+ */
 export async function initWebLLM() {
   if (isInitialized) return;
-  isInitialized = true;
+  if (initializationPromise) return initializationPromise;
 
-  logger.log("WebLLM", "WebLLM 초기화 시작");
+  initializationPromise = (async () => {
+    logger.log("WebLLM", "WebLLM 초기화 시작");
 
-  setupEventListeners();
+    setupEventListeners();
 
-  subscribe("mapData", () => {
-    initializeIdMaps();
-  });
+    subscribe("mapData", () => {
+      initializeIdMaps();
+    });
 
-  subscribe("koDict", () => {
-    initializeIdMaps();
-  });
+    subscribe("koDict", () => {
+      initializeIdMaps();
+    });
 
-  logger.success("WebLLM", "WebLLM 초기화 완료");
+    isInitialized = true;
+    logger.success("WebLLM", "WebLLM 초기화 완료");
+  })();
+
+  return initializationPromise;
 }
 
 export {

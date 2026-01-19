@@ -2,8 +2,8 @@ import { state } from "./state.js";
 import Papa from "https://esm.run/papaparse@5.4.1";
 import { josa } from "https://esm.run/es-hangul@2.3.0";
 import pointInPolygon from "https://esm.run/point-in-polygon@1.1.0";
-import { debounce } from "https://esm.run/lodash-es@4.17.21";
-import axios from "https://esm.run/axios@1.6.7";
+import { debounce } from "https://esm.run/lodash-es@4.17.22";
+import axios from "https://esm.run/axios@1.12.0";
 
 export const t = (key) => {
   if (!key) return "";
@@ -100,7 +100,14 @@ export const fetchUserIp = async (masked = true) => {
   if (masked && cachedMaskedIp) return cachedMaskedIp;
   if (!masked && cachedIp) return cachedIp;
 
-  const getMasked = (ip) => ip.split(".").slice(0, 2).join(".");
+  const getMasked = (ip) => {
+    if (ip.includes(":")) {
+      // IPv6: mask to first 3 segments (approx /48)
+      return ip.split(":").slice(0, 3).join(":");
+    }
+    // IPv4: mask to first 2 octets
+    return ip.split(".").slice(0, 2).join(".");
+  };
 
   try {
     const response = await axios.get("https://api.ipify.org?format=json");
@@ -170,9 +177,18 @@ export const parseMarkdown = (text) => {
     },
   );
 
+  const sanitizeUrl = (url) => {
+    const trimmed = url.trim().toLowerCase();
+    if (trimmed.startsWith("javascript:") || trimmed.startsWith("data:")) {
+      return "#";
+    }
+    return url;
+  };
+
   html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
-    '<a href="$2" target="_blank" style="color: var(--accent); text-decoration: underline;">$1</a>',
+    (match, text, url) =>
+      `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${text}</a>`,
   );
 
   return html;

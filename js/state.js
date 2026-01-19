@@ -194,29 +194,24 @@ export const setDeep = (path, value) => {
   const rootValue = store.getState()[rootKey];
 
   // Helper to deep clone/update
+  // Helper to deep clone/update
   const deepUpdate = (obj, pathKeys, val) => {
     if (pathKeys.length === 0) return val;
     const [current, ...rest] = pathKeys;
-    const newObj = Array.isArray(obj) ? [...obj] : { ...obj };
-    newObj[current] = deepUpdate(newObj[current], rest, val);
+    // Handle case where obj is undefined/null
+    const safeObj = obj || {};
+    const newObj = Array.isArray(safeObj) ? [...safeObj] : { ...safeObj };
+    newObj[current] = deepUpdate(safeObj[current], rest, val);
     return newObj;
   };
 
-  // This is a simplified deep update.
-  // Given the complexity of existing deep mutations in the app,
-  // we might fallback to mutation + root update.
-
-  let current = rootValue;
-  for (let i = 1; i < keys.length - 1; i++) {
-    current = current[keys[i]];
-  }
-  current[keys[keys.length - 1]] = value;
+  const newRootValue = deepUpdate(rootValue, keys.slice(1), value);
 
   // Trigger update for the root key
-  store.setState({ [rootKey]: rootValue });
+  store.setState({ [rootKey]: newRootValue });
 
   // Also notify via logger
-  logger.stateChange(rootKey, rootValue, rootValue);
+  logger.stateChange(rootKey, rootValue, newRootValue);
 };
 
 export const dispatch = (actionType, payload) => {
@@ -232,7 +227,7 @@ export const dispatch = (actionType, payload) => {
         ...payload,
       });
       break;
-    case ACTIONS.UPDATE_FILTER:
+    case ACTIONS.UPDATE_FILTER: {
       const { activeCategoryIds, activeRegionNames } = store.getState();
       if (payload.type === "category") {
         if (payload.active) activeCategoryIds.add(payload.id);
@@ -246,6 +241,7 @@ export const dispatch = (actionType, payload) => {
         store.setState({ activeRegionNames: new Set(activeRegionNames) });
       }
       break;
+    }
     case ACTIONS.SET_DEV_MODE:
       setState("isDevMode", payload);
       break;

@@ -11,7 +11,7 @@ export const initMap = async (mapKey) => {
 
   if (state.map && state.map.options.crs !== targetCRS) {
     const pixi = await import("./pixiOverlay.js");
-    if (pixi.disposePixiOverlay) pixi.disposePixiOverlay();
+    if (pixi.disposePixiOverlay) await pixi.disposePixiOverlay();
     if (pixi.resetEventHandlers) pixi.resetEventHandlers();
 
     state.map.remove();

@@ -428,7 +428,7 @@ export const redrawPixiOverlay = () => {
   }
 };
 
-export const disposePixiOverlay = () => {
+export const disposePixiOverlay = async () => {
   clearPixiOverlay();
 
   if (pixiUtils) {
@@ -443,7 +443,7 @@ export const disposePixiOverlay = () => {
     pixiUtils = null;
   }
 
-  clearTextureCache();
+  await clearTextureCache();
 
   pixiOverlay = null;
   pixiContainer = null;
