@@ -1,3 +1,6 @@
+// @ts-check
+const L = /** @type {any} */ (window).L;
+
 import { state, setState, getCategoryMap } from "../state.js";
 import { logger } from "../logger.js";
 import { ICON_MAPPING } from "../config.js";
@@ -9,6 +12,11 @@ const ICON_SIZE = 32;
 const DEFAULT_ICON_URL = "icons/17310010088.png";
 let renderedMarkers = new Map();
 
+/**
+ * Preloads an icon image.
+ * @param {string} iconUrl - The URL of the icon.
+ * @returns {Promise<boolean>} Whether the icon loaded successfully.
+ */
 const preloadIcon = (iconUrl) => {
   return new Promise((resolve) => {
     if (loadedIcons.has(iconUrl)) {
@@ -35,7 +43,7 @@ const preloadIcon = (iconUrl) => {
  */
 const resolveCategoryId = (categoryId) => {
   if (ICON_MAPPING && ICON_MAPPING.hasOwnProperty(categoryId)) {
-    return ICON_MAPPING[categoryId]; 
+    return ICON_MAPPING[categoryId];
   }
   return categoryId;
 };
@@ -51,7 +59,7 @@ const getIconUrl = (categoryId) => {
 
   const categoryMap = getCategoryMap();
   if (categoryMap) {
-    const catObj = categoryMap.get(finalCatId); 
+    const catObj = categoryMap.get(finalCatId);
     if (catObj?.image) {
       return catObj.image;
     }
@@ -62,7 +70,7 @@ const getIconUrl = (categoryId) => {
 /**
  * 카테고리 ID로 Leaflet 아이콘 객체 반환 (캐싱 적용)
  * @param {string} categoryId - 카테고리 ID
- * @returns {L.Icon|null} - Leaflet 아이콘 또는 null
+ * @returns {any|null} - Leaflet 아이콘 또는 null
  */
 const getIconForCategory = (categoryId) => {
   if (iconCache.has(categoryId)) {
@@ -83,6 +91,10 @@ const getIconForCategory = (categoryId) => {
   return icon;
 };
 
+/**
+ * Initializes the canvas layer for marker rendering.
+ * @returns {any|null} The canvas layer or null.
+ */
 export const initCanvasLayer = () => {
   if (typeof L.canvasIconLayer === "undefined") {
     logger.warn("Canvas", "L.canvasIconLayer not available");
@@ -122,6 +134,11 @@ export const initCanvasLayer = () => {
   return canvasLayer;
 };
 
+/**
+ * Renders markers on the canvas layer.
+ * @param {any[]} items - The items to render.
+ * @returns {Promise<void>}
+ */
 export const renderMarkersOnCanvas = async (items) => {
   if (!canvasLayer) {
     initCanvasLayer();
@@ -192,6 +209,11 @@ export const renderMarkersOnCanvas = async (items) => {
   }
 };
 
+/**
+ * Shows a popup for a canvas marker.
+ * @param {any} marker - The marker.
+ * @param {any} item - The item data.
+ */
 const showCanvasMarkerPopup = (marker, item) => {
   import("./popup.js").then(({ createPopupHtml }) => {
     const latlng = marker.getLatLng();
@@ -202,6 +224,9 @@ const showCanvasMarkerPopup = (marker, item) => {
   });
 };
 
+/**
+ * Clears all markers from the canvas layer.
+ */
 export const clearCanvasLayer = () => {
   if (canvasLayer) {
     const allMarkers = Array.from(renderedMarkers.values());
@@ -221,10 +246,17 @@ export const clearCanvasLayer = () => {
   }
 };
 
+/**
+ * Checks if the canvas layer is active.
+ * @returns {boolean} True if active.
+ */
 export const isCanvasLayerActive = () => {
   return canvasLayer && state.map.hasLayer(canvasLayer);
 };
 
+/**
+ * Switches to canvas rendering mode.
+ */
 export const switchToCanvasMode = () => {
   if (
     state.markerClusterGroup &&
@@ -245,6 +277,78 @@ export const switchToCanvasMode = () => {
   logger.success("Canvas", "캔버스 모드로 전환 완료");
 };
 
+/**
+ * Switches back to normal rendering mode.
+ */
 export const switchToNormalMode = () => {
   clearCanvasLayer();
+};
+
+/**
+ * Renders markers from worker results.
+ * @param {any[]} toAdd - Items to add.
+ * @param {any[]} toRemove - Item IDs to remove.
+ */
+export const renderFromWorker = (toAdd, toRemove) => {
+  if (!canvasLayer) return;
+
+  // Handle removals
+  if (toRemove && toRemove.length > 0) {
+    const markersToRemove = [];
+    toRemove.forEach((id) => {
+      if (renderedMarkers.has(id)) {
+        markersToRemove.push(renderedMarkers.get(id));
+        renderedMarkers.delete(id);
+      }
+    });
+    if (markersToRemove.length > 0) {
+      if (canvasLayer.removeLayers) {
+        canvasLayer.removeLayers(markersToRemove);
+      } else {
+        markersToRemove.forEach((m) => canvasLayer.removeMarker(m, false));
+      }
+    }
+  }
+
+  // Handle additions
+  if (toAdd && toAdd.length > 0) {
+    const markersToAdd = [];
+    const completedIds = new Set(state.completedList.map((c) => c.id));
+
+    toAdd.forEach((item) => {
+      if (renderedMarkers.has(item.id)) return;
+
+      const iconUrl = getIconUrl(item.category);
+      if (iconUrl) preloadIcon(iconUrl);
+
+      if (!item.x || !item.y) return;
+      const lat = parseFloat(item.x);
+      const lng = parseFloat(item.y);
+      if (isNaN(lat) || isNaN(lng)) return;
+
+      const icon = getIconForCategory(item.category);
+      const isCompleted = completedIds.has(item.id);
+
+      const marker = L.marker([lat, lng], {
+        icon: icon,
+        opacity: isCompleted ? 0.4 : 1.0,
+      });
+
+      marker.itemData = item;
+      markersToAdd.push(marker);
+      renderedMarkers.set(item.id, marker);
+    });
+
+    if (markersToAdd.length > 0) {
+      if (canvasLayer.addLayers) {
+        canvasLayer.addLayers(markersToAdd);
+      } else {
+        markersToAdd.forEach((m) => canvasLayer.addMarker(m));
+      }
+    }
+  }
+
+  if ((toRemove && toRemove.length > 0) || (toAdd && toAdd.length > 0)) {
+    canvasLayer.redraw();
+  }
 };

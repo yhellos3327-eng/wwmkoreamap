@@ -1,5 +1,16 @@
+// @ts-check
+/**
+ * @fileoverview Data worker - handles data parsing and processing in a Web Worker.
+ * @module workers/data-worker
+ */
+
 import { DEFAULT_DESCRIPTIONS } from "../config.js";
 
+/**
+ * Parses a CSV string into a 2D array.
+ * @param {string} str - The CSV string.
+ * @returns {string[][]} Parsed CSV data.
+ */
 const parseCSV = (str) => {
   const arr = [];
   let quote = false;

@@ -1,3 +1,6 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
+const L = /** @type {any} */ (window).L;
 import { state } from "../state.js";
 import {
   updateMapVisibility,
@@ -13,6 +16,18 @@ import { showCompletedTooltip, hideCompletedTooltip } from "../map/markers.js";
 import { triggerSync } from "../sync.js";
 import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
 
+/**
+ * @typedef {import("../data/processors.js").MapItem} MapItem
+ */
+
+/**
+ * @typedef {MapItem & { marker?: any, sprite?: any }} MarkerInfo
+ */
+
+/**
+ * Toggles the completed status of an item.
+ * @param {string|number} id - The item ID.
+ */
 export const toggleCompleted = (id) => {
   const targetId = String(id);
   const numId = Number(id);
@@ -20,10 +35,11 @@ export const toggleCompleted = (id) => {
     (item) => String(item.id) === targetId,
   );
 
-  const target =
+  const target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) ??
-    state.allMarkers.get(targetId) ??
-    state.allMarkers.get(numId);
+      state.allMarkers.get(targetId) ??
+      state.allMarkers.get(numId)
+  );
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
@@ -121,11 +137,16 @@ export const toggleCompleted = (id) => {
   );
 };
 
+/**
+ * Formats a timestamp to a human-readable relative time.
+ * @param {number} timestamp - The timestamp.
+ * @returns {string} The formatted time string.
+ */
 const formatCompletedTime = (timestamp) => {
   if (!timestamp) return "";
   const date = new Date(timestamp);
   const now = new Date();
-  const diffMs = now - date;
+  const diffMs = now.getTime() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
   if (diffDays === 0) {
@@ -142,10 +163,16 @@ const formatCompletedTime = (timestamp) => {
 
 export { formatCompletedTime };
 
+/**
+ * Toggles the favorite status of an item.
+ * @param {string|number} id - The item ID.
+ */
 export const toggleFavorite = (id) => {
   const strId = String(id);
   const index = state.favorites.findIndex((fav) => String(fav) === strId);
-  const target = state.allMarkers.get(id) || state.allMarkers.get(strId);
+  const target = /** @type {MarkerInfo} */ (
+    state.allMarkers.get(id) || state.allMarkers.get(strId)
+  );
   const isNowFavorite = index === -1;
 
   if (isNowFavorite) state.favorites.push(strId);
@@ -165,6 +192,10 @@ export const toggleFavorite = (id) => {
   }
 };
 
+/**
+ * Shares the location of an item by copying a URL to clipboard.
+ * @param {string|number} id - The item ID.
+ */
 export const shareLocation = (id) => {
   const mapKey = state.currentMapKey ?? "qinghe";
   const shareUrl = `https://wwmmap.kr?map=${mapKey}&id=${id}`;
@@ -178,6 +209,10 @@ export const shareLocation = (id) => {
     .catch((err) => prompt("링크 복사:", shareUrl));
 };
 
+/**
+ * Expands the related items list.
+ * @param {HTMLElement} btn - The button element.
+ */
 export const expandRelated = (btn) => {
   const list = btn.previousElementSibling;
   if (list)
@@ -187,8 +222,14 @@ export const expandRelated = (btn) => {
   btn.remove();
 };
 
+/**
+ * Jumps to a specific item on the map.
+ * @param {string|number} id - The item ID.
+ */
 export const jumpToId = (id) => {
-  const target = state.allMarkers.get(id) || state.allMarkers.get(String(id));
+  const target = /** @type {MarkerInfo} */ (
+    state.allMarkers.get(id) || state.allMarkers.get(String(id))
+  );
   if (target) {
     const latlng = target.marker
       ? target.marker.getLatLng()
@@ -202,10 +243,17 @@ export const jumpToId = (id) => {
   }
 };
 
+/**
+ * Finds an item by ID, activates necessary filters, and navigates to it.
+ * @param {string|number} id - The item ID.
+ * @returns {Promise<void>}
+ */
 export const findItem = async (id) => {
   const targetId = String(id);
-  window.findItem = findItem;
-  let target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
+  /** @type {any} */ (window).findItem = findItem;
+  let target = /** @type {MarkerInfo} */ (
+    state.allMarkers.get(id) || state.allMarkers.get(targetId)
+  );
 
   if (target) {
     const latlng = target.marker
@@ -243,7 +291,9 @@ export const findItem = async (id) => {
   if (state.hideCompleted) {
     state.hideCompleted = false;
     filtersChanged = true;
-    const hideToggle = document.getElementById("toggle-hide-completed");
+    const hideToggle = /** @type {HTMLInputElement} */ (
+      document.getElementById("toggle-hide-completed")
+    );
     if (hideToggle) hideToggle.checked = false;
   }
 
@@ -254,7 +304,9 @@ export const findItem = async (id) => {
   }
 
   setTimeout(() => {
-    target = state.allMarkers.get(id) || state.allMarkers.get(targetId);
+    target = /** @type {MarkerInfo} */ (
+      state.allMarkers.get(id) || state.allMarkers.get(targetId)
+    );
 
     if (!target) {
       const markerData = createMarkerForItem(item);
@@ -280,65 +332,4 @@ export const findItem = async (id) => {
       logger.error("Navigation", "필터 활성화 후 마커 생성 실패");
     }
   }, 200);
-};
-
-export const openReportPage = (itemId) => {
-  const item = state.allMarkers.get(itemId);
-  const panel = document.getElementById("report-panel");
-  let template = "";
-
-  if (item) {
-    const mapNames = {
-      qinghe: "청하",
-      kaifeng: "개봉",
-      dreamsunsun: "꿈속의 불선선",
-    };
-    const mapName = mapNames[state.currentMapKey] || state.currentMapKey;
-    const locationUrl = `https://wwmmap.kr?map=${state.currentMapKey}&id=${item.id}`;
-
-    template = `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  📢 WWM 한국어 맵 오류 제보
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-[ 📍 마커 정보 ]
-• 지도: ${mapName} (${state.currentMapKey})
-• 분류: ${item.category}
-• 지역: ${item.region}
-• ID: ${item.id}
-• 좌표: ${Number(item.lat).toFixed(2)}, ${Number(item.lng).toFixed(2)}
-• 링크: ${locationUrl}
-
-[ 📝 제보 내용 ]
-(여기에 오류 내용을 적어주세요. 예: 위치가 다름, 이름 오타 등)
-
-
-[ 📸 스크린샷 ]
-(이미지를 붙여넣어주세요)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-감사합니다! 개발자가 확인 후 수정하겠습니다.
-`;
-
-    navigator.clipboard
-      .writeText(template)
-      .then(() => {
-        import("../sync/ui.js").then(({ showSyncToast }) => {
-          showSyncToast(
-            "📋 제보 양식이 복사되었습니다. 본문에 붙여넣어주세요!",
-            "success",
-          );
-        });
-      })
-      .catch(() => {});
-  }
-
-  if (panel) {
-    const embed = document.getElementById("report-embed");
-    if (embed && !embed.getAttribute("data")) {
-      embed.setAttribute("data", "https://arca.live/b/wwmmap/write");
-    }
-    panel.classList.add("open");
-  } else {
-    window.open("https://arca.live/b/wwmmap/write", "_blank");
-  }
 };

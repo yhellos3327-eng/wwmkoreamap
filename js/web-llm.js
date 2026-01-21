@@ -1,7 +1,18 @@
+// @ts-nocheck
+/**
+ * @fileoverview WebLLM integration module - provides local LLM chat functionality using WebGPU.
+ * Handles model loading, caching, and chat message generation with RAG context.
+ * @module web-llm
+ */
+
 import { state, subscribe } from "./state.js";
 import { logger } from "./logger.js";
 import { webWorkerManager } from "./web-worker-manager.js";
 
+/**
+ * Storage keys for WebLLM settings.
+ * @type {Object<string, string>}
+ */
 const STORAGE_KEYS = {
   MODEL_ID: "wwm_webllm_model_id",
   AUTO_MODEL: "wwm_webllm_auto_model",

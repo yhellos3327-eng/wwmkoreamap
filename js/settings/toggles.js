@@ -1,10 +1,16 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
 import { triggerSync, updateSettingWithTimestamp } from "../sync.js";
 import { renderMapDataAndMarkers } from "../map.js";
 
 export const initAdToggle = () => {
-  const adContainer = document.querySelector(".ad-container");
-  const toggleAd = document.getElementById("toggle-ad");
+  const adContainer = /** @type {HTMLElement} */ (
+    document.querySelector(".ad-container")
+  );
+  const toggleAd = /** @type {HTMLInputElement} */ (
+    document.getElementById("toggle-ad")
+  );
 
   if (!adContainer || !toggleAd) return;
 
@@ -14,8 +20,8 @@ export const initAdToggle = () => {
   adContainer.style.display = showAd ? "block" : "none";
 
   toggleAd.addEventListener("change", (e) => {
-    const isChecked = e.target.checked;
-    localStorage.setItem("wwm_show_ad", isChecked);
+    const isChecked = /** @type {HTMLInputElement} */ (e.target).checked;
+    localStorage.setItem("wwm_show_ad", String(isChecked));
     adContainer.style.display = isChecked ? "block" : "none";
     triggerSync();
   });
@@ -29,15 +35,21 @@ export const updateClusteringToggleState = () => {
   const clusterToggleInput = document.getElementById("toggle-cluster");
   if (!clusterToggleInput) return;
 
-  clusterToggleInput.disabled = false;
-  const wrapper = clusterToggleInput.closest(".settings-toggle-wrapper");
+  /** @type {HTMLInputElement} */ (clusterToggleInput).disabled = false;
+  const wrapper = /** @type {HTMLElement} */ (
+    clusterToggleInput.closest(".settings-toggle-wrapper")
+  );
   if (wrapper) {
     wrapper.style.opacity = "1";
     wrapper.style.cursor = "default";
     wrapper.title = "";
-    const slider = wrapper.querySelector(".slider");
+    const slider = /** @type {HTMLElement} */ (
+      wrapper.querySelector(".slider")
+    );
     if (slider) slider.style.cursor = "pointer";
-    const switchLabel = wrapper.querySelector(".switch");
+    const switchLabel = /** @type {HTMLElement} */ (
+      wrapper.querySelector(".switch")
+    );
     if (switchLabel) switchLabel.style.pointerEvents = "auto";
   }
 };
@@ -155,52 +167,92 @@ export const initToggles = () => {
   }
 
   if (webLLMToggleInput) {
-    webLLMToggleInput.checked = state.enableWebLLM;
+    /** @type {HTMLInputElement} */ (webLLMToggleInput).checked =
+      state.enableWebLLM;
     webLLMToggleInput.addEventListener("change", (e) => {
-      setState("enableWebLLM", e.target.checked);
-      localStorage.setItem("wwm_enable_web_llm", e.target.checked);
+      setState(
+        "enableWebLLM",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      localStorage.setItem(
+        "wwm_enable_web_llm",
+        String(/** @type {HTMLInputElement} */ (e.target).checked),
+      );
     });
   }
 
   if (clusterToggleInput) {
-    clusterToggleInput.checked = state.enableClustering;
+    /** @type {HTMLInputElement} */ (clusterToggleInput).checked =
+      state.enableClustering;
     clusterToggleInput.addEventListener("change", (e) => {
-      setState("enableClustering", e.target.checked);
-      updateSettingWithTimestamp("enable_clustering", e.target.checked);
-
+      setState(
+        "enableClustering",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      updateSettingWithTimestamp(
+        "enable_clustering",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
       renderMapDataAndMarkers();
     });
   }
 
   if (hideCompletedInput) {
     hideCompletedInput.addEventListener("change", (e) => {
-      setState("hideCompleted", e.target.checked);
-      updateSettingWithTimestamp("hide_completed", e.target.checked);
+      setState(
+        "hideCompleted",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      updateSettingWithTimestamp(
+        "hide_completed",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
       renderMapDataAndMarkers();
     });
   }
 
   if (commentsToggleInput) {
-    commentsToggleInput.checked = state.showComments;
+    /** @type {HTMLInputElement} */ (commentsToggleInput).checked =
+      state.showComments;
     commentsToggleInput.addEventListener("change", (e) => {
-      setState("showComments", e.target.checked);
-      updateSettingWithTimestamp("show_comments", e.target.checked);
+      setState(
+        "showComments",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      updateSettingWithTimestamp(
+        "show_comments",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
     });
   }
 
   if (closeOnCompleteInput) {
-    closeOnCompleteInput.checked = state.closeOnComplete;
+    /** @type {HTMLInputElement} */ (closeOnCompleteInput).checked =
+      state.closeOnComplete;
     closeOnCompleteInput.addEventListener("change", (e) => {
-      setState("closeOnComplete", e.target.checked);
-      updateSettingWithTimestamp("close_on_complete", e.target.checked);
+      setState(
+        "closeOnComplete",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      updateSettingWithTimestamp(
+        "close_on_complete",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
     });
   }
 
   if (disableRegionPanInput) {
-    disableRegionPanInput.checked = state.disableRegionClickPan;
+    /** @type {HTMLInputElement} */ (disableRegionPanInput).checked =
+      state.disableRegionClickPan;
     disableRegionPanInput.addEventListener("change", (e) => {
-      setState("disableRegionClickPan", e.target.checked);
-      localStorage.setItem("wwm_disable_region_click_pan", e.target.checked);
+      setState(
+        "disableRegionClickPan",
+        /** @type {HTMLInputElement} */ (e.target).checked,
+      );
+      localStorage.setItem(
+        "wwm_disable_region_click_pan",
+        String(/** @type {HTMLInputElement} */ (e.target).checked),
+      );
     });
   }
 
@@ -208,14 +260,21 @@ export const initToggles = () => {
     loadValues: () => {
       if (adToggleInput) {
         const storedAd = localStorage.getItem("wwm_show_ad");
-        adToggleInput.checked = storedAd === null ? true : storedAd === "true";
+        /** @type {HTMLInputElement} */ (adToggleInput).checked =
+          storedAd === null ? true : storedAd === "true";
       }
       if (clusterToggleInput)
-        clusterToggleInput.checked = state.enableClustering;
-      if (hideCompletedInput) hideCompletedInput.checked = state.hideCompleted;
+        /** @type {HTMLInputElement} */ (clusterToggleInput).checked =
+          state.enableClustering;
+      if (hideCompletedInput)
+        /** @type {HTMLInputElement} */ (hideCompletedInput).checked =
+          state.hideCompleted;
       if (disableRegionPanInput)
-        disableRegionPanInput.checked = state.disableRegionClickPan;
-      if (webLLMToggleInput) webLLMToggleInput.checked = state.enableWebLLM;
+        /** @type {HTMLInputElement} */ (disableRegionPanInput).checked =
+          state.disableRegionClickPan;
+      if (webLLMToggleInput)
+        /** @type {HTMLInputElement} */ (webLLMToggleInput).checked =
+          state.enableWebLLM;
 
       updateClusteringToggleState();
     },
@@ -231,6 +290,9 @@ export const saveToggleSettings = () => {
   const adToggleInput = document.getElementById("toggle-ad");
 
   if (adToggleInput) {
-    localStorage.setItem("wwm_show_ad", adToggleInput.checked);
+    localStorage.setItem(
+      "wwm_show_ad",
+      String(/** @type {HTMLInputElement} */ (adToggleInput).checked),
+    );
   }
 };

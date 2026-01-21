@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * 클라우드 동기화 데이터 처리 모듈
  * - Firebase 동기화 데이터를 앱 상태에 반영
@@ -26,7 +27,6 @@ const applyCloudSettings = (settings) => {
     }
   });
 
-  
   if (settings.regionColor !== undefined) {
     setState("savedRegionColor", settings.regionColor);
   }
@@ -34,7 +34,6 @@ const applyCloudSettings = (settings) => {
     setState("savedRegionFillColor", settings.regionFillColor);
   }
 
-  
   if (settings.gpuMode !== undefined) {
     let gpuSetting = settings.gpuMode;
     if (gpuSetting === "true" || gpuSetting === true) gpuSetting = "on";
@@ -56,10 +55,9 @@ export const applySyncData = (cloudData) => {
 
   console.log("[SyncHandler] Sync data loaded, updating state...", cloudData);
 
-  
   if (cloudData.completedMarkers) {
     let markers = cloudData.completedMarkers;
-    
+
     if (markers.length > 0 && typeof markers[0] !== "object") {
       markers = markers.map((id) => ({ id, completedAt: null }));
     }
@@ -70,21 +68,17 @@ export const applySyncData = (cloudData) => {
     );
   }
 
-  
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
   }
 
-  
   if (cloudData.settings) {
     applyCloudSettings(cloudData.settings);
   }
 
-  
   renderMapDataAndMarkers();
   renderFavorites();
 
-  
   const settingsModal = document.getElementById("settings-modal");
   if (settingsModal && !settingsModal.classList.contains("hidden")) {
     import("./settings.js").then((m) => m.initSettingsModal());
@@ -96,6 +90,6 @@ export const applySyncData = (cloudData) => {
  */
 export const initSyncHandler = () => {
   window.addEventListener("syncDataLoaded", (e) => {
-    applySyncData(e.detail);
+    applySyncData(/** @type {CustomEvent} */ (e).detail);
   });
 };

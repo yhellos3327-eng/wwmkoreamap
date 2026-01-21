@@ -1,13 +1,18 @@
 /**
- * WebLLM Worker - MLC 엔진을 Web Worker에서 실행
- * 메인 스레드 블로킹 방지를 위한 백그라운드 처리
+ * @fileoverview WebLLM Worker - runs MLC engine in a Web Worker.
+ * Prevents main thread blocking for background processing.
+ * @module workers/webllm-worker
  */
 
 import * as webllm from "https://esm.run/@mlc-ai/web-llm@0.2.78";
 
-
+/** @type {webllm.WebWorkerMLCEngineHandler} */
 const handler = new webllm.WebWorkerMLCEngineHandler();
 
+/**
+ * Message handler for the WebLLM worker.
+ * @param {MessageEvent} msg - The message event.
+ */
 self.onmessage = (msg) => {
   handler.onmessage(msg);
 };

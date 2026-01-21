@@ -1,8 +1,16 @@
+// @ts-check
+/// <reference path="./types.d.ts" />
 import { state } from "./state.js";
 import { t, parseMarkdown } from "./utils.js";
 
 /**
  * Chrome 내장 번역 사용하여 아이템 번역
+ */
+/**
+ * Translates a game item using Chrome's built-in translation API.
+ * @param {any} item - The item to translate.
+ * @param {HTMLElement} [btn] - The button element that triggered the translation.
+ * @returns {Promise<any>} The translated item data.
  */
 const translateWithChromeBuiltin = async (item, btn) => {
   try {
@@ -15,7 +23,6 @@ const translateWithChromeBuiltin = async (item, btn) => {
       );
     }
 
-    
     const onProgress = (loaded, total) => {
       if (btn) {
         const percent = total > 0 ? Math.round((loaded / total) * 100) : 0;
@@ -34,6 +41,12 @@ const translateWithChromeBuiltin = async (item, btn) => {
 /**
  * 외부 AI API를 사용하여 아이템 번역
  */
+/**
+ * Translates a game item using an external AI API (Gemini, OpenAI, Claude).
+ * @param {any} item - The item to translate.
+ * @param {HTMLElement} [btn] - The button element that triggered the translation.
+ * @returns {Promise<any>} The translated item data.
+ */
 const translateWithExternalAI = async (item, btn) => {
   const provider = state.savedAIProvider ?? "gemini";
   const model = state.savedApiModel ?? "gemini-1.5-flash";
@@ -51,7 +64,6 @@ const translateWithExternalAI = async (item, btn) => {
     throw new Error("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
   }
 
-  
   const categoryTrans = state.categoryItemTranslations[item.category] ?? {};
 
   const prompt = `
@@ -147,6 +159,12 @@ const translateWithExternalAI = async (item, btn) => {
  * @param {number|string} itemId - 아이템 ID
  * @param {string} translateType - 번역 타입: 'chrome' 또는 'ai'
  */
+/**
+ * Translates an item using the specified translation method.
+ * @param {number|string} itemId - The item ID.
+ * @param {string} [translateType='ai'] - The translation type: 'chrome' or 'ai'.
+ * @returns {Promise<void>}
+ */
 export const translateItem = async (itemId, translateType = "ai") => {
   const item = state.mapData.items.find((i) => i.id === itemId);
   if (!item) return;
@@ -159,7 +177,6 @@ export const translateItem = async (itemId, translateType = "ai") => {
   );
   const allBtns = popupContainer?.querySelectorAll(".btn-translate");
 
-  
   const updateBtnText = (button, text) => {
     if (!button) return;
     const textSpan = button.querySelector(".btn-text");
@@ -168,11 +185,10 @@ export const translateItem = async (itemId, translateType = "ai") => {
     }
   };
 
-  
   if (allBtns) {
     allBtns.forEach((b) => {
-      b.disabled = true;
-      b.style.opacity = "0.6";
+      /** @type {HTMLButtonElement} */ (b).disabled = true;
+      /** @type {HTMLElement} */ (b).style.opacity = "0.6";
     });
   }
 
@@ -184,9 +200,11 @@ export const translateItem = async (itemId, translateType = "ai") => {
     let result;
 
     if (translateType === "chrome") {
-      result = await translateWithChromeBuiltin(item, btn);
+      result = await translateWithChromeBuiltin(
+        item,
+        /** @type {HTMLElement} */ (btn),
+      );
     } else {
-      
       const provider = state.savedAIProvider ?? "gemini";
       let key = "";
       if (provider === "gemini") {
@@ -201,31 +219,30 @@ export const translateItem = async (itemId, translateType = "ai") => {
         alert("설정(⚙️) 메뉴에서 API Key를 먼저 등록해주세요.");
         if (allBtns) {
           allBtns.forEach((b) => {
-            b.disabled = false;
-            b.style.opacity = "1";
+            /** @type {HTMLButtonElement} */ (b).disabled = false;
+            /** @type {HTMLElement} */ (b).style.opacity = "1";
           });
         }
         updateBtnText(btn, "AI");
         return;
       }
 
-      result = await translateWithExternalAI(item, btn);
+      result = await translateWithExternalAI(
+        item,
+        /** @type {HTMLElement} */ (btn),
+      );
     }
 
-    
     item.name = result.name;
     item.description = result.description;
     item.isTranslated = true;
 
-    
     if (popupContainer) {
-      
       const titleEl = popupContainer.querySelector(".popup-header h4");
       if (titleEl) {
         titleEl.textContent = t(result.name) || result.name;
       }
 
-      
       const bodyEl = popupContainer.querySelector(".popup-content");
       if (bodyEl) {
         let desc = result.description ?? "";
@@ -240,17 +257,16 @@ export const translateItem = async (itemId, translateType = "ai") => {
         bodyEl.innerHTML = desc;
       }
 
-      
       const translateBtnsContainer =
         popupContainer.querySelector(".translate-buttons");
       if (translateBtnsContainer) {
-        translateBtnsContainer.style.display = "none";
+        /** @type {HTMLElement} */ (translateBtnsContainer).style.display =
+          "none";
       }
     }
   } catch (error) {
     console.error("Translation failed:", error);
 
-    
     if (translateType === "chrome") {
       alert(
         `Chrome 내장 번역 실패: ${error.message}\n\n가능한 원인:\n- Chrome 138 미만 버전 사용\n- 번역 모델 미다운로드\n- GenAILocalFoundationalModelSettings 정책에 의해 차단됨`,
@@ -259,17 +275,19 @@ export const translateItem = async (itemId, translateType = "ai") => {
       alert("번역 실패: " + error.message);
     }
 
-    
     if (allBtns) {
       allBtns.forEach((b) => {
-        b.disabled = false;
-        b.style.opacity = "1";
+        /** @type {HTMLButtonElement} */ (b).disabled = false;
+        /** @type {HTMLElement} */ (b).style.opacity = "1";
       });
     }
     updateBtnText(btn, translateType === "chrome" ? "내장" : "AI");
   }
 };
 
+/**
+ * Calculates and displays translation progress.
+ */
 export const calculateTranslationProgress = () => {
   const totalItems = state.mapData.items.length;
   if (totalItems === 0) return;

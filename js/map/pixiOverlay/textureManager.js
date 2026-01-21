@@ -1,3 +1,7 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+const PIXI = /** @type {any} */ (window).PIXI;
+
 import { state } from "../../state.js";
 import { logger } from "../../logger.js";
 import { ICON_MAPPING } from "../../config.js";

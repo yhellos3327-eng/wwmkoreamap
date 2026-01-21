@@ -1,3 +1,9 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+const L = /** @type {any} */ (window).L;
+const PIXI = /** @type {any} */ (window).PIXI;
+const Supercluster = /** @type {any} */ (window).Supercluster;
+
 import { state, setState } from "../../state.js";
 import { logger } from "../../logger.js";
 import { ICON_SIZE } from "./config.js";
@@ -24,13 +30,20 @@ let prevZoom = null;
 let supercluster = null;
 let pixiUtils = null;
 
+/** @returns {any} The supercluster instance. */
 export const getSupercluster = () => supercluster;
+/** @returns {any} The PIXI utils. */
 export const getPixiUtils = () => pixiUtils;
+/** @returns {any} The PIXI container. */
 export const getPixiContainer = () => pixiContainer;
 
+/**
+ * Checks if GPU rendering is available.
+ * @returns {boolean} True if available.
+ */
 export const isGpuRenderingAvailable = () => {
   const hasPixi =
-    typeof window.PIXI !== "undefined" && typeof L.pixiOverlay !== "undefined";
+    typeof PIXI !== "undefined" && typeof L.pixiOverlay !== "undefined";
 
   let hasWebGL = false;
   try {
@@ -47,8 +60,13 @@ export const isGpuRenderingAvailable = () => {
   return available;
 };
 
+/** @returns {any} The PIXI overlay instance. */
 export const getPixiOverlay = () => pixiOverlay;
 
+/**
+ * Initializes the PIXI overlay.
+ * @returns {Promise<any>} The PIXI overlay instance.
+ */
 export const initPixiOverlay = async () => {
   if (!isGpuRenderingAvailable()) {
     logger.warn("PixiOverlay", "PIXI or L.pixiOverlay not available");
@@ -145,7 +163,7 @@ export const initPixiOverlay = async () => {
             graphics.addChild(text);
 
             graphics.interactive = true;
-            graphics.buttonMode = true;
+            graphics.cursor = "pointer";
             graphics.markerData = {
               isCluster: true,
               clusterId: clusterId,
@@ -247,6 +265,10 @@ export const initPixiOverlay = async () => {
   return pixiOverlay;
 };
 
+/**
+ * Renders markers using PixiJS.
+ * @param {any[]} items - The items to render.
+ */
 export const renderMarkersWithPixi = async (items) => {
   if (!isGpuRenderingAvailable()) {
     logger.warn(
@@ -344,6 +366,9 @@ export const renderMarkersWithPixi = async (items) => {
   showRenderModeIndicator("GPU");
 };
 
+/**
+ * Updates PixiJS markers.
+ */
 export const updatePixiMarkers = async () => {
   if (!isGpuRenderingAvailable()) return;
 
@@ -351,6 +376,10 @@ export const updatePixiMarkers = async () => {
   await renderMarkersWithPixi(items);
 };
 
+/**
+ * Updates a single PixiJS marker's visual state.
+ * @param {string|number} itemId - The item ID.
+ */
 export const updateSinglePixiMarker = (itemId) => {
   if (!pixiContainer) return;
 
@@ -390,6 +419,9 @@ export const updateSinglePixiMarker = (itemId) => {
 
 import { memoryManager } from "../../memory.js";
 
+/**
+ * Clears the PixiJS overlay.
+ */
 export const clearPixiOverlay = () => {
   if (pixiContainer) {
     if (memoryManager.debugMode) {
@@ -418,16 +450,26 @@ export const clearPixiOverlay = () => {
   logger.log("PixiOverlay", "GPU overlay cleared");
 };
 
+/**
+ * Checks if the PixiJS overlay is active.
+ * @returns {boolean} True if active.
+ */
 export const isPixiOverlayActive = () => {
   return pixiOverlay && state.map && state.map.hasLayer(pixiOverlay);
 };
 
+/**
+ * Redraws the PixiJS overlay.
+ */
 export const redrawPixiOverlay = () => {
   if (pixiOverlay && isPixiOverlayActive()) {
     pixiOverlay.redraw();
   }
 };
 
+/**
+ * Disposes of the PixiJS overlay and resources.
+ */
 export const disposePixiOverlay = async () => {
   clearPixiOverlay();
 
@@ -458,6 +500,9 @@ export const disposePixiOverlay = async () => {
   logger.log("PixiOverlay", "GPU overlay disposed");
 };
 
+/**
+ * Resets the PixiJS overlay without clearing textures.
+ */
 export const resetPixiOverlay = () => {
   clearPixiOverlay();
 

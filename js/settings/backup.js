@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { isLoggedIn } from "../auth.js";
 import { setLocalData } from "../sync.js";
 import {
@@ -12,10 +14,15 @@ import {
   initResultAlertModal,
 } from "../integrity.js";
 
+/**
+ * Formats a date string for display.
+ * @param {string} dateStr - The date string to format.
+ * @returns {string} The formatted date string.
+ */
 const formatBackupDate = (dateStr) => {
   const date = new Date(dateStr);
   const now = new Date();
-  const diffMs = now - date;
+  const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
   const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
@@ -34,6 +41,11 @@ const formatBackupDate = (dateStr) => {
   });
 };
 
+/**
+ * Normalizes backup data by converting stringified booleans and arrays.
+ * @param {any} data - The backup data.
+ * @returns {any} The normalized data.
+ */
 const normalizeData = (data) => {
   if (!data || !data.settings) return data;
   const s = data.settings;
@@ -73,6 +85,10 @@ const normalizeData = (data) => {
   return data;
 };
 
+/**
+ * Renders the list of backups.
+ * @param {any[]} backups - The list of backups.
+ */
 const renderBackupList = (backups) => {
   const container = document.getElementById("cloud-backup-list");
   if (!container) return;
@@ -103,8 +119,12 @@ const renderBackupList = (backups) => {
   });
 };
 
+/**
+ * Handles the restore button click.
+ * @param {Event} e - The click event.
+ */
 const handleRestore = async (e) => {
-  const btn = e.target;
+  const btn = /** @type {HTMLButtonElement} */ (e.target);
   const backupId = btn.dataset.backupId;
 
   try {
@@ -152,6 +172,9 @@ const handleRestore = async (e) => {
   }
 };
 
+/**
+ * Loads the list of cloud backups.
+ */
 export const loadCloudBackups = async () => {
   const container = document.getElementById("cloud-backup-list");
   if (!container) return;
@@ -174,6 +197,9 @@ const SAVE_BUTTON_HTML = `
     현재 상태를 클라우드에 스냅샷 저장
 `;
 
+/**
+ * Initializes the cloud backup section.
+ */
 export const initCloudBackupSection = () => {
   const cloudBackupSection = document.getElementById("cloud-backup-section");
   const saveBtn = document.getElementById("btn-cloud-backup-save");
@@ -211,7 +237,7 @@ export const initCloudBackupSection = () => {
       const label = prompt("백업 이름을 입력하세요 (선택사항):");
 
       try {
-        saveBtn.disabled = true;
+        /** @type {HTMLButtonElement} */ (saveBtn).disabled = true;
         saveBtn.textContent = "저장 중...";
 
         const result = await saveCloudBackup(label || null);
@@ -231,7 +257,7 @@ export const initCloudBackupSection = () => {
           "백업 저장에 실패했습니다: " + error.message,
         );
       } finally {
-        saveBtn.disabled = false;
+        /** @type {HTMLButtonElement} */ (saveBtn).disabled = false;
         saveBtn.innerHTML = SAVE_BUTTON_HTML;
       }
     });

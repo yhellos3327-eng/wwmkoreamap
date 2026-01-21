@@ -1,3 +1,6 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+/* global L */
 import { state } from "../../state.js";
 import { t } from "../../utils.js";
 import { saveFilterState } from "../../data.js";
@@ -6,25 +9,31 @@ import { updateToggleButtonsState } from "./core.js";
 
 import { VirtualScroller } from "../virtual-scroller.js";
 
+/**
+ * @typedef {import("../../data/processors.js").MapItem} MapItem
+ */
+
+/**
+ * @typedef {L.Layer & { regionTitle?: string }} RegionLayer
+ */
+
 let setAllCategoriesRef = null;
+/** @type {VirtualScroller|null} */
 let regionScroller = null;
 
+/**
+ * Injects the setAllCategories function reference.
+ * @param {Function} fn - The function to set all categories.
+ */
 export const injectSetAllCategories = (fn) => {
   setAllCategoriesRef = fn;
 };
 
-export const setAllRegions = (isActive) => {
-  state.activeRegionNames.clear();
-  if (isActive) {
-    state.uniqueRegions.forEach((r) => state.activeRegionNames.add(r));
-  }
-
-  refreshSidebarLists();
-  updateToggleButtonsState();
-  updateMapVisibility();
-  saveFilterState();
-};
-
+/**
+ * Renders a region item for the sidebar.
+ * @param {string} region - The region name.
+ * @returns {HTMLElement} The rendered element.
+ */
 const renderRegionItem = (region) => {
   const btn = document.createElement("div");
   btn.className = state.activeRegionNames.has(region)
@@ -35,7 +44,8 @@ const renderRegionItem = (region) => {
   btn.style.boxSizing = "border-box";
 
   const regionItems = state.mapData.items.filter((item) => {
-    const itemRegion = item.forceRegion || item.region || "알 수 없음";
+    const mapItem = /** @type {MapItem} */ (item);
+    const itemRegion = mapItem.forceRegion || mapItem.region || "알 수 없음";
     const normalizedRegion = state.reverseRegionMap[itemRegion] || itemRegion;
     return normalizedRegion === region;
   });
@@ -79,68 +89,73 @@ const renderRegionItem = (region) => {
     `;
 
   const resetBtn = btn.querySelector(".region-reset-btn");
-  resetBtn.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    if (
-      confirm(`${translatedName} 지역의 완료 기록을 모두 초기화하시겠습니까?`)
-    ) {
-      const { triggerSync } = await import("../../sync.js");
-      const { updateSinglePixiMarker } =
-        await import("../../map/pixiOverlay/overlayCore.js");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", async (e) => {
+      e.stopPropagation();
+      if (
+        confirm(`${translatedName} 지역의 완료 기록을 모두 초기화하시겠습니까?`)
+      ) {
+        const { triggerSync } = await import("../../sync.js");
+        const { updateSinglePixiMarker } =
+          await import("../../map/pixiOverlay/overlayCore.js");
 
-      const regionMarkerIds = new Set(regionMarkers.map((m) => m.id));
+        const regionMarkerIds = new Set(regionMarkers.map((m) => m.id));
 
-      const initialLength = state.completedList.length;
-      state.completedList = state.completedList.filter(
-        (item) => !regionMarkerIds.has(item.id),
-      );
-
-      if (state.completedList.length !== initialLength) {
-        localStorage.setItem(
-          "wwm_completed",
-          JSON.stringify(state.completedList),
+        const initialLength = state.completedList.length;
+        state.completedList = state.completedList.filter(
+          (item) => !regionMarkerIds.has(item.id),
         );
-        triggerSync();
 
-        regionMarkerIds.forEach((id) => {
-          const target = state.allMarkers.get(id);
-          if (target && target.marker) {
-            if (target.marker._icon)
-              target.marker._icon.classList.remove("completed-marker");
-            if (
-              target.marker.options.icon &&
-              target.marker.options.icon.options
-            ) {
-              target.marker.options.icon.options.className =
-                target.marker.options.icon.options.className.replace(
-                  " completed-marker",
-                  "",
+        if (state.completedList.length !== initialLength) {
+          localStorage.setItem(
+            "wwm_completed",
+            JSON.stringify(state.completedList),
+          );
+          triggerSync();
+
+          regionMarkerIds.forEach((id) => {
+            const target = state.allMarkers.get(id);
+            if (target && target.marker) {
+              if (target.marker._icon)
+                target.marker._icon.classList.remove("completed-marker");
+              if (
+                target.marker.options.icon &&
+                target.marker.options.icon.options
+              ) {
+                target.marker.options.icon.options.className =
+                  target.marker.options.icon.options.className.replace(
+                    " completed-marker",
+                    "",
+                  );
+              }
+              if (target.marker._completedMouseover) {
+                target.marker.off(
+                  "mouseover",
+                  target.marker._completedMouseover,
                 );
+                target.marker.off("mouseout", target.marker._completedMouseout);
+                delete target.marker._completedMouseover;
+                delete target.marker._completedMouseout;
+              }
             }
-            if (target.marker._completedMouseover) {
-              target.marker.off("mouseover", target.marker._completedMouseover);
-              target.marker.off("mouseout", target.marker._completedMouseout);
-              delete target.marker._completedMouseover;
-              delete target.marker._completedMouseout;
-            }
-          }
-          updateSinglePixiMarker(id);
-        });
+            updateSinglePixiMarker(id);
+          });
 
-        updateMapVisibility();
-        alert(`${translatedName} 지역의 완료 기록이 초기화되었습니다.`);
-      } else {
-        alert(`${translatedName} 지역에 완료된 항목이 없습니다.`);
+          updateMapVisibility();
+          alert(`${translatedName} 지역의 완료 기록이 초기화되었습니다.`);
+        } else {
+          alert(`${translatedName} 지역에 완료된 항목이 없습니다.`);
+        }
       }
-    }
-  });
+    });
+  }
 
-  
   btn.addEventListener("mouseenter", () => {
     if (state.regionLayerGroup) {
       state.regionLayerGroup.eachLayer((layer) => {
-        if (layer.regionTitle === region) {
-          layer.setStyle({ weight: 2, fillOpacity: 0.4 });
+        const rLayer = /** @type {RegionLayer} */ (layer);
+        if (rLayer.regionTitle === region) {
+          rLayer.setStyle({ weight: 2, fillOpacity: 0.4 });
         }
       });
     }
@@ -158,8 +173,9 @@ const renderRegionItem = (region) => {
   btn.addEventListener("mouseleave", () => {
     if (state.regionLayerGroup) {
       state.regionLayerGroup.eachLayer((layer) => {
-        if (layer.regionTitle === region) {
-          layer.setStyle({ weight: 1, fillOpacity: 0.1 });
+        const rLayer = /** @type {RegionLayer} */ (layer);
+        if (rLayer.regionTitle === region) {
+          rLayer.setStyle({ weight: 1, fillOpacity: 0.1 });
         }
       });
     }
@@ -194,6 +210,9 @@ const renderRegionItem = (region) => {
   return btn;
 };
 
+/**
+ * Refreshes the region list in the sidebar.
+ */
 export const refreshSidebarLists = () => {
   let regionListEl = document.getElementById("region-list");
   if (!regionListEl) {
@@ -209,11 +228,13 @@ export const refreshSidebarLists = () => {
   }
 
   const sortedRegions = Array.from(state.uniqueRegions).sort((a, b) =>
-    t(a).localeCompare(t(b), "ko"),
+    String(t(a)).localeCompare(String(t(b)), "ko"),
   );
 
   if (!regionScroller) {
-    const scrollContainer = regionListEl.closest(".filter-container");
+    const scrollContainer = /** @type {HTMLElement} */ (
+      regionListEl.closest(".filter-container")
+    );
 
     regionScroller = new VirtualScroller({
       element: regionListEl,
@@ -229,4 +250,20 @@ export const refreshSidebarLists = () => {
   }
 
   updateToggleButtonsState();
+};
+
+/**
+ * Sets all regions to active or inactive.
+ * @param {boolean} isActive - Whether to activate all regions.
+ */
+export const setAllRegions = (isActive) => {
+  state.activeRegionNames.clear();
+  if (isActive) {
+    state.uniqueRegions.forEach((r) => state.activeRegionNames.add(r));
+  }
+
+  refreshSidebarLists();
+  updateToggleButtonsState();
+  updateMapVisibility();
+  saveFilterState();
 };

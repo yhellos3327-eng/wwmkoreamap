@@ -1,6 +1,8 @@
+// @ts-check
 /**
- * 개발자 도구 모듈
- * 콘솔에서 dev() 로 활성화
+ * @fileoverview Developer tools module.
+ * Activate from console with dev().
+ * @module dev-tools
  */
 
 import { state } from "./state.js";

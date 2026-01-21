@@ -1,7 +1,12 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
 
 const DEFAULT_CAT_ID = "17310010083";
 
+/**
+ * Saves the current filter state to local storage.
+ */
 export const saveFilterState = () => {
   localStorage.setItem(
     `wwm_active_cats_${state.currentMapKey}`,
@@ -13,12 +18,17 @@ export const saveFilterState = () => {
   );
 };
 
+/**
+ * Loads favorites from local storage.
+ * @param {string} mapKey - The map key.
+ * @returns {any[]} The loaded favorites.
+ */
 export const loadFavorites = (mapKey) => {
   const favStorageKey = `wwm_favorites_${mapKey}`;
-  let favorites = JSON.parse(localStorage.getItem(favStorageKey)) || [];
+  let favorites = JSON.parse(localStorage.getItem(favStorageKey) || "[]") || [];
 
   if (mapKey === "qinghe" && favorites.length === 0) {
-    const oldFavs = JSON.parse(localStorage.getItem("wwm_favorites"));
+    const oldFavs = JSON.parse(localStorage.getItem("wwm_favorites") || "[]");
     if (oldFavs && oldFavs.length > 0) {
       favorites = oldFavs;
       localStorage.setItem(favStorageKey, JSON.stringify(favorites));
@@ -29,6 +39,10 @@ export const loadFavorites = (mapKey) => {
   return favorites;
 };
 
+/**
+ * Loads category filters from local storage.
+ * @param {string} mapKey - The map key.
+ */
 export const loadCategoryFilters = (mapKey) => {
   const validCategoryIds = new Set(state.mapData.categories.map((c) => c.id));
   const storageKey = `wwm_active_cats_${mapKey}`;
@@ -39,7 +53,6 @@ export const loadCategoryFilters = (mapKey) => {
   if (savedCatsRaw !== null) {
     try {
       const savedCats = JSON.parse(savedCatsRaw);
-      const savedCatsSet = new Set(savedCats);
       if (Array.isArray(savedCats)) {
         savedCats.forEach((id) => {
           if (validCategoryIds.has(id)) {
@@ -62,6 +75,10 @@ export const loadCategoryFilters = (mapKey) => {
   }
 };
 
+/**
+ * Loads region filters from local storage.
+ * @param {string} mapKey - The map key.
+ */
 export const loadRegionFilters = (mapKey) => {
   const storageKey = `wwm_active_regs_${mapKey}`;
   const savedRegsRaw = localStorage.getItem(storageKey);
@@ -82,6 +99,10 @@ export const loadRegionFilters = (mapKey) => {
   });
 };
 
+/**
+ * Initializes filters from storage.
+ * @param {string} mapKey - The map key.
+ */
 export const initializeFiltersFromStorage = (mapKey) => {
   loadFavorites(mapKey);
   loadCategoryFilters(mapKey);

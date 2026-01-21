@@ -188,31 +188,6 @@
     white-space: nowrap;
 }
 
-.btn-report-styled {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 5px 10px;
-    font-size: 0.7rem;
-    background: transparent;
-    border: 1px solid rgba(255, 100, 100, 0.2);
-    border-radius: 8px;
-    color: rgba(255, 100, 100, 0.6);
-    cursor: pointer;
-    transition: all 0.2s ease;
-    flex-shrink: 0;
-}
-
-.btn-report-styled:hover {
-    background: rgba(255, 100, 100, 0.1);
-    border-color: rgba(255, 100, 100, 0.4);
-    color: rgba(255, 120, 120, 0.9);
-}
-
-.btn-report-styled svg {
-    flex-shrink: 0;
-}
-
 .loading-comments,
 .no-comments,
 .error-comments {

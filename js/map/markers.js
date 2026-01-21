@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
 import { refreshSidebarLists } from "../ui.js";
 import { markerPool } from "./MarkerPool.js";
@@ -9,8 +11,15 @@ import {
 } from "./markerFactory.js";
 import { webWorkerManager } from "../web-worker-manager.js";
 
-
 let pixiModule = null;
+/**
+ * Lazy loads the PixiOverlay module.
+ * @returns {Promise<any>} The PixiOverlay module.
+ */
+/**
+ * Lazy loads the PixiOverlay module.
+ * @returns {Promise<any>} The PixiOverlay module.
+ */
 const getPixiModule = async () => {
   if (!pixiModule) {
     pixiModule = await import("./pixiOverlay.js");
@@ -23,6 +32,14 @@ export {
   hideCompletedTooltip,
 } from "./completedTooltip.js";
 
+/**
+ * Initializes lazy loading and spatial indexing.
+ * @returns {Promise<void>}
+ */
+/**
+ * Initializes lazy loading and spatial indexing.
+ * @returns {Promise<void>}
+ */
 export const initLazyLoading = async () => {
   const items = state.mapData.items;
 
@@ -50,8 +67,15 @@ export const initLazyLoading = async () => {
   });
 };
 
+/**
+ * Renders map data and markers.
+ * @returns {Promise<void>}
+ */
+/**
+ * Renders map data and markers.
+ * @returns {Promise<void>}
+ */
 export const renderMapDataAndMarkers = async () => {
-  
   const pixi = await getPixiModule();
 
   if (pixi.isGpuRenderingAvailable()) {
@@ -92,5 +116,3 @@ export const renderMapDataAndMarkers = async () => {
     alert("WebGL을 지원하지 않는 브라우저입니다. 지도를 표시할 수 없습니다.");
   }
 };
-
-

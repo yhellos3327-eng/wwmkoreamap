@@ -1,3 +1,13 @@
+// @ts-check
+/**
+ * @fileoverview Cache worker - handles URL caching in a Web Worker.
+ * @module workers/cache-worker
+ */
+
+/**
+ * Message handler for the cache worker.
+ * @param {MessageEvent} e - The message event.
+ */
 self.onmessage = async (e) => {
   const { type, payload, taskId } = e.data;
 
@@ -16,6 +26,12 @@ self.onmessage = async (e) => {
   }
 };
 
+/**
+ * Caches multiple URLs.
+ * @param {string[]} urls - URLs to cache.
+ * @param {string} [cacheName="web-llm-cache"] - Cache name.
+ * @returns {Promise<Array<{url: string, status: string, error?: string}>>} Results.
+ */
 async function cacheUrls(urls, cacheName = "web-llm-cache") {
   const cache = await caches.open(cacheName);
   const results = [];
@@ -28,7 +44,6 @@ async function cacheUrls(urls, cacheName = "web-llm-cache") {
         continue;
       }
 
-      
       const response = await fetch(url, { mode: "cors" });
       if (!response.ok) {
         throw new Error(`Failed to fetch ${url}: ${response.statusText}`);

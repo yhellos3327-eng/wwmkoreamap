@@ -1,3 +1,16 @@
+// @ts-check
+
+/**
+ * @typedef {Object} SyncData
+ * @property {any[]} completedMarkers - Completed markers array.
+ * @property {any[]} favorites - Favorites array.
+ * @property {any} settings - Settings object.
+ */
+
+/**
+ * Gets local data from localStorage.
+ * @returns {SyncData} The local data.
+ */
 export const getLocalData = () => {
   let completedMarkers = [];
   let favorites = [];
@@ -28,12 +41,24 @@ export const getLocalData = () => {
     } catch (e) {}
   }
 
+  /**
+   * Gets a boolean value from localStorage.
+   * @param {string} key - The storage key.
+   * @param {boolean} defaultVal - Default value.
+   * @returns {boolean} The boolean value.
+   */
   const getBool = (key, defaultVal) => {
     const val = localStorage.getItem(key);
     if (val === null) return defaultVal;
     return val === "true";
   };
 
+  /**
+   * Gets a JSON value from localStorage.
+   * @param {string} key - The storage key.
+   * @param {any} defaultVal - Default value.
+   * @returns {any} The parsed JSON value.
+   */
   const getJson = (key, defaultVal = []) => {
     const val = localStorage.getItem(key);
     if (!val) return defaultVal;
@@ -76,6 +101,10 @@ export const getLocalData = () => {
   return { completedMarkers, favorites, settings };
 };
 
+/**
+ * Sets local data to localStorage.
+ * @param {SyncData} data - The data to save.
+ */
 export const setLocalData = (data) => {
   if (!data) return;
 

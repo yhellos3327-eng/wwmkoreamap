@@ -1,3 +1,4 @@
+// @ts-check
 import { state } from "./state.js";
 import {
   toggleSidebar,
@@ -9,6 +10,9 @@ import {
   renderContributionModal,
 } from "./ui.js";
 
+/**
+ * Initializes tab event listeners.
+ */
 export const initTabs = () => {
   const tabs = document.querySelectorAll(".tab-btn");
   const tabContents = document.querySelectorAll(".tab-content");
@@ -31,6 +35,9 @@ export const initTabs = () => {
   });
 };
 
+/**
+ * Initializes toggle buttons for categories and regions.
+ */
 export const initToggleButtons = () => {
   const btnToggleCat = document.getElementById("btn-toggle-cat");
   const btnToggleReg = document.getElementById("btn-toggle-reg");
@@ -52,6 +59,9 @@ export const initToggleButtons = () => {
   }
 };
 
+/**
+ * Initializes sidebar toggle events.
+ */
 export const initSidebarToggle = () => {
   const openBtn = document.getElementById("open-sidebar");
   const closeBtn = document.getElementById("toggle-sidebar");
@@ -80,15 +90,22 @@ export const initSidebarToggle = () => {
   });
 };
 
+/**
+ * Initializes the related items modal.
+ */
 export const initRelatedModal = () => {
   const relatedModal = document.getElementById("related-modal");
   if (relatedModal) {
     relatedModal.addEventListener("click", (e) => {
-      if (e.target.id === "related-modal") closeModal();
+      const el = /** @type {HTMLElement} */ (e.target);
+      if (el.id === "related-modal") closeModal();
     });
   }
 };
 
+/**
+ * Initializes the WebLLM modal events.
+ */
 export const initWebLLMModal = () => {
   const webLLMModal = document.getElementById("web-llm-modal");
   const openWebLLMModalBtn = document.getElementById("open-web-llm-modal");
@@ -107,10 +124,13 @@ export const initWebLLMModal = () => {
   }
 };
 
+/**
+ * Initializes keyboard shortcuts.
+ */
 export const initKeyboardEvents = () => {
   document.addEventListener("keydown", (e) => {
     const lightbox = document.getElementById("lightbox-modal");
-    if (!lightbox.classList.contains("hidden")) {
+    if (lightbox && !lightbox.classList.contains("hidden")) {
       if (e.key === "Escape") {
         closeLightbox();
       } else if (e.key === "ArrowLeft") {
@@ -122,9 +142,13 @@ export const initKeyboardEvents = () => {
   });
 };
 
+/**
+ * Initializes global event delegation for clicks.
+ */
 export const initGlobalEventDelegation = () => {
   document.addEventListener("click", (e) => {
-    const target = e.target.closest("[data-action]");
+    const el = /** @type {HTMLElement} */ (e.target);
+    const target = /** @type {HTMLElement} */ (el.closest("[data-action]"));
     if (!target) return;
 
     const action = target.dataset.action;
@@ -159,6 +183,9 @@ export const initGlobalEventDelegation = () => {
   });
 };
 
+/**
+ * Initializes route mode events.
+ */
 export const initRouteMode = () => {
   const routeToggleBtn = document.getElementById("route-mode-toggle");
 
@@ -179,6 +206,9 @@ export const initRouteMode = () => {
   }
 };
 
+/**
+ * Initializes Arca channel panel events.
+ */
 export const initArcaChannel = () => {
   const openBtn = document.getElementById("open-arca-channel");
   const closeBtn = document.getElementById("close-arca-panel");
@@ -198,21 +228,9 @@ export const initArcaChannel = () => {
   }
 };
 
-export const initReportPanel = () => {
-  const closeBtn = document.getElementById("close-report-panel");
-  const panel = document.getElementById("report-panel");
-  const embed = document.getElementById("report-embed");
-
-  if (closeBtn && panel) {
-    closeBtn.addEventListener("click", () => {
-      panel.classList.remove("open");
-      if (embed) {
-        embed.setAttribute("data", "");
-      }
-    });
-  }
-};
-
+/**
+ * Initializes all event handlers.
+ */
 export const initAllEventHandlers = () => {
   initTabs();
   initToggleButtons();
@@ -223,5 +241,4 @@ export const initAllEventHandlers = () => {
   initGlobalEventDelegation();
   initRouteMode();
   initArcaChannel();
-  initReportPanel();
 };

@@ -14,14 +14,6 @@ service cloud.firestore {
       allow update, delete: if isAdmin(); // Only admin can edit/delete
     }
 
-    // Reports (Report Board)
-    match /reports/{reportId} {
-      allow read: if true;
-      allow create: if true;
-      allow update: if isAdmin(); // Only admin can change status
-      allow delete: if isAdmin(); // Only admin can delete
-    }
-
     // Comments
     match /comments/{commentId} {
       allow read: if true;

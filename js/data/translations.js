@@ -1,150 +1,225 @@
-import { state, setState } from '../state.js';
-import { fetchAndParseCSVChunks } from '../utils.js';
+// @ts-check
+import { state, setState } from "../state.js";
+import { fetchAndParseCSVChunks } from "../utils.js";
 
+/**
+ * Loads translations from CSV files.
+ * @param {string} mapKey - The map key.
+ * @returns {Promise<void>}
+ */
 export const loadTranslations = async (mapKey) => {
-    state.koDict = {};
-    state.categoryItemTranslations = {};
-    state.parsedCSV = [];
+  state.koDict = {};
+  state.categoryItemTranslations = {};
+  state.parsedCSV = [];
 
-    const processCSVChunk = (chunkData, rawHeaders) => {
-        if (!rawHeaders) return;
+  /**
+   * Processes a chunk of CSV data.
+   * @param {string[][]} chunkData - The chunk data.
+   * @param {string[]} rawHeaders - The CSV headers.
+   */
+  const processCSVChunk = (chunkData, rawHeaders) => {
+    if (!rawHeaders) return;
 
-        
-        const headers = rawHeaders.map(h => h.trim());
+    const headers = rawHeaders.map((h) => h.trim());
 
-        if (state.parsedCSV.length === 0) {
-            state.parsedCSV.push(headers);
-        }
-        state.parsedCSV.push(...chunkData);
-
-        const typeIdx = headers.indexOf('Type');
-        const catIdx = headers.indexOf('Category');
-        const keyIdx = headers.indexOf('Key');
-        const valIdx = headers.indexOf('Korean');
-        const descIdx = headers.indexOf('Description');
-        const regIdx = headers.indexOf('Region');
-        const imgIdx = headers.indexOf('Image');
-        const videoIdx = headers.indexOf('Video');
-        const posIdx = headers.indexOf('CustomPosition');
-
-        if (typeIdx === -1) {
-            console.warn('Translation CSV: "Type" header not found. Headers:', headers);
-        }
-
-        chunkData.forEach(row => {
-            if (row.length < 3) return;
-
-            const type = row[typeIdx]?.trim();
-            const key = row[keyIdx]?.trim();
-            if (!key) return;
-
-            if (type === 'Common') {
-                const val = row[valIdx];
-                if (val) {
-                    state.koDict[key] = val;
-                    state.koDict[key.trim()] = val;
-                }
-            } else if (type === 'Override') {
-                processOverrideRow(row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx, posIdx);
-            }
-        });
-    };
-
-    await fetchAndParseCSVChunks('./translation.csv', processCSVChunk);
-
-    if (mapKey === 'kaifeng') {
-        try {
-            await fetchAndParseCSVChunks('./translation2.csv', processCSVChunk);
-            console.log("Loaded translation2.csv for Kaifeng");
-        } catch (e) {
-            console.warn("translation2.csv not found or failed to load", e);
-        }
+    if (state.parsedCSV.length === 0) {
+      state.parsedCSV.push(headers);
     }
+    state.parsedCSV.push(...chunkData);
+
+    const typeIdx = headers.indexOf("Type");
+    const catIdx = headers.indexOf("Category");
+    const keyIdx = headers.indexOf("Key");
+    const valIdx = headers.indexOf("Korean");
+    const descIdx = headers.indexOf("Description");
+    const regIdx = headers.indexOf("Region");
+    const imgIdx = headers.indexOf("Image");
+    const videoIdx = headers.indexOf("Video");
+    const posIdx = headers.indexOf("CustomPosition");
+
+    if (typeIdx === -1) {
+      console.warn(
+        'Translation CSV: "Type" header not found. Headers:',
+        headers,
+      );
+    }
+
+    chunkData.forEach((row) => {
+      if (row.length < 3) return;
+
+      const type = row[typeIdx]?.trim();
+      const key = row[keyIdx]?.trim();
+      if (!key) return;
+
+      if (type === "Common") {
+        const val = row[valIdx];
+        if (val) {
+          state.koDict[key] = val;
+          state.koDict[key.trim()] = val;
+        }
+      } else if (type === "Override") {
+        processOverrideRow(
+          row,
+          catIdx,
+          keyIdx,
+          valIdx,
+          descIdx,
+          regIdx,
+          imgIdx,
+          videoIdx,
+          posIdx,
+        );
+      }
+    });
+  };
+
+  await fetchAndParseCSVChunks("./translation.csv", processCSVChunk);
+
+  if (mapKey === "kaifeng") {
+    try {
+      await fetchAndParseCSVChunks("./translation2.csv", processCSVChunk);
+      console.log("Loaded translation2.csv for Kaifeng");
+    } catch (e) {
+      console.warn("translation2.csv not found or failed to load", e);
+    }
+  }
 };
 
-const processOverrideRow = (row, catIdx, keyIdx, valIdx, descIdx, regIdx, imgIdx, videoIdx, posIdx) => {
-    const catId = row[catIdx]?.trim();
-    const key = row[keyIdx]?.trim();
-    if (!catId || !key) return;
+/**
+ * Processes an override row from the CSV.
+ * @param {string[]} row - The CSV row.
+ * @param {number} catIdx - Category index.
+ * @param {number} keyIdx - Key index.
+ * @param {number} valIdx - Value index.
+ * @param {number} descIdx - Description index.
+ * @param {number} regIdx - Region index.
+ * @param {number} imgIdx - Image index.
+ * @param {number} videoIdx - Video index.
+ * @param {number} posIdx - Custom position index.
+ */
+const processOverrideRow = (
+  row,
+  catIdx,
+  keyIdx,
+  valIdx,
+  descIdx,
+  regIdx,
+  imgIdx,
+  videoIdx,
+  posIdx,
+) => {
+  const catId = row[catIdx]?.trim();
+  const key = row[keyIdx]?.trim();
+  if (!catId || !key) return;
 
-    if (!state.categoryItemTranslations[catId]) {
-        state.categoryItemTranslations[catId] = {};
-    }
+  if (!state.categoryItemTranslations[catId]) {
+    state.categoryItemTranslations[catId] = {};
+  }
 
-    if (key === '_common_description') {
-        state.categoryItemTranslations[catId]._common_description = row[descIdx];
-        return;
-    }
+  if (key === "_common_description") {
+    state.categoryItemTranslations[catId]._common_description = row[descIdx];
+    return;
+  }
 
-    let desc = row[descIdx];
-    if (desc) {
-        desc = desc.replace(/<hr>/g, '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">');
-    }
+  let desc = row[descIdx];
+  if (desc) {
+    desc = desc.replace(
+      /<hr>/g,
+      '<hr style="border: 0; border-bottom: 1px solid var(--border); margin: 10px 0;">',
+    );
+  }
 
-    const imageData = parseImageField(row[imgIdx], key);
-    const videoData = parseVideoField(row[videoIdx]);
-    const customPosition = parseCustomPosition(row[posIdx]);
+  const imageData = parseImageField(row[imgIdx], key);
+  const videoData = parseVideoField(row[videoIdx]);
+  const customPosition = parseCustomPosition(row[posIdx]);
 
-    state.categoryItemTranslations[catId][key] = {
-        name: row[valIdx],
-        description: desc,
-        region: row[regIdx],
-        image: imageData,
-        video: videoData,
-        customPosition: customPosition
-    };
+  state.categoryItemTranslations[catId][key] = {
+    name: row[valIdx],
+    description: desc,
+    region: row[regIdx],
+    image: imageData,
+    video: videoData,
+    customPosition: customPosition,
+  };
 };
 
+/**
+ * Parses the image field.
+ * @param {string} imageRaw - The raw image string.
+ * @param {string} key - The item key.
+ * @returns {string|string[]|null} The parsed image path(s).
+ */
 const parseImageField = (imageRaw, key) => {
-    if (!imageRaw) return null;
+  if (!imageRaw) return null;
 
-    const trimmed = imageRaw.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        const content = trimmed.slice(1, -1);
-        return content.split('|').map(v => {
-            let path = v.trim();
-            if (path.includes('{id}')) {
-                path = path.replace('{id}', key);
-            }
-            return path;
-        }).filter(v => v !== "");
-    } else {
-        let path = trimmed;
-        if (path.includes('{id}')) {
-            path = path.replace('{id}', key);
+  const trimmed = imageRaw.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const content = trimmed.slice(1, -1);
+    return content
+      .split("|")
+      .map((v) => {
+        let path = v.trim();
+        if (path.includes("{id}")) {
+          path = path.replace("{id}", key);
         }
         return path;
+      })
+      .filter((v) => v !== "");
+  } else {
+    let path = trimmed;
+    if (path.includes("{id}")) {
+      path = path.replace("{id}", key);
     }
+    return path;
+  }
 };
 
+/**
+ * Parses the video field.
+ * @param {string} videoUrl - The raw video URL.
+ * @returns {string|string[]|null} The parsed video URL(s).
+ */
 const parseVideoField = (videoUrl) => {
-    if (!videoUrl) return null;
+  if (!videoUrl) return null;
 
-    const trimmed = videoUrl.trim();
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        const content = trimmed.slice(1, -1);
-        return content.split('|').map(v => v.trim()).filter(v => v !== "");
-    } else {
-        return trimmed;
-    }
+  const trimmed = videoUrl.trim();
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const content = trimmed.slice(1, -1);
+    return content
+      .split("|")
+      .map((v) => v.trim())
+      .filter((v) => v !== "");
+  } else {
+    return trimmed;
+  }
 };
 
+/**
+ * @typedef {Object} CustomPosition
+ * @property {number} x
+ * @property {number} y
+ */
 
+/**
+ * Parses the custom position field.
+ * @param {string} positionRaw - The raw position string.
+ * @returns {CustomPosition|null} The parsed position.
+ */
 const parseCustomPosition = (positionRaw) => {
-    if (!positionRaw) return null;
+  if (!positionRaw) return null;
 
-    const trimmed = positionRaw.trim();
-    
-    if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-        const content = trimmed.slice(1, -1);
-        const parts = content.split('|');
-        if (parts.length === 2) {
-            const x = parseFloat(parts[0].trim());
-            const y = parseFloat(parts[1].trim());
-            if (!isNaN(x) && !isNaN(y)) {
-                return { x, y };
-            }
-        }
+  const trimmed = positionRaw.trim();
+
+  if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+    const content = trimmed.slice(1, -1);
+    const parts = content.split("|");
+    if (parts.length === 2) {
+      const x = parseFloat(parts[0].trim());
+      const y = parseFloat(parts[1].trim());
+      if (!isNaN(x) && !isNaN(y)) {
+        return { x, y };
+      }
     }
-    return null;
+  }
+  return null;
 };

@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="./types.d.ts" />
 import { state } from "./state.js";
 import Papa from "https://esm.run/papaparse@5.4.1";
 import { josa } from "https://esm.run/es-hangul@2.3.0";
@@ -5,12 +7,23 @@ import pointInPolygon from "https://esm.run/point-in-polygon@1.1.0";
 import { debounce } from "https://esm.run/lodash-es@4.17.22";
 import axios from "https://esm.run/axios@1.12.0";
 
+/**
+ * Translates a key using the Korean dictionary in the state.
+ * @param {string|number} key - The key to translate.
+ * @returns {string|number} The translated string or the original key.
+ */
 export const t = (key) => {
   if (!key) return "";
   const trimmedKey = key.toString().trim();
   return state.koDict[trimmedKey] || key;
 };
 
+/**
+ * Gets the correct Korean particle (josa) for a word.
+ * @param {string} word - The word to attach the particle to.
+ * @param {string} type - The type of particle (e.g., '이/가', '을/를').
+ * @returns {string} The particle.
+ */
 export const getJosa = (word, type) => {
   if (!word || typeof word !== "string") return type.split("/")[0];
   // es-hangul returns "word+particle", so we slice off the word to get just the particle
@@ -18,10 +31,22 @@ export const getJosa = (word, type) => {
   const full = josa(word, type);
   return full.slice(word.length);
 };
+
+/**
+ * Checks if a point is inside a polygon.
+ * @param {number[]} point - The point coordinates [x, y].
+ * @param {number[][]} vs - The polygon vertices [[x, y], ...].
+ * @returns {boolean} True if the point is inside the polygon.
+ */
 export const isPointInPolygon = (point, vs) => {
   return pointInPolygon(point, vs);
 };
 
+/**
+ * Parses a CSV string into an array of arrays.
+ * @param {string} str - The CSV string.
+ * @returns {string[][]} The parsed data.
+ */
 export const parseCSV = (str) => {
   const results = Papa.parse(str, {
     header: false,
@@ -30,6 +55,12 @@ export const parseCSV = (str) => {
   return results.data;
 };
 
+/**
+ * Fetches a URL with progress tracking.
+ * @param {string} url - The URL to fetch.
+ * @param {function(number, number): void} [onProgress] - Callback for progress updates (loaded, total).
+ * @returns {Promise<Blob>} The response data as a Blob.
+ */
 export const fetchWithProgress = async (url, onProgress) => {
   try {
     const response = await axios.get(url, {
@@ -46,6 +77,14 @@ export const fetchWithProgress = async (url, onProgress) => {
   }
 };
 
+/**
+ * Fetches and parses a CSV file in chunks.
+ * @param {string} url - The URL of the CSV file.
+ * @param {function(string[][], string[]|null): void} onChunk - Callback for each chunk of data.
+ * @param {function(): void} [onComplete] - Callback when parsing is complete.
+ * @param {function(number, number): void} [onProgress] - Callback for download progress.
+ * @returns {Promise<void>}
+ */
 export const fetchAndParseCSVChunks = async (
   url,
   onChunk,
@@ -96,6 +135,11 @@ export const fetchAndParseCSVChunks = async (
 let cachedIp = null;
 let cachedMaskedIp = null;
 
+/**
+ * Fetches the user's IP address.
+ * @param {boolean} [masked=true] - Whether to return a masked IP.
+ * @returns {Promise<string>} The user's IP address.
+ */
 export const fetchUserIp = async (masked = true) => {
   if (masked && cachedMaskedIp) return cachedMaskedIp;
   if (!masked && cachedIp) return cachedIp;
@@ -156,11 +200,17 @@ export const fetchUserIp = async (masked = true) => {
   }
 };
 
+/**
+ * Gets the cached masked IP address.
+ * @returns {string|null} The cached masked IP.
+ */
 export const getCachedMaskedIp = () => cachedMaskedIp;
 
 /**
  * Simple Markdown Parser
  * Supports: Bold, Italic, Strikethrough, Links, Headers, Blockquotes, Code, HR
+ * @param {string} text - The markdown text.
+ * @returns {string} The converted HTML.
  */
 export const parseMarkdown = (text) => {
   if (!text) return "";

@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 export { createPopupHtml } from "./popup.js";
 
 export { initMap } from "./init.js";

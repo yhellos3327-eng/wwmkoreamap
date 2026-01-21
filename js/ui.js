@@ -1,46 +1,45 @@
 export {
-    toggleSidebar,
-    refreshCategoryList,
-    refreshSidebarLists,
-    setAllCategories,
-    setAllRegions,
-    updateToggleButtonsState,
-    renderFavorites,
-    CATEGORY_GROUPS
-} from './ui/sidebar.js';
+  toggleSidebar,
+  refreshCategoryList,
+  refreshSidebarLists,
+  setAllCategories,
+  setAllRegions,
+  updateToggleButtonsState,
+  renderFavorites,
+  CATEGORY_GROUPS,
+} from "./ui/sidebar.js";
 
 export {
-    initCustomDropdown,
-    handleMapSelection,
-    createDropdownOption,
-    setupDropdownEvents
-} from './ui/dropdown.js';
+  initCustomDropdown,
+  handleMapSelection,
+  createDropdownOption,
+  setupDropdownEvents,
+} from "./ui/dropdown.js";
 
 export {
-    openLightbox,
-    switchLightbox,
-    closeLightbox,
-    openVideoLightbox,
-    closeVideoLightbox,
-    viewFullImage,
-    switchImage
-} from './ui/lightbox.js';
+  openLightbox,
+  switchLightbox,
+  closeLightbox,
+  openVideoLightbox,
+  closeVideoLightbox,
+  viewFullImage,
+  switchImage,
+} from "./ui/lightbox.js";
 
 export {
-    openRelatedModal,
-    closeModal,
-    renderModalList,
-    renderContributionModal
-} from './ui/modal.js';
+  openRelatedModal,
+  closeModal,
+  renderModalList,
+  renderContributionModal,
+} from "./ui/modal.js";
 
 export {
-    toggleCompleted,
-    toggleFavorite,
-    shareLocation,
-    expandRelated,
-    jumpToId,
-    findItem,
-    openReportPage
-} from './ui/navigation.js';
+  toggleCompleted,
+  toggleFavorite,
+  shareLocation,
+  expandRelated,
+  jumpToId,
+  findItem,
+} from "./ui/navigation.js";
 
-export { translateItem } from './translation.js';
+export { translateItem } from "./translation.js";

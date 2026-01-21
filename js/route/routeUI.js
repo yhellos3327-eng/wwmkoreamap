@@ -1,102 +1,129 @@
-import { state } from '../state.js';
-import { t } from '../utils.js';
+// @ts-check
+const L = /** @type {any} */ (window).L;
+import { state } from "../state.js";
+import { t } from "../utils.js";
 import {
-    isRouteModeActive,
-    isManualRouteMode,
-    getCurrentRoute,
-    getManualRouteItems,
-    getRouteState
-} from './routeState.js';
+  isRouteModeActive,
+  isManualRouteMode,
+  getCurrentRoute,
+  getManualRouteItems,
+  getRouteState,
+} from "./routeState.js";
 import {
-    generateRoute,
-    displayRoute,
-    clearRouteDisplay,
-    exitRouteMode,
-    getAvailableRegions,
-    getRouteStats,
-    saveRoute,
-    getSavedRoutes,
-    loadRoute,
-    deleteRoute
-} from './routeCore.js';
+  generateRoute,
+  displayRoute,
+  clearRouteDisplay,
+  exitRouteMode,
+  getAvailableRegions,
+  getRouteStats,
+  saveRoute,
+  getSavedRoutes,
+  loadRoute,
+  deleteRoute,
+} from "./routeCore.js";
 
+/** @type {string[]} */
 const HIDDEN_ROUTE_CATEGORIES = ["173100100592", "17310010091", "17310013036"];
 import {
-    goToStep,
-    nextStep,
-    prevStep,
-    completeCurrentStep
-} from './routeNavigation.js';
+  goToStep,
+  nextStep,
+  prevStep,
+  completeCurrentStep,
+} from "./routeNavigation.js";
 import {
-    toggleManualRouteMode,
-    removeFromManualRoute,
-    applyManualRoute
-} from './routeManual.js';
-import { copyShareUrl } from './routeShare.js';
+  toggleManualRouteMode,
+  removeFromManualRoute,
+  applyManualRoute,
+} from "./routeManual.js";
+import { copyShareUrl } from "./routeShare.js";
 
+/**
+ * Opens an item popup on the map.
+ * @param {string|number} itemId - The item ID.
+ * @param {number} lat - Latitude.
+ * @param {number} lng - Longitude.
+ */
 const openItemPopup = (itemId, lat, lng) => {
-    if (!state.map) return;
-    const markerInfo = state.allMarkers?.get(itemId);
+  if (!state.map) return;
+  const markerInfo = state.allMarkers?.get(itemId);
 
-    if (markerInfo && markerInfo.marker) {
-        state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
-        setTimeout(() => {
-            if (markerInfo.marker.openPopup) {
-                markerInfo.marker.openPopup();
-            }
-        }, 300);
-    } else {
-        const item = state.mapData?.items?.find(i => i.id === itemId);
-        if (item) {
-            import('../map/popup.js').then(({ createPopupHtml }) => {
-                const popupContent = createPopupHtml(item, lat, lng, item.region || '');
-                const popup = L.popup({ maxWidth: 350, className: 'custom-popup' })
-                    .setLatLng([lat, lng])
-                    .setContent(popupContent)
-                    .openOn(state.map);
-            }).catch(() => {
-                state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), { animate: true });
-            });
-        }
+  if (markerInfo && markerInfo.marker) {
+    state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), {
+      animate: true,
+    });
+    setTimeout(() => {
+      if (markerInfo.marker.openPopup) {
+        markerInfo.marker.openPopup();
+      }
+    }, 300);
+  } else {
+    const item = state.mapData?.items?.find((i) => i.id === itemId);
+    if (item) {
+      import("../map/popup.js")
+        .then(({ createPopupHtml }) => {
+          const popupContent = createPopupHtml(
+            item,
+            lat,
+            lng,
+            item.region || "",
+          );
+          const popup = L.popup({ maxWidth: 350, className: "custom-popup" })
+            .setLatLng([lat, lng])
+            .setContent(popupContent)
+            .openOn(state.map);
+        })
+        .catch(() => {
+          state.map.setView([lat, lng], Math.max(state.map.getZoom(), 14), {
+            animate: true,
+          });
+        });
     }
+  }
 };
 
+/** @type {HTMLElement|null} */
 let routePanel = null;
 
+/**
+ * Renders the route UI panel.
+ */
 export const renderRouteUI = () => {
-    hideRouteUI();
-    routePanel = document.createElement('div');
-    routePanel.id = 'route-panel';
-    routePanel.className = 'route-panel';
-    routePanel.innerHTML = getRoutePanelHTML();
+  hideRouteUI();
+  routePanel = document.createElement("div");
+  routePanel.id = "route-panel";
+  routePanel.className = "route-panel";
+  routePanel.innerHTML = getRoutePanelHTML();
 
-    document.body.appendChild(routePanel);
+  document.body.appendChild(routePanel);
 
-    attachRouteEventListeners();
+  attachRouteEventListeners();
 
-    updateRegionSelector();
-    updateCategorySelector();
-    updateSavedRoutesList();
+  updateRegionSelector();
+  updateCategorySelector();
+  updateSavedRoutesList();
 
-    const currentRoute = getCurrentRoute();
-    if (currentRoute) {
-        const state = getRouteState();
-        updateRouteProgress(currentRoute, state.currentStepIndex || 0);
+  const currentRoute = getCurrentRoute();
+  if (currentRoute) {
+    const state = getRouteState();
+    updateRouteProgress(currentRoute, state.currentStepIndex || 0);
 
-        const activeSection = document.getElementById('route-active-section');
-        if (activeSection) activeSection.style.display = 'block';
-    }
+    const activeSection = document.getElementById("route-active-section");
+    if (activeSection) activeSection.style.display = "block";
+  }
 };
 
+/**
+ * Hides the route UI panel.
+ */
 export const hideRouteUI = () => {
-    if (routePanel) {
-        routePanel.remove();
-        routePanel = null;
-    }
+  if (routePanel) {
+    routePanel.remove();
+    routePanel = null;
+  }
 };
 
 const getRoutePanelHTML = () => {
-    return `
+  return `
         <div class="route-panel-header">
             <h3>
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
@@ -262,30 +289,29 @@ const getRoutePanelHTML = () => {
     `;
 };
 
-let selectedRegion = '';
+let selectedRegion = "";
 
 const updateRegionSelector = () => {
-    const regions = getAvailableRegions();
+  const regions = getAvailableRegions();
 
-    
-    if (!selectedRegion && regions.length > 0) {
-        selectedRegion = regions[0];
-        const hiddenInput = document.getElementById('route-region-select');
-        const textEl = document.getElementById('route-region-text');
-        if (hiddenInput) hiddenInput.value = selectedRegion;
-        if (textEl) textEl.textContent = t(selectedRegion) || selectedRegion;
-    }
+  if (!selectedRegion && regions.length > 0) {
+    selectedRegion = regions[0];
+    const hiddenInput = document.getElementById("route-region-select");
+    const textEl = document.getElementById("route-region-text");
+    if (hiddenInput) hiddenInput.value = selectedRegion;
+    if (textEl) textEl.textContent = t(selectedRegion) || selectedRegion;
+  }
 
-    updateRouteStatsDisplay();
+  updateRouteStatsDisplay();
 };
 
 const openRegionModal = () => {
-    const regions = getAvailableRegions();
+  const regions = getAvailableRegions();
 
-    const modal = document.createElement('div');
-    modal.className = 'route-region-modal-overlay';
-    modal.id = 'route-region-modal';
-    modal.innerHTML = `
+  const modal = document.createElement("div");
+  modal.className = "route-region-modal-overlay";
+  modal.id = "route-region-modal";
+  modal.innerHTML = `
         <div class="route-region-modal">
             <div class="route-region-modal-header">
                 <h4>지역 선택</h4>
@@ -294,58 +320,65 @@ const openRegionModal = () => {
                 </button>
             </div>
             <div class="route-region-modal-list">
-                ${regions.map(r => `
-                    <div class="route-region-option ${selectedRegion === r ? 'selected' : ''}" data-region="${r}">
+                ${regions
+                  .map(
+                    (r) => `
+                    <div class="route-region-option ${selectedRegion === r ? "selected" : ""}" data-region="${r}">
                         <span class="route-region-option-name">${t(r) || r}</span>
-                        ${selectedRegion === r ? '<span class="route-region-check">✓</span>' : ''}
+                        ${selectedRegion === r ? '<span class="route-region-check">✓</span>' : ""}
                     </div>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
             </div>
         </div>
     `;
 
-    document.body.appendChild(modal);
+  document.body.appendChild(modal);
 
-    
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeRegionModal();
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeRegionModal();
+  });
+
+  document
+    .getElementById("route-region-modal-close")
+    ?.addEventListener("click", closeRegionModal);
+
+  modal.querySelectorAll(".route-region-option").forEach((opt) => {
+    opt.addEventListener("click", () => {
+      const region = opt.dataset.region;
+      selectedRegion = region;
+
+      const hiddenInput = document.getElementById("route-region-select");
+      const textEl = document.getElementById("route-region-text");
+      if (hiddenInput) hiddenInput.value = region;
+      if (textEl) textEl.textContent = t(region) || region;
+
+      updateRouteStatsDisplay();
+      closeRegionModal();
     });
-
-    
-    document.getElementById('route-region-modal-close')?.addEventListener('click', closeRegionModal);
-
-    
-    modal.querySelectorAll('.route-region-option').forEach(opt => {
-        opt.addEventListener('click', () => {
-            const region = opt.dataset.region;
-            selectedRegion = region;
-
-            const hiddenInput = document.getElementById('route-region-select');
-            const textEl = document.getElementById('route-region-text');
-            if (hiddenInput) hiddenInput.value = region;
-            if (textEl) textEl.textContent = t(region) || region;
-
-            updateRouteStatsDisplay();
-            closeRegionModal();
-        });
-    });
+  });
 };
 
 const closeRegionModal = () => {
-    const modal = document.getElementById('route-region-modal');
-    if (modal) {
-        modal.classList.add('closing');
-        setTimeout(() => modal.remove(), 200);
-    }
+  const modal = document.getElementById("route-region-modal");
+  if (modal) {
+    modal.classList.add("closing");
+    setTimeout(() => modal.remove(), 200);
+  }
 };
 
 const updateCategorySelector = () => {
-    const container = document.getElementById('route-category-list');
-    if (!container || !state.mapData) return;
+  const container = document.getElementById("route-category-list");
+  if (!container || !state.mapData) return;
 
-    const categories = (state.mapData.categories || []).filter(c => !HIDDEN_ROUTE_CATEGORIES.includes(String(c.id)));
+  const categories = (state.mapData.categories || []).filter(
+    (c) => !HIDDEN_ROUTE_CATEGORIES.includes(String(c.id)),
+  );
 
-    container.innerHTML = categories.map(cat => `
+  container.innerHTML = categories
+    .map(
+      (cat) => `
         <div class="route-category-item checked" data-category="${cat.id}">
             <input type="checkbox" value="${cat.id}" class="route-category-checkbox" checked hidden>
             <span class="route-checkbox-icon">
@@ -354,62 +387,68 @@ const updateCategorySelector = () => {
             </span>
             <span>${t(cat.id) || cat.name || cat.id}</span>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 
-    container.querySelectorAll('.route-category-item').forEach(item => {
-        const checkbox = item.querySelector('.route-category-checkbox');
-        item.addEventListener('click', () => {
-            checkbox.checked = !checkbox.checked;
-            item.classList.toggle('checked', checkbox.checked);
-            updateRouteStatsDisplay();
-            updateCategoryToggleBtn();
-        });
+  container.querySelectorAll(".route-category-item").forEach((item) => {
+    const checkbox = item.querySelector(".route-category-checkbox");
+    item.addEventListener("click", () => {
+      checkbox.checked = !checkbox.checked;
+      item.classList.toggle("checked", checkbox.checked);
+      updateRouteStatsDisplay();
+      updateCategoryToggleBtn();
     });
+  });
 
-    updateCategoryToggleBtn();
+  updateCategoryToggleBtn();
 };
 
 const updateCategoryToggleBtn = () => {
-    const btn = document.getElementById('route-cat-toggle');
-    if (!btn) return;
+  const btn = document.getElementById("route-cat-toggle");
+  if (!btn) return;
 
-    const items = document.querySelectorAll('.route-category-item');
-    const checkedItems = document.querySelectorAll('.route-category-item.checked');
-    const allChecked = items.length > 0 && items.length === checkedItems.length;
+  const items = document.querySelectorAll(".route-category-item");
+  const checkedItems = document.querySelectorAll(
+    ".route-category-item.checked",
+  );
+  const allChecked = items.length > 0 && items.length === checkedItems.length;
 
-    const iconAll = btn.querySelector('.icon-all');
-    const iconNone = btn.querySelector('.icon-none');
-    const text = btn.querySelector('.btn-text');
+  const iconAll = btn.querySelector(".icon-all");
+  const iconNone = btn.querySelector(".icon-none");
+  const text = btn.querySelector(".btn-text");
 
-    if (allChecked) {
-        btn.classList.add('all-active');
-        if (iconAll) iconAll.style.display = 'block';
-        if (iconNone) iconNone.style.display = 'none';
-        if (text) text.textContent = '모두 해제';
-    } else {
-        btn.classList.remove('all-active');
-        if (iconAll) iconAll.style.display = 'none';
-        if (iconNone) iconNone.style.display = 'block';
-        if (text) text.textContent = '모두 선택';
-    }
+  if (allChecked) {
+    btn.classList.add("all-active");
+    if (iconAll) iconAll.style.display = "block";
+    if (iconNone) iconNone.style.display = "none";
+    if (text) text.textContent = "모두 해제";
+  } else {
+    btn.classList.remove("all-active");
+    if (iconAll) iconAll.style.display = "none";
+    if (iconNone) iconNone.style.display = "block";
+    if (text) text.textContent = "모두 선택";
+  }
 };
 
 const getSelectedCategories = () => {
-    const checkboxes = document.querySelectorAll('.route-category-checkbox:checked');
-    return Array.from(checkboxes).map(cb => cb.value);
+  const checkboxes = document.querySelectorAll(
+    ".route-category-checkbox:checked",
+  );
+  return Array.from(checkboxes).map((cb) => cb.value);
 };
 
 const updateRouteStatsDisplay = () => {
-    const statsContainer = document.getElementById('route-stats');
-    const regionSelect = document.getElementById('route-region-select');
+  const statsContainer = document.getElementById("route-stats");
+  const regionSelect = document.getElementById("route-region-select");
 
-    if (!statsContainer || !regionSelect) return;
+  if (!statsContainer || !regionSelect) return;
 
-    const region = regionSelect.value || 'all';
-    const categories = getSelectedCategories();
-    const stats = getRouteStats(region, categories);
+  const region = regionSelect.value || "all";
+  const categories = getSelectedCategories();
+  const stats = getRouteStats(region, categories);
 
-    statsContainer.innerHTML = `
+  statsContainer.innerHTML = `
         <div class="stat-item">
             <span class="stat-label">전체</span>
             <span class="stat-value">${stats.total}</span>
@@ -425,75 +464,89 @@ const updateRouteStatsDisplay = () => {
     `;
 };
 
+/**
+ * Updates the manual route UI with items.
+ * @param {any[]} items - The manual route items.
+ */
 export const updateManualRouteUI = (items) => {
-    const container = document.getElementById('route-manual-list');
-    const applyBtn = document.getElementById('route-apply-manual-btn');
+  const container = document.getElementById("route-manual-list");
+  const applyBtn = document.getElementById("route-apply-manual-btn");
 
-    if (!container) return;
+  if (!container) return;
 
-    if (items.length === 0) {
-        container.innerHTML = '<div class="no-manual-items">경로가 비어있습니다.</div>';
-        if (applyBtn) applyBtn.disabled = true;
-        return;
-    }
+  if (items.length === 0) {
+    container.innerHTML =
+      '<div class="no-manual-items">경로가 비어있습니다.</div>';
+    if (applyBtn) applyBtn.disabled = true;
+    return;
+  }
 
-    if (applyBtn) applyBtn.disabled = false;
+  if (applyBtn) applyBtn.disabled = false;
 
-    container.innerHTML = items.map((item, index) => `
+  container.innerHTML = items
+    .map(
+      (item, index) => `
         <div class="manual-route-item" data-id="${item.id}" data-index="${index}">
             <span class="manual-item-order">${item.order}</span>
             <span class="manual-item-name">${t(item.name) || item.name}</span>
             <button class="manual-item-remove" data-id="${item.id}">×</button>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 
-    container.querySelectorAll('.manual-item-remove').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            removeFromManualRoute(btn.dataset.id);
-        });
+  container.querySelectorAll(".manual-item-remove").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      removeFromManualRoute(btn.dataset.id);
     });
+  });
 };
 
+/**
+ * Updates the route progress display.
+ * @param {any} route - The route object.
+ * @param {number} currentIndex - Current step index.
+ */
 export const updateRouteProgress = (route, currentIndex) => {
-    if (!route) return;
+  if (!route) return;
 
-    const progressFill = document.getElementById('route-progress-fill');
-    const progressText = document.getElementById('route-progress-text');
-    const currentItemContainer = document.getElementById('route-current-item');
-    const routeList = document.getElementById('route-list');
-    const activeSection = document.getElementById('route-active-section');
+  const progressFill = document.getElementById("route-progress-fill");
+  const progressText = document.getElementById("route-progress-text");
+  const currentItemContainer = document.getElementById("route-current-item");
+  const routeList = document.getElementById("route-list");
+  const activeSection = document.getElementById("route-active-section");
 
-    if (activeSection) {
-        activeSection.style.display = 'block';
-    }
+  if (activeSection) {
+    activeSection.style.display = "block";
+  }
 
-    const completedCount = route.route.filter(p =>
-        state.completedList.some(c => c.id === p.id)
-    ).length;
+  const completedCount = route.route.filter((p) =>
+    state.completedList.some((c) => c.id === p.id),
+  ).length;
 
-    const progress = (completedCount / route.route.length) * 100;
+  const progress = (completedCount / route.route.length) * 100;
 
-    if (progressFill) {
-        progressFill.style.width = `${progress}%`;
-    }
+  if (progressFill) {
+    progressFill.style.width = `${progress}%`;
+  }
 
-    if (progressText) {
-        progressText.textContent = `${completedCount} / ${route.route.length}`;
-    }
+  if (progressText) {
+    progressText.textContent = `${completedCount} / ${route.route.length}`;
+  }
 
-    if (currentItemContainer && route.route[currentIndex]) {
-        const current = route.route[currentIndex];
-        const isCompleted = state.completedList.some(c => c.id === current.id);
+  if (currentItemContainer && route.route[currentIndex]) {
+    const current = route.route[currentIndex];
+    const isCompleted = state.completedList.some((c) => c.id === current.id);
 
-        currentItemContainer.innerHTML = `
+    currentItemContainer.innerHTML = `
             <div class="current-item-header">
                 <span class="current-item-order">#${current.order}</span>
-                <span class="current-item-name ${isCompleted ? 'completed' : ''}">${t(current.name) || current.name}</span>
+                <span class="current-item-name ${isCompleted ? "completed" : ""}">${t(current.name) || current.name}</span>
             </div>
             <div class="current-item-region">${t(current.region) || current.region}</div>
             <div class="current-item-actions">
-                ${isCompleted ? '<span class="current-item-status">✓ 완료됨</span>' : ''}
+                ${isCompleted ? '<span class="current-item-status">✓ 완료됨</span>' : ""}
                 <button class="route-detail-btn" data-id="${current.id}" data-lat="${current.lat}" data-lng="${current.lng}" title="상세 정보 보기">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     상세보기
@@ -501,212 +554,251 @@ export const updateRouteProgress = (route, currentIndex) => {
             </div>
         `;
 
-        currentItemContainer.querySelector('.route-detail-btn')?.addEventListener('click', (e) => {
-            e.stopPropagation();
-            openItemPopup(current.id, current.lat, current.lng);
-        });
-    }
+    currentItemContainer
+      .querySelector(".route-detail-btn")
+      ?.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openItemPopup(current.id, current.lat, current.lng);
+      });
+  }
 
-    if (routeList) {
-        routeList.innerHTML = route.route.map((point, index) => {
-            const isCompleted = state.completedList.some(c => c.id === point.id);
-            const isCurrent = index === currentIndex;
+  if (routeList) {
+    routeList.innerHTML = route.route
+      .map((point, index) => {
+        const isCompleted = state.completedList.some((c) => c.id === point.id);
+        const isCurrent = index === currentIndex;
 
-            return `
-                <div class="route-list-item ${isCompleted ? 'completed' : ''} ${isCurrent ? 'current' : ''}" 
+        return `
+                <div class="route-list-item ${isCompleted ? "completed" : ""} ${isCurrent ? "current" : ""}" 
                      data-index="${index}">
                     <span class="route-item-order">${point.order}</span>
                     <span class="route-item-name">${t(point.name) || point.name}</span>
                     <button class="route-item-detail-btn" data-id="${point.id}" data-lat="${point.lat}" data-lng="${point.lng}" title="상세 정보">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                     </button>
-                    ${isCompleted ? '<span class="route-item-check">✓</span>' : ''}
+                    ${isCompleted ? '<span class="route-item-check">✓</span>' : ""}
                 </div>
             `;
-        }).join('');
+      })
+      .join("");
 
-        routeList.querySelectorAll('.route-list-item').forEach(item => {
-            item.addEventListener('click', (e) => {
-                if (e.target.closest('.route-item-detail-btn')) return;
-                const index = parseInt(item.dataset.index);
-                goToStep(index);
-            });
-        });
+    routeList.querySelectorAll(".route-list-item").forEach((item) => {
+      item.addEventListener("click", (e) => {
+        if (e.target.closest(".route-item-detail-btn")) return;
+        const index = parseInt(item.dataset.index);
+        goToStep(index);
+      });
+    });
 
-        routeList.querySelectorAll('.route-item-detail-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                const { id, lat, lng } = btn.dataset;
-                openItemPopup(id, parseFloat(lat), parseFloat(lng));
-            });
-        });
+    routeList.querySelectorAll(".route-item-detail-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const { id, lat, lng } = btn.dataset;
+        openItemPopup(id, parseFloat(lat), parseFloat(lng));
+      });
+    });
 
-        const currentItem = routeList.querySelector('.route-list-item.current');
-        if (currentItem) {
-            currentItem.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }
+    const currentItem = routeList.querySelector(".route-list-item.current");
+    if (currentItem) {
+      currentItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
+  }
 
-    updateSavedRoutesList();
+  updateSavedRoutesList();
 };
 
 const updateSavedRoutesList = () => {
-    const container = document.getElementById('saved-routes-list');
-    if (!container) return;
+  const container = document.getElementById("saved-routes-list");
+  if (!container) return;
 
-    const savedRoutes = getSavedRoutes();
+  const savedRoutes = getSavedRoutes();
 
-    if (savedRoutes.length === 0) {
-        container.innerHTML = '<div class="no-saved-routes">저장된 경로가 없습니다.</div>';
-        return;
-    }
+  if (savedRoutes.length === 0) {
+    container.innerHTML =
+      '<div class="no-saved-routes">저장된 경로가 없습니다.</div>';
+    return;
+  }
 
-    container.innerHTML = savedRoutes.map(route => `
+  container.innerHTML = savedRoutes
+    .map(
+      (route) => `
         <div class="saved-route-item" data-id="${route.id}">
             <div class="saved-route-info">
                 <span class="saved-route-name">${route.name}</span>
-                <span class="saved-route-meta">${route.route.length}개 지점 ${route.isManual ? '(수동)' : ''}</span>
+                <span class="saved-route-meta">${route.route.length}개 지점 ${route.isManual ? "(수동)" : ""}</span>
             </div>
             <div class="saved-route-actions">
                 <button class="saved-route-load-btn" data-id="${route.id}">불러오기</button>
                 <button class="saved-route-delete-btn" data-id="${route.id}">삭제</button>
             </div>
         </div>
-    `).join('');
+    `,
+    )
+    .join("");
 
-    container.querySelectorAll('.saved-route-load-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const routeId = btn.dataset.id;
-            const loaded = loadRoute(routeId);
-            if (loaded) {
-                displayRoute();
-            }
-        });
+  container.querySelectorAll(".saved-route-load-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const routeId = btn.dataset.id;
+      const loaded = loadRoute(routeId);
+      if (loaded) {
+        displayRoute();
+      }
     });
+  });
 
-    container.querySelectorAll('.saved-route-delete-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (confirm('이 경로를 삭제하시겠습니까?')) {
-                deleteRoute(btn.dataset.id);
-                updateSavedRoutesList();
-            }
-        });
+  container.querySelectorAll(".saved-route-delete-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (confirm("이 경로를 삭제하시겠습니까?")) {
+        deleteRoute(btn.dataset.id);
+        updateSavedRoutesList();
+      }
     });
+  });
 };
 
 const switchRouteMode = (mode) => {
-    const autoBtn = document.getElementById('route-mode-auto');
-    const manualBtn = document.getElementById('route-mode-manual');
-    const autoSection = document.getElementById('route-auto-section');
-    const manualSection = document.getElementById('route-manual-section');
+  const autoBtn = document.getElementById("route-mode-auto");
+  const manualBtn = document.getElementById("route-mode-manual");
+  const autoSection = document.getElementById("route-auto-section");
+  const manualSection = document.getElementById("route-manual-section");
 
-    if (mode === 'auto') {
-        autoBtn?.classList.add('active');
-        manualBtn?.classList.remove('active');
-        if (autoSection) autoSection.style.display = 'flex';
-        if (manualSection) manualSection.style.display = 'none';
-        toggleManualRouteMode(false);
-    } else {
-        autoBtn?.classList.remove('active');
-        manualBtn?.classList.add('active');
-        if (autoSection) autoSection.style.display = 'none';
-        if (manualSection) manualSection.style.display = 'flex';
-        toggleManualRouteMode(true);
-    }
+  if (mode === "auto") {
+    autoBtn?.classList.add("active");
+    manualBtn?.classList.remove("active");
+    if (autoSection) autoSection.style.display = "flex";
+    if (manualSection) manualSection.style.display = "none";
+    toggleManualRouteMode(false);
+  } else {
+    autoBtn?.classList.remove("active");
+    manualBtn?.classList.add("active");
+    if (autoSection) autoSection.style.display = "none";
+    if (manualSection) manualSection.style.display = "flex";
+    toggleManualRouteMode(true);
+  }
 };
 
 const attachRouteEventListeners = () => {
-    document.getElementById('route-close-btn')?.addEventListener('click', hideRouteUI);
-    document.getElementById('route-mode-auto')?.addEventListener('click', () => switchRouteMode('auto'));
-    document.getElementById('route-mode-manual')?.addEventListener('click', () => switchRouteMode('manual'));
-    document.getElementById('route-region-trigger')?.addEventListener('click', openRegionModal);
+  document
+    .getElementById("route-close-btn")
+    ?.addEventListener("click", hideRouteUI);
+  document
+    .getElementById("route-mode-auto")
+    ?.addEventListener("click", () => switchRouteMode("auto"));
+  document
+    .getElementById("route-mode-manual")
+    ?.addEventListener("click", () => switchRouteMode("manual"));
+  document
+    .getElementById("route-region-trigger")
+    ?.addEventListener("click", openRegionModal);
 
-    
-    document.getElementById('route-cat-toggle')?.addEventListener('click', () => {
-        const items = document.querySelectorAll('.route-category-item');
-        const checkedItems = document.querySelectorAll('.route-category-item.checked');
-        const allChecked = items.length > 0 && items.length === checkedItems.length;
+  document.getElementById("route-cat-toggle")?.addEventListener("click", () => {
+    const items = document.querySelectorAll(".route-category-item");
+    const checkedItems = document.querySelectorAll(
+      ".route-category-item.checked",
+    );
+    const allChecked = items.length > 0 && items.length === checkedItems.length;
 
-        items.forEach(item => {
-            const checkbox = item.querySelector('.route-category-checkbox');
-            if (checkbox) {
-                checkbox.checked = !allChecked;
-                item.classList.toggle('checked', !allChecked);
-            }
-        });
-        updateRouteStatsDisplay();
-        updateCategoryToggleBtn();
+    items.forEach((item) => {
+      const checkbox = item.querySelector(".route-category-checkbox");
+      if (checkbox) {
+        checkbox.checked = !allChecked;
+        item.classList.toggle("checked", !allChecked);
+      }
+    });
+    updateRouteStatsDisplay();
+    updateCategoryToggleBtn();
+  });
+
+  const excludeLabel = document.getElementById("route-exclude-completed-label");
+  const excludeCheckbox = document.getElementById("route-exclude-completed");
+  excludeLabel?.addEventListener("click", () => {
+    if (excludeCheckbox) {
+      excludeCheckbox.checked = !excludeCheckbox.checked;
+      excludeLabel.classList.toggle("checked", excludeCheckbox.checked);
+      updateRouteStatsDisplay();
+    }
+  });
+
+  document
+    .getElementById("route-generate-btn")
+    ?.addEventListener("click", () => {
+      const region = document.getElementById("route-region-select")?.value;
+      if (!region) {
+        alert("지역을 선택해주세요.");
+        return;
+      }
+      const categories = getSelectedCategories();
+      const excludeCompleted =
+        document.getElementById("route-exclude-completed")?.checked ?? true;
+
+      const route = generateRoute(region, categories, excludeCompleted);
+      if (route) {
+        displayRoute();
+      } else {
+        alert(
+          "경로를 생성할 수 없습니다. 해당 지역에 선택한 카테고리의 아이템이 없습니다.",
+        );
+      }
     });
 
-    
-    const excludeLabel = document.getElementById('route-exclude-completed-label');
-    const excludeCheckbox = document.getElementById('route-exclude-completed');
-    excludeLabel?.addEventListener('click', () => {
-        if (excludeCheckbox) {
-            excludeCheckbox.checked = !excludeCheckbox.checked;
-            excludeLabel.classList.toggle('checked', excludeCheckbox.checked);
-            updateRouteStatsDisplay();
-        }
+  document
+    .getElementById("route-apply-manual-btn")
+    ?.addEventListener("click", () => {
+      const route = applyManualRoute();
+      if (route) {
+        displayRoute();
+        switchRouteMode("auto");
+      }
     });
 
-    document.getElementById('route-generate-btn')?.addEventListener('click', () => {
-        const region = document.getElementById('route-region-select')?.value;
-        if (!region) {
-            alert('지역을 선택해주세요.');
-            return;
-        }
-        const categories = getSelectedCategories();
-        const excludeCompleted = document.getElementById('route-exclude-completed')?.checked ?? true;
+  document
+    .getElementById("route-prev-btn")
+    ?.addEventListener("click", prevStep);
+  document
+    .getElementById("route-next-btn")
+    ?.addEventListener("click", nextStep);
+  document
+    .getElementById("route-complete-btn")
+    ?.addEventListener("click", completeCurrentStep);
+  document.getElementById("route-save-btn")?.addEventListener("click", () => {
+    const name = prompt(
+      "경로 이름을 입력하세요:",
+      `경로 ${new Date().toLocaleDateString()}`,
+    );
+    if (name) {
+      saveRoute(name);
+      updateSavedRoutesList();
+    }
+  });
 
-        const route = generateRoute(region, categories, excludeCompleted);
-        if (route) {
-            displayRoute();
-        } else {
-            alert('경로를 생성할 수 없습니다. 해당 지역에 선택한 카테고리의 아이템이 없습니다.');
-        }
+  document
+    .getElementById("route-share-btn")
+    ?.addEventListener("click", async () => {
+      const success = await copyShareUrl();
+      if (success) {
+        alert("공유 URL이 클립보드에 복사되었습니다.");
+      }
     });
 
-    document.getElementById('route-apply-manual-btn')?.addEventListener('click', () => {
-        const route = applyManualRoute();
-        if (route) {
-            displayRoute();
-            switchRouteMode('auto');
-        }
-    });
-
-    document.getElementById('route-prev-btn')?.addEventListener('click', prevStep);
-    document.getElementById('route-next-btn')?.addEventListener('click', nextStep);
-    document.getElementById('route-complete-btn')?.addEventListener('click', completeCurrentStep);
-    document.getElementById('route-save-btn')?.addEventListener('click', () => {
-        const name = prompt('경로 이름을 입력하세요:', `경로 ${new Date().toLocaleDateString()}`);
-        if (name) {
-            saveRoute(name);
-            updateSavedRoutesList();
-        }
-    });
-
-    document.getElementById('route-share-btn')?.addEventListener('click', async () => {
-        const success = await copyShareUrl();
-        if (success) {
-            alert('공유 URL이 클립보드에 복사되었습니다.');
-        }
-    });
-
-    document.getElementById('route-clear-btn')?.addEventListener('click', () => {
-        if (confirm('현재 경로를 초기화하시겠습니까?')) {
-            exitRouteMode();
-        }
-    });
+  document.getElementById("route-clear-btn")?.addEventListener("click", () => {
+    if (confirm("현재 경로를 초기화하시겠습니까?")) {
+      exitRouteMode();
+    }
+  });
 };
 
+/**
+ * Creates a route toggle button element.
+ * @returns {HTMLButtonElement} The button element.
+ */
 export const createRouteToggleButton = () => {
-    const button = document.createElement('button');
-    button.id = 'route-mode-toggle';
-    button.className = 'route-toggle-btn';
-    button.innerHTML = '🛤️ 경로';
-    button.title = '경로 모드';
+  const button = document.createElement("button");
+  button.id = "route-mode-toggle";
+  button.className = "route-toggle-btn";
+  button.innerHTML = "🛤️ 경로";
+  button.title = "경로 모드";
 
-    return button;
+  return button;
 };

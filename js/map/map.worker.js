@@ -1,15 +1,39 @@
+/**
+ * Map Worker - handles spatial indexing and viewport-based filtering.
+ * Runs in a separate thread for performance.
+ */
+
+/**
+ * Spatial index for efficient geographic queries.
+ */
 class SpatialIndex {
+  /**
+   * Creates a new spatial index.
+   * @param {number} [cellSize=0.05] - The size of each grid cell.
+   */
   constructor(cellSize = 0.05) {
+    /** @type {number} */
     this.cellSize = cellSize;
+    /** @type {Map<string, any[]>} */
     this.grid = new Map();
   }
 
+  /**
+   * Gets the cell key for given coordinates.
+   * @param {number} lat - Latitude.
+   * @param {number} lng - Longitude.
+   * @returns {string} The cell key.
+   */
   getCellKey(lat, lng) {
     const cellX = Math.floor(lng / this.cellSize);
     const cellY = Math.floor(lat / this.cellSize);
     return `${cellX},${cellY}`;
   }
 
+  /**
+   * Adds an item to the index.
+   * @param {any} item - The item to add.
+   */
   add(item) {
     const lat = parseFloat(item.x);
     const lng = parseFloat(item.y);
@@ -22,11 +46,21 @@ class SpatialIndex {
     this.grid.get(key).push(item);
   }
 
+  /**
+   * Builds the index from an array of items.
+   * @param {any[]} items - The items to index.
+   */
   buildIndex(items) {
     this.grid.clear();
     items.forEach((item) => this.add(item));
   }
 
+  /**
+   * Gets items within given bounds.
+   * @param {{south: number, west: number, north: number, east: number}} bounds - The bounds.
+   * @param {number} [padding=0] - Padding to add to bounds.
+   * @returns {any[]} Items within bounds.
+   */
   getItemsInBounds(bounds, padding = 0) {
     const swLat = bounds.south - padding;
     const swLng = bounds.west - padding;
@@ -57,15 +91,30 @@ class SpatialIndex {
     return items;
   }
 }
+
 const index = new SpatialIndex(0.02);
+
+/** @type {any[]} */
 let allItems = [];
+
+/** @type {Set<string>} */
 let currentVisibleIds = new Set();
 
+/** @type {Set<string>} */
 let activeCategories = new Set();
+
+/** @type {Set<string>} */
 let activeRegionNames = new Set();
+
+/** @type {Set<string>} */
 let completedList = new Set();
+
+/** @type {boolean} */
 let hideCompleted = false;
 
+/**
+ * Message handler for worker communication.
+ */
 self.onmessage = function (e) {
   const { type, payload } = e.data;
 
@@ -97,6 +146,11 @@ self.onmessage = function (e) {
   }
 };
 
+/**
+ * Handles viewport update and calculates visible items.
+ * @param {{south: number, west: number, north: number, east: number}} bounds - Viewport bounds.
+ * @param {number} [padding=0] - Padding for bounds.
+ */
 function handleViewportUpdate(bounds, padding = 0) {
   const candidates = index.getItemsInBounds(bounds, padding);
 
