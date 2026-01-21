@@ -147,9 +147,14 @@ self.onmessage = function (e) {
 };
 
 /**
- * Handles viewport update and calculates visible items.
- * @param {{south: number, west: number, north: number, east: number}} bounds - Viewport bounds.
- * @param {number} [padding=0] - Padding for bounds.
+ * Update the set of items visible within the given viewport and notify the main thread of any changes.
+ *
+ * Filters indexed candidates using activeCategories, activeRegionNames, and hideCompleted, computes items
+ * to add and remove relative to the previous visible set, updates currentVisibleIds, and posts a
+ * `RENDER_UPDATE` message with `{ toAdd, toRemove }` when there are changes.
+ *
+ * @param {{south: number, west: number, north: number, east: number}} bounds - Viewport bounds (south, west, north, east).
+ * @param {number} [padding=0] - Optional padding applied to the bounds (in the same coordinate units as bounds).
  */
 function handleViewportUpdate(bounds, padding = 0) {
   const candidates = index.getItemsInBounds(bounds, padding);

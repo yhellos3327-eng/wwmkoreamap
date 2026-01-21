@@ -24,6 +24,11 @@
   let container, body, toggleBtn;
   let isMinimized = false;
 
+  /**
+   * Create and inject the mobile console UI into the document and wire its controls and event handlers.
+   *
+   * Initializes the console container and toggle button, attaches the console body reference, and sets up user interactions for header toggling, copy, clear, minimize, and filter buttons.
+   */
   function createUI() {
     container = document.createElement("div");
     container.className = "mobile-console-container";
@@ -94,6 +99,10 @@
     });
   }
 
+  /**
+   * Show or hide console log entries to match the selected filter.
+   * Sets each `.console-log-item` element's display to `flex` when it matches the filter, otherwise hides it.
+   * @param {string} filter - The filter to apply: `"all"` or a log type (e.g. `"log"`, `"info"`, `"warn"`, `"error"`).
   function applyFilter(filter) {
     const items = body.querySelectorAll(".console-log-item");
     items.forEach((item) => {
@@ -105,6 +114,12 @@
     });
   }
 
+  /**
+   * Toggle the console UI between minimized and expanded states.
+   *
+   * Updates the internal minimized flag, adds or removes the "minimized" class on the console container,
+   * and shows or hides the toggle button by adding or removing the "hidden" class.
+   */
   function toggleMinimize() {
     isMinimized = !isMinimized;
     if (isMinimized) {
@@ -116,11 +131,22 @@
     }
   }
 
+  /**
+   * Remove all captured logs and clear the on-screen console.
+   *
+   * Empties the internal logs array and removes all log entries from the UI body element.
+   */
   function clearLogs() {
     logs.length = 0;
     body.innerHTML = "";
   }
 
+  /**
+   * Copy collected console logs to the clipboard.
+   *
+   * Each log becomes a line in the clipboard in the format: `[time] TYPE: message`.
+   * On success, shows a user alert indicating the logs were copied; on failure, logs an error to the original console.
+   */
   function copyLogs() {
     const text = logs
       .map((l) => `[${l.time}] ${l.type.toUpperCase()}: ${l.message}`)
@@ -135,6 +161,10 @@
       });
   }
 
+  /**
+   * Format an array of values into a single human-readable string suitable for display in the console UI.
+   * @param {any[]} args - Values to format. Error objects are expanded to `Name: message` plus stack; plain objects are JSON-stringified with two-space indentation when possible; other values are converted to strings.
+   * @returns {string} A single string with each argument's formatted representation separated by spaces.
   function formatArgs(args) {
     return args
       .map((arg) => {
@@ -153,6 +183,16 @@
       .join(" ");
   }
 
+  /**
+   * Record a console entry and (if the UI is present) render it in the console panel.
+   *
+   * Adds a timestamped log entry to the internal logs array and, when the UI body exists,
+   * creates and appends a corresponding DOM item (with time and formatted message),
+   * respects the current filter by hiding non-matching types, and scrolls the body to the bottom.
+   *
+   * @param {string} type - Log severity/type (e.g., "log", "info", "warn", "error").
+   * @param {Array|IArguments} args - Original arguments passed to the console method; will be formatted into a display message.
+   */
   function addLog(type, args) {
     const time = new Date().toLocaleTimeString("ko-KR", { hour12: false });
     const message = formatArgs(args);

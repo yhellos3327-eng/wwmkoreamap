@@ -12,7 +12,13 @@
  */
 
 /**
- * Initializes the ad system and displays rotating ads.
+ * Initialize ad rotation inside the page element with class "ad-container".
+ *
+ * Finds the ".ad-container" element (no-op if absent), selects an ad by weighted
+ * random choice from the configured set, renders it into the container, and
+ * refreshes the selection every 30 seconds.
+ *
+ * If the sum of all ad weights is zero, no ad will be displayed.
  */
 export function initAds() {
   const adContainer = /** @type {HTMLElement|null} */ (
@@ -116,7 +122,9 @@ export function initAds() {
   ];
 
   /**
-   * Shows a random ad based on weights.
+   * Chooses and displays one ad from the module's ad list using their weights.
+   *
+   * If the sum of all ad weights is zero, the function does nothing.
    */
   function showRandomAd() {
     const totalWeight = ads.reduce((sum, ad) => sum + ad.weight, 0);
@@ -141,12 +149,12 @@ export function initAds() {
 }
 
 /**
- * Creates an ad placeholder element.
- * @param {string} title - Ad title.
- * @param {string} badgeText - Badge text.
- * @param {string} bgStyle - Background color or gradient.
- * @param {string} textColor - Text color.
- * @returns {HTMLDivElement} The ad element.
+ * Build a clickable ad placeholder element with a title and a badge.
+ * @param {string} title - Main title text displayed in the ad.
+ * @param {string} badgeText - Small badge label displayed alongside the title.
+ * @param {string} bgStyle - CSS background value: a color (e.g., `#fff`, `red`) or a gradient string.
+ * @param {string} textColor - CSS color applied to the title and badge text.
+ * @returns {HTMLDivElement} The constructed ad placeholder element.
  */
 function createAdElement(title, badgeText, bgStyle, textColor) {
   const div = document.createElement("div");

@@ -11,16 +11,16 @@ const OLD_DOMAIN = "yhellos3327-eng.github.io";
 const NEW_DOMAIN = "wwmmap.kr";
 
 /**
- * Checks if the current domain is the old domain.
- * @returns {boolean} True if on old domain.
+ * Determine whether the page is hosted on the legacy domain.
+ * @returns {boolean} `true` if the current hostname equals OLD_DOMAIN, `false` otherwise.
  */
 export function isOldDomain() {
   return window.location.hostname === OLD_DOMAIN;
 }
 
 /**
- * Checks if URL has migration parameter.
- * @returns {boolean} True if migrate=true in URL.
+ * Determines whether the current page URL contains `migrate=true`.
+ * @returns {boolean} `true` if the URL contains `migrate=true`, `false` otherwise.
  */
 export function hasMigrationParam() {
   const params = new URLSearchParams(window.location.search);
@@ -28,8 +28,12 @@ export function hasMigrationParam() {
 }
 
 /**
- * Shows the domain migration modal to the user.
- * Only displays on old domain and if not already shown.
+ * Display a domain migration modal on the old site offering backup and redirect options.
+ *
+ * Does nothing if not running on the old domain or if the modal is already present.
+ * Detects whether localStorage contains data to choose between backup/redirect actions,
+ * injects the modal HTML and styles, activates the modal, and attaches click handlers
+ * for the available migration actions.
  */
 export function showMigrationModal() {
   if (!isOldDomain()) return;
@@ -133,6 +137,11 @@ export function showMigrationModal() {
   }
 }
 
+/**
+ * Creates a JSON backup of all localStorage entries and initiates its download, then redirects the user to the new domain and signals the settings/import flow.
+ *
+ * If localStorage is empty, alerts the user and redirects immediately. After a successful backup download, alerts the user that the file was saved and redirects to the new domain with the migration parameter set so the new site can open its import/settings UI.
+ */
 function handleMigrateWithBackup() {
   try {
     const data = { ...localStorage };
@@ -168,6 +177,11 @@ function handleMigrateWithBackup() {
   }
 }
 
+/**
+ * Prompt the user to confirm migrating without creating a backup and, if confirmed, navigate to the new domain.
+ *
+ * Displays a warning that locally stored data (bookmarks, completion markers, etc.) will not be available after migration; if the user confirms, redirects to the new domain.
+ */
 function handleMigrateWithoutBackup() {
   if (
     confirm(
@@ -178,10 +192,18 @@ function handleMigrateWithoutBackup() {
   }
 }
 
+/**
+ * Navigate the browser immediately to the new domain without attempting to back up local data.
+ */
 function handleMigrateDirect() {
   redirectToNewDomain();
 }
 
+/**
+ * Navigate the browser to the new domain, preserving current query parameters and optionally requesting the settings view.
+ *
+ * @param {boolean} [openSettings=false] - If true, sets `migrate=true` in the query string so the destination can open the settings/backup UI.
+ */
 function redirectToNewDomain(openSettings = false) {
   let newUrl = `https://${NEW_DOMAIN}/`;
   const params = new URLSearchParams(window.location.search);
@@ -199,8 +221,11 @@ function redirectToNewDomain(openSettings = false) {
 }
 
 /**
- * Handles post-migration actions on the new domain.
- * Opens settings and highlights the backup section for data import.
+ * Perform post-migration UI and state updates when arriving from the old domain.
+ *
+ * If the URL contains the migration parameter, marks the migration notice as hidden in localStorage,
+ * removes the migration parameter from the URL, attempts to open settings, scrolls and highlights
+ * the backup/import section, and shows a brief migration welcome message to guide the user.
  */
 export function handleMigrationComplete() {
   if (!hasMigrationParam()) return;
@@ -237,6 +262,13 @@ export function handleMigrationComplete() {
   }, 1500);
 }
 
+/**
+ * Show a temporary welcome message near the backup section that prompts the user to import a previously downloaded backup.
+ *
+ * Adds required migration styles, inserts a dismissible welcome message immediately before the provided backup section element, and automatically fades out and removes the message after 8 seconds.
+ *
+ * @param {Element} backupSection - The DOM element representing the backup UI section; the welcome message is inserted before this element.
+ */
 function showMigrationWelcomeMessage(backupSection) {
   addMigrationStyles();
 
@@ -269,6 +301,13 @@ function showMigrationWelcomeMessage(backupSection) {
   }, 8000);
 }
 
+/**
+ * Insert migration-related CSS into the document head if not already present.
+ *
+ * Adds a <style> element with id "migration-styles" containing the styles used by
+ * the migration modal, overlay, domain rows, buttons, welcome message, and responsive tweaks.
+ * The function is idempotent and returns immediately when a style element with the same id exists.
+ */
 function addMigrationStyles() {
   if (document.getElementById("migration-styles")) return;
 
