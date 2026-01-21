@@ -58,6 +58,8 @@ const translateWithExternalAI = async (item, btn) => {
     key = state.savedOpenAIKey;
   } else if (provider === "claude") {
     key = state.savedClaudeKey;
+  } else if (provider === "deepl") {
+    key = state.savedDeepLKey;
   }
 
   if (!key) {
@@ -149,6 +151,54 @@ const translateWithExternalAI = async (item, btn) => {
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     const jsonStr = jsonMatch ? jsonMatch[0] : text;
     result = JSON.parse(jsonStr);
+  } else if (provider === "deepl") {
+    // DeepL은 일반 번역 API - AI 프롬프트가 아닌 직접 번역
+    // API 키가 :fx로 끝나면 Free 플랜
+    const isFree = key.endsWith(":fx");
+    const baseUrl = isFree
+      ? "https://api-free.deepl.com/v2/translate"
+      : "https://api.deepl.com/v2/translate";
+
+    // 이름 번역
+    const nameResponse = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `DeepL-Auth-Key ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: [item.name],
+        source_lang: "ZH",
+        target_lang: "KO",
+      }),
+    });
+    const nameData = await nameResponse.json();
+    if (nameData.error || nameData.message) {
+      throw new Error(nameData.message || nameData.error);
+    }
+
+    // 설명 번역
+    const descResponse = await fetch(baseUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `DeepL-Auth-Key ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        text: [item.description || ""],
+        source_lang: "ZH",
+        target_lang: "KO",
+      }),
+    });
+    const descData = await descResponse.json();
+    if (descData.error || descData.message) {
+      throw new Error(descData.message || descData.error);
+    }
+
+    result = {
+      name: nameData.translations[0].text,
+      description: descData.translations[0].text,
+    };
   }
 
   return result;
@@ -213,6 +263,8 @@ export const translateItem = async (itemId, translateType = "ai") => {
         key = state.savedOpenAIKey;
       } else if (provider === "claude") {
         key = state.savedClaudeKey;
+      } else if (provider === "deepl") {
+        key = state.savedDeepLKey;
       }
 
       if (!key) {

@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>댓글 투표 흐림 기능 테스트</title>
+    <!-- 실제 프로젝트 CSS 사용 -->
+    <link rel="stylesheet" href="css/base/variables.css" />
+    <link rel="stylesheet" href="css/base/reset.css" />
+    <link rel="stylesheet" href="css/popups/comments.css" />
+    <link rel="stylesheet" href="css/popups/vote.css" />
+    <style>
+      body {
+        font-family:
+          "Pretendard",
+          "Noto Sans KR",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: var(--bg-panel, #1a1a2e);
+        min-height: 100vh;
+        padding: 40px 20px;
+        color: var(--text-main, #e0e0e0);
+      }
+
+      .container {
+        max-width: 500px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 10px;
+        color: var(--accent, #ffa500);
+        font-size: 1.5rem;
+      }
+
+      .description {
+        text-align: center;
+        color: var(--text-muted, #888);
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+      }
+
+      .test-controls {
+        background: var(--bg-item, #16213e);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+      }
+
+      .test-controls h3 {
+        margin-bottom: 15px;
+        color: var(--accent, #ffa500);
+        font-size: 1rem;
+      }
+
+      .control-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 15px;
+        flex-wrap: wrap;
+      }
+
+      .control-row label {
+        font-size: 0.85rem;
+      }
+
+      .control-row input[type="number"] {
+        width: 60px;
+        padding: 8px 10px;
+        background: var(--bg-panel, #1a1a2e);
+        border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
+        border-radius: 8px;
+        color: var(--text-main, #e0e0e0);
+        font-size: 0.9rem;
+      }
+
+      .control-row input[type="number"]:focus {
+        outline: none;
+        border-color: var(--accent, #ffa500);
+      }
+
+      .result-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+      }
+
+      .result-badge.blur {
+        background: rgba(255, 80, 80, 0.2);
+        color: #ff5050;
+      }
+
+      .result-badge.normal {
+        background: rgba(80, 200, 120, 0.2);
+        color: #50c878;
+      }
+
+      .formula {
+        background: var(--bg-panel, #1a1a2e);
+        padding: 12px 16px;
+        border-radius: 8px;
+        font-family: "Consolas", "Monaco", monospace;
+        font-size: 0.8rem;
+        line-height: 1.6;
+      }
+
+      .popup-related {
+        margin-bottom: 20px;
+      }
+
+      .example-label {
+        font-size: 0.75rem;
+        color: var(--text-muted, #888);
+        margin-bottom: 6px;
+        margin-top: 12px;
+      }
+
+      .example-label:first-child {
+        margin-top: 0;
+      }
+
+      .toggle-btn {
+        display: block;
+        width: 100%;
+        padding: 12px;
+        margin-top: 20px;
+        background: var(--accent, #ffa500);
+        color: #000;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+
+      .toggle-btn:hover {
+        filter: brightness(1.1);
+        transform: translateY(-2px);
+      }
+
+      /* 댓글 리스트 높이 제한 해제 (테스트용) */
+      .comments-list {
+        max-height: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 댓글 투표 흐림 기능 테스트</h1>
+      <p class="description">
+        비추천이 많은 댓글을 자동으로 흐리게 처리하는 기능
+      </p>
+
+      <div class="test-controls">
+        <h3>📊 흐림 조건 계산기</h3>
+        <div class="control-row">
+          <label>👍 추천:</label>
+          <input
+            type="number"
+            id="upvotes"
+            value="1"
+            min="0"
+            onchange="calculate()"
+            oninput="calculate()"
+          />
+          <label>👎 비추천:</label>
+          <input
+            type="number"
+            id="downvotes"
+            value="5"
+            min="0"
+            onchange="calculate()"
+            oninput="calculate()"
+          />
+          <span class="result-badge" id="result">흐림</span>
+        </div>
+        <div class="formula" id="formula">
+          조건: down >= 5 && down > up * 2<br />
+          계산: 5 >= 5 ✅ && 5 > 1 * 2 = 2 ✅ → 흐림 처리
+        </div>
+      </div>
+
+      <!-- 실제 프로젝트 구조 그대로 사용 -->
+      <div class="popup-related">
+        <div class="popup-related-header">
+          <h5>💬 댓글 데모</h5>
+        </div>
+        <div class="popup-comments-container">
+          <div class="comments-list">
+            <!-- 정상 댓글 1 -->
+            <div class="example-label">✅ 정상 댓글 (👍 10 / 👎 2)</div>
+            <div class="comment-item" data-id="demo-1">
+              <div class="comment-header">
+                <span class="comment-author">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="vertical-align: -1px; margin-right: 4px"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  여행자A
+                  <span
+                    style="font-size: 0.8em; color: #888; font-weight: normal"
+                    >(192.168.*)</span
+                  >
+                </span>
+                <span class="comment-meta">
+                  <span class="comment-date">2026-01-22</span>
+                </span>
+              </div>
+              <div class="comment-text">
+                이 정보 정말 유용해요! 덕분에 퀘스트 쉽게 깼습니다. 감사합니다!
+              </div>
+              <div class="comment-footer">
+                <div class="vote-container vote-small" data-item-id="demo-1">
+                  <div class="vote-buttons">
+                    <button class="btn-vote btn-up" data-type="up">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">10</span>
+                    </button>
+                    <button class="btn-vote btn-down" data-type="down">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">2</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 흐림 처리된 댓글 1 -->
+            <div class="example-label">
+              🚫 흐림 처리 (👍 1 / 👎 8) - 클릭하여 보기
+            </div>
+            <div class="comment-item blurred-comment" data-id="demo-2">
+              <div class="blur-overlay" data-action="reveal-comment">
+                <span>비추천이 많은 댓글입니다 (클릭하여 보기)</span>
+              </div>
+              <div class="comment-header">
+                <span class="comment-author">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="vertical-align: -1px; margin-right: 4px"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  스팸봇
+                  <span
+                    style="font-size: 0.8em; color: #888; font-weight: normal"
+                    >(unknown)</span
+                  >
+                </span>
+                <span class="comment-meta">
+                  <span class="comment-date">2026-01-20</span>
+                </span>
+              </div>
+              <div class="comment-text">
+                이 댓글은 비추천이 많아서 흐림 처리되었습니다. 오버레이를
+                클릭하면 내용을 볼 수 있습니다.
+              </div>
+              <div class="comment-footer">
+                <div class="vote-container vote-small" data-item-id="demo-2">
+                  <div class="vote-buttons">
+                    <button class="btn-vote btn-up" data-type="up">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">1</span>
+                    </button>
+                    <button class="btn-vote btn-down" data-type="down">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">8</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 경계선 댓글 (흐림) -->
+            <div class="example-label">
+              ⚠️ 경계선 (👍 2 / 👎 5) - 흐림 처리됨
+            </div>
+            <div class="comment-item blurred-comment" data-id="demo-3">
+              <div class="blur-overlay" data-action="reveal-comment">
+                <span>비추천이 많은 댓글입니다 (클릭하여 보기)</span>
+              </div>
+              <div class="comment-header">
+                <span class="comment-author">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="vertical-align: -1px; margin-right: 4px"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  논란유저
+                  <span
+                    style="font-size: 0.8em; color: #888; font-weight: normal"
+                    >(10.0.*)</span
+                  >
+                </span>
+                <span class="comment-meta">
+                  <span class="comment-date">2026-01-21</span>
+                </span>
+              </div>
+              <div class="comment-text">
+                경계선 사례입니다. 비추천 5개는 추천 2개의 2배(=4)보다 크므로
+                흐림 처리됩니다.
+              </div>
+              <div class="comment-footer">
+                <div class="vote-container vote-small" data-item-id="demo-3">
+                  <div class="vote-buttons">
+                    <button class="btn-vote btn-up" data-type="up">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">2</span>
+                    </button>
+                    <button class="btn-vote btn-down" data-type="down">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">5</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 경계선 댓글 (통과) -->
+            <div class="example-label">
+              ✅ 경계선 통과 (👍 3 / 👎 5) - 정상 표시
+            </div>
+            <div class="comment-item" data-id="demo-4">
+              <div class="comment-header">
+                <span class="comment-author">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="vertical-align: -1px; margin-right: 4px"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  일반유저
+                  <span
+                    style="font-size: 0.8em; color: #888; font-weight: normal"
+                    >(172.16.*)</span
+                  >
+                </span>
+                <span class="comment-meta">
+                  <span class="comment-date">2026-01-21</span>
+                </span>
+              </div>
+              <div class="comment-text">
+                경계선 통과 사례입니다. 비추천 5개는 추천 3개의 2배(=6)보다
+                작거나 같으므로 정상 표시됩니다.
+              </div>
+              <div class="comment-footer">
+                <div class="vote-container vote-small" data-item-id="demo-4">
+                  <div class="vote-buttons">
+                    <button class="btn-vote btn-up" data-type="up">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">3</span>
+                    </button>
+                    <button class="btn-vote btn-down" data-type="down">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">5</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 답글 예시 -->
+            <div class="comment-item comment-reply" data-id="demo-5">
+              <div class="comment-header">
+                <span class="comment-author">
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    style="vertical-align: -1px; margin-right: 4px"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                  </svg>
+                  답글유저
+                  <span
+                    style="font-size: 0.8em; color: #888; font-weight: normal"
+                    >(192.168.*)</span
+                  >
+                </span>
+                <span class="comment-meta">
+                  <span class="comment-date">2026-01-22</span>
+                </span>
+              </div>
+              <div class="comment-text">
+                위 댓글에 대한 답글입니다. 답글은 왼쪽에 들여쓰기가 됩니다.
+              </div>
+              <div class="comment-footer">
+                <div class="vote-container vote-small" data-item-id="demo-5">
+                  <div class="vote-buttons">
+                    <button class="btn-vote btn-up" data-type="up">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">5</span>
+                    </button>
+                    <button class="btn-vote btn-down" data-type="down">
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                      >
+                        <path
+                          d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"
+                        ></path>
+                      </svg>
+                      <span class="vote-count">0</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button class="toggle-btn" onclick="resetBlur()">
+            🔄 흐림 댓글 다시 숨기기
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // 흐림 조건 계산기
+      function calculate() {
+        const up = parseInt(document.getElementById("upvotes").value) || 0;
+        const down = parseInt(document.getElementById("downvotes").value) || 0;
+
+        const condition1 = down >= 5;
+        const condition2 = down > up * 2;
+        const isBlurred = condition1 && condition2;
+
+        const resultEl = document.getElementById("result");
+        const formulaEl = document.getElementById("formula");
+
+        if (isBlurred) {
+          resultEl.textContent = "🚫 흐림";
+          resultEl.className = "result-badge blur";
+        } else {
+          resultEl.textContent = "✅ 정상";
+          resultEl.className = "result-badge normal";
+        }
+
+        formulaEl.innerHTML = `
+                조건: down >= 5 && down > up * 2<br>
+                계산: ${down} >= 5 ${condition1 ? "✅" : "❌"} && ${down} > ${up} * 2 = ${up * 2} ${condition2 ? "✅" : "❌"} → ${isBlurred ? "흐림 처리" : "정상 표시"}
+            `;
+      }
+
+      // 흐림 해제 (실제 프로젝트 로직과 동일)
+      document.addEventListener("click", (e) => {
+        const target = e.target;
+        if (target.closest('[data-action="reveal-comment"]')) {
+          const overlay = target.closest('[data-action="reveal-comment"]');
+          const commentItem = overlay.closest(".comment-item");
+          if (commentItem) {
+            commentItem.classList.remove("blurred-comment");
+            overlay.remove();
+          }
+        }
+      });
+
+      // 흐림 리셋
+      function resetBlur() {
+        const blurredIds = ["demo-2", "demo-3"];
+        blurredIds.forEach((id) => {
+          const item = document.querySelector(`[data-id="${id}"]`);
+          if (item && !item.classList.contains("blurred-comment")) {
+            item.classList.add("blurred-comment");
+            const overlay = document.createElement("div");
+            overlay.className = "blur-overlay";
+            overlay.setAttribute("data-action", "reveal-comment");
+            overlay.innerHTML =
+              "<span>비추천이 많은 댓글입니다 (클릭하여 보기)</span>";
+            item.prepend(overlay);
+          }
+        });
+      }
+
+      // 초기 계산
+      calculate();
+    </script>
+  </body>
+</html>
