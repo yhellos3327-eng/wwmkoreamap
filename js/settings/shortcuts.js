@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state } from "../state.js";
 
 const DEFAULT_SHORTCUTS = {
@@ -217,7 +219,9 @@ const executeShortcutAction = async (actionId) => {
   switch (actionId) {
     case "toggleSidebar":
       const { toggleSidebar } = await import("../ui.js");
-      const sidebar = document.getElementById("sidebar");
+      const sidebar = /** @type {HTMLElement} */ (
+        document.getElementById("sidebar")
+      );
       if (sidebar) {
         const isOpen = sidebar.classList.contains("open");
         toggleSidebar(isOpen ? "close" : "open");
@@ -231,7 +235,9 @@ const executeShortcutAction = async (actionId) => {
         openForSearch("open");
       }
       setTimeout(() => {
-        const searchInput = document.getElementById("search-input");
+        const searchInput = /** @type {HTMLInputElement} */ (
+          document.getElementById("search-input")
+        );
         if (searchInput) {
           searchInput.focus();
           searchInput.select();
@@ -272,51 +278,34 @@ const executeShortcutAction = async (actionId) => {
       break;
 
     case "closeModal":
-      
-      const reportPanel = document.getElementById("report-panel");
-      if (reportPanel && reportPanel.classList.contains("open")) {
-        reportPanel.classList.remove("open");
-        const reportEmbed = document.getElementById("report-embed");
-        if (reportEmbed) {
-          reportEmbed.setAttribute("data", "");
-        }
-        break;
-      }
-
-      
       const arcaPanel = document.getElementById("arca-panel");
       if (arcaPanel && arcaPanel.classList.contains("open")) {
         arcaPanel.classList.remove("open");
         break;
       }
 
-      
       const lightbox = document.getElementById("lightbox-modal");
       if (lightbox && !lightbox.classList.contains("hidden")) {
         lightbox.classList.add("hidden");
         break;
       }
 
-      
       const videoLightbox = document.getElementById("video-lightbox");
       if (videoLightbox && !videoLightbox.classList.contains("hidden")) {
         videoLightbox.classList.add("hidden");
         break;
       }
 
-      
       const keyboardModal = document.getElementById("keyboard-shortcut-modal");
       if (keyboardModal && !keyboardModal.classList.contains("hidden")) {
         keyboardModal.classList.add("hidden");
         break;
       }
 
-      
       const modals = document.querySelectorAll(".modal-overlay:not(.hidden)");
       if (modals.length > 0) {
         modals[modals.length - 1].classList.add("hidden");
       } else {
-        
         if (state.map) {
           state.map.closePopup();
         }
@@ -346,7 +335,7 @@ const handleKeyDown = (event) => {
   if (!shortcutsEnabled) return;
   if (keyboardModalVisible) return;
 
-  const activeElement = document.activeElement;
+  const activeElement = /** @type {HTMLElement} */ (document.activeElement);
   const isInputField =
     activeElement &&
     (activeElement.tagName === "INPUT" ||
@@ -373,7 +362,7 @@ const updateKeyboardDisplay = () => {
 
   const keyButtons = keyboardContainer.querySelectorAll(".keyboard-key");
   keyButtons.forEach((btn) => {
-    const key = btn.dataset.key;
+    const key = /** @type {HTMLElement} */ (btn).dataset.key;
     if (!key) return;
 
     const assignedAction = findActionForKey(
@@ -391,8 +380,8 @@ const updateKeyboardDisplay = () => {
         indicator.className = "key-action-indicator";
         btn.appendChild(indicator);
       }
-      indicator.textContent = actionInfo.icon;
-      indicator.title = actionInfo.name;
+      /** @type {HTMLElement} */ (indicator).textContent = actionInfo.icon;
+      /** @type {HTMLElement} */ (indicator).title = actionInfo.name;
       btn.classList.add("has-action");
     } else {
       if (indicator) {
@@ -417,7 +406,7 @@ const updateModifierButtons = () => {
   if (altBtn) altBtn.classList.toggle("active", selectedModifiers.alt);
 
   document.querySelectorAll(".keyboard-key[data-modifier]").forEach((key) => {
-    const mod = key.dataset.modifier;
+    const mod = /** @type {HTMLElement} */ (key).dataset.modifier;
     if (mod === "ctrl") key.classList.toggle("active", selectedModifiers.ctrl);
     if (mod === "shift")
       key.classList.toggle("active", selectedModifiers.shift);
@@ -498,7 +487,9 @@ const showActionSelector = (key) => {
     existingSelector.remove();
   }
 
-  const keyBtn = document.querySelector(`.keyboard-key[data-key="${key}"]`);
+  const keyBtn = /** @type {HTMLElement} */ (
+    document.querySelector(`.keyboard-key[data-key="${key}"]`)
+  );
   if (!keyBtn) return;
 
   const currentAction = findActionForKey(
@@ -621,9 +612,9 @@ export const initShortcuts = () => {
 
   const toggleBtn = document.getElementById("toggle-shortcuts");
   if (toggleBtn) {
-    toggleBtn.checked = shortcutsEnabled;
+    /** @type {HTMLInputElement} */ (toggleBtn).checked = shortcutsEnabled;
     toggleBtn.addEventListener("change", (e) => {
-      setShortcutsEnabled(e.target.checked);
+      setShortcutsEnabled(/** @type {HTMLInputElement} */ (e.target).checked);
     });
   }
 

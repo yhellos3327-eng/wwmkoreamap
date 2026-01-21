@@ -1,3 +1,4 @@
+// @ts-check
 import { state } from "../state.js";
 import { t, getJosa, parseMarkdown } from "../utils.js";
 import { formatCompletedTime } from "../ui/navigation.js";
@@ -10,12 +11,23 @@ import {
   toggleFavorite,
   toggleCompleted,
   shareLocation,
-  openReportPage,
 } from "../ui.js";
 import { toggleStickerModal, submitAnonymousComment } from "../comments.js";
 import { renderVoteButtons, toggleVote } from "../votes.js";
 import { lazyLoader } from "../ui/lazy-loader.js";
 
+/**
+ * @typedef {import("../data/processors.js").MapItem} MapItem
+ */
+
+/**
+ * Creates the HTML content for a marker popup.
+ * @param {MapItem} item - The map item.
+ * @param {number} lat - Latitude.
+ * @param {number} lng - Longitude.
+ * @param {string} regionName - Region name.
+ * @returns {string} The HTML string.
+ */
 export const createPopupHtml = (item, lat, lng, regionName) => {
   const isFav =
     state.favorites.includes(String(item.id)) ||
@@ -31,14 +43,16 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
   const displayRegion = item.forceRegion || regionName;
   let translatedName = t(item.name);
   if (translatedName) {
-    translatedName = translatedName.replace(/{region}/g, displayRegion);
+    translatedName = String(translatedName).replace(/{region}/g, displayRegion);
   }
   const categoryName = t(item.category);
 
   let itemDescription = (item.description || "").trim();
   let replaceName = translatedName;
   const josa =
-    typeof getJosa === "function" ? getJosa(translatedName, "으로/로") : "로";
+    typeof getJosa === "function"
+      ? getJosa(String(translatedName), "으로/로")
+      : "로";
   replaceName = translatedName + josa;
 
   let isExternalContent = false;
@@ -69,7 +83,14 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     }
   }
 
+  /**
+   * @typedef {Object} MediaItem
+   * @property {string} type
+   * @property {string} src
+   * @property {number} [index]
+   */
   let mediaHtml = "";
+  /** @type {MediaItem[]} */
   const mediaItems = [];
 
   if (item.images && item.images.length > 0) {
@@ -309,15 +330,15 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                 <span class="badge">${categoryName}</span>
                 <span class="badge">${t(displayRegion)}</span>
             </div>
-            <button class="btn-report-styled" data-action="report" data-item-id="${item.id}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                오류 제보
-            </button>
+
         </div>
     </div>
 `;
 };
 
+/**
+ * Initializes popup event delegation.
+ */
 export const initPopupEventDelegation = () => {
   if (state.map) {
     state.map.on("popupopen", (e) => {
@@ -329,9 +350,13 @@ export const initPopupEventDelegation = () => {
   }
 
   document.addEventListener("click", (e) => {
-    const target = e.target.closest("[data-action]");
-    if (!target) return;
+    const targetElement =
+      e.target instanceof HTMLElement
+        ? e.target.closest("[data-action]")
+        : null;
+    if (!targetElement || !(targetElement instanceof HTMLElement)) return;
 
+    const target = targetElement;
     const action = target.dataset.action;
     const itemId = target.dataset.itemId;
     const popupContainer = target.closest(".popup-container");
@@ -375,9 +400,7 @@ export const initPopupEventDelegation = () => {
       case "share":
         shareLocation(parseInt(itemId));
         break;
-      case "report":
-        openReportPage(parseInt(itemId));
-        break;
+
       case "add-to-route":
         import("../route/index.js")
           .then((routeModule) => {
@@ -409,8 +432,8 @@ export const initPopupEventDelegation = () => {
             const upCount = upBtn.querySelector(".vote-count");
             const downCount = downBtn.querySelector(".vote-count");
 
-            if (upCount) upCount.textContent = result.counts.up;
-            if (downCount) downCount.textContent = result.counts.down;
+            if (upCount) upCount.textContent = String(result.counts.up);
+            if (downCount) downCount.textContent = String(result.counts.down);
 
             if (upBtn)
               upBtn.classList.toggle("active", result.userVote === "up");
@@ -423,7 +446,9 @@ export const initPopupEventDelegation = () => {
   });
 
   document.addEventListener("submit", (e) => {
-    const form = e.target.closest(".comment-form");
+    const form = /** @type {HTMLElement} */ (
+      /** @type {HTMLElement} */ (e.target).closest(".comment-form")
+    );
     if (form) {
       e.preventDefault();
       const itemId = form.dataset.itemId;

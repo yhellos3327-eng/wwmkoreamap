@@ -1,23 +1,44 @@
-const OLD_DOMAIN = 'yhellos3327-eng.github.io';
-const NEW_DOMAIN = 'wwmmap.kr';
+// @ts-check
+/**
+ * @fileoverview Domain migration module - handles migration from old domain to new domain.
+ * Provides data backup/restore functionality during domain transition.
+ * @module migration
+ */
 
+/** @type {string} */
+const OLD_DOMAIN = "yhellos3327-eng.github.io";
+/** @type {string} */
+const NEW_DOMAIN = "wwmmap.kr";
+
+/**
+ * Checks if the current domain is the old domain.
+ * @returns {boolean} True if on old domain.
+ */
 export function isOldDomain() {
-    return window.location.hostname === OLD_DOMAIN;
+  return window.location.hostname === OLD_DOMAIN;
 }
 
+/**
+ * Checks if URL has migration parameter.
+ * @returns {boolean} True if migrate=true in URL.
+ */
 export function hasMigrationParam() {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('migrate') === 'true';
+  const params = new URLSearchParams(window.location.search);
+  return params.get("migrate") === "true";
 }
 
+/**
+ * Shows the domain migration modal to the user.
+ * Only displays on old domain and if not already shown.
+ */
 export function showMigrationModal() {
-    if (!isOldDomain()) return;
+  if (!isOldDomain()) return;
 
-    if (document.getElementById('migration-overlay')) return;
+  if (document.getElementById("migration-overlay")) return;
 
-    const hasData = Object.keys(localStorage).length > 0;
+  const hasData = Object.keys(localStorage).length > 0;
 
-    const modalHtml = `
+  const modalHtml = `
         <div id="migration-overlay" class="migration-overlay">
             <div class="migration-content">
                 <div class="migration-header">
@@ -41,161 +62,187 @@ export function showMigrationModal() {
                         </div>
                     </div>
                     
-                    ${hasData ? `
+                    ${
+                      hasData
+                        ? `
                         <div class="migration-data-notice">
                             <strong>💾 저장된 데이터가 있습니다!</strong>
                             <p>브라우저 보안 정책으로 인해 데이터를 자동으로 이전할 수 없습니다.<br/>
                             아래 버튼을 클릭하면 데이터를 백업 파일로 저장한 후 새 도메인으로 이동합니다.</p>
                         </div>
-                    ` : `
+                    `
+                        : `
                         <div class="migration-no-data">
                             <p>저장된 데이터가 없습니다. 새 도메인으로 바로 이동합니다.</p>
                         </div>
-                    `}
+                    `
+                    }
                 </div>
                 <div class="migration-footer">
-                    ${hasData ? `
+                    ${
+                      hasData
+                        ? `
                         <button id="btn-migrate-with-backup" class="migration-btn primary">
                             📥 데이터 저장 후 새 도메인으로 이동
                         </button>
                         <button id="btn-migrate-without-backup" class="migration-btn secondary">
                             데이터 없이 바로 이동
                         </button>
-                    ` : `
+                    `
+                        : `
                         <button id="btn-migrate-direct" class="migration-btn primary">
                             새 도메인으로 이동
                         </button>
-                    `}
+                    `
+                    }
                 </div>
             </div>
         </div>
     `;
 
-    document.body.insertAdjacentHTML('beforeend', modalHtml);
+  document.body.insertAdjacentHTML("beforeend", modalHtml);
 
-    addMigrationStyles();
+  addMigrationStyles();
 
-    setTimeout(() => {
-        const modal = document.getElementById('migration-overlay');
-        if (modal) modal.classList.add('active');
-    }, 100);
+  setTimeout(() => {
+    const modal = document.getElementById("migration-overlay");
+    if (modal) modal.classList.add("active");
+  }, 100);
 
-    const migrateWithBackupBtn = document.getElementById('btn-migrate-with-backup');
-    const migrateWithoutBackupBtn = document.getElementById('btn-migrate-without-backup');
-    const migrateDirectBtn = document.getElementById('btn-migrate-direct');
+  const migrateWithBackupBtn = document.getElementById(
+    "btn-migrate-with-backup",
+  );
+  const migrateWithoutBackupBtn = document.getElementById(
+    "btn-migrate-without-backup",
+  );
+  const migrateDirectBtn = document.getElementById("btn-migrate-direct");
 
-    if (migrateWithBackupBtn) {
-        migrateWithBackupBtn.addEventListener('click', handleMigrateWithBackup);
-    }
+  if (migrateWithBackupBtn) {
+    migrateWithBackupBtn.addEventListener("click", handleMigrateWithBackup);
+  }
 
-    if (migrateWithoutBackupBtn) {
-        migrateWithoutBackupBtn.addEventListener('click', handleMigrateWithoutBackup);
-    }
+  if (migrateWithoutBackupBtn) {
+    migrateWithoutBackupBtn.addEventListener(
+      "click",
+      handleMigrateWithoutBackup,
+    );
+  }
 
-    if (migrateDirectBtn) {
-        migrateDirectBtn.addEventListener('click', handleMigrateDirect);
-    }
+  if (migrateDirectBtn) {
+    migrateDirectBtn.addEventListener("click", handleMigrateDirect);
+  }
 }
 
 function handleMigrateWithBackup() {
-    try {
-        const data = { ...localStorage };
-        if (Object.keys(data).length === 0) {
-            alert('저장할 데이터가 없습니다. 새 도메인으로 이동합니다.');
-            redirectToNewDomain();
-            return;
-        }
-
-        const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-        const fileName = `wwm_migration_backup_${dateStr}.json`;
-        const jsonStr = JSON.stringify(data, null, 2);
-        const blob = new Blob([jsonStr], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-
-        setTimeout(() => {
-            alert('백업 파일이 저장되었습니다.\n새 도메인으로 이동합니다. 설정 > 데이터 불러오기에서 백업 파일을 업로드해주세요.');
-            redirectToNewDomain(true);
-        }, 500);
-
-    } catch (err) {
-        console.error('백업 실패:', err);
-        alert('데이터 백업 중 오류가 발생했습니다.\n' + err.message);
+  try {
+    const data = { ...localStorage };
+    if (Object.keys(data).length === 0) {
+      alert("저장할 데이터가 없습니다. 새 도메인으로 이동합니다.");
+      redirectToNewDomain();
+      return;
     }
+
+    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const fileName = `wwm_migration_backup_${dateStr}.json`;
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setTimeout(() => {
+      alert(
+        "백업 파일이 저장되었습니다.\n새 도메인으로 이동합니다. 설정 > 데이터 불러오기에서 백업 파일을 업로드해주세요.",
+      );
+      redirectToNewDomain(true);
+    }, 500);
+  } catch (err) {
+    console.error("백업 실패:", err);
+    alert("데이터 백업 중 오류가 발생했습니다.\n" + err.message);
+  }
 }
 
 function handleMigrateWithoutBackup() {
-    if (confirm('⚠️ 주의!\n\n현재 저장된 즐겨찾기, 완료 표시 등 모든 데이터가 새 도메인에서 사용할 수 없게 됩니다.\n\n정말 데이터 없이 이동하시겠습니까?')) {
-        redirectToNewDomain();
-    }
+  if (
+    confirm(
+      "⚠️ 주의!\n\n현재 저장된 즐겨찾기, 완료 표시 등 모든 데이터가 새 도메인에서 사용할 수 없게 됩니다.\n\n정말 데이터 없이 이동하시겠습니까?",
+    )
+  ) {
+    redirectToNewDomain();
+  }
 }
 
 function handleMigrateDirect() {
-    redirectToNewDomain();
+  redirectToNewDomain();
 }
 
 function redirectToNewDomain(openSettings = false) {
-    let newUrl = `https://${NEW_DOMAIN}/`;
-    const params = new URLSearchParams(window.location.search);
+  let newUrl = `https://${NEW_DOMAIN}/`;
+  const params = new URLSearchParams(window.location.search);
 
-    if (openSettings) {
-        params.set('migrate', 'true');
-    }
+  if (openSettings) {
+    params.set("migrate", "true");
+  }
 
-    const paramString = params.toString();
-    if (paramString) {
-        newUrl += '?' + paramString;
-    }
+  const paramString = params.toString();
+  if (paramString) {
+    newUrl += "?" + paramString;
+  }
 
-    window.location.href = newUrl;
+  window.location.href = newUrl;
 }
 
+/**
+ * Handles post-migration actions on the new domain.
+ * Opens settings and highlights the backup section for data import.
+ */
 export function handleMigrationComplete() {
-    if (!hasMigrationParam()) return;
+  if (!hasMigrationParam()) return;
 
-    const NOTICE_ID = '2025-12-20-domain-change-v2';
-    localStorage.setItem(`wwm_notice_hidden_${NOTICE_ID}`, 'true');
+  const NOTICE_ID = "2025-12-20-domain-change-v2";
+  localStorage.setItem(`wwm_notice_hidden_${NOTICE_ID}`, "true");
 
-    const params = new URLSearchParams(window.location.search);
-    params.delete('migrate');
-    const newSearch = params.toString();
-    const newUrl = window.location.pathname + (newSearch ? '?' + newSearch : '');
-    window.history.replaceState({}, '', newUrl);
+  const params = new URLSearchParams(window.location.search);
+  params.delete("migrate");
+  const newSearch = params.toString();
+  const newUrl = window.location.pathname + (newSearch ? "?" + newSearch : "");
+  window.history.replaceState({}, "", newUrl);
 
-    setTimeout(() => {
-        const settingsBtn = document.getElementById('open-settings');
-        if (settingsBtn) {
-            settingsBtn.click();
-            setTimeout(() => {
-                const backupSection = document.querySelector('.settings-backup-section');
-                if (backupSection) {
-                    backupSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    backupSection.classList.add('highlight-backup');
+  setTimeout(() => {
+    const settingsBtn = document.getElementById("open-settings");
+    if (settingsBtn) {
+      settingsBtn.click();
+      setTimeout(() => {
+        const backupSection = document.querySelector(
+          ".settings-backup-section",
+        );
+        if (backupSection) {
+          backupSection.scrollIntoView({ behavior: "smooth", block: "center" });
+          backupSection.classList.add("highlight-backup");
 
-                    showMigrationWelcomeMessage(backupSection);
+          showMigrationWelcomeMessage(backupSection);
 
-                    setTimeout(() => {
-                        backupSection.classList.remove('highlight-backup');
-                    }, 8000);
-                }
-            }, 300);
+          setTimeout(() => {
+            backupSection.classList.remove("highlight-backup");
+          }, 8000);
         }
-    }, 1500);
+      }, 300);
+    }
+  }, 1500);
 }
 
 function showMigrationWelcomeMessage(backupSection) {
-    addMigrationStyles();
+  addMigrationStyles();
 
-    const welcomeMsg = document.createElement('div');
-    welcomeMsg.className = 'migration-welcome-msg';
-    welcomeMsg.innerHTML = `
+  const welcomeMsg = document.createElement("div");
+  welcomeMsg.className = "migration-welcome-msg";
+  welcomeMsg.innerHTML = `
         <div class="migration-welcome-content">
             <span class="migration-welcome-icon">👋</span>
             <div class="migration-welcome-text">
@@ -206,26 +253,28 @@ function showMigrationWelcomeMessage(backupSection) {
         </div>
     `;
 
-    backupSection.insertAdjacentElement('beforebegin', welcomeMsg);
+  backupSection.insertAdjacentElement("beforebegin", welcomeMsg);
 
-    document.getElementById('btn-close-migration-welcome')?.addEventListener('click', () => {
-        welcomeMsg.remove();
+  document
+    .getElementById("btn-close-migration-welcome")
+    ?.addEventListener("click", () => {
+      welcomeMsg.remove();
     });
 
-    setTimeout(() => {
-        if (welcomeMsg.parentNode) {
-            welcomeMsg.classList.add('fade-out');
-            setTimeout(() => welcomeMsg.remove(), 300);
-        }
-    }, 8000);
+  setTimeout(() => {
+    if (welcomeMsg.parentNode) {
+      welcomeMsg.classList.add("fade-out");
+      setTimeout(() => welcomeMsg.remove(), 300);
+    }
+  }, 8000);
 }
 
 function addMigrationStyles() {
-    if (document.getElementById('migration-styles')) return;
+  if (document.getElementById("migration-styles")) return;
 
-    const styles = document.createElement('style');
-    styles.id = 'migration-styles';
-    styles.textContent = `
+  const styles = document.createElement("style");
+  styles.id = "migration-styles";
+  styles.textContent = `
         .migration-overlay {
             position: fixed;
             top: 0;
@@ -512,19 +561,23 @@ function addMigrationStyles() {
         }
     `;
 
-    document.head.appendChild(styles);
+  document.head.appendChild(styles);
 }
 
+/**
+ * Initializes migration handling.
+ * Shows migration modal on old domain, handles completion on new domain.
+ */
 export function initMigration() {
-    if (isOldDomain()) {
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', showMigrationModal);
-        } else {
-            showMigrationModal();
-        }
+  if (isOldDomain()) {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", showMigrationModal);
+    } else {
+      showMigrationModal();
     }
+  }
 
-    if (hasMigrationParam()) {
-        handleMigrationComplete();
-    }
+  if (hasMigrationParam()) {
+    handleMigrationComplete();
+  }
 }

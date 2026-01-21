@@ -1,16 +1,24 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+const PIXI = /** @type {any} */ (window).PIXI;
+
 import { ICON_SIZE } from "./config.js";
 import { createSpriteForItem, addSpriteToDataMap } from "./spriteFactory.js";
 
-
 let spiderfiedClusterId = null;
-let spiderfyContainer = null; 
+let spiderfyContainer = null;
 let animationFrameId = null;
 let spiderElements = [];
 let currentCenterLatLng = null;
 
+/** @returns {string|number|null} The spiderfied cluster ID. */
 export const getSpiderfiedClusterId = () => spiderfiedClusterId;
+/** @returns {any|null} The spiderfy container. */
 export const getSpiderfyContainer = () => spiderfyContainer;
 
+/**
+ * Clears the spiderfy effect.
+ */
 export const clearSpiderfy = () => {
   if (animationFrameId) {
     cancelAnimationFrame(animationFrameId);
@@ -28,6 +36,10 @@ export const clearSpiderfy = () => {
   currentCenterLatLng = null;
 };
 
+/**
+ * Updates the spiderfy positions based on zoom/pan.
+ * @param {any} utils - The PixiOverlay utils.
+ */
 export const updateSpiderfyPositions = (utils) => {
   if (!spiderfyContainer || !currentCenterLatLng || animationFrameId) return;
 
@@ -35,12 +47,10 @@ export const updateSpiderfyPositions = (utils) => {
   const scale = utils.getScale();
   const centerPoint = project(currentCenterLatLng);
 
-  
   const count = spiderElements.length;
   const pixelLegLength = 40 + Math.min(count * 2, 100);
   const legLength = pixelLegLength / scale;
 
-  
   const legsGraphics = spiderfyContainer.children.find(
     (c) => c instanceof PIXI.Graphics,
   );
@@ -55,14 +65,12 @@ export const updateSpiderfyPositions = (utils) => {
       elem.sprite.x = x;
       elem.sprite.y = y;
 
-      
       if (utils.layerPointToLatLng) {
         const latLng = utils.layerPointToLatLng({ x, y });
         elem.sprite.markerData.lat = latLng.lat;
         elem.sprite.markerData.lng = latLng.lng;
       }
 
-      
       const targetSize = ICON_SIZE / scale;
       elem.sprite.width = targetSize;
       elem.sprite.height = targetSize;
@@ -73,6 +81,14 @@ export const updateSpiderfyPositions = (utils) => {
   }
 };
 
+/**
+ * Spiderfies a cluster.
+ * @param {string|number} clusterId - The cluster ID.
+ * @param {number[]} centerLatLng - The center coordinates [lat, lng].
+ * @param {any[]} markers - The markers in the cluster.
+ * @param {any} pixiContainer - The PIXI container.
+ * @param {any} utils - The PixiOverlay utils.
+ */
 export const spiderfyCluster = (
   clusterId,
   centerLatLng,
@@ -80,14 +96,14 @@ export const spiderfyCluster = (
   pixiContainer,
   utils,
 ) => {
-  clearSpiderfy(); 
+  clearSpiderfy();
 
   spiderfiedClusterId = clusterId;
   currentCenterLatLng = centerLatLng;
 
   spiderfyContainer = new PIXI.Container();
   spiderfyContainer.sortableChildren = true;
-  
+
   spiderfyContainer.zIndex = 9999;
 
   pixiContainer.addChild(spiderfyContainer);
@@ -97,26 +113,21 @@ export const spiderfyCluster = (
   const centerPoint = project(centerLatLng);
   const count = markers.length;
 
-  
   const circleStartAngle = 0;
-  
+
   const pixelLegLength = 40 + Math.min(count * 2, 100);
 
-  
   const legLength = pixelLegLength / scale;
   const angleStep = (Math.PI * 2) / count;
 
-  
   const legsGraphics = new PIXI.Graphics();
   spiderfyContainer.addChild(legsGraphics);
 
-  
   spiderElements = [];
 
   markers.forEach((marker, index) => {
     const angle = circleStartAngle + index * angleStep;
 
-    
     const item = marker.properties.item;
     const sprite = createSpriteForItem(item);
 
@@ -125,7 +136,6 @@ export const spiderfyCluster = (
       sprite.width = targetSize;
       sprite.height = targetSize;
 
-      
       sprite.markerData = {
         ...sprite.markerData,
         isSpiderfied: true,
@@ -133,10 +143,8 @@ export const spiderfyCluster = (
         originalLng: marker.geometry.coordinates[0],
       };
 
-      
       sprite.filters = [];
 
-      
       sprite.x = centerPoint.x;
       sprite.y = centerPoint.y;
 
@@ -145,22 +153,19 @@ export const spiderfyCluster = (
       spiderElements.push({
         sprite,
         angle,
-        
       });
     }
   });
 
-  
   let start = null;
-  const duration = 250; 
+  const duration = 250;
 
   const animate = (timestamp) => {
     if (!start) start = timestamp;
     const progress = Math.min((timestamp - start) / duration, 1);
-    
+
     const ease = 1 - Math.pow(1 - progress, 3);
 
-    
     const currentProject = utils.latLngToLayerPoint;
     const currentScale = utils.getScale();
     const currentCenter = currentProject(currentCenterLatLng);
@@ -176,14 +181,12 @@ export const spiderfyCluster = (
       elem.sprite.x = x;
       elem.sprite.y = y;
 
-      
       if (utils.layerPointToLatLng) {
         const latLng = utils.layerPointToLatLng({ x, y });
         elem.sprite.markerData.lat = latLng.lat;
         elem.sprite.markerData.lng = latLng.lng;
       }
 
-      
       const targetSize = ICON_SIZE / currentScale;
       elem.sprite.width = targetSize;
       elem.sprite.height = targetSize;

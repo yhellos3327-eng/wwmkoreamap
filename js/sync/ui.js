@@ -1,3 +1,9 @@
+// @ts-check
+
+/**
+ * Creates the sync tooltip element if it doesn't exist.
+ * @returns {HTMLElement} The tooltip element.
+ */
 const createSyncTooltip = () => {
   let tooltip = document.getElementById("sync-tooltip");
   if (!tooltip) {
@@ -66,10 +72,17 @@ const createSyncTooltip = () => {
   return tooltip;
 };
 
+/**
+ * Shows the sync tooltip with a message.
+ * @param {string} [message="동기화중..."] - The message to display.
+ * @param {string} [type="syncing"] - The tooltip type ('syncing', 'success', 'error', 'update').
+ */
 export const showSyncTooltip = (message = "동기화중...", type = "syncing") => {
   const tooltip = createSyncTooltip();
-  const spinner = tooltip.querySelector(".sync-spinner");
-  const text = tooltip.querySelector(".sync-text");
+  const spinner = /** @type {HTMLElement} */ (
+    tooltip.querySelector(".sync-spinner")
+  );
+  const text = /** @type {HTMLElement} */ (tooltip.querySelector(".sync-text"));
 
   tooltip.classList.remove(
     "hidden",
@@ -98,11 +111,15 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   text.textContent = message;
   tooltip.style.display = "flex";
 
-  
+  // Force reflow
   tooltip.offsetHeight;
   tooltip.classList.remove("hidden");
 };
 
+/**
+ * Hides the sync tooltip after a delay.
+ * @param {number} [delay=0] - Delay in milliseconds.
+ */
 export const hideSyncTooltip = (delay = 0) => {
   setTimeout(() => {
     const tooltip = document.getElementById("sync-tooltip");
@@ -112,11 +129,16 @@ export const hideSyncTooltip = (delay = 0) => {
         if (tooltip.classList.contains("hidden")) {
           tooltip.style.display = "none";
         }
-      }, 400); 
+      }, 400);
     }
   }, delay);
 };
 
+/**
+ * Shows a sync toast notification.
+ * @param {string} message - The message to display.
+ * @param {string} [type="info"] - The toast type ('info', 'success', 'update').
+ */
 export const showSyncToast = (message, type = "info") => {
   let toast = document.getElementById("sync-toast");
   if (!toast) {

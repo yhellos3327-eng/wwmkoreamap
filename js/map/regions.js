@@ -1,3 +1,6 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
+/* global L */
 import { state } from "../state.js";
 import { t, isPointInPolygon } from "../utils.js";
 import { saveFilterState } from "../data.js";
@@ -9,6 +12,17 @@ import {
   calculateHitRadius,
 } from "./pixiOverlay.js";
 
+const L = /** @type {any} */ (window).L;
+
+/**
+ * @typedef {any} RegionPolygon
+ */
+
+/**
+ * Renders region polygons on the map.
+ * @param {any[]} filteredRegions - The filtered regions to render.
+ * @returns {any[]} The rendered region polygons data.
+ */
 export const renderRegionPolygons = (filteredRegions) => {
   const regionPolygons = [];
 
@@ -39,6 +53,8 @@ export const renderRegionPolygons = (filteredRegions) => {
         fillOpacity: 0.1,
         className: "region-polygon",
       });
+
+      /** @type {RegionPolygon} */ (polygon).regionTitle = region.title;
 
       const regionItems = state.mapData.items.filter((item) => {
         const effectiveRegion = item.forceRegion || item.region;
@@ -74,16 +90,18 @@ export const renderRegionPolygons = (filteredRegions) => {
         this.setStyle({ weight: 1, fillOpacity: 0.1 });
       });
 
-      polygon.regionTitle = region.title;
+      // @ts-ignore
+      // polygon.regionTitle = region.title; // Moved up and casted
 
       polygon.on("click", function (e) {
         if (state.isDevMode) {
           if (
-            window.dev &&
-            typeof window.dev.isRegionMode === "function" &&
-            window.dev.isRegionMode()
+            /** @type {any} */ (window).dev &&
+            typeof (/** @type {any} */ (window).dev.isRegionMode) ===
+              "function" &&
+            /** @type {any} */ (window).dev.isRegionMode()
           ) {
-            window.dev.loadRegion(region);
+            /** @type {any} */ (window).dev.loadRegion(region);
             L.DomEvent.stopPropagation(e);
           }
           return;
@@ -175,12 +193,20 @@ export const renderRegionPolygons = (filteredRegions) => {
   return regionPolygons;
 };
 
+/**
+ * Updates the region overlay information.
+ */
+/**
+ * Updates the region overlay information.
+ */
 export const updateRegionOverlay = () => {
   const map = state.map;
   if (!map) return;
 
   const zoom = map.getZoom();
   const overlay = document.getElementById("region-info-overlay");
+  if (!overlay) return;
+
   const nameEl = overlay.querySelector(".region-info-name");
   const progressEl = overlay.querySelector(".region-info-progress");
   const tooltipPane = map.getPane("tooltipPane");
@@ -229,8 +255,8 @@ export const updateRegionOverlay = () => {
       });
     }
 
-    if (foundRegion) {
-      const title = foundRegion.regionTitle;
+    if (foundRegion && nameEl && progressEl) {
+      const title = /** @type {RegionPolygon} */ (foundRegion).regionTitle;
       const translatedName = t(title);
 
       const regionItems = state.mapData.items.filter((item) => {
@@ -248,7 +274,7 @@ export const updateRegionOverlay = () => {
       const percentage =
         totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
-      nameEl.textContent = translatedName;
+      nameEl.textContent = String(translatedName);
       progressEl.textContent = `${completedItems}/${totalItems} (${percentage}%)`;
 
       overlay.classList.remove("hidden");

@@ -1,3 +1,7 @@
+// @ts-check
+/**
+ * PixiOverlay module - re-exports all PixiJS overlay functionality.
+ */
 export {
   ICON_SIZE,
   DEFAULT_ICON_URL,

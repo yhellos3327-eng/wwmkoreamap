@@ -1,8 +1,20 @@
-import { openLightbox } from './ui.js';
+// @ts-check
+/**
+ * @fileoverview External content loader - loads and displays external content.
+ * @module external-loader
+ */
 
+import { openLightbox } from "./ui.js";
+
+/**
+ * Loads external content from a URL and injects it into a container.
+ * @param {string|undefined} url - The URL to load content from.
+ * @param {HTMLElement|undefined} container - The container element to inject content into.
+ * @returns {Promise<void>}
+ */
 export const loadExternalContent = async (url, container) => {
-    if (!url || !container) return;
-    container.innerHTML = `
+  if (!url || !container) return;
+  container.innerHTML = `
         <div style="display:flex; justify-content:center; align-items:center; height:150px; flex-direction:column; gap:10px;">
             <div class="loading-spinner" style="width:30px; height:30px; border:3px solid rgba(255,255,255,0.1); border-top-color:var(--accent); border-radius:50%; animation:spin 1s linear infinite;"></div>
             <span style="color:var(--text-muted); font-size:0.9em;">외부 콘텐츠를 불러오는 중...</span>
@@ -10,93 +22,110 @@ export const loadExternalContent = async (url, container) => {
         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
     `;
 
-    if (url.startsWith('json:')) {
-        await loadJsonContent(url, container);
+  if (url.startsWith("json:")) {
+    await loadJsonContent(url, container);
+    return;
+  }
+
+  try {
+    let response;
+    try {
+      response = await fetch(url);
+    } catch (e) {
+      console.warn("Direct fetch failed, trying proxy...", e);
+      try {
+        response = await fetch(
+          `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+        );
+        if (!response.ok) throw new Error("Proxy fetch failed");
+        const data = await response.json();
+        if (!data.contents) throw new Error("Proxy returned no content");
+        parseAndInject(data.contents, container, url);
         return;
+      } catch (proxyError) {
+        throw new Error(
+          "Both direct and proxy fetch failed: " + proxyError.message,
+        );
+      }
     }
 
-    try {
-        let response;
-        try {
-            response = await fetch(url);
-        } catch (e) {
-            console.warn("Direct fetch failed, trying proxy...", e);
-            try {
-                response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(url)}`);
-                if (!response.ok) throw new Error('Proxy fetch failed');
-                const data = await response.json();
-                if (!data.contents) throw new Error('Proxy returned no content');
-                parseAndInject(data.contents, container, url);
-                return;
-            } catch (proxyError) {
-                throw new Error('Both direct and proxy fetch failed: ' + proxyError.message);
-            }
-        }
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const text = await response.text();
-        parseAndInject(text, container, url);
-
-    } catch (error) {
-        console.error("External content load failed:", error);
-        container.innerHTML = `
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const text = await response.text();
+    parseAndInject(text, container, url);
+  } catch (error) {
+    console.error("External content load failed:", error);
+    container.innerHTML = `
             <div style="padding:20px; text-align:center; color:var(--text-muted);">
                 <p>콘텐츠를 불러올 수 없습니다.</p>
                 <p style="font-size:0.8em; color:#666;">${error.message}</p>
                 <a href="${url}" target="_blank" style="color:var(--accent); text-decoration:underline;">원본 페이지 방문하기</a>
             </div>
         `;
-    }
+  }
 };
 
+/**
+ * Loads JSON content from a URL.
+ * @param {string} urlString - The JSON URL string (with json: prefix).
+ * @param {HTMLElement} container - The container element.
+ * @returns {Promise<void>}
+ */
 const loadJsonContent = async (urlString, container) => {
+  try {
+    const actualUrl = urlString.substring(5);
+    const urlObj = new URL(actualUrl);
+    const id = urlObj.searchParams.get("id");
+    const jsonUrl = actualUrl.split("?")[0];
+    const origin = urlObj.origin;
+
+    let response;
     try {
-        const actualUrl = urlString.substring(5);
-        const urlObj = new URL(actualUrl);
-        const id = urlObj.searchParams.get('id');
-        const jsonUrl = actualUrl.split('?')[0];
-        const origin = urlObj.origin;
+      response = await fetch(jsonUrl);
+    } catch (e) {
+      console.warn("Direct JSON fetch failed, trying proxy...", e);
+      response = await fetch(
+        `https://api.allorigins.win/get?url=${encodeURIComponent(jsonUrl)}`,
+      );
+      if (!response.ok) throw new Error("Proxy fetch failed");
+      const proxyData = await response.json();
+      const data = JSON.parse(proxyData.contents);
+      processJsonData(data, id, container, origin);
+      return;
+    }
 
-        let response;
-        try {
-            response = await fetch(jsonUrl);
-        } catch (e) {
-            console.warn("Direct JSON fetch failed, trying proxy...", e);
-            response = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(jsonUrl)}`);
-            if (!response.ok) throw new Error('Proxy fetch failed');
-            const proxyData = await response.json();
-            const data = JSON.parse(proxyData.contents);
-            processJsonData(data, id, container, origin);
-            return;
-        }
-
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-        processJsonData(data, id, container, origin);
-
-    } catch (error) {
-        console.error("JSON content load failed:", error);
-        container.innerHTML = `
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    const data = await response.json();
+    processJsonData(data, id, container, origin);
+  } catch (error) {
+    console.error("JSON content load failed:", error);
+    container.innerHTML = `
             <div style="padding:20px; text-align:center; color:var(--text-muted);">
                 <p>데이터를 불러올 수 없습니다.</p>
                 <p>${error.message}</p>
             </div>
         `;
-    }
+  }
 };
 
+/**
+ * Processes JSON data and renders it.
+ * @param {any} data - The JSON data.
+ * @param {string|null} id - The item ID to find.
+ * @param {HTMLElement} container - The container element.
+ * @param {string} origin - The origin URL.
+ */
 const processJsonData = (data, id, container, origin) => {
-    let item = null;
-    if (data.chunji && Array.isArray(data.chunji)) {
-        item = data.chunji.find(i => i.id === id);
-    }
+  let item = null;
+  if (data.chunji && Array.isArray(data.chunji)) {
+    item = data.chunji.find((i) => i.id === id);
+  }
 
-    if (!item) throw new Error('Item not found in JSON');
+  if (!item) throw new Error("Item not found in JSON");
 
-    const html = formatChunjiItem(item, origin);
+  const html = formatChunjiItem(item, origin);
 
-    const styleBlock = document.createElement('style');
-    styleBlock.textContent = `
+  const styleBlock = document.createElement("style");
+  styleBlock.textContent = `
         .quest-detail-container {
             --wuxia-accent-red: #b71c1c;
             --wuxia-accent-gold: #b08d55;
@@ -142,88 +171,106 @@ const processJsonData = (data, id, container, origin) => {
         }
     `;
 
-    container.innerHTML = '';
-    container.appendChild(styleBlock);
+  container.innerHTML = "";
+  container.appendChild(styleBlock);
 
-    const contentDiv = document.createElement('div');
-    contentDiv.className = 'quest-detail-container';
-    contentDiv.innerHTML = html;
+  const contentDiv = document.createElement("div");
+  contentDiv.className = "quest-detail-container";
+  contentDiv.innerHTML = html;
 
-    
-    const images = contentDiv.querySelectorAll('img');
-    images.forEach(img => {
-        img.style.cursor = 'pointer';
-        img.onclick = () => {
-            if (openLightbox) {
-                openLightbox(img.src);
-            } else {
-                window.open(img.src, '_blank');
-            }
-        };
-    });
+  const images = contentDiv.querySelectorAll("img");
+  images.forEach((img) => {
+    img.style.cursor = "pointer";
+    img.onclick = () => {
+      if (openLightbox) {
+        openLightbox(img.src);
+      } else {
+        window.open(img.src, "_blank");
+      }
+    };
+  });
 
-    const sourceDiv = document.createElement('div');
-    sourceDiv.style.cssText = "margin-top:40px;padding-top:20px;border-top:1px dashed #444;display:flex;justify-content:space-between;align-items:center;color:var(--wuxia-text-sub);font-size:0.9em";
+  const sourceDiv = document.createElement("div");
+  sourceDiv.style.cssText =
+    "margin-top:40px;padding-top:20px;border-top:1px dashed #444;display:flex;justify-content:space-between;align-items:center;color:var(--wuxia-text-sub);font-size:0.9em";
 
-    const domain = new URL(origin).hostname;
+  const domain = new URL(origin).hostname;
 
-    sourceDiv.innerHTML = `
+  sourceDiv.innerHTML = `
         <span>데이터 출처</span>
         <a href="${origin}" target="_blank" style="color:var(--wuxia-accent-gold);text-decoration:none;display:flex;align-items:center;gap:5px">
             ${domain} <span style="font-size:1.2em">↗</span>
         </a>
     `;
-    contentDiv.appendChild(sourceDiv);
+  contentDiv.appendChild(sourceDiv);
 
-    container.appendChild(contentDiv);
+  container.appendChild(contentDiv);
 };
 
+/**
+ * Resolves a relative URL to absolute.
+ * @param {string} path - The path to resolve.
+ * @param {string} origin - The origin URL.
+ * @returns {string} Resolved URL.
+ */
 const resolveUrl = (path, origin) => {
-    if (!path) return '';
-    if (path.startsWith('http')) return path;
-    if (path.startsWith('//')) return 'https:' + path;
-    try {
-        return new URL(path, origin).href;
-    } catch (e) {
-        return path;
-    }
+  if (!path) return "";
+  if (path.startsWith("http")) return path;
+  if (path.startsWith("//")) return "https:" + path;
+  try {
+    return new URL(path, origin).href;
+  } catch (e) {
+    return path;
+  }
 };
 
+/**
+ * Formats a Chunji item as HTML.
+ * @param {any} item - The item data.
+ * @param {string} origin - The origin URL.
+ * @returns {string} HTML string.
+ */
 const formatChunjiItem = (item, origin) => {
-    const getImg1 = resolveUrl(item.getimg1, origin);
-    const getImg2 = resolveUrl(item.getimg2, origin);
-    const dsecImg1 = resolveUrl(item.dsecimg1, origin);
-    const dsecImg2 = resolveUrl(item.dsecimg2, origin);
+  const getImg1 = resolveUrl(item.getimg1, origin);
+  const getImg2 = resolveUrl(item.getimg2, origin);
+  const dsecImg1 = resolveUrl(item.dsecimg1, origin);
+  const dsecImg2 = resolveUrl(item.dsecimg2, origin);
 
-    return `
+  return `
         <h2>${item.title}</h2>
         
         <h3>획득 방법</h3>
-        <p>${item.get || '정보 없음'}</p>
-        ${getImg1 ? `<div class="wuxia-image-container"><img src="${getImg1}"></div>` : ''}
-        ${getImg2 ? `<div class="wuxia-image-container"><img src="${getImg2}"></div>` : ''}
+        <p>${item.get || "정보 없음"}</p>
+        ${getImg1 ? `<div class="wuxia-image-container"><img src="${getImg1}"></div>` : ""}
+        ${getImg2 ? `<div class="wuxia-image-container"><img src="${getImg2}"></div>` : ""}
 
         <h3>해독 방법</h3>
-        <p>${item.dsec || '정보 없음'}</p>
-        ${dsecImg1 ? `<div class="wuxia-image-container"><img src="${dsecImg1}"></div>` : ''}
-        ${dsecImg2 ? `<div class="wuxia-image-container"><img src="${dsecImg2}"></div>` : ''}
+        <p>${item.dsec || "정보 없음"}</p>
+        ${dsecImg1 ? `<div class="wuxia-image-container"><img src="${dsecImg1}"></div>` : ""}
+        ${dsecImg2 ? `<div class="wuxia-image-container"><img src="${dsecImg2}"></div>` : ""}
     `;
 };
 
+/**
+ * Parses HTML string and injects styled content.
+ * @param {string} htmlString - The HTML string.
+ * @param {HTMLElement} container - The container element.
+ * @param {string} originalUrl - The original URL.
+ */
 const parseAndInject = (htmlString, container, originalUrl) => {
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlString, 'text/html');
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(htmlString, "text/html");
 
-    const content = doc.querySelector('.quest-detail-container') || doc.body;
+  const content = doc.querySelector(".quest-detail-container") || doc.body;
 
-    const firstSpan = content.querySelector('span');
-    if (firstSpan) firstSpan.remove();
+  const firstSpan = content.querySelector("span");
+  if (firstSpan) firstSpan.remove();
 
-    const title = content.querySelector('h2');
-    if (title) title.remove();
+  const title = content.querySelector("h2");
+  if (title) title.remove();
 
-    const styleBlock = document.createElement('style');
-    styleBlock.textContent = `
+  const styleBlock = document.createElement("style");
+  styleBlock.textContent = `
         .quest-detail-container {
             --wuxia-accent-red: #b71c1c;
             --wuxia-accent-gold: #b08d55;
@@ -279,58 +326,59 @@ const parseAndInject = (htmlString, container, originalUrl) => {
             border-bottom: none !important;
         }
     `;
-    container.appendChild(styleBlock);
+  container.appendChild(styleBlock);
 
-    const images = content.querySelectorAll('img');
-    images.forEach(img => {
-        const src = img.getAttribute('src');
-        if (src && !src.startsWith('http')) {
-            const urlObj = new URL(originalUrl);
-            try {
-                img.src = new URL(src, originalUrl).href;
-            } catch (e) {
-                console.warn("Failed to resolve image URL:", src);
-            }
-        }
-
-        img.style.cursor = 'pointer';
-        img.onclick = () => {
-            if (openLightbox) {
-                openLightbox(img.src);
-            } else {
-                window.open(img.src, '_blank');
-            }
-        };
-
-        if (!img.parentElement.classList.contains('wuxia-image-container')) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'wuxia-image-container';
-            img.parentNode.insertBefore(wrapper, img);
-            wrapper.appendChild(img);
-        }
-    });
-
-    const returnBtn = content.querySelector('button[onclick="showQuestList()"]');
-    if (returnBtn) {
-        returnBtn.parentElement.remove();
+  const images = content.querySelectorAll("img");
+  images.forEach((img) => {
+    const src = img.getAttribute("src");
+    if (src && !src.startsWith("http")) {
+      const urlObj = new URL(originalUrl);
+      try {
+        img.src = new URL(src, originalUrl).href;
+      } catch (e) {
+        console.warn("Failed to resolve image URL:", src);
+      }
     }
 
-    const sourceDiv = document.createElement('div');
-    sourceDiv.style.cssText = "margin-top:40px;padding-top:20px;border-top:1px dashed #444;display:flex;justify-content:space-between;align-items:center;color:var(--wuxia-text-sub);font-size:0.9em";
+    img.style.cursor = "pointer";
+    img.onclick = () => {
+      if (openLightbox) {
+        openLightbox(img.src);
+      } else {
+        window.open(img.src, "_blank");
+      }
+    };
 
-    const domain = new URL(originalUrl).hostname;
-    const origin = new URL(originalUrl).origin;
+    if (!img.parentElement?.classList.contains("wuxia-image-container")) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "wuxia-image-container";
+      img.parentNode?.insertBefore(wrapper, img);
+      wrapper.appendChild(img);
+    }
+  });
 
-    sourceDiv.innerHTML = `
+  const returnBtn = content.querySelector('button[onclick="showQuestList()"]');
+  if (returnBtn) {
+    returnBtn.parentElement?.remove();
+  }
+
+  const sourceDiv = document.createElement("div");
+  sourceDiv.style.cssText =
+    "margin-top:40px;padding-top:20px;border-top:1px dashed #444;display:flex;justify-content:space-between;align-items:center;color:var(--wuxia-text-sub);font-size:0.9em";
+
+  const domain = new URL(originalUrl).hostname;
+  const origin = new URL(originalUrl).origin;
+
+  sourceDiv.innerHTML = `
         <span>데이터 출처</span>
         <a href="${origin}" target="_blank" style="color:var(--wuxia-accent-gold);text-decoration:none;display:flex;align-items:center;gap:5px">
             ${domain} <span style="font-size:1.2em">↗</span>
         </a>
     `;
 
-    content.appendChild(sourceDiv);
+  content.appendChild(sourceDiv);
 
-    container.innerHTML = '';
-    container.appendChild(styleBlock);
-    container.appendChild(content);
+  container.innerHTML = "";
+  container.appendChild(styleBlock);
+  container.appendChild(content);
 };

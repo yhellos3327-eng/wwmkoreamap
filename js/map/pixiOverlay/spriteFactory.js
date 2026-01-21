@@ -1,3 +1,8 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+const L = /** @type {any} */ (window).L;
+const PIXI = /** @type {any} */ (window).PIXI;
+
 import { state } from "../../state.js";
 import { ICON_MAPPING } from "../../config.js";
 import { isPointInPolygon } from "../../utils.js";
@@ -14,14 +19,28 @@ import { fetchVoteCounts } from "../../votes.js";
 const spriteDataMap = new Map();
 const itemIdToSpriteMap = new Map();
 
+/** @returns {Map} The sprite data map. */
 export const getSpriteDataMap = () => spriteDataMap;
+/**
+ * Gets a sprite by item ID.
+ * @param {string|number} id - The item ID.
+ * @returns {any|undefined} The sprite.
+ */
 export const getSpriteById = (id) => itemIdToSpriteMap.get(String(id));
 
+/**
+ * Clears the sprite data map.
+ */
 export const clearSpriteDataMap = () => {
   spriteDataMap.clear();
   itemIdToSpriteMap.clear();
 };
 
+/**
+ * Shows a popup for a sprite.
+ * @param {any} sprite - The sprite.
+ * @returns {any|null} The popup.
+ */
 export const showPopupForSprite = (sprite) => {
   if (!sprite.markerData) return null;
 
@@ -48,6 +67,11 @@ export const showPopupForSprite = (sprite) => {
 
 import { memoryManager } from "../../memory.js";
 
+/**
+ * Creates a PIXI sprite for a map item.
+ * @param {any} item - The map item.
+ * @returns {any|null} The sprite or null if creation failed.
+ */
 export const createSpriteForItem = (item) => {
   let catId = item.category;
 
@@ -104,7 +128,6 @@ export const createSpriteForItem = (item) => {
 
   sprite.alpha = isCompleted ? 0.4 : 1.0;
 
-  
   if (isCompleted) {
     const colorMatrix = new PIXI.ColorMatrixFilter();
     colorMatrix.desaturate();
@@ -122,7 +145,6 @@ export const createSpriteForItem = (item) => {
     completedAt: completedItem?.completedAt,
   };
 
-  
   memoryManager.track(sprite, `Sprite-${item.id}`);
   memoryManager.setMeta(sprite, {
     created: Date.now(),
@@ -135,6 +157,11 @@ export const createSpriteForItem = (item) => {
   return sprite;
 };
 
+/**
+ * Adds a sprite to the data map.
+ * @param {any} sprite - The sprite.
+ * @param {any} item - The item.
+ */
 export const addSpriteToDataMap = (sprite, item) => {
   spriteDataMap.set(sprite, item);
 };

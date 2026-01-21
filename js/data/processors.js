@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
 import { t } from "../utils.js";
 import { webWorkerManager } from "../web-worker-manager.js";
@@ -5,10 +7,57 @@ import { DEFAULT_DESCRIPTIONS, MAP_CONFIGS } from "../config.js";
 
 export const USE_WORKERS = true;
 
+/**
+ * @typedef {Object} RegionItem
+ * @property {number} id
+ * @property {string} title
+ * @property {number|string} latitude
+ * @property {number|string} longitude
+ * @property {number} [zoom]
+ * @property {number[][]} [coordinates]
+ */
+
+/**
+ * @typedef {Object} RegionResult
+ * @property {RegionItem[]} regionData
+ * @property {Object.<number, string>} regionIdMap
+ * @property {Object.<string, {lat: number, lng: number, zoom: number}>} regionMetaInfo
+ * @property {Object.<string, string>} reverseRegionMap
+ * @property {number[][]} boundsCoords
+ */
+
+/**
+ * @typedef {Object} MapItem
+ * @property {number|string} id
+ * @property {string} name
+ * @property {string} category
+ * @property {string} [description]
+ * @property {string[]} [images]
+ * @property {string|string[]} [video_url]
+ * @property {boolean} [isTranslated]
+ * @property {string} [forceRegion]
+ * @property {number} [regionId]
+ * @property {string} [region]
+ * @property {string} [originalName]
+ * @property {number} [lat]
+ * @property {number} [lng]
+ * @property {number} [x]
+ * @property {number} [y]
+ * @property {boolean} [hasCustomPosition]
+ */
+
+/**
+ * Processes region data synchronously.
+ * @param {Object} regionJson - The raw region JSON object.
+ * @returns {RegionResult} The processed region data.
+ */
 export const processRegionDataSync = (regionJson) => {
   const regionData = regionJson.data || [];
+  /** @type {Object.<number, string>} */
   const regionIdMap = {};
+  /** @type {Object.<string, {lat: number, lng: number, zoom: number}>} */
   const regionMetaInfo = {};
+  /** @type {Object.<string, string>} */
   const reverseRegionMap = {};
   const boundsCoords = [];
 
@@ -23,7 +72,7 @@ export const processRegionDataSync = (regionJson) => {
     reverseRegionMap[region.title] = region.title;
     const translatedTitle = t(region.title);
     if (translatedTitle) {
-      reverseRegionMap[translatedTitle] = region.title;
+      reverseRegionMap[String(translatedTitle)] = region.title;
     }
 
     if (region.coordinates && region.coordinates.length > 0) {
@@ -44,6 +93,11 @@ export const processRegionDataSync = (regionJson) => {
   };
 };
 
+/**
+ * Processes region data, optionally using a web worker.
+ * @param {Object} regionJson - The raw region JSON object.
+ * @returns {Promise<RegionResult>} The processed region data.
+ */
 export const processRegionData = async (regionJson) => {
   if (USE_WORKERS && webWorkerManager.isSupported) {
     return webWorkerManager.processRegionData(regionJson, state.koDict);
@@ -51,6 +105,11 @@ export const processRegionData = async (regionJson) => {
   return processRegionDataSync(regionJson);
 };
 
+/**
+ * Applies translations to an item.
+ * @param {MapItem} item - The map item.
+ * @param {Object.<string, string>} reverseRegionMap - Reverse region map.
+ */
 const applyTranslations = (item, reverseRegionMap) => {
   const catTrans = state.categoryItemTranslations[item.category];
   let commonDesc = null;
@@ -118,6 +177,14 @@ const applyTranslations = (item, reverseRegionMap) => {
   }
 };
 
+/**
+ * Processes map data synchronously.
+ * @param {any[]} rawItems - Raw map items.
+ * @param {Object.<number, string>} regionIdMap - Map of region IDs to names.
+ * @param {Set<string>} missingItems - Set of missing item IDs.
+ * @param {Object.<string, string>} reverseRegionMap - Map for reverse region lookups.
+ * @returns {{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}} Processed map data.
+ */
 export const processMapDataSync = (
   rawItems,
   regionIdMap,
@@ -125,13 +192,14 @@ export const processMapDataSync = (
   reverseRegionMap,
 ) => {
   const mapData = { categories: [], items: [] };
+  /** @type {Object.<string, any[]>} */
   const itemsByCategory = {};
 
   mapData.items = rawItems
     .filter((item) => !missingItems.has(`${item.category_id}_${item.id}`))
     .map((item) => {
       const catId = String(item.category_id);
-      const regionName = regionIdMap[item.regionId] || "알 수 없음";
+      const regionName = regionIdMap[item.regionId] ?? "알 수 없음";
 
       let imgList = [];
       if (item.images && Array.isArray(item.images) && item.images.length > 0) {
@@ -140,20 +208,22 @@ export const processMapDataSync = (
         imgList = [item.image];
       }
 
-      return {
+      const processedItem = {
         ...item,
         id: item.id,
         category: catId,
-        name: item.title || "Unknown",
-        description: item.description || "",
+        name: item.title ?? "Unknown",
+        description: item.description ?? "",
         x: item.latitude,
         y: item.longitude,
         region: regionName,
         images: imgList,
         imageSizeW: 44,
         imageSizeH: 44,
-        isTranslated: item.isTranslated || false,
+        isTranslated: item.isTranslated ?? false,
       };
+
+      return processedItem;
     });
 
   const uniqueCategoryIds = new Set(mapData.items.map((i) => i.category));
@@ -175,6 +245,14 @@ export const processMapDataSync = (
   return { mapData, itemsByCategory };
 };
 
+/**
+ * Processes map data, optionally using a web worker.
+ * @param {any[]} rawItems - Raw map items.
+ * @param {Object.<number, string>} regionIdMap - Map of region IDs to names.
+ * @param {Set<string>} missingItems - Set of missing item IDs.
+ * @param {Object.<string, string>} reverseRegionMap - Map for reverse region lookups.
+ * @returns {Promise<{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}>} Processed map data.
+ */
 export const processMapData = async (
   rawItems,
   regionIdMap,
@@ -198,10 +276,15 @@ export const processMapData = async (
   );
 };
 
+/**
+ * Parses missing items from a response.
+ * @param {Response|{ok: boolean}} missingRes - The response object.
+ * @returns {Promise<Set<string>>} A set of missing item IDs.
+ */
 export const parseMissingItems = async (missingRes) => {
   const missingItems = new Set();
 
-  if (missingRes.ok) {
+  if (missingRes.ok && "text" in missingRes) {
     const missingText = await missingRes.text();
     const lines = missingText.split("\n");
     lines.forEach((line) => {
@@ -219,6 +302,12 @@ export const parseMissingItems = async (missingRes) => {
   return missingItems;
 };
 
+/**
+ * Parses JSON data from blobs, optionally using a web worker.
+ * @param {Blob} dataBlob - The data blob.
+ * @param {Blob} regionBlob - The region blob.
+ * @returns {Promise<{dataJson: any, regionJson: any}>} The parsed JSON objects.
+ */
 export const parseJSONData = async (dataBlob, regionBlob) => {
   if (USE_WORKERS && webWorkerManager.isSupported) {
     const dataText = await dataBlob.text();
@@ -238,12 +327,25 @@ export const parseJSONData = async (dataBlob, regionBlob) => {
   };
 };
 
+/**
+ * Sorts items by category name.
+ * @param {Object.<string, any[]>} itemsByCategory - Items grouped by category.
+ */
 export const sortItemsByCategory = (itemsByCategory) => {
   for (const key in itemsByCategory) {
-    itemsByCategory[key].sort((a, b) => t(a.name).localeCompare(t(b.name)));
+    itemsByCategory[key].sort((a, b) =>
+      String(t(a.name)).localeCompare(String(t(b.name))),
+    );
   }
 };
 
+/**
+ * Collects unique regions from map data.
+ * @param {RegionItem[]} regionData - Region data.
+ * @param {any[]} mapDataItems - Map items.
+ * @param {Object.<string, string>} [reverseRegionMap={}] - Reverse region map.
+ * @returns {Set<string>} A set of unique region names.
+ */
 export const collectUniqueRegions = (
   regionData,
   mapDataItems,
@@ -264,8 +366,13 @@ export const collectUniqueRegions = (
   return regions;
 };
 
+/**
+ * Parses CSV data into map items.
+ * @param {Response|{ok: boolean}} csvRes - The CSV response.
+ * @returns {Promise<any[]>} The parsed items.
+ */
 export const parseCSVData = async (csvRes) => {
-  if (!csvRes || !csvRes.ok) return [];
+  if (!csvRes || !csvRes.ok || !("text" in csvRes)) return [];
   const text = await csvRes.text();
   const lines = text.split(/\r?\n/);
   if (lines.length <= 1) return [];

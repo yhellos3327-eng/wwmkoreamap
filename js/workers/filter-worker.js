@@ -1,3 +1,36 @@
+// @ts-check
+/**
+ * @fileoverview Filter worker - handles item filtering in a Web Worker.
+ * @module workers/filter-worker
+ */
+
+/**
+ * @typedef {Object} Bounds
+ * @property {number} north - North boundary.
+ * @property {number} south - South boundary.
+ * @property {number} east - East boundary.
+ * @property {number} west - West boundary.
+ */
+
+/**
+ * @typedef {Object} MapItem
+ * @property {string|number} id - Item ID.
+ * @property {string} x - Latitude as string.
+ * @property {string} y - Longitude as string.
+ * @property {string} category - Category ID.
+ * @property {string} [region] - Region name.
+ * @property {string} [forceRegion] - Forced region name.
+ * @property {string} [name] - Item name.
+ * @property {string} [description] - Item description.
+ */
+
+/**
+ * Filters items by geographic bounds.
+ * @param {MapItem[]} items - Items to filter.
+ * @param {Bounds} bounds - Geographic bounds.
+ * @param {number} [padding=0] - Padding to add to bounds.
+ * @returns {MapItem[]} Filtered items.
+ */
 const filterByBounds = (items, bounds, padding = 0) => {
   const minLat = bounds.south - padding;
   const maxLat = bounds.north + padding;
@@ -11,20 +44,38 @@ const filterByBounds = (items, bounds, padding = 0) => {
   });
 };
 
+/**
+ * Filters items by active category IDs.
+ * @param {MapItem[]} items - Items to filter.
+ * @param {string[]} activeCategoryIds - Active category IDs.
+ * @returns {MapItem[]} Filtered items.
+ */
 const filterByCategory = (items, activeCategoryIds) => {
   const activeSet = new Set(activeCategoryIds);
   return items.filter((item) => activeSet.has(item.category));
 };
 
+/**
+ * Filters items by active region names.
+ * @param {MapItem[]} items - Items to filter.
+ * @param {string[]} activeRegionNames - Active region names.
+ * @returns {MapItem[]} Filtered items.
+ */
 const filterByRegion = (items, activeRegionNames) => {
   const activeSet = new Set(activeRegionNames);
   return items.filter((item) => {
-    
     const region = item.forceRegion ?? item.region ?? "알 수 없음";
     return activeSet.has(region);
   });
 };
 
+/**
+ * Filters out completed items.
+ * @param {MapItem[]} items - Items to filter.
+ * @param {any[]} completedList - Completed items list.
+ * @param {boolean} hideCompleted - Whether to hide completed items.
+ * @returns {MapItem[]} Filtered items.
+ */
 const filterCompleted = (items, completedList, hideCompleted) => {
   if (!hideCompleted) return items;
   const completedIds = completedList.map((c) =>
@@ -34,12 +85,18 @@ const filterCompleted = (items, completedList, hideCompleted) => {
   return items.filter((item) => !completedSet.has(item.id));
 };
 
+/**
+ * Searches items by term.
+ * @param {MapItem[]} items - Items to search.
+ * @param {string} searchTerm - Search term.
+ * @param {Object<string, string>} [koDict={}] - Translation dictionary.
+ * @returns {MapItem[]} Matching items.
+ */
 const searchItems = (items, searchTerm, koDict = {}) => {
   const term = searchTerm.toLowerCase().trim();
   if (!term) return items;
 
   return items.filter((item) => {
-    
     const name = (item.name ?? "").toLowerCase();
     const desc = (item.description ?? "").toLowerCase();
     const region = (koDict[item.region] ?? item.region ?? "").toLowerCase();
@@ -58,6 +115,13 @@ const searchItems = (items, searchTerm, koDict = {}) => {
   });
 };
 
+/**
+ * Sorts items by specified field.
+ * @param {MapItem[]} items - Items to sort.
+ * @param {string} sortBy - Field to sort by ('name', 'region', 'category').
+ * @param {Object<string, string>} [koDict={}] - Translation dictionary.
+ * @returns {MapItem[]} Sorted items.
+ */
 const sortItems = (items, sortBy, koDict = {}) => {
   const sorted = [...items];
 
@@ -88,7 +152,14 @@ const sortItems = (items, sortBy, koDict = {}) => {
   return sorted;
 };
 
+/**
+ * Builds a spatial index grid for items.
+ * @param {MapItem[]} items - Items to index.
+ * @param {number} [cellSize=0.02] - Grid cell size.
+ * @returns {Object<string, MapItem[]>} Spatial index grid.
+ */
 const buildSpatialIndex = (items, cellSize = 0.02) => {
+  /** @type {Object<string, MapItem[]>} */
   const grid = {};
 
   items.forEach((item) => {
@@ -100,7 +171,6 @@ const buildSpatialIndex = (items, cellSize = 0.02) => {
     const cellY = Math.floor(lat / cellSize);
     const key = `${cellX},${cellY}`;
 
-    
     grid[key] ??= [];
     grid[key].push(item);
   });
@@ -108,13 +178,20 @@ const buildSpatialIndex = (items, cellSize = 0.02) => {
   return grid;
 };
 
+/**
+ * Gets items from spatial index within bounds.
+ * @param {Object<string, MapItem[]>} grid - Spatial index grid.
+ * @param {Bounds} bounds - Geographic bounds.
+ * @param {number} [cellSize=0.02] - Grid cell size.
+ * @param {number} [padding=0] - Padding ratio.
+ * @returns {MapItem[]} Items within bounds.
+ */
 const getItemsFromSpatialIndex = (
   grid,
   bounds,
   cellSize = 0.02,
   padding = 0,
 ) => {
-  
   const width = Math.abs(bounds.east - bounds.west);
   const height = Math.abs(bounds.north - bounds.south);
 
@@ -137,7 +214,6 @@ const getItemsFromSpatialIndex = (
       const key = `${x},${y}`;
       const cellItems = grid[key];
       if (cellItems) {
-        
         for (const item of cellItems) {
           const lat = parseFloat(item.x);
           const lng = parseFloat(item.y);
@@ -157,6 +233,10 @@ const getItemsFromSpatialIndex = (
   return items;
 };
 
+/**
+ * Message handler for the filter worker.
+ * @param {MessageEvent} e - The message event.
+ */
 self.onmessage = function (e) {
   const { type, payload, taskId } = e.data;
 

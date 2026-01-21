@@ -1,3 +1,9 @@
+// @ts-check
+/**
+ * @fileoverview Map module - re-exports map functionality.
+ * @module map
+ */
+
 export {
   createPopupHtml,
   initMap,

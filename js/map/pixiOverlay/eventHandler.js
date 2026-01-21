@@ -1,3 +1,8 @@
+// @ts-check
+/// <reference path="../../types.d.ts" />
+const L = /** @type {any} */ (window).L;
+const PIXI = /** @type {any} */ (window).PIXI;
+
 import { state } from "../../state.js";
 import { toggleCompleted } from "../../ui.js";
 import { showPopupForSprite } from "./spriteFactory.js";
@@ -22,11 +27,15 @@ let registeredHandlers = {
   mousedown: null,
 };
 
+/**
+ * Calculates the hit radius for click detection based on latitude and zoom.
+ * @param {number} lat - The latitude.
+ * @param {number} zoom - The zoom level.
+ * @returns {number} The hit radius in degrees.
+ */
 export const calculateHitRadius = (lat, zoom) => {
   const map = state.map;
   if (map && map.options.crs === L.CRS.Simple) {
-    
-    
     return 22 / Math.pow(2, zoom);
   }
 
@@ -42,7 +51,6 @@ const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
 
   const map = state.map;
   if (map && map.options.crs === L.CRS.Simple) {
-    
     const dLat = Math.abs(clickLat - spriteLat);
     const dLng = Math.abs(clickLng - spriteLng);
     return dLat <= hitRadiusDeg && dLng <= hitRadiusDeg;
@@ -55,6 +63,14 @@ const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
   return dLat <= hitRadiusDeg && dLng <= hitRadiusDeg;
 };
 
+/**
+ * Finds a sprite at the given position.
+ * @param {any} container - The PIXI container.
+ * @param {number} clickLat - The clicked latitude.
+ * @param {number} clickLng - The clicked longitude.
+ * @param {number} hitRadiusDeg - The hit radius in degrees.
+ * @returns {any|null} The found sprite or null.
+ */
 export const findSpriteAtPosition = (
   container,
   clickLat,
@@ -85,6 +101,12 @@ export const findSpriteAtPosition = (
   return searchRecursive(container);
 };
 
+/**
+ * Attaches event handlers to the map.
+ * @param {L.Map} map - The Leaflet map instance.
+ * @param {any} overlay - The PixiOverlay instance.
+ * @param {any} container - The PIXI container.
+ */
 export const attachEventHandlers = (map, overlay, container) => {
   if (isEventHandlerAttached) {
     console.log("%c[GPU Events] Already attached, skipping", "color: #FFA500;");
@@ -92,8 +114,11 @@ export const attachEventHandlers = (map, overlay, container) => {
   }
 
   const handleClick = (e) => {
-    
-    if (state.isDevMode && window.dev && window.dev.handleGpuClick) {
+    if (
+      state.isDevMode &&
+      /** @type {any} */ (window).dev &&
+      /** @type {any} */ (window).dev.handleGpuClick
+    ) {
       const clickLat = e.latlng.lat;
       const clickLng = e.latlng.lng;
       const zoom = map.getZoom();
@@ -106,7 +131,9 @@ export const attachEventHandlers = (map, overlay, container) => {
       );
 
       if (sprite) {
-        window.dev.handleGpuClick(sprite.markerData.item.id);
+        /** @type {any} */ (window).dev.handleGpuClick(
+          sprite.markerData.item.id,
+        );
         if (e.originalEvent) {
           e.originalEvent.stopPropagation();
         }
@@ -129,17 +156,14 @@ export const attachEventHandlers = (map, overlay, container) => {
     );
 
     if (sprite && sprite.markerData) {
-      
       if (sprite.markerData.isCluster) {
         const supercluster = getSupercluster();
         if (supercluster) {
           const clusterId = sprite.markerData.clusterId;
           const expansionZoom = supercluster.getClusterExpansionZoom(clusterId);
 
-          
           const leaves = supercluster.getLeaves(clusterId, Infinity);
 
-          
           let allSamePosition = true;
           if (leaves.length > 0) {
             const firstGeom = leaves[0].geometry.coordinates;
@@ -152,16 +176,14 @@ export const attachEventHandlers = (map, overlay, container) => {
             }
           }
 
-          
           const maxZoom = map.getMaxZoom();
           if (
             Number.isNaN(expansionZoom) ||
             expansionZoom > maxZoom ||
             allSamePosition
           ) {
-            
             const utils = getPixiUtils();
-            const mainContainer = getPixiContainer(); 
+            const mainContainer = getPixiContainer();
 
             if (utils && mainContainer) {
               spiderfyCluster(
@@ -172,11 +194,9 @@ export const attachEventHandlers = (map, overlay, container) => {
                 utils,
               );
 
-              
               map.panTo([sprite.markerData.lat, sprite.markerData.lng]);
             }
           } else {
-            
             map.flyTo(
               [sprite.markerData.lat, sprite.markerData.lng],
               expansionZoom,
@@ -189,7 +209,6 @@ export const attachEventHandlers = (map, overlay, container) => {
         return;
       }
 
-      
       hideCompletedTooltip();
       if (e.originalEvent) {
         e.originalEvent.stopPropagation();
@@ -260,7 +279,6 @@ export const attachEventHandlers = (map, overlay, container) => {
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-    
     const sprite = findSpriteAtPosition(
       container,
       clickLat,
@@ -294,7 +312,6 @@ export const attachEventHandlers = (map, overlay, container) => {
   const handleMouseDown = (e) => {
     if (!container || container.children.length === 0) return;
 
-    
     if (e.originalEvent.button !== 1) return;
 
     const clickLat = e.latlng.lat;
@@ -345,6 +362,10 @@ export const attachEventHandlers = (map, overlay, container) => {
   console.log("%c[GPU Events] ✓ Event handlers attached", "color: #4CAF50;");
 };
 
+/**
+ * Detaches event handlers from the map.
+ * @param {L.Map} map - The Leaflet map instance.
+ */
 export const detachEventHandlers = (map) => {
   if (!isEventHandlerAttached || !map) return;
 
@@ -372,8 +393,15 @@ export const detachEventHandlers = (map) => {
   console.log("%c[GPU Events] ✓ Event handlers detached", "color: #FFA500;");
 };
 
+/**
+ * Checks if event handlers are attached.
+ * @returns {boolean} True if attached.
+ */
 export const isEventHandlersAttached = () => isEventHandlerAttached;
 
+/**
+ * Resets the event handler state.
+ */
 export const resetEventHandlers = () => {
   isEventHandlerAttached = false;
   registeredHandlers = {

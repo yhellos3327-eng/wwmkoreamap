@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * 애플리케이션 메인 엔트리 포인트
  * - 앱 초기화 오케스트레이션
@@ -23,6 +24,7 @@ import { initDebug, loadDevToolsIfNeeded } from "./debug.js";
 
 /**
  * 로딩 화면 구독 설정
+ * @returns {void}
  */
 const setupLoadingSubscription = () => {
   subscribe("loadingState", (loadingState) => {
@@ -51,6 +53,7 @@ const setupLoadingSubscription = () => {
 
 /**
  * 맵 데이터 로딩 및 진행률 표시
+ * @returns {Promise<void>}
  */
 const loadMapDataWithProgress = async () => {
   setState("loadingState", {
@@ -83,6 +86,7 @@ const loadMapDataWithProgress = async () => {
 
 /**
  * 비필수 모듈 지연 로딩
+ * @returns {void}
  */
 const loadOptionalModules = () => {
   // WebLLM은 버튼 클릭 시 동적으로 로드되므로 여기서 미리 로드하지 않음
@@ -108,6 +112,7 @@ const loadOptionalModules = () => {
 
 /**
  * 번역 CSV 로딩
+ * @returns {void}
  */
 const loadTranslationData = () => {
   fetch("./translation.csv")
@@ -117,6 +122,7 @@ const loadTranslationData = () => {
 
 /**
  * 애플리케이션 초기화
+ * @returns {Promise<void>}
  */
 const initializeApp = async () => {
   initTheme();

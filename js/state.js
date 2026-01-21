@@ -1,7 +1,77 @@
+// @ts-check
+/// <reference path="./types.d.ts" />
 import { createStore } from "https://esm.run/zustand@4.5.0/vanilla";
 import { logger } from "./logger.js";
 import { ACTIONS } from "./actions.js";
 import { storage } from "./storage.js";
+
+/**
+ * @typedef {Object} LoadingState
+ * @property {number} csvProgress
+ * @property {number} mapProgress
+ * @property {string} message
+ * @property {string} detail
+ * @property {boolean} isVisible
+ */
+
+/**
+ * @typedef {Object} MapData
+ * @property {any[]} categories
+ * @property {any[]} items
+ * @property {any[]} [regions]
+ */
+
+/**
+ * @typedef {Object} AppState
+ * @property {string} currentMapKey
+ * @property {any} currentTileLayer
+ * @property {any} regionLayerGroup
+ * @property {any} markerClusterGroup
+ * @property {any} map
+ * @property {Map<any, any>} allMarkers
+ * @property {any[]} pendingMarkers
+ * @property {any[]} regionData
+ * @property {Object.<string, string>} koDict
+ * @property {MapData} mapData
+ * @property {Set<any>} activeCategoryIds
+ * @property {Set<any>} activeRegionNames
+ * @property {Set<any>} uniqueRegions
+ * @property {Object.<string, any[]>} itemsByCategory
+ * @property {any[]} completedList
+ * @property {any[]} favorites
+ * @property {Object.<string, any>} categoryItemTranslations
+ * @property {any[]} currentModalList
+ * @property {any[]} currentLightboxImages
+ * @property {number} currentLightboxIndex
+ * @property {any[]} currentLightboxMedia
+ * @property {boolean} showComments
+ * @property {boolean} closeOnComplete
+ * @property {Object.<string, any>} regionMetaInfo
+ * @property {Object.<string, any>} reverseRegionMap
+ * @property {string} savedAIProvider
+ * @property {string} savedApiKey
+ * @property {string} savedGeminiKey
+ * @property {string} savedOpenAIKey
+ * @property {string} savedClaudeKey
+ * @property {string} savedApiModel
+ * @property {string} savedRegionColor
+ * @property {string} savedRegionFillColor
+ * @property {boolean} hideCompleted
+ * @property {boolean} enableClustering
+ * @property {boolean} enableWebLLM
+ * @property {number} currentGuideStep
+ * @property {string|null} rawCSV
+ * @property {any} parsedCSV
+ * @property {boolean} isDevMode
+ * @property {string} savedGpuSetting
+ * @property {string} savedMenuPosition
+ * @property {boolean} useChromeTranslator
+ * @property {boolean} disableRegionClickPan
+ * @property {boolean} gpuRenderMode
+ * @property {any} pixiOverlay
+ * @property {any} pixiContainer
+ * @property {LoadingState} loadingState
+ */
 
 const checkWebGL = (() => {
   let supported = null;
@@ -16,7 +86,11 @@ const checkWebGL = (() => {
       if (supported) {
         const gl =
           canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
-        if (gl) gl.getExtension("WEBGL_lose_context")?.loseContext();
+        if (gl) {
+          /** @type {WebGLRenderingContext} */ (gl)
+            .getExtension("WEBGL_lose_context")
+            ?.loseContext();
+        }
       }
     } catch (e) {
       supported = false;
@@ -25,10 +99,12 @@ const checkWebGL = (() => {
   };
 })();
 
+/** @type {AppState} */
 const initialState = {
   currentMapKey: "qinghe",
   currentTileLayer: null,
   regionLayerGroup: null,
+  markerClusterGroup: null,
   map: null,
   allMarkers: new Map(),
   pendingMarkers: [],
@@ -40,7 +116,7 @@ const initialState = {
   uniqueRegions: new Set(),
   itemsByCategory: {},
   completedList: (() => {
-    const stored = JSON.parse(localStorage.getItem("wwm_completed")) || [];
+    const stored = JSON.parse(localStorage.getItem("wwm_completed") || "[]");
     if (stored.length > 0 && typeof stored[0] !== "object") {
       const migrated = stored.map((id) => ({ id, completedAt: null }));
       localStorage.setItem("wwm_completed", JSON.stringify(migrated));
@@ -48,7 +124,7 @@ const initialState = {
     }
     return stored;
   })(),
-  favorites: JSON.parse(localStorage.getItem("wwm_favorites")) || [],
+  favorites: JSON.parse(localStorage.getItem("wwm_favorites") || "[]"),
   categoryItemTranslations: {},
   currentModalList: [],
   currentLightboxImages: [],
@@ -60,6 +136,7 @@ const initialState = {
   reverseRegionMap: {},
 
   savedAIProvider: localStorage.getItem("wwm_ai_provider") ?? "gemini",
+  savedApiKey: storage.getApiKey("wwm_api_key", ""),
   savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
   savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
   savedClaudeKey: storage.getApiKey("wwm_claude_key", ""),
@@ -102,23 +179,26 @@ const initialState = {
 const store = createStore(() => initialState);
 
 // Proxy to maintain backward compatibility with direct state access/mutation
-export const state = new Proxy(
-  {},
-  {
-    get: (target, prop) => {
-      return store.getState()[prop];
-    },
-    set: (target, prop, value) => {
-      const oldValue = store.getState()[prop];
-      store.setState({ [prop]: value });
-      logger.stateChange(prop, oldValue, value);
-      return true;
-    },
+/** @type {AppState} */
+export const state = new Proxy(/** @type {any} */ ({}), {
+  get: (target, prop) => {
+    return store.getState()[prop];
   },
-);
+  set: (target, prop, value) => {
+    const stringProp = String(prop);
+    const oldValue = store.getState()[stringProp];
+    store.setState({ [stringProp]: value });
+    logger.stateChange(stringProp, oldValue, value);
+    return true;
+  },
+});
 
 let categoryMapCache = null;
 
+/**
+ * Gets the category map from cache or creates it.
+ * @returns {Map<string|number, any>|null} The category map.
+ */
 export const getCategoryMap = () => {
   const mapData = store.getState().mapData;
   if (!mapData?.categories?.length) return null;
@@ -132,10 +212,19 @@ export const getCategoryMap = () => {
   return categoryMapCache;
 };
 
+/**
+ * Invalidates the category map cache.
+ */
 export const invalidateCategoryMapCache = () => {
   categoryMapCache = null;
 };
 
+/**
+ * Subscribes to state changes for a specific key.
+ * @param {string} key - The state key to subscribe to.
+ * @param {Function} callback - The callback function.
+ * @returns {Function} Unsubscribe function.
+ */
 export const subscribe = (key, callback) => {
   return store.subscribe((state, prevState) => {
     if (state[key] !== prevState[key]) {
@@ -146,6 +235,10 @@ export const subscribe = (key, callback) => {
 
 // Removed subscribeWeak as it was unused
 
+/**
+ * Unsubscribes all listeners for a key (Deprecated).
+ * @param {string} key - The state key.
+ */
 export const unsubscribeAll = (key) => {
   // Zustand handles unsubscription via the returned function from subscribe.
   // This function is kept for API compatibility but might be no-op or need refactoring if used.
@@ -155,6 +248,12 @@ export const unsubscribeAll = (key) => {
   console.warn("unsubscribeAll is deprecated with Zustand implementation");
 };
 
+/**
+ * Manually notifies listeners (Deprecated/Internal).
+ * @param {string} key - The state key.
+ * @param {any} value - The new value.
+ * @param {any} oldValue - The old value.
+ */
 export const notify = (key, value, oldValue) => {
   // Manually trigger an update if needed (rarely used with Zustand)
   // With Zustand, we usually just setState.
@@ -163,14 +262,28 @@ export const notify = (key, value, oldValue) => {
   // We can't easily force notify specific listeners without changing state.
 };
 
+/**
+ * Sets a state value.
+ * @param {string} key - The state key.
+ * @param {any} value - The new value.
+ */
 export const setState = (key, value) => {
   state[key] = value; // Goes through Proxy
 };
 
+/**
+ * Gets a state value.
+ * @param {string} key - The state key.
+ * @returns {any} The state value.
+ */
 export const getState = (key) => {
   return store.getState()[key];
 };
 
+/**
+ * Updates multiple state values at once.
+ * @param {Object} updates - The updates to apply.
+ */
 export const updateState = (updates) => {
   store.setState(updates);
   Object.keys(updates).forEach((key) => {
@@ -179,6 +292,11 @@ export const updateState = (updates) => {
   });
 };
 
+/**
+ * Sets a deep state value using a dot-notation path.
+ * @param {string} path - The path to the value.
+ * @param {any} value - The new value.
+ */
 export const setDeep = (path, value) => {
   const keys = path.split(".");
   if (keys.length === 1) {
@@ -213,6 +331,11 @@ export const setDeep = (path, value) => {
   logger.stateChange(rootKey, rootValue, newRootValue);
 };
 
+/**
+ * Dispatches an action to update state.
+ * @param {string} actionType - The action type.
+ * @param {any} payload - The action payload.
+ */
 export const dispatch = (actionType, payload) => {
   logger.log("State", `Dispatching Action: ${actionType}`, payload);
 

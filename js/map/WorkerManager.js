@@ -1,3 +1,4 @@
+// @ts-check
 import { logger } from "../logger.js";
 import { renderFromWorker } from "./canvas.js";
 

@@ -433,3 +433,86 @@
     color: #ff5050;
     opacity: 1;
 }
+/* Vote Buttons in Comments */
+.comment-footer {
+    margin-top: 8px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.vote-container.vote-small {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.2);
+    padding: 2px 8px;
+    border-radius: 12px;
+}
+
+.vote-container.vote-small .btn-vote {
+    padding: 2px 4px;
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.vote-container.vote-small .btn-vote:hover {
+    color: var(--text-main);
+}
+
+.vote-container.vote-small .btn-vote.active {
+    color: var(--accent);
+}
+
+.vote-container.vote-small .btn-vote.active svg {
+    fill: currentColor;
+}
+
+/* Blurred Comments */
+.comment-item.blurred-comment {
+    position: relative;
+    user-select: none;
+}
+
+.comment-item.blurred-comment .comment-text,
+.comment-item.blurred-comment .comment-header,
+.comment-item.blurred-comment .comment-footer {
+    filter: blur(4px);
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.blur-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.blur-overlay:hover {
+    background: rgba(0, 0, 0, 0.2);
+}
+
+.blur-overlay span {
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.8rem;
+    pointer-events: none;
+}

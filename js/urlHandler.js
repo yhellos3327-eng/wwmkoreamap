@@ -1,7 +1,10 @@
+// @ts-check
 /**
- * URL 파라미터 처리 모듈
- * - 맵 선택, 임베드 모드, 공유 링크 등 URL 기반 설정 처리
+ * @fileoverview URL parameter handling module.
+ * Handles map selection, embed mode, shared links, and URL-based settings.
+ * @module urlHandler
  */
+
 import { state, setState } from "./state.js";
 import { findItem } from "./ui.js";
 import { MAP_CONFIGS } from "./config.js";

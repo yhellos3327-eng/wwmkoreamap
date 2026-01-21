@@ -1,3 +1,11 @@
+// @ts-check
+
+/**
+ * Loads a component from a URL and inserts it into the DOM.
+ * @param {string} url - The URL of the component.
+ * @param {string} [containerId] - The ID of the container element.
+ * @returns {Promise<void>}
+ */
 export const loadComponent = async (url, containerId) => {
   try {
     const response = await fetch(url);
@@ -23,6 +31,10 @@ export const loadComponent = async (url, containerId) => {
   }
 };
 
+/**
+ * Loads all UI components.
+ * @returns {Promise<void>}
+ */
 export const loadAllComponents = async () => {
   await Promise.all([
     loadComponent("components/sidebar.html", "sidebar-placeholder"),
@@ -35,6 +47,5 @@ export const loadAllComponents = async () => {
     loadComponent("components/integrity-check-modal.html"),
     loadComponent("components/result-alert-modal.html"),
     loadComponent("components/arca-panel.html"),
-    loadComponent("components/report-panel.html"),
   ]);
 };

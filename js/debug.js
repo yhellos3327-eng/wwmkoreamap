@@ -1,7 +1,9 @@
+// @ts-check
 /**
- * 디버그 및 개발자 도구 모듈
- * - 콘솔에서 사용할 수 있는 개발자 헬퍼 함수들
- * - 전역 변수 노출 (디버깅용)
+ * @fileoverview Debug and developer tools module.
+ * - Developer helper functions available from the console
+ * - Global variable exposure for debugging
+ * @module debug
  */
 import { state, setState, subscribe, dispatch } from "./state.js";
 import { findItem, jumpToId } from "./ui.js";
@@ -12,21 +14,17 @@ import { memoryManager } from "./memory.js";
  * - window.state, window.setState 등 콘솔 디버깅용 전역 변수 설정
  */
 export const initGlobalDebugHelpers = () => {
-  
   window.state = state;
   window.setState = setState;
   window.dispatch = dispatch;
   window.subscribe = subscribe;
 
-  
   window.findItem = findItem;
-  window.finditem = findItem; 
+  window.finditem = findItem;
   window.jumpToId = jumpToId;
 
-  
   window.memoryManager = memoryManager;
 
-  
   window.dev = async () => {
     const { dev } = await import("./dev-tools.js");
     return dev();

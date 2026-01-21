@@ -29,20 +29,6 @@ h2.detail-title {
     margin: 16px 0;
 }
 
-.report-status-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin: 16px 0 12px 0;
-}
-
-.report-tag {
-    margin-left: auto;
-    color: var(--accent);
-    font-weight: 500;
-}
-
 .detail-meta {
     color: #888;
     font-size: 0.85rem;
@@ -59,35 +45,6 @@ h2.detail-title {
 }
 
 
-.report-image-container {
-    margin-bottom: 20px;
-    display: none;
-}
-
-.report-image-container img {
-    max-width: 100%;
-    border-radius: 8px;
-    border: 1px solid #444;
-}
-
-.json-container {
-    margin-top: 20px;
-    display: none;
-}
-
-.json-container h4 {
-    color: #888;
-    margin-bottom: 8px;
-    font-size: 0.9rem;
-}
-
-.json-container pre {
-    background: #282c34;
-    padding: 12px;
-    border-radius: 6px;
-    overflow-x: auto;
-}
-
 .json-textarea {
     background: #151515;
     color: #666;
@@ -95,11 +52,6 @@ h2.detail-title {
     height: 80px;
 }
 
-
-.map-viewer-container {
-    margin-top: 20px;
-    display: none;
-}
 
 .btn-view-map {
     background: rgba(255, 255, 255, 0.08);

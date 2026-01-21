@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="./types.d.ts" />
 /**
  * Search Module - 검색 기능 모듈
  * 검색창 아래 임베드 드롭다운으로 지역/카테고리 결과 표시
@@ -10,6 +12,10 @@ import { renderMapDataAndMarkers } from "./map.js";
 import { updateToggleButtonsState } from "./ui.js";
 import Fuse from "https://esm.run/fuse.js@7.1.0";
 import { debounce } from "https://esm.run/lodash-es@4.17.22";
+
+/**
+ * @typedef {import("./data/processors.js").MapItem} MapItem
+ */
 
 const SVG_ICONS = {
   map: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -35,7 +41,13 @@ const SVG_ICONS = {
 
 // Custom debounce removed in favor of lodash debounce imported above
 
+/**
+ * Gets category item counts by region.
+ * @param {number|string} categoryId
+ * @returns {Object.<string, number>}
+ */
 const getCategoryItemsByRegion = (categoryId) => {
+  /** @type {Object.<string, number>} */
   const regionCounts = {};
   for (const m of state.allMarkers.values()) {
     if (m.category === categoryId) {
@@ -47,8 +59,15 @@ const getCategoryItemsByRegion = (categoryId) => {
   return regionCounts;
 };
 
+/** @type {Set<string|number>} */
 let expandedCategories = new Set();
 
+/**
+ * Renders search results.
+ * @param {string} term - The search term.
+ * @param {HTMLElement} searchInput - The search input element.
+ * @param {HTMLElement} searchResults - The search results container.
+ */
 const renderSearchResults = (term, searchInput, searchResults) => {
   if (!term || term.length < 1) {
     searchResults.classList.add("hidden");
@@ -209,14 +228,15 @@ const renderSearchResults = (term, searchInput, searchResults) => {
 
   searchResults.querySelectorAll(".search-embed-item").forEach((item) => {
     item.addEventListener("click", () => {
-      const type = item.dataset.type;
+      const el = /** @type {HTMLElement} */ (item);
+      const type = el.dataset.type;
 
       if (type === "region") {
-        const region = item.dataset.region;
+        const region = el.dataset.region;
         handleRegionClick(region, searchInput, searchResults);
       } else if (type === "category-region") {
-        const categoryId = item.dataset.category;
-        const region = item.dataset.region;
+        const categoryId = el.dataset.category;
+        const region = el.dataset.region;
         handleCategoryRegionClick(
           categoryId,
           region,
@@ -235,13 +255,16 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const catId = btn.dataset.category;
+      const el = /** @type {HTMLElement} */ (btn);
+      const catId = el.dataset.category;
       expandedCategories.add(catId);
 
-      const term = searchInput.value.trim().toLowerCase();
+      const term = /** @type {HTMLInputElement} */ (searchInput).value
+        .trim()
+        .toLowerCase();
       renderSearchResults(term, searchInput, searchResults);
 
-      searchInput.focus();
+      /** @type {HTMLInputElement} */ (searchInput).focus();
     });
   });
 
@@ -249,6 +272,10 @@ const renderSearchResults = (term, searchInput, searchResults) => {
   highlightMatchingMarkers(term);
 };
 
+/**
+ * Shows the search results container.
+ * @param {HTMLElement} searchResults - The search results container.
+ */
 const showSearchResults = (searchResults) => {
   searchResults.classList.remove("hidden");
   searchResults.style.display = "block";
@@ -257,6 +284,10 @@ const showSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "auto";
 };
 
+/**
+ * Hides the search results container.
+ * @param {HTMLElement} searchResults - The search results container.
+ */
 const hideSearchResults = (searchResults) => {
   searchResults.classList.add("hidden");
   searchResults.style.display = "none";
@@ -265,6 +296,9 @@ const hideSearchResults = (searchResults) => {
   searchResults.style.pointerEvents = "none";
 };
 
+/**
+ * Restores all filters to their default active state.
+ */
 const restoreAllFilters = () => {
   state.activeCategoryIds.clear();
   state.mapData?.categories?.forEach((cat) => {
@@ -287,6 +321,9 @@ const restoreAllFilters = () => {
   saveFilterState();
 };
 
+/**
+ * Resets marker opacity to full visibility.
+ */
 const resetMarkerOpacity = () => {
   state.allMarkers.forEach((m) => {
     if (m.marker) m.marker.setOpacity(1);
@@ -296,6 +333,10 @@ const resetMarkerOpacity = () => {
   state.pixiOverlay?.redraw();
 };
 
+/**
+ * Highlights markers matching the search term.
+ * @param {string} term - The search term.
+ */
 const highlightMatchingMarkers = (term) => {
   if (!term) {
     resetMarkerOpacity();
@@ -303,10 +344,10 @@ const highlightMatchingMarkers = (term) => {
   }
 
   state.allMarkers.forEach((m) => {
-    const regionName = t(m.region).toLowerCase();
-    const categoryName = t(m.category).toLowerCase();
+    const regionName = String(t(m.region)).toLowerCase();
+    const categoryName = String(t(m.category)).toLowerCase();
     const name = m.name.toLowerCase();
-    const translatedName = t(m.name).toLowerCase();
+    const translatedName = String(t(m.name)).toLowerCase();
 
     const isMatch =
       name.includes(term) ||
@@ -324,8 +365,14 @@ const highlightMatchingMarkers = (term) => {
   state.pixiOverlay?.redraw();
 };
 
+/**
+ * Handles a region click in search results.
+ * @param {string} region - The region name.
+ * @param {HTMLElement} searchInput - The search input element.
+ * @param {HTMLElement} searchResults - The search results container.
+ */
 const handleRegionClick = (region, searchInput, searchResults) => {
-  searchInput.value = t(region);
+  /** @type {HTMLInputElement} */ (searchInput).value = String(t(region));
   hideSearchResults(searchResults);
   resetMarkerOpacity();
 
@@ -334,7 +381,7 @@ const handleRegionClick = (region, searchInput, searchResults) => {
 
   const regBtns = document.querySelectorAll("#region-list .cate-item");
   regBtns.forEach((btn) => {
-    if (btn.dataset.region === region) {
+    if (/** @type {HTMLElement} */ (btn).dataset.region === region) {
       btn.classList.add("active");
       btn.scrollIntoView({ behavior: "smooth", block: "center" });
     } else {
@@ -355,6 +402,13 @@ const handleRegionClick = (region, searchInput, searchResults) => {
   }
 };
 
+/**
+ * Handles a category-region click in search results.
+ * @param {string|number} categoryId - The category ID.
+ * @param {string} region - The region name.
+ * @param {HTMLElement} searchInput - The search input element.
+ * @param {HTMLElement} searchResults - The search results container.
+ */
 const handleCategoryRegionClick = (
   categoryId,
   region,
@@ -363,7 +417,8 @@ const handleCategoryRegionClick = (
 ) => {
   const catName = t(categoryId);
   const regionName = t(region);
-  searchInput.value = `${catName} - ${regionName}`;
+  /** @type {HTMLInputElement} */ (searchInput).value =
+    `${catName} - ${regionName}`;
   hideSearchResults(searchResults);
   resetMarkerOpacity();
 
@@ -375,7 +430,7 @@ const handleCategoryRegionClick = (
 
   const catBtns = document.querySelectorAll("#category-list .cate-item");
   catBtns.forEach((btn) => {
-    if (btn.dataset.id === categoryId) {
+    if (/** @type {HTMLElement} */ (btn).dataset.id === categoryId) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -384,7 +439,7 @@ const handleCategoryRegionClick = (
 
   const regBtns = document.querySelectorAll("#region-list .cate-item");
   regBtns.forEach((btn) => {
-    if (btn.dataset.region === region) {
+    if (/** @type {HTMLElement} */ (btn).dataset.region === region) {
       btn.classList.add("active");
     } else {
       btn.classList.remove("active");
@@ -404,6 +459,9 @@ const handleCategoryRegionClick = (
   }
 };
 
+/**
+ * Initializes the main search functionality.
+ */
 export const initSearch = () => {
   const searchInput = document.getElementById("search-input");
   const searchResults = document.getElementById("search-results");
@@ -416,11 +474,17 @@ export const initSearch = () => {
   }
 
   const debouncedSearch = debounce((term) => {
-    renderSearchResults(term, searchInput, searchResults);
+    renderSearchResults(
+      term,
+      /** @type {HTMLInputElement} */ (searchInput),
+      searchResults,
+    );
   }, 200);
 
   searchInput.addEventListener("input", (e) => {
-    const term = e.target.value.trim().toLowerCase();
+    const term = /** @type {HTMLInputElement} */ (e.target).value
+      .trim()
+      .toLowerCase();
     console.log("[Search] Input term:", term);
 
     if (term === "") {
@@ -452,18 +516,30 @@ export const initSearch = () => {
   });
 
   searchInput.addEventListener("focus", () => {
-    const term = searchInput.value.trim().toLowerCase();
+    const term = /** @type {HTMLInputElement} */ (searchInput).value
+      .trim()
+      .toLowerCase();
     if (term.length >= 1) {
-      renderSearchResults(term, searchInput, searchResults);
+      renderSearchResults(
+        term,
+        /** @type {HTMLInputElement} */ (searchInput),
+        searchResults,
+      );
     }
   });
 };
 
+/**
+ * Initializes modal search functionality.
+ * @param {Function} renderModalList - The function to render the modal list.
+ */
 export const initModalSearch = (renderModalList) => {
   const modalSearchInput = document.getElementById("modal-search-input");
   if (modalSearchInput) {
     modalSearchInput.addEventListener("input", (e) => {
-      const term = e.target.value.toLowerCase();
+      const term = /** @type {HTMLInputElement} */ (
+        e.target
+      ).value.toLowerCase();
       const filtered = state.currentModalList.filter((m) =>
         m.name.includes(term),
       );

@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="./types.d.ts" />
 import { logger } from "./logger.js";
 import { DataParsingStrategy, FilteringStrategy } from "./worker-strategies.js";
 

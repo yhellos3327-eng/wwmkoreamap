@@ -1,3 +1,5 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
 import { initAuth } from "../auth.js";
 import { triggerSync } from "../sync.js";

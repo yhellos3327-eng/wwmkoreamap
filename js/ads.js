@@ -1,6 +1,26 @@
+// @ts-check
+/**
+ * @fileoverview Ads module - handles ad display and rotation.
+ * @module ads
+ */
+
+/**
+ * @typedef {Object} AdConfig
+ * @property {string} type - Ad type identifier.
+ * @property {number} weight - Selection weight (higher = more likely).
+ * @property {(container: HTMLElement) => void} render - Render function.
+ */
+
+/**
+ * Initializes the ad system and displays rotating ads.
+ */
 export function initAds() {
-  const adContainer = document.querySelector(".ad-container");
+  const adContainer = /** @type {HTMLElement|null} */ (
+    document.querySelector(".ad-container")
+  );
   if (!adContainer) return;
+
+  /** @type {AdConfig[]} */
   const ads = [
     {
       type: "google",
@@ -95,6 +115,9 @@ export function initAds() {
     },
   ];
 
+  /**
+   * Shows a random ad based on weights.
+   */
   function showRandomAd() {
     const totalWeight = ads.reduce((sum, ad) => sum + ad.weight, 0);
     if (totalWeight === 0) return;
@@ -117,6 +140,14 @@ export function initAds() {
   setInterval(showRandomAd, 30000);
 }
 
+/**
+ * Creates an ad placeholder element.
+ * @param {string} title - Ad title.
+ * @param {string} badgeText - Badge text.
+ * @param {string} bgStyle - Background color or gradient.
+ * @param {string} textColor - Text color.
+ * @returns {HTMLDivElement} The ad element.
+ */
 function createAdElement(title, badgeText, bgStyle, textColor) {
   const div = document.createElement("div");
   div.className = "ad-placeholder";

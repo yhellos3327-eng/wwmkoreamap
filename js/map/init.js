@@ -1,8 +1,16 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
+const L = /** @type {any} */ (window).L;
 import { MAP_CONFIGS } from "../config.js";
 import { state, setState } from "../state.js";
 import { toggleSidebar } from "../ui.js";
 import { updateMapVisibility } from "./visibility.js";
 
+/**
+ * Initializes the map for a given map key.
+ * @param {string} mapKey - The map key.
+ * @returns {Promise<void>}
+ */
 export const initMap = async (mapKey) => {
   const config = MAP_CONFIGS[mapKey];
   if (!config) return;

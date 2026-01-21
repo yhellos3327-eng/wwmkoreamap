@@ -1,3 +1,6 @@
+// @ts-check
+/// <reference path="../types.d.ts" />
+const L = /** @type {any} */ (window).L;
 import { MAP_CONFIGS } from "../config.js";
 import { state, setState } from "../state.js";
 import { fetchWithProgress } from "../utils.js";
@@ -22,9 +25,15 @@ import { initializeFiltersFromStorage, saveFilterState } from "./storage.js";
 import { resetPixiOverlay } from "../map/pixiOverlay.js";
 import { closeModal } from "../ui/modal.js";
 
+/**
+ * Loads map data for a specific map key.
+ * @param {string} mapKey - The map key (e.g., 'qinghe').
+ * @param {function(number, number): void} [onProgress] - Callback for progress updates.
+ * @returns {Promise<boolean>} True if successful, false otherwise.
+ */
 export const loadMapData = async (mapKey, onProgress) => {
   const config = MAP_CONFIGS[mapKey];
-  if (!config) return;
+  if (!config) return false;
 
   try {
     const totalTimer = perfTimer.start("Performance", "loadMapData total");
