@@ -11,7 +11,8 @@
  */
 export function parseGlossaryFromCSV(csvContent) {
   const entries = [];
-  const lines = csvContent.split("\n");
+  // Handle both \r\n and \n
+  const lines = csvContent.replace(/\r\n/g, "\n").split("\n");
 
   // Skip header
   for (let i = 1; i < lines.length; i++) {
@@ -22,29 +23,48 @@ export function parseGlossaryFromCSV(csvContent) {
     const fields = parseCSVLine(line);
     if (fields.length < 4) continue;
 
-    const [type, category, key, korean] = fields;
+    let [type, category, key, korean] = fields;
 
     // Only process Common type entries (term mappings)
-    // Skip Override entries (item-specific translations)
     if (type !== "Common") continue;
 
-    // Skip if key or korean is empty
-    if (!key || !korean) continue;
+    // Sanitize: remove control characters (tabs, newlines) and trim
+    const sanitize = (str) => {
+      if (!str) return "";
+      // Remove tabs, newlines, and other control characters
+      return str.replace(/[\t\n\r\x00-\x1F\x7F]/g, " ").replace(/\s+/g, " ").trim();
+    };
+
+    const source = sanitize(key);
+    const target = sanitize(korean);
+
+    // Filter rules
+    if (!source || !target) continue;
+    
+    // Skip if source or target is too long (DeepL limit is 1024, but terms should be short)
+    if (source.length > 200 || target.length > 200) continue;
+
+    // Skip if source or target contains HTML tags
+    if (source.includes("<") || source.includes(">") || target.includes("<") || target.includes(">")) continue;
 
     // Skip numeric IDs (like 17310010001)
-    if (/^\d+$/.test(key)) continue;
+    if (/^\d+$/.test(source)) continue;
 
-    // Skip if key contains HTML or special markers
-    if (key.includes("<") || key.includes(">")) continue;
+    // Skip if target is same as source
+    if (source === target) continue;
 
-    // Skip if korean is same as key
-    if (key === korean) continue;
+    // Skip if source is just special characters or numbers
+    if (/^[^a-zA-Z\u4e00-\u9fa5]+$/.test(source)) continue;
 
-    // Add entry
-    entries.push({
-      source: key.trim(),
-      target: korean.trim(),
-    });
+    // IMPORTANT: If source language is ZH, only include terms that contain Chinese characters
+    // This filters out UI keys like "contribute_title" which are not useful for ZH->KO translation
+    // and might cause DeepL to reject the glossary entries.
+    if (!/[\u4e00-\u9fa5]/.test(source)) {
+      // Allow some common English game terms if needed, but for now, let's be strict
+      continue;
+    }
+
+    entries.push({ source, target });
   }
 
   // Remove duplicates (keep first occurrence)
@@ -162,6 +182,9 @@ export class DeepLGlossary {
    */
   async createGlossary(encryptedKey, timestamp, entries) {
     try {
+      const tsv = entriesToTSV(entries);
+      console.log(`[DeepL Glossary] Creating with ${entries.length} entries (${tsv.length} bytes)`);
+      
       const response = await fetch(
         `${this.backendUrl}/api/deepl/glossary/create`,
         {
@@ -174,7 +197,7 @@ export class DeepLGlossary {
             name: this.glossaryName,
             sourceLang: "ZH",
             targetLang: "KO",
-            entries: entriesToTSV(entries),
+            entries: tsv,
           }),
         }
       );
@@ -182,12 +205,19 @@ export class DeepLGlossary {
       const data = await response.json();
 
       if (!response.ok) {
-        return { success: false, error: data.message || data.error };
+        console.error("[DeepL Glossary] Create failed:", data);
+        return { 
+          success: false, 
+          error: data.message || data.error,
+          detail: data.error 
+        };
       }
 
       this.glossaryId = data.glossaryId;
+      console.log(`[DeepL Glossary] Created successfully: ${data.glossaryId}`);
       return { success: true, glossaryId: data.glossaryId };
     } catch (error) {
+      console.error("[DeepL Glossary] Network error:", error);
       return { success: false, error: error.message };
     }
   }
