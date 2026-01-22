@@ -72,6 +72,7 @@ import { storage } from "./storage.js";
  * @property {any} pixiOverlay
  * @property {any} pixiContainer
  * @property {LoadingState} loadingState
+ * @property {string|null} deeplGlossaryId
  */
 
 const checkWebGL = (() => {
@@ -176,6 +177,7 @@ const initialState = {
     detail: "",
     isVisible: true,
   },
+  deeplGlossaryId: null,
 };
 
 const store = createStore(() => initialState);

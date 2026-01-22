@@ -154,21 +154,52 @@ const translateWithExternalAI = async (item, btn) => {
   } else if (provider === "deepl") {
     // DeepL은 CORS를 지원하지 않으므로 백엔드 프록시를 통해 호출
     const { BACKEND_URL } = await import("./config.js");
+    const { DeepLGlossary, loadGlossaryFromCSVs } = await import("./deepl/glossary.js");
     const proxyUrl = `${BACKEND_URL}/api/deepl/translate`;
 
     // API 키 암호화 (Hex + 타임스탬프 XOR 난독화)
     const timestamp = Date.now();
     const encryptKey = (apiKey, ts) => {
       const tsStr = String(ts);
-      const bytes = [];
+      let hex = "";
       for (let i = 0; i < apiKey.length; i++) {
-        // XOR 각 바이트
-        const xored = apiKey.charCodeAt(i) ^ tsStr.charCodeAt(i % tsStr.length);
-        bytes.push(xored);
+        const charCode = apiKey.charCodeAt(i) ^ tsStr.charCodeAt(i % tsStr.length);
+        hex += charCode.toString(16).padStart(2, "0");
       }
-      // 바이트 배열을 hex 문자열로 변환
-      return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hex;
     };
+
+    const encryptedKey = encryptKey(key, timestamp);
+    const glossary = new DeepLGlossary(BACKEND_URL);
+
+    // 용어집 설정 (필요 시 생성)
+    // 전역 상태나 캐시를 통해 중복 생성을 방지할 수 있지만, 
+    // 여기서는 간단히 목록을 조회하여 확인하거나 새로 생성하는 로직을 고려
+    let glossaryId = state?.deeplGlossaryId;
+
+    if (!glossaryId) {
+      console.log("[DeepL] Glossary ID not found in state, checking DeepL...");
+      const listRes = await glossary.listGlossaries(encryptedKey, timestamp);
+      if (listRes.success) {
+        glossaryId = glossary.getGlossaryId();
+      }
+
+      if (!glossaryId) {
+        console.log("[DeepL] Creating new glossary from CSVs...");
+        const entries = await loadGlossaryFromCSVs();
+        if (entries.length > 0) {
+          const createRes = await glossary.createGlossary(encryptedKey, timestamp, entries);
+          if (createRes.success) {
+            glossaryId = createRes.glossaryId;
+            // @ts-ignore
+            state.deeplGlossaryId = glossaryId;
+          }
+        }
+      } else {
+        // @ts-ignore
+        state.deeplGlossaryId = glossaryId;
+      }
+    }
 
     // 이름과 설명을 한번에 번역 (API 호출 최소화)
     const response = await fetch(proxyUrl, {
@@ -178,11 +209,12 @@ const translateWithExternalAI = async (item, btn) => {
       },
       credentials: "include",
       body: JSON.stringify({
-        k: encryptKey(key, timestamp),  // 암호화된 키
-        t: timestamp,                    // 복호화용 타임스탬프
+        k: encryptedKey,
+        t: timestamp,
         text: [item.name, item.description || ""],
         sourceLang: "ZH",
         targetLang: "KO",
+        glossaryId: glossaryId || undefined,
       }),
     });
     
