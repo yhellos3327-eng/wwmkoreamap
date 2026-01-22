@@ -62,14 +62,18 @@ export const applySyncData = (cloudData) => {
       markers = markers.map((id) => ({ id, completedAt: null }));
     }
     setState("completedList", markers);
+    // localStorage에도 저장하여 새로고침 시에도 유지되도록 함
+    localStorage.setItem("wwm_completed", JSON.stringify(markers));
     console.log(
-      "[SyncHandler] State updated. LocalStorage check:",
+      "[SyncHandler] State and localStorage updated:",
       localStorage.getItem("wwm_completed"),
     );
   }
 
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
+    // localStorage에도 저장하여 새로고침 시에도 유지되도록 함
+    localStorage.setItem("wwm_favorites", JSON.stringify(cloudData.favorites));
   }
 
   if (cloudData.settings) {
