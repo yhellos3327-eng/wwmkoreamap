@@ -152,52 +152,49 @@ const translateWithExternalAI = async (item, btn) => {
     const jsonStr = jsonMatch ? jsonMatch[0] : text;
     result = JSON.parse(jsonStr);
   } else if (provider === "deepl") {
-    // DeepL은 일반 번역 API - AI 프롬프트가 아닌 직접 번역
-    // API 키가 :fx로 끝나면 Free 플랜
-    const isFree = key.endsWith(":fx");
-    const baseUrl = isFree
-      ? "https://api-free.deepl.com/v2/translate"
-      : "https://api.deepl.com/v2/translate";
+    // DeepL은 CORS를 지원하지 않으므로 백엔드 프록시를 통해 호출
+    const { BACKEND_URL } = await import("./config.js");
+    const proxyUrl = `${BACKEND_URL}/api/deepl/translate`;
 
-    // 이름 번역
-    const nameResponse = await fetch(baseUrl, {
+    // API 키 암호화 (Hex + 타임스탬프 XOR 난독화)
+    const timestamp = Date.now();
+    const encryptKey = (apiKey, ts) => {
+      const tsStr = String(ts);
+      const bytes = [];
+      for (let i = 0; i < apiKey.length; i++) {
+        // XOR 각 바이트
+        const xored = apiKey.charCodeAt(i) ^ tsStr.charCodeAt(i % tsStr.length);
+        bytes.push(xored);
+      }
+      // 바이트 배열을 hex 문자열로 변환
+      return bytes.map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+
+    // 이름과 설명을 한번에 번역 (API 호출 최소화)
+    const response = await fetch(proxyUrl, {
       method: "POST",
       headers: {
-        "Authorization": `DeepL-Auth-Key ${key}`,
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
-        text: [item.name],
-        source_lang: "ZH",
-        target_lang: "KO",
+        k: encryptKey(key, timestamp),  // 암호화된 키
+        t: timestamp,                    // 복호화용 타임스탬프
+        text: [item.name, item.description || ""],
+        sourceLang: "ZH",
+        targetLang: "KO",
       }),
     });
-    const nameData = await nameResponse.json();
-    if (nameData.error || nameData.message) {
-      throw new Error(nameData.message || nameData.error);
-    }
-
-    // 설명 번역
-    const descResponse = await fetch(baseUrl, {
-      method: "POST",
-      headers: {
-        "Authorization": `DeepL-Auth-Key ${key}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        text: [item.description || ""],
-        source_lang: "ZH",
-        target_lang: "KO",
-      }),
-    });
-    const descData = await descResponse.json();
-    if (descData.error || descData.message) {
-      throw new Error(descData.message || descData.error);
+    
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.message || data.error || "DeepL 번역 실패");
     }
 
     result = {
-      name: nameData.translations[0].text,
-      description: descData.translations[0].text,
+      name: data.translations[0].text,
+      description: data.translations[1]?.text || "",
     };
   }
 
@@ -319,13 +316,17 @@ export const translateItem = async (itemId, translateType = "ai") => {
   } catch (error) {
     console.error("Translation failed:", error);
 
-    if (translateType === "chrome") {
-      alert(
-        `Chrome 내장 번역 실패: ${error.message}\n\n가능한 원인:\n- Chrome 138 미만 버전 사용\n- 번역 모델 미다운로드\n- GenAILocalFoundationalModelSettings 정책에 의해 차단됨`,
-      );
-    } else {
-      alert("번역 실패: " + error.message);
-    }
+    // 토스트 모달로 에러 출력
+    import("./sync/ui.js").then(({ showSyncToast }) => {
+      if (translateType === "chrome") {
+        showSyncToast(
+          `Chrome 내장 번역 실패: ${error.message}`,
+          "error"
+        );
+      } else {
+        showSyncToast(`번역 실패: ${error.message}`, "error");
+      }
+    });
 
     if (allBtns) {
       allBtns.forEach((b) => {
