@@ -86,6 +86,30 @@ export function initAds() {
       },
     },
     {
+      type: "wwmkodiscord",
+      weight: 50,
+      render: (container) => {
+        const el = document.createElement("div");
+        el.className = "ad-placeholder";
+        el.style.background = "#1d1e22";
+        el.style.border = "none";
+        el.style.cursor = "pointer";
+        el.style.position = "relative";
+        el.style.display = "flex";
+        el.style.alignItems = "center";
+        el.style.justifyContent = "center";
+        el.style.overflow = "hidden";
+
+        const img = document.createElement("img");
+        img.src = "image/logo.png";
+
+        el.appendChild(img);
+        el.onclick = () => window.open("https://discord.gg/fC2WE5AKuY", "_blank");
+        container.innerHTML = "";
+        container.appendChild(el);
+      },
+    },
+    {
       type: "public",
       weight: 0,
       render: (container) => {
