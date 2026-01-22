@@ -10,12 +10,11 @@ const votesCache = new Map();
  * @returns {string} The API base URL.
  */
 const getApiBaseUrl = () => {
-  if (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1"
-  ) {
-    return "http://localhost:3000/api";
-  }
+  // For local testing with production API (no CORS issues since credentials are included)
+  // To use local backend: uncomment below and run `node backend/index.js`
+  // if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
+  //   return "http://localhost:3000/api";
+  // }
   return "https://api.wwmmap.kr/api";
 };
 
@@ -98,12 +97,18 @@ export const fetchVoteCounts = async (itemId) => {
 export const fetchBatchVotes = async (itemIds) => {
   if (!itemIds || itemIds.length === 0) return {};
   try {
+    console.log("[Votes] Fetching batch votes for:", itemIds);
     const response = await fetch(`${API_BASE_URL}/votes/batch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ itemIds }),
+      credentials: "include",
+      body: JSON.stringify({ itemIds: itemIds.map((id) => String(id)) }),
     });
-    if (!response.ok) throw new Error("Batch fetch failed");
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("[Votes] Batch fetch failed:", response.status, errorData);
+      throw new Error("Batch fetch failed");
+    }
 
     const data = await response.json();
 
@@ -168,13 +173,19 @@ export const toggleVote = async (itemId, type) => {
   updateVoteUI(itemId, { ...newCounts, userVote: newUserVote });
 
   try {
+    console.log("[Votes] Sending vote:", itemId, type);
     const response = await fetch(`${API_BASE_URL}/votes/${itemId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include",
       body: JSON.stringify({ type }),
     });
 
-    if (!response.ok) throw new Error("Vote failed");
+    if (!response.ok) {
+      const errorData = await response.text();
+      console.error("[Votes] Vote failed:", response.status, errorData);
+      throw new Error("Vote failed");
+    }
 
     const data = await response.json();
     const finalCounts = {

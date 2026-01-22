@@ -53,6 +53,7 @@ import { storage } from "./storage.js";
  * @property {string} savedGeminiKey
  * @property {string} savedOpenAIKey
  * @property {string} savedClaudeKey
+ * @property {string} savedDeepLKey
  * @property {string} savedApiModel
  * @property {string} savedRegionColor
  * @property {string} savedRegionFillColor
@@ -140,6 +141,7 @@ const initialState = {
   savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
   savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
   savedClaudeKey: storage.getApiKey("wwm_claude_key", ""),
+  savedDeepLKey: storage.getApiKey("wwm_deepl_key", ""),
   savedApiModel: localStorage.getItem("wwm_api_model") ?? "gemini-1.5-flash",
   savedRegionColor: localStorage.getItem("wwm_region_color") ?? "#242424",
   savedRegionFillColor:

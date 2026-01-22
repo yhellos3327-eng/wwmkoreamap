@@ -22,6 +22,9 @@ export const AI_MODELS = {
     { value: "claude-haiku-4-5-20251001", label: "Claude Haiku 4.5" },
     { value: "claude-opus-4-5-20251101", label: "Claude Opus 4.5" },
   ],
+  deepl: [
+    { value: "default", label: "DeepL 번역" },
+  ],
 };
 
 export const updateModelOptions = (provider) => {
@@ -55,6 +58,9 @@ export const updateApiKeyInput = (provider) => {
   } else if (provider === "claude") {
     key = state.savedClaudeKey;
     placeholder = "Anthropic API Key 입력 (sk-ant-...)";
+  } else if (provider === "deepl") {
+    key = state.savedDeepLKey;
+    placeholder = "DeepL API Key 입력";
   }
   apiKeyInput.value = key || "";
   apiKeyInput.placeholder = placeholder;
@@ -88,6 +94,9 @@ export const saveAISettings = () => {
       } else if (provider === "claude") {
         setState("savedClaudeKey", newKey);
         storage.setApiKey("wwm_claude_key", newKey);
+      } else if (provider === "deepl") {
+        setState("savedDeepLKey", newKey);
+        storage.setApiKey("wwm_deepl_key", newKey);
       }
     }
   } else if (apiKeyInput) {
