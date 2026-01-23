@@ -1063,13 +1063,50 @@ const handleMapClick = (e) => {
       devState.selectedMarker.setLatLng([parseFloat(lat), parseFloat(lng)]);
     }
 
-    if (state.gpuRenderMode) {
-      import("./map/pixiOverlay/overlayCore.js").then((m) =>
-        m.updatePixiMarkers(),
-      );
-    }
+    // Update the markerData reference
     markerData.lat = parseFloat(lat);
     markerData.lng = parseFloat(lng);
+
+    // Also update the original item in state.mapData.items
+    if (state.mapData?.items) {
+      const originalItem = state.mapData.items.find(
+        (item) => String(item.id) === String(markerData.id)
+      );
+      if (originalItem) {
+        originalItem.x = lat; // latitude is stored as 'x' in the data
+        originalItem.y = lng; // longitude is stored as 'y' in the data
+      }
+    }
+
+    // For GPU mode, directly update sprite position and redraw
+    if (state.gpuRenderMode) {
+      import("./map/pixiOverlay/overlayCore.js").then((pixiModule) => {
+        const pixiContainer = pixiModule.getPixiContainer();
+        const pixiOverlay = pixiModule.getPixiOverlay();
+
+        if (pixiContainer && pixiOverlay) {
+          // Find the sprite for this marker and update its position
+          const sprite = pixiContainer.children.find(
+            (s) =>
+              s.markerData &&
+              String(s.markerData.item?.id || s.markerData.id) === String(markerData.id)
+          );
+
+          if (sprite) {
+            // Update sprite's markerData
+            sprite.markerData.lat = parseFloat(lat);
+            sprite.markerData.lng = parseFloat(lng);
+            if (sprite.markerData.item) {
+              sprite.markerData.item.x = lat;
+              sprite.markerData.item.y = lng;
+            }
+          }
+
+          // Force redraw the overlay
+          pixiOverlay.redraw();
+        }
+      });
+    }
 
     devState.changes.set(markerData.id, {
       id: markerData.id,

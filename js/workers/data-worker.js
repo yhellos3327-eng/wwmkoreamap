@@ -5,6 +5,10 @@
  */
 
 import { DEFAULT_DESCRIPTIONS } from "../config.js";
+import {
+  processMapDataCore,
+  processRegionDataCore,
+} from "../data/itemProcessor.js";
 
 /**
  * Parses a CSV string into a 2D array.
@@ -48,126 +52,11 @@ const parseCSV = (str) => {
   return arr;
 };
 
-const processJSONData = (
-  rawItems,
-  regionIdMap,
-  blacklistItems,
-  categoryItemTranslations,
-  reverseRegionMap,
-) => {
-  const mapData = { categories: [], items: [] };
-  const itemsByCategory = {};
-
-  mapData.items = rawItems
-    .filter((item) => !blacklistItems.has(`${item.category_id}_${item.id}`))
-    .map((item) => {
-      const catId = String(item.category_id);
-      const regionName = regionIdMap[item.regionId] ?? "알 수 없음";
-
-      let imgList = [];
-      if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-        imgList = item.images;
-      } else if (item.image) {
-        imgList = [item.image];
-      }
-
-      const processedItem = {
-        ...item,
-        id: item.id,
-        category: catId,
-        name: item.title ?? "Unknown",
-        description: item.description ?? "",
-        x: item.latitude,
-        y: item.longitude,
-        region: regionName,
-        images: imgList,
-        imageSizeW: 44,
-        imageSizeH: 44,
-        isTranslated: item.isTranslated ?? false,
-      };
-
-      return processedItem;
-    });
-
-  const uniqueCategoryIds = new Set(mapData.items.map((i) => i.category));
-
-  mapData.categories = Array.from(uniqueCategoryIds).map((catId) => ({
-    id: catId,
-    name: catId,
-    image: `./icons/${catId}.png`,
-  }));
-
-  mapData.items.forEach((item) => {
-    const catTrans = categoryItemTranslations[item.category];
-    let commonDesc = null;
-
-    if (catTrans && catTrans._common_description) {
-      commonDesc = catTrans._common_description;
-    }
-
-    const categoryDefaultNames = {
-      17310010006: "상자 (지상)",
-      17310010007: "상자 (지하)",
-      17310010012: "곡경심유 (파랑나비)",
-      17310010015: "만물의 울림 (노랑나비)",
-      17310010090: "야외 제사 (빨간나비)",
-    };
-
-    if (categoryDefaultNames[item.category]) {
-      item.name = categoryDefaultNames[item.category];
-      item.isTranslated = true;
-    }
-
-    if (catTrans) {
-      let transData = catTrans[item.id];
-      if (!transData && item.name) {
-        transData = catTrans[item.name];
-      }
-
-      if (transData) {
-        if (transData.name) {
-          item.name = transData.name;
-          item.isTranslated = true;
-        }
-        if (transData.description) {
-          item.description = transData.description;
-        }
-        if (transData.region) {
-          item.forceRegion =
-            reverseRegionMap[transData.region] || transData.region;
-        }
-        if (transData.image) {
-          item.images = Array.isArray(transData.image)
-            ? transData.image
-            : [transData.image];
-        }
-        if (transData.video) {
-          item.video_url = transData.video;
-        }
-
-        if (transData.customPosition) {
-          item.x = transData.customPosition.x;
-          item.y = transData.customPosition.y;
-          item.hasCustomPosition = true;
-        }
-      }
-    }
-
-    if (!item.description || item.description.trim() === "") {
-      if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
-        item.description = DEFAULT_DESCRIPTIONS[item.name];
-      } else if (commonDesc) {
-        item.description = commonDesc;
-      }
-    }
-
-    itemsByCategory[item.category] ??= [];
-    itemsByCategory[item.category].push(item);
-  });
-
-  return { mapData, itemsByCategory };
-};
-
+/**
+ * Processes CSV data for translations.
+ * @param {string} csvText - The CSV text content.
+ * @returns {{koDict: Object, categoryItemTranslations: Object, parsedCSV: string[][]}}
+ */
 const processCSVData = (csvText) => {
   const koDict = {};
   const categoryItemTranslations = {};
@@ -294,47 +183,7 @@ const processCSVData = (csvText) => {
   return { koDict, categoryItemTranslations, parsedCSV };
 };
 
-const processRegionData = (regionJson, koDict) => {
-  const regionData = regionJson.data || [];
-  const regionIdMap = {};
-  const regionMetaInfo = {};
-  const reverseRegionMap = {};
-  const boundsCoords = [];
-
-  if (regionData && Array.isArray(regionData)) {
-    regionData.forEach((region) => {
-      regionIdMap[region.id] = region.title;
-      regionMetaInfo[region.title] = {
-        lat: parseFloat(region.latitude),
-        lng: parseFloat(region.longitude),
-        zoom: region.zoom ?? 12,
-      };
-
-      reverseRegionMap[region.title] = region.title;
-      const translatedTitle = koDict[region.title];
-      if (translatedTitle) {
-        reverseRegionMap[translatedTitle] = region.title;
-      }
-
-      if (region.coordinates && region.coordinates.length > 0) {
-        const coords = region.coordinates.map((c) => [
-          parseFloat(c[1]),
-          parseFloat(c[0]),
-        ]);
-        boundsCoords.push(...coords);
-      }
-    });
-  }
-
-  return {
-    regionData,
-    regionIdMap,
-    regionMetaInfo,
-    reverseRegionMap,
-    boundsCoords,
-  };
-};
-
+// Worker message handler
 self.onmessage = function (e) {
   const { type, payload, taskId } = e.data;
 
@@ -351,16 +200,19 @@ self.onmessage = function (e) {
         break;
 
       case "PROCESS_REGION_DATA":
-        result = processRegionData(payload.regionJson, payload.koDict || {});
+        // Use shared function from itemProcessor
+        result = processRegionDataCore(payload.regionJson, payload.koDict || {});
         break;
 
       case "PROCESS_MAP_DATA":
-        result = processJSONData(
+        // Use shared function from itemProcessor
+        result = processMapDataCore(
           payload.rawItems,
           payload.regionIdMap,
           new Set(payload.missingItems || []),
           payload.categoryItemTranslations || {},
           payload.reverseRegionMap || {},
+          DEFAULT_DESCRIPTIONS || {}
         );
         break;
 

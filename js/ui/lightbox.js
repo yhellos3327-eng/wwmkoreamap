@@ -44,7 +44,11 @@ function updateLightboxImage() {
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
       );
       if (ytMatch && ytMatch[1]) {
-        embedSrc = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1`;
+        // Extract start time from t= or start= parameter
+        const timeMatch = videoSrc.match(/[?&](?:t|start)=(\d+)/);
+        const startTime = timeMatch ? timeMatch[1] : null;
+        const startParam = startTime ? `&start=${startTime}` : '';
+        embedSrc = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1${startParam}`;
       }
 
       if (videoSrc.includes("bilibili.com")) {

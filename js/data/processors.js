@@ -4,6 +4,14 @@ import { state, setState } from "../state.js";
 import { t } from "../utils.js";
 import { webWorkerManager } from "../web-worker-manager.js";
 import { DEFAULT_DESCRIPTIONS, MAP_CONFIGS } from "../config.js";
+import {
+  createProcessedItem,
+  extractImageList,
+  applyItemTranslations,
+  createCategories,
+  groupItemsByCategory,
+  processRegionDataCore,
+} from "./itemProcessor.js";
 
 export const USE_WORKERS = true;
 
@@ -44,53 +52,30 @@ export const USE_WORKERS = true;
  * @property {number} [x]
  * @property {number} [y]
  * @property {boolean} [hasCustomPosition]
+ * @property {number} [imageSizeW]
+ * @property {number} [imageSizeH]
  */
 
 /**
  * Processes region data synchronously.
+ * Uses shared core function but adds t() translation support.
  * @param {Object} regionJson - The raw region JSON object.
  * @returns {RegionResult} The processed region data.
  */
 export const processRegionDataSync = (regionJson) => {
+  // Use core function with koDict from state
+  const result = processRegionDataCore(regionJson, state.koDict || {});
+
+  // Additionally add t() translations for region titles
   const regionData = regionJson.data || [];
-  /** @type {Object.<number, string>} */
-  const regionIdMap = {};
-  /** @type {Object.<string, {lat: number, lng: number, zoom: number}>} */
-  const regionMetaInfo = {};
-  /** @type {Object.<string, string>} */
-  const reverseRegionMap = {};
-  const boundsCoords = [];
-
   regionData.forEach((region) => {
-    regionIdMap[region.id] = region.title;
-    regionMetaInfo[region.title] = {
-      lat: parseFloat(region.latitude),
-      lng: parseFloat(region.longitude),
-      zoom: region.zoom || 12,
-    };
-
-    reverseRegionMap[region.title] = region.title;
     const translatedTitle = t(region.title);
-    if (translatedTitle) {
-      reverseRegionMap[String(translatedTitle)] = region.title;
-    }
-
-    if (region.coordinates && region.coordinates.length > 0) {
-      const coords = region.coordinates.map((c) => [
-        parseFloat(c[1]),
-        parseFloat(c[0]),
-      ]);
-      boundsCoords.push(...coords);
+    if (translatedTitle && String(translatedTitle) !== region.title) {
+      result.reverseRegionMap[String(translatedTitle)] = region.title;
     }
   });
 
-  return {
-    regionData,
-    regionIdMap,
-    regionMetaInfo,
-    reverseRegionMap,
-    boundsCoords,
-  };
+  return result;
 };
 
 /**
@@ -106,73 +91,24 @@ export const processRegionData = async (regionJson) => {
 };
 
 /**
- * Applies translations to an item.
+ * Applies translations to an item (with t() support for main thread).
  * @param {MapItem} item - The map item.
  * @param {Object.<string, string>} reverseRegionMap - Reverse region map.
  */
-const applyTranslations = (item, reverseRegionMap) => {
-  const catTrans = state.categoryItemTranslations[item.category];
-  let commonDesc = null;
+const applyTranslationsWithT = (item, reverseRegionMap) => {
+  // Use shared function
+  applyItemTranslations(
+    /** @type {any} */(item),
+    state.categoryItemTranslations,
+    reverseRegionMap,
+    DEFAULT_DESCRIPTIONS
+  );
 
-  if (catTrans && catTrans._common_description) {
-    commonDesc = catTrans._common_description;
-  }
-
-  const categoryDefaultNames = {
-    17310010006: "상자 (지상)",
-    17310010007: "상자 (지하)",
-    17310010012: "곡경심유 (파랑나비)",
-    17310010015: "만물의 울림 (노랑나비)",
-    17310010090: "야외 제사 (빨간나비)",
-  };
-
-  if (categoryDefaultNames[item.category]) {
-    item.name = categoryDefaultNames[item.category];
-    item.isTranslated = true;
-  }
-
-  if (catTrans) {
-    let transData = catTrans[item.id];
-    if (!transData && item.name) {
-      transData = catTrans[item.name];
-    }
-
-    if (transData) {
-      if (transData.name) {
-        item.name = transData.name;
-        item.isTranslated = true;
-      }
-      if (transData.description) {
-        item.description = transData.description;
-      }
-      if (transData.region) {
-        item.forceRegion =
-          reverseRegionMap[transData.region] || transData.region;
-      }
-      if (transData.image) {
-        item.images = Array.isArray(transData.image)
-          ? transData.image
-          : [transData.image];
-      }
-      if (transData.video) {
-        item.video_url = transData.video;
-      }
-      if (transData.customPosition) {
-        item.x = transData.customPosition.x;
-        item.y = transData.customPosition.y;
-        item.hasCustomPosition = true;
-      }
-    }
-  }
-
+  // Additional: check translated name for default descriptions (t() function)
   if (!item.description || item.description.trim() === "") {
     const translatedName = t(item.name) || item.name;
     if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[translatedName]) {
       item.description = DEFAULT_DESCRIPTIONS[translatedName];
-    } else if (DEFAULT_DESCRIPTIONS && DEFAULT_DESCRIPTIONS[item.name]) {
-      item.description = DEFAULT_DESCRIPTIONS[item.name];
-    } else if (commonDesc) {
-      item.description = commonDesc;
     }
   }
 };
@@ -192,55 +128,27 @@ export const processMapDataSync = (
   reverseRegionMap,
 ) => {
   const mapData = { categories: [], items: [] };
-  /** @type {Object.<string, any[]>} */
-  const itemsByCategory = {};
 
+  // Step 1: Filter and create processed items using shared functions
   mapData.items = rawItems
     .filter((item) => !missingItems.has(`${item.category_id}_${item.id}`))
     .map((item) => {
       const catId = String(item.category_id);
       const regionName = regionIdMap[item.regionId] ?? "알 수 없음";
-
-      let imgList = [];
-      if (item.images && Array.isArray(item.images) && item.images.length > 0) {
-        imgList = item.images;
-      } else if (item.image) {
-        imgList = [item.image];
-      }
-
-      const processedItem = {
-        ...item,
-        id: item.id,
-        category: catId,
-        name: item.title ?? "Unknown",
-        description: item.description ?? "",
-        x: item.latitude,
-        y: item.longitude,
-        region: regionName,
-        images: imgList,
-        imageSizeW: 44,
-        imageSizeH: 44,
-        isTranslated: item.isTranslated ?? false,
-      };
-
-      return processedItem;
+      const imgList = extractImageList(item);
+      return createProcessedItem(item, catId, regionName, imgList);
     });
 
-  const uniqueCategoryIds = new Set(mapData.items.map((i) => i.category));
-  mapData.categories = Array.from(uniqueCategoryIds).map((catId) => ({
-    id: catId,
-    name: catId,
-    image: `./icons/${catId}.png`,
-  }));
+  // Step 2: Create categories using shared function
+  mapData.categories = createCategories(mapData.items);
 
+  // Step 3: Apply translations (with t() support)
   mapData.items.forEach((item) => {
-    applyTranslations(item, reverseRegionMap);
-
-    if (!itemsByCategory[item.category]) {
-      itemsByCategory[item.category] = [];
-    }
-    itemsByCategory[item.category].push(item);
+    applyTranslationsWithT(item, reverseRegionMap);
   });
+
+  // Step 4: Group by category using shared function
+  const itemsByCategory = groupItemsByCategory(mapData.items);
 
   return { mapData, itemsByCategory };
 };
