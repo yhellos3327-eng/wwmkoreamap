@@ -145,8 +145,12 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
           );
           if (ytMatch && ytMatch[1]) {
             const ytId = ytMatch[1];
-            thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0`;
-            lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1`;
+            // Extract start time from t= or start= parameter
+            const timeMatch = videoSrc.match(/[?&](?:t|start)=(\d+)/);
+            const startTime = timeMatch ? timeMatch[1] : null;
+            const startParam = startTime ? `&start=${startTime}` : '';
+            thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0${startParam}`;
+            lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1${startParam}`;
           }
 
           if (videoSrc.includes("bilibili.com")) {
@@ -167,9 +171,6 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
                             scrolling="no"
                             allowfullscreen>
                         </iframe>
-                        <div class="video-thumb-cover">
-                            <div class="video-play-icon"></div>
-                        </div>
                     </div>
                 `;
         }
