@@ -44,12 +44,18 @@ const BADWORDS_SOURCES = [
  */
 const decrypt = (encoded) => {
   const key = "wwm_secure_key";
-  const decoded = atob(encoded);
-  let result = "";
-  for (let i = 0; i < decoded.length; i++) {
-    result += String.fromCharCode(decoded.charCodeAt(i) ^ key.charCodeAt(i % key.length));
+  const binaryString = atob(encoded);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
   }
-  return decodeURIComponent(escape(result));
+
+  const keyBytes = new TextEncoder().encode(key);
+  for (let i = 0; i < bytes.length; i++) {
+    bytes[i] ^= keyBytes[i % keyBytes.length];
+  }
+
+  return new TextDecoder().decode(bytes);
 };
 
 /**
@@ -88,9 +94,17 @@ export const loadBadWords = async () => {
         }
 
         if (source.isSpam) {
-          words.forEach((word) => allSpamKeywords.add(word.toLowerCase()));
+          words.forEach((word) => {
+            if (word && word.trim().length > 0) {
+              allSpamKeywords.add(word.trim().toLowerCase());
+            }
+          });
         } else {
-          words.forEach((word) => allBadWords.add(word.toLowerCase()));
+          words.forEach((word) => {
+            if (word && word.trim().length > 0) {
+              allBadWords.add(word.trim().toLowerCase());
+            }
+          });
         }
       }
     } catch (e) {
@@ -100,6 +114,13 @@ export const loadBadWords = async () => {
 
   badWordsList = [...allBadWords];
   spamKeywordsList = [...allSpamKeywords];
+
+  // Debug log to check loaded keywords count and sample
+  console.log(`[BadWords] Loaded ${badWordsList.length} bad words, ${spamKeywordsList.length} spam keywords.`);
+  if (spamKeywordsList.length > 0) {
+    console.log(`[BadWords] Sample spam keywords:`, spamKeywordsList.slice(0, 5));
+  }
+
   logger.success("BadWords", `${badWordsList.length}개 비속어, ${spamKeywordsList.length}개 스팸 키워드 로드 완료`);
 };
 
@@ -113,13 +134,17 @@ export const containsBadWord = (text) => {
   if (!text) return false;
 
   const lowerText = text.toLowerCase();
-  // Normalize: remove spaces, special chars, numbers (keep only hangul/english)
-  const normalizedText = lowerText.replace(/[^가-힣a-z]/g, "");
+  // Normalize: remove spaces, special chars (keep hangul, english, numbers)
+  const normalizedText = lowerText.replace(/[^가-힣a-z0-9]/g, "");
 
   // Check spam keywords first (against normalized text)
   if (spamKeywordsList.some((word) => {
     // Normalize keyword too just in case
-    const normalizedKeyword = word.toLowerCase().replace(/[^가-힣a-z]/g, "");
+    const normalizedKeyword = word.toLowerCase().replace(/[^가-힣a-z0-9]/g, "");
+
+    // Skip if keyword becomes empty after normalization (e.g. only special chars)
+    if (normalizedKeyword.length === 0) return false;
+
     return normalizedText.includes(normalizedKeyword);
   })) {
     return true;
