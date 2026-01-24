@@ -73,6 +73,7 @@ import { storage } from "./storage.js";
  * @property {any} pixiContainer
  * @property {LoadingState} loadingState
  * @property {string|null} deeplGlossaryId
+ * @property {Map<string|number, string>} globalMarkerNames
  */
 
 const checkWebGL = (() => {
@@ -178,13 +179,14 @@ const initialState = {
     isVisible: true,
   },
   deeplGlossaryId: null,
+  globalMarkerNames: new Map(),
 };
 
 const store = createStore(() => initialState);
 
 // Proxy to maintain backward compatibility with direct state access/mutation
 /** @type {AppState} */
-export const state = new Proxy(/** @type {any} */ ({}), {
+export const state = new Proxy(/** @type {any} */({}), {
   get: (target, prop) => {
     return store.getState()[prop];
   },

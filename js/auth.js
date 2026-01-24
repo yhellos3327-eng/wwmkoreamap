@@ -191,6 +191,11 @@ export const updateAuthUI = () => {
         providerNames[user.provider] || user.provider || "";
     }
   }
+
+  // Update cloud backup section visibility if it exists
+  import("./settings/backup.js").then((m) => {
+    m.refreshCloudBackupVisibility();
+  }).catch(() => { });
 };
 
 /**

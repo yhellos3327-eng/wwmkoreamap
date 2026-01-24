@@ -5,7 +5,7 @@
  * @param {any} marker - The marker.
  * @returns {any} The marker ID.
  */
-const getMarkerId = (marker) => {
+export const getMarkerId = (marker) => {
   if (typeof marker === "object" && marker !== null) return marker.id;
   return marker;
 };
@@ -103,6 +103,13 @@ const mergeSettings = (localSettings, cloudSettings) => {
   });
 
   merged._updatedAt = mergedTimestamps;
+
+  // Safety Guard: If merged is suspiciously empty but inputs weren't
+  if (Object.keys(merged).length <= 1 && (Object.keys(localSettings).length > 1 || Object.keys(cloudSettings).length > 1)) {
+    console.error("[Merge] Safety Guard: mergeSettings returned empty object suspiciously. Falling back to local.");
+    return localSettings;
+  }
+
   return merged;
 };
 
@@ -112,14 +119,32 @@ const mergeSettings = (localSettings, cloudSettings) => {
  * @param {any} cloud - Cloud data.
  * @returns {{completedMarkers: any[], favorites: any[], settings: any}} Merged data.
  */
-export const mergeData = (local, cloud) => ({
-  completedMarkers: mergeArrays(
-    local?.completedMarkers || [],
-    cloud?.completedMarkers || [],
-  ),
-  favorites: mergeArrays(local?.favorites || [], cloud?.favorites || []),
-  settings: mergeSettings(local?.settings || {}, cloud?.settings || {}),
-});
+export const mergeData = (local, cloud) => {
+  const merged = {
+    completedMarkers: mergeArrays(
+      local?.completedMarkers || [],
+      cloud?.completedMarkers || [],
+    ),
+    favorites: mergeArrays(local?.favorites || [], cloud?.favorites || []),
+    settings: mergeSettings(local?.settings || {}, cloud?.settings || {}),
+  };
+
+  // Safety Guard: If merged data is empty but local had data, fallback to local
+  if (
+    merged.completedMarkers.length === 0 &&
+    local?.completedMarkers?.length > 0
+  ) {
+    console.warn("[Merge] Safety Guard: Merged completedMarkers is empty, falling back to local.");
+    merged.completedMarkers = local.completedMarkers;
+  }
+
+  if (merged.favorites.length === 0 && local?.favorites?.length > 0) {
+    console.warn("[Merge] Safety Guard: Merged favorites is empty, falling back to local.");
+    merged.favorites = local.favorites;
+  }
+
+  return merged;
+};
 
 /**
  * Generates a hash for data comparison.
