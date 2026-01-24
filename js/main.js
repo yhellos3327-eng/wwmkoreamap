@@ -124,6 +124,12 @@ const loadTranslationData = () => {
  * 애플리케이션 초기화
  * @returns {Promise<void>}
  */
+import { autoRestoreIfEmpty, saveToVault } from "./storage/vault.js";
+
+/**
+ * 애플리케이션 초기화
+ * @returns {Promise<void>}
+ */
 const initializeApp = async () => {
   initTheme();
   initMigration();
@@ -131,6 +137,14 @@ const initializeApp = async () => {
   if (isOldDomain()) {
     return;
   }
+
+  // [Vault] 데이터 안전장치: 초기화 시 데이터가 없으면 자동 복구 시도
+  await autoRestoreIfEmpty().then((result) => {
+    if (result.restored) {
+      console.log("[Main] 🛡️ 데이터가 손실되어 Vault에서 자동 복구되었습니다.");
+      // 복구 후 UI 갱신을 위해 필요한 경우 리로드하거나 상태 업데이트
+    }
+  });
 
   console.log("[Main] Initial localStorage check:", {
     completed: localStorage.getItem("wwm_completed"),
@@ -164,6 +178,14 @@ const initializeApp = async () => {
     renderFavorites();
 
     loadOptionalModules();
+
+    // [Vault] 앱 종료/숨김 시 자동 백업
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") {
+        saveToVault("auto_save");
+      }
+    });
+
   } catch (error) {
     console.error("초기화 실패:", error);
     alert("맵 초기화에 실패했습니다.\n" + error.message);

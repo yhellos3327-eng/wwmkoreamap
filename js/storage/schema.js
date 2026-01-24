@@ -221,6 +221,11 @@ export const SCHEMA = {
         : { valid: false, message: "숫자가 아닙니다" },
   },
 
+  wwm_settings_updated_at: {
+    type: "object",
+    defaultValue: {},
+    snapshot: true,
+  },
   wwm_last_known_good: { type: "object", internal: true },
   wwm_restore_failure_log: { type: "array", internal: true },
   "wwm_notice_hidden_*": {

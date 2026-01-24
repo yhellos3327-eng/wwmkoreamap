@@ -20,7 +20,7 @@ export const getLocalData = () => {
   if (completedData) {
     try {
       completedMarkers = JSON.parse(completedData) || [];
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const favoritesData =
@@ -30,7 +30,7 @@ export const getLocalData = () => {
   if (favoritesData) {
     try {
       favorites = JSON.parse(favoritesData) || [];
-    } catch (e) {}
+    } catch (e) { }
   }
 
   const settingsUpdatedAt = localStorage.getItem("wwm_settings_updated_at");
@@ -38,7 +38,7 @@ export const getLocalData = () => {
   if (settingsUpdatedAt) {
     try {
       settingsTimestamps = JSON.parse(settingsUpdatedAt) || {};
-    } catch (e) {}
+    } catch (e) { }
   }
 
   /**
@@ -109,6 +109,17 @@ export const setLocalData = (data) => {
   if (!data) return;
 
   if (data.completedMarkers) {
+    // Safety check: Don't overwrite with empty if we had many markers
+    const currentRaw = localStorage.getItem("wwm_completed");
+    if (data.completedMarkers.length === 0 && currentRaw) {
+      try {
+        const current = JSON.parse(currentRaw);
+        if (current.length > 5) { // Threshold for safety
+          console.error("[Storage] Blocked attempt to overwrite populated completedMarkers with empty array.");
+          return;
+        }
+      } catch (e) { }
+    }
     localStorage.setItem(
       "wwm_completed",
       JSON.stringify(data.completedMarkers),
@@ -116,6 +127,17 @@ export const setLocalData = (data) => {
   }
 
   if (data.favorites) {
+    // Similar safety check for favorites
+    const currentRaw = localStorage.getItem("wwm_favorites");
+    if (data.favorites.length === 0 && currentRaw) {
+      try {
+        const current = JSON.parse(currentRaw);
+        if (current.length > 3) {
+          console.error("[Storage] Blocked attempt to overwrite populated favorites with empty array.");
+          return;
+        }
+      } catch (e) { }
+    }
     localStorage.setItem("wwm_favorites", JSON.stringify(data.favorites));
   }
 

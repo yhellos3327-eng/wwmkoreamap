@@ -37,8 +37,8 @@ export const toggleCompleted = (id) => {
 
   const target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) ??
-      state.allMarkers.get(targetId) ??
-      state.allMarkers.get(numId)
+    state.allMarkers.get(targetId) ??
+    state.allMarkers.get(numId)
   );
   const isNowCompleted = index === -1;
   const completedAt = Date.now();

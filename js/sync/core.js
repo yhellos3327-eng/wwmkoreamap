@@ -77,8 +77,32 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
   setSyncing(true);
   if (!silent) showSyncTooltip("동기화중...");
 
+  // [Prevention] Save a local backup before pushing to cloud
+  try {
+    const { saveToVault } = await import("../storage/vault.js");
+    await saveToVault("pre_cloud_save");
+  } catch (e) {
+    console.warn("[Sync] Pre-save backup failed:", e);
+  }
+
   try {
     const data = getLocalData();
+
+    // Safety Guard: Prevent syncing empty data if we previously had data
+    const prevCompletedCount = parseInt(localStorage.getItem("wwm_prev_completed_count") || "0");
+    const currentCompletedCount = data.completedMarkers?.length || 0;
+
+    if (prevCompletedCount > 0 && currentCompletedCount === 0) {
+      console.warn("[Sync] Safety Guard: Prevented syncing empty data over populated cloud data.");
+      if (!silent) showSyncToast("데이터 유실 방지: 빈 데이터 동기화가 차단되었습니다.", "error");
+      return false;
+    }
+
+    // Update count for next check
+    if (currentCompletedCount > 0) {
+      localStorage.setItem("wwm_prev_completed_count", String(currentCompletedCount));
+    }
+
     await saveCloudData(data);
     setLastSyncVersion(generateDataHash(data));
 
@@ -146,6 +170,14 @@ export const performFullSync = async (silent = false, broadcast = true) => {
 
   setSyncing(true);
 
+  // [Prevention] Save a local backup before full sync
+  try {
+    const { saveToVault } = await import("../storage/vault.js");
+    await saveToVault("pre_full_sync");
+  } catch (e) {
+    console.warn("[Sync] Pre-sync backup failed:", e);
+  }
+
   try {
     const cloudData = await fetchCloudData();
     const localData = getLocalData();
@@ -204,7 +236,7 @@ export const updateSettingWithTimestamp = (key, value) => {
   if (stored) {
     try {
       timestamps = JSON.parse(stored);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   timestamps[key] = new Date().toISOString();
@@ -318,6 +350,19 @@ export const cleanupRealtimeSync = () => {
  */
 export const initSync = async () => {
   await getAuth();
+
+  // [Prevention] Auto-restore from Vault if LocalStorage is empty before starting sync
+  try {
+    const { autoRestoreIfEmpty } = await import("../storage/vault.js");
+    const restoreResult = await autoRestoreIfEmpty();
+    if (restoreResult.restored) {
+      console.log("[Sync] LocalStorage was empty, restored from latest Vault backup.");
+      showSyncToast("로컬 데이터가 비어있어 최신 백업에서 복구되었습니다.", "success");
+    }
+  } catch (e) {
+    console.error("[Sync] Auto-restore check failed:", e);
+  }
+
   if (!isLoggedIn()) return;
 
   const backupRestoredFlag = localStorage.getItem("wwm_backup_restored");

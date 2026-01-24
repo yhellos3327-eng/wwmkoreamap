@@ -87,6 +87,11 @@ export const applySyncData = (cloudData) => {
   if (settingsModal && !settingsModal.classList.contains("hidden")) {
     import("./settings.js").then((m) => m.initSettingsModal());
   }
+
+  // [Vault] 동기화 성공 시 백업 (중요 체크포인트)
+  import("./storage/vault.js").then(({ saveToVault }) => {
+    saveToVault("sync_success");
+  });
 };
 
 /**
@@ -94,6 +99,6 @@ export const applySyncData = (cloudData) => {
  */
 export const initSyncHandler = () => {
   window.addEventListener("syncDataLoaded", (e) => {
-    applySyncData(/** @type {CustomEvent} */ (e).detail);
+    applySyncData(/** @type {CustomEvent} */(e).detail);
   });
 };

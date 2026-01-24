@@ -138,3 +138,140 @@
         width: 100%;
     }
 }
+
+/* Vault Backup Styles */
+#vault-backup-section {
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+#vault-backup-section h3 {
+    margin: 0 0 12px 0;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    color: var(--text-main);
+}
+
+.backup-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+.backup-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.backup-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.backup-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.vault-restore-btn {
+    padding: 6px 14px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.vault-restore-btn:hover {
+    filter: brightness(1.1);
+    transform: scale(1.05);
+}
+
+.vault-restore-btn:disabled {
+    background: var(--border);
+    color: var(--text-muted);
+    cursor: not-allowed;
+    transform: none;
+}
+
+#btn-vault-save {
+    width: 100%;
+    padding: 12px 20px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: 12px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+#btn-vault-save:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(218, 172, 113, 0.2);
+}
+
+#btn-vault-save:active {
+    transform: translateY(0);
+}
+
+.vault-inspect-btn {
+    padding: 6px 10px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-left: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.vault-inspect-btn:hover {
+    color: var(--text-main);
+    border-color: var(--text-main);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.vault-inspect-btn svg {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2px;
+}
+
+.backup-actions {
+    display: flex;
+    align-items: center;
+}
+
+.settings-desc {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin: 0 0 16px 0;
+    line-height: 1.5;
+}
+
+.backup-controls {
+    margin-bottom: 16px;
+}

@@ -365,6 +365,12 @@ export const parseCSVData = async (csvRes) => {
       isTranslated: true,
     };
 
+    // Store in global names map for backup/vault inspection
+    if (processedItem.id && processedItem.title) {
+      state.globalMarkerNames.set(String(processedItem.id), processedItem.title);
+      state.globalMarkerNames.set(Number(processedItem.id), processedItem.title);
+    }
+
     if (!isNumericRegion && regionIdRaw) {
       processedItem.forceRegion = regionIdRaw;
     }

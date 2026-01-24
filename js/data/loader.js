@@ -91,6 +91,17 @@ export const loadMapData = async (mapKey, onProgress) => {
     setState("mapData", mapData);
     setState("itemsByCategory", itemsByCategory);
 
+    // Cache all marker names globally for backup/vault inspection
+    if (mapData.items) {
+      mapData.items.forEach((item) => {
+        const name = item.name || item.title;
+        if (name) {
+          state.globalMarkerNames.set(String(item.id), name);
+          state.globalMarkerNames.set(Number(item.id), name);
+        }
+      });
+    }
+
     const uniqueRegions = collectUniqueRegions(
       regionResult.regionData,
       mapData.items,
@@ -150,18 +161,18 @@ const fetchAllData = async (config, onProgress) => {
 
   const dataBlobPromise = config.dataFile
     ? fetchWithProgress(config.dataFile, (loaded, total) => {
-        progressState.data.loaded = loaded;
-        progressState.data.total = total;
-        updateAggregateProgress();
-      })
+      progressState.data.loaded = loaded;
+      progressState.data.total = total;
+      updateAggregateProgress();
+    })
     : Promise.resolve(new Blob(['{"data":[]}'], { type: "application/json" }));
 
   const regionBlobPromise = config.regionFile
     ? fetchWithProgress(config.regionFile, (loaded, total) => {
-        progressState.region.loaded = loaded;
-        progressState.region.total = total;
-        updateAggregateProgress();
-      })
+      progressState.region.loaded = loaded;
+      progressState.region.total = total;
+      updateAggregateProgress();
+    })
     : Promise.resolve(new Blob(['{"data":[]}'], { type: "application/json" }));
 
   const missingPromise = fetch("missing_data.csv").catch((e) => ({
