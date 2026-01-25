@@ -107,7 +107,16 @@ export const renderMapDataAndMarkers = async () => {
 
     await initLazyLoading();
 
-    await pixi.renderMarkersWithPixi(state.mapData.items);
+    const items = state.mapData.items;
+    const filteredItems =
+      state.activeRegionNames.size > 0
+        ? items.filter((item) => {
+          const effectiveRegion = item.forceRegion || item.region;
+          return state.activeRegionNames.has(effectiveRegion);
+        })
+        : items;
+
+    await pixi.renderMarkersWithPixi(filteredItems);
 
     refreshSidebarLists();
     return;

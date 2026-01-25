@@ -132,15 +132,16 @@ export const loadBackup = (file) => {
             console.log("[Backup] Emergency rollback completed");
           } catch (rollbackError) {
             console.error("[Backup] Rollback failed:", rollbackError);
-            // If rollback fails, try to restore from Vault
-            if (vaultBackupId) {
-              try {
-                const { restoreFromVault } = await import("./storage/vault.js");
-                await restoreFromVault(vaultBackupId);
-                console.log("[Backup] Restored from Vault backup");
-              } catch (vaultError) {
-                console.error("[Backup] Vault restore failed:", vaultError);
-              }
+          }
+
+          // Always try to restore from Vault if available
+          if (vaultBackupId) {
+            try {
+              const { restoreFromVault } = await import("./storage/vault.js");
+              await restoreFromVault(vaultBackupId);
+              console.log("[Backup] Restored from Vault backup");
+            } catch (vaultError) {
+              console.error("[Backup] Vault restore failed:", vaultError);
             }
           }
 

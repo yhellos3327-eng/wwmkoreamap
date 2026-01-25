@@ -221,15 +221,24 @@ export const performFullSync = async (silent = false, broadcast = true) => {
     // SAFETY FIX: Validate merge result
     const mergedCount = (mergedData.completedMarkers?.length || 0) + (mergedData.favorites?.length || 0);
     if (mergedCount < Math.max(localCount, cloudCount) * 0.5) {
-      console.error("[Sync] Merge resulted in suspicious data loss, aborting");
+      console.error(`[Sync] Merge resulted in suspicious data loss. Local: ${localCount}, Cloud: ${cloudCount}, Merged: ${mergedCount}`);
+
+      let rollbackStatus = "백업 없음";
       if (preBackupId) {
         try {
           const { restoreFromVault } = await import("../storage/vault.js");
           await restoreFromVault(preBackupId);
+          rollbackStatus = "성공";
         } catch (e) {
           console.error("[Sync] Rollback failed:", e);
+          rollbackStatus = `실패 (${e.message})`;
         }
       }
+
+      showSyncToast(
+        `동기화 중단: 데이터 손실 위험 감지 (병합: ${mergedCount}, 로컬: ${localCount}, 클라우드: ${cloudCount}). 롤백: ${rollbackStatus}`,
+        "error"
+      );
       return null;
     }
 

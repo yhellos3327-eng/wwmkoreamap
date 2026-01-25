@@ -6,6 +6,7 @@ const Supercluster = /** @type {any} */ (window).Supercluster;
 
 import { state, setState } from "../../state.js";
 import { logger } from "../../logger.js";
+import { MAP_CONFIGS } from "../../config.js";
 import { ICON_SIZE } from "./config.js";
 import {
   preloadTextures,
@@ -125,9 +126,14 @@ export const initPixiOverlay = async () => {
 
         const clusters = supercluster.getClusters(bbox, Math.floor(zoom));
         const spiderfiedClusterId = getSpiderfiedClusterId();
+        const spiderfyContainerRef = getSpiderfyContainer();
+
+        // Safety check: if ID is set but container is missing, treat as not spiderfied
+        const isSpiderfyActive =
+          spiderfiedClusterId !== null && spiderfyContainerRef !== null;
 
         clusters.forEach((cluster) => {
-          if (cluster.id === spiderfiedClusterId) {
+          if (isSpiderfyActive && cluster.id === spiderfiedClusterId) {
             return;
           }
 
@@ -358,9 +364,12 @@ export const renderMarkersWithPixi = async (items) => {
   await preloadTextures(items);
 
   if (typeof Supercluster !== "undefined") {
+    const config = MAP_CONFIGS[state.currentMapKey];
+    const maxZoom = config ? config.maxZoom : 18;
+
     supercluster = new Supercluster({
       radius: 25, // Reduced: only cluster very close markers
-      maxZoom: 18,
+      maxZoom: maxZoom,
       minPoints: 2,
     });
 
@@ -441,7 +450,15 @@ export const updatePixiMarkers = async () => {
   if (!isGpuRenderingAvailable()) return;
 
   const items = state.mapData?.items || [];
-  await renderMarkersWithPixi(items);
+  const filteredItems =
+    state.activeRegionNames.size > 0
+      ? items.filter((item) => {
+        const effectiveRegion = item.forceRegion || item.region;
+        return state.activeRegionNames.has(effectiveRegion);
+      })
+      : items;
+
+  await renderMarkersWithPixi(filteredItems);
 };
 
 /**
@@ -507,7 +524,7 @@ export const clearPixiOverlay = () => {
       if (state.map.hasLayer(pixiOverlay)) {
         state.map.removeLayer(pixiOverlay);
       }
-    } catch (e) {}
+    } catch (e) { }
     detachEventHandlers(state.map);
 
     if (state.map.options) {
