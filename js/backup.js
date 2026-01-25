@@ -47,6 +47,7 @@ export const saveBackup = () => {
 
 /**
  * Loads backup from a local file with integrity checking.
+ * SAFETY: Creates Vault backup before clearing localStorage to prevent data loss.
  * @param {File|undefined} file - The backup file to load.
  */
 export const loadBackup = (file) => {
@@ -66,20 +67,89 @@ export const loadBackup = (file) => {
       const dataForCheck = convertLocalStorageToSyncFormat(parsedData);
 
       runIntegrityCheck(dataForCheck, async () => {
-        localStorage.clear();
-        for (const key in parsedData) {
-          if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
-            localStorage.setItem(key, parsedData[key]);
+        // SAFETY FIX: Create Vault backup BEFORE clearing localStorage
+        let vaultBackupId = null;
+        try {
+          const { saveToVault } = await import("./storage/vault.js");
+          const backupResult = await saveToVault("pre_file_restore");
+          if (backupResult.success) {
+            vaultBackupId = backupResult.id;
+            console.log(`[Backup] Pre-restore backup created: #${vaultBackupId}`);
           }
+        } catch (e) {
+          console.warn("[Backup] Pre-restore backup failed:", e);
         }
-        localStorage.setItem("wwm_backup_restored", Date.now().toString());
 
-        await showResultAlert(
-          "success",
-          "복원 완료",
-          "데이터 복구가 완료되었습니다. 페이지를 새로고침합니다.",
-          true,
-        );
+        // SAFETY FIX: Store current data in memory as emergency fallback
+        const emergencyBackup = {};
+        try {
+          const criticalKeys = ["wwm_completed", "wwm_favorites"];
+          for (const key of criticalKeys) {
+            const value = localStorage.getItem(key);
+            if (value) emergencyBackup[key] = value;
+          }
+        } catch (e) {
+          console.warn("[Backup] Emergency backup failed:", e);
+        }
+
+        try {
+          localStorage.clear();
+          for (const key in parsedData) {
+            if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
+              localStorage.setItem(key, parsedData[key]);
+            }
+          }
+
+          // Also save to Vault (primary database)
+          try {
+            const { primaryDb } = await import("./storage/db.js");
+            await primaryDb.setMultiple([
+              { key: "completedList", value: dataForCheck.completedMarkers },
+              { key: "favorites", value: dataForCheck.favorites },
+              { key: "settings", value: dataForCheck.settings }
+            ]);
+          } catch (e) {
+            console.warn("[Backup] Vault save failed:", e);
+          }
+
+          localStorage.setItem("wwm_backup_restored", Date.now().toString());
+
+          await showResultAlert(
+            "success",
+            "복원 완료",
+            "데이터 복구가 완료되었습니다. 페이지를 새로고침합니다.",
+            true,
+          );
+        } catch (restoreError) {
+          // SAFETY FIX: Rollback on failure
+          console.error("[Backup] Restore failed, attempting rollback:", restoreError);
+
+          try {
+            // Try to restore from emergency backup
+            for (const [key, value] of Object.entries(emergencyBackup)) {
+              localStorage.setItem(key, value);
+            }
+            console.log("[Backup] Emergency rollback completed");
+          } catch (rollbackError) {
+            console.error("[Backup] Rollback failed:", rollbackError);
+            // If rollback fails, try to restore from Vault
+            if (vaultBackupId) {
+              try {
+                const { restoreFromVault } = await import("./storage/vault.js");
+                await restoreFromVault(vaultBackupId);
+                console.log("[Backup] Restored from Vault backup");
+              } catch (vaultError) {
+                console.error("[Backup] Vault restore failed:", vaultError);
+              }
+            }
+          }
+
+          showResultAlert(
+            "error",
+            "복원 실패",
+            "데이터 복원 중 오류가 발생했습니다. 이전 데이터를 복구했습니다.",
+          );
+        }
       });
     } catch (err) {
       console.error("복구 실패:", err);

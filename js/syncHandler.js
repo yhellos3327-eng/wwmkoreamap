@@ -68,12 +68,22 @@ export const applySyncData = (cloudData) => {
       "[SyncHandler] State and localStorage updated:",
       localStorage.getItem("wwm_completed"),
     );
+
+    // SAFETY: Also save to Vault (primary database)
+    import("./storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set("completedList", markers).catch(console.warn);
+    }).catch(console.warn);
   }
 
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
     // localStorage에도 저장하여 새로고침 시에도 유지되도록 함
     localStorage.setItem("wwm_favorites", JSON.stringify(cloudData.favorites));
+
+    // SAFETY: Also save to Vault (primary database)
+    import("./storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set("favorites", cloudData.favorites).catch(console.warn);
+    }).catch(console.warn);
   }
 
   if (cloudData.settings) {

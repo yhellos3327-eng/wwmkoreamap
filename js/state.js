@@ -119,15 +119,40 @@ const initialState = {
   uniqueRegions: new Set(),
   itemsByCategory: {},
   completedList: (() => {
-    const stored = JSON.parse(localStorage.getItem("wwm_completed") || "[]");
-    if (stored.length > 0 && typeof stored[0] !== "object") {
-      const migrated = stored.map((id) => ({ id, completedAt: null }));
-      localStorage.setItem("wwm_completed", JSON.stringify(migrated));
-      return migrated;
+    // SAFETY FIX: Added try-catch to prevent initialization crash
+    try {
+      const raw = localStorage.getItem("wwm_completed");
+      if (!raw) return [];
+
+      const stored = JSON.parse(raw);
+      if (!Array.isArray(stored)) return [];
+
+      // Migrate old format (array of ids) to new format (array of objects)
+      if (stored.length > 0 && typeof stored[0] !== "object") {
+        const migrated = stored.map((id) => ({ id, completedAt: null }));
+        localStorage.setItem("wwm_completed", JSON.stringify(migrated));
+        return migrated;
+      }
+      return stored;
+    } catch (e) {
+      console.error("[State] Failed to parse completedList:", e);
+      // Don't return empty - trigger recovery later
+      return [];
     }
-    return stored;
   })(),
-  favorites: JSON.parse(localStorage.getItem("wwm_favorites") || "[]"),
+  favorites: (() => {
+    // SAFETY FIX: Added try-catch for favorites as well
+    try {
+      const raw = localStorage.getItem("wwm_favorites");
+      if (!raw) return [];
+
+      const stored = JSON.parse(raw);
+      return Array.isArray(stored) ? stored : [];
+    } catch (e) {
+      console.error("[State] Failed to parse favorites:", e);
+      return [];
+    }
+  })(),
   categoryItemTranslations: {},
   currentModalList: [],
   currentLightboxImages: [],

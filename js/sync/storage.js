@@ -102,43 +102,103 @@ export const getLocalData = () => {
 };
 
 /**
- * Sets local data to localStorage.
+ * Safety thresholds for data protection.
+ * If current data exceeds these counts and new data is empty, block the overwrite.
+ */
+const SAFETY_CONFIG = {
+  /** Minimum items before blocking empty overwrite */
+  MIN_COMPLETED_THRESHOLD: 1,
+  /** Minimum favorites before blocking empty overwrite */
+  MIN_FAVORITES_THRESHOLD: 1,
+  /** Maximum allowed data loss ratio (0.5 = 50%) */
+  MAX_LOSS_RATIO: 0.5,
+};
+
+/**
+ * @typedef {Object} SetLocalDataResult
+ * @property {boolean} success - Whether the operation succeeded.
+ * @property {boolean} blocked - Whether the operation was blocked by safety guard.
+ * @property {string} [reason] - Reason for blocking.
+ */
+
+/**
+ * Sets local data to localStorage with enhanced safety guards.
+ * SAFETY FIX: Improved threshold logic and separate handling for each data type.
  * @param {SyncData} data - The data to save.
+ * @returns {SetLocalDataResult} The result of the operation.
  */
 export const setLocalData = (data) => {
-  if (!data) return;
+  if (!data) return { success: false, blocked: false, reason: "No data provided" };
 
-  if (data.completedMarkers) {
-    // Safety check: Don't overwrite with empty if we had many markers
+  let completedBlocked = false;
+  let favoritesBlocked = false;
+
+  // Handle completedMarkers with safety guard
+  if (data.completedMarkers !== undefined) {
     const currentRaw = localStorage.getItem("wwm_completed");
-    if (data.completedMarkers.length === 0 && currentRaw) {
+    let currentCount = 0;
+    let currentData = [];
+
+    if (currentRaw) {
       try {
-        const current = JSON.parse(currentRaw);
-        if (current.length > 5) { // Threshold for safety
-          console.error("[Storage] Blocked attempt to overwrite populated completedMarkers with empty array.");
-          return;
-        }
-      } catch (e) { }
+        currentData = JSON.parse(currentRaw);
+        currentCount = Array.isArray(currentData) ? currentData.length : 0;
+      } catch (e) {
+        console.warn("[Storage] Failed to parse current completedMarkers:", e);
+      }
     }
-    localStorage.setItem(
-      "wwm_completed",
-      JSON.stringify(data.completedMarkers),
-    );
+
+    const newCount = Array.isArray(data.completedMarkers) ? data.completedMarkers.length : 0;
+
+    // SAFETY FIX: Enhanced protection logic
+    // Block if: current has data AND new is empty or significantly less
+    if (currentCount > SAFETY_CONFIG.MIN_COMPLETED_THRESHOLD) {
+      if (newCount === 0) {
+        console.error("[Storage] BLOCKED: Attempt to overwrite", currentCount, "completed items with empty array.");
+        completedBlocked = true;
+      } else if (newCount < currentCount * SAFETY_CONFIG.MAX_LOSS_RATIO) {
+        // More than 50% data loss - suspicious
+        console.error("[Storage] BLOCKED: Suspicious data loss detected.", currentCount, "→", newCount);
+        completedBlocked = true;
+      }
+    }
+
+    if (!completedBlocked) {
+      localStorage.setItem("wwm_completed", JSON.stringify(data.completedMarkers));
+    }
   }
 
-  if (data.favorites) {
-    // Similar safety check for favorites
+  // Handle favorites with safety guard (separate from completedMarkers)
+  if (data.favorites !== undefined) {
     const currentRaw = localStorage.getItem("wwm_favorites");
-    if (data.favorites.length === 0 && currentRaw) {
+    let currentCount = 0;
+
+    if (currentRaw) {
       try {
-        const current = JSON.parse(currentRaw);
-        if (current.length > 3) {
-          console.error("[Storage] Blocked attempt to overwrite populated favorites with empty array.");
-          return;
-        }
-      } catch (e) { }
+        const currentData = JSON.parse(currentRaw);
+        currentCount = Array.isArray(currentData) ? currentData.length : 0;
+      } catch (e) {
+        console.warn("[Storage] Failed to parse current favorites:", e);
+      }
     }
-    localStorage.setItem("wwm_favorites", JSON.stringify(data.favorites));
+
+    const newCount = Array.isArray(data.favorites) ? data.favorites.length : 0;
+
+    // SAFETY FIX: Same protection for favorites
+    if (currentCount > SAFETY_CONFIG.MIN_FAVORITES_THRESHOLD) {
+      if (newCount === 0) {
+        console.error("[Storage] BLOCKED: Attempt to overwrite", currentCount, "favorites with empty array.");
+        favoritesBlocked = true;
+      } else if (newCount < currentCount * SAFETY_CONFIG.MAX_LOSS_RATIO) {
+        console.error("[Storage] BLOCKED: Suspicious favorites loss.", currentCount, "→", newCount);
+        favoritesBlocked = true;
+      }
+    }
+
+    // SAFETY FIX: Save favorites even if completed was blocked (separate handling)
+    if (!favoritesBlocked) {
+      localStorage.setItem("wwm_favorites", JSON.stringify(data.favorites));
+    }
   }
 
   if (data.settings) {
@@ -214,4 +274,12 @@ export const setLocalData = (data) => {
         JSON.stringify(s._updatedAt),
       );
   }
+
+  // Return result indicating what happened
+  const blocked = completedBlocked || favoritesBlocked;
+  return {
+    success: !blocked,
+    blocked,
+    reason: blocked ? `Blocked: completed=${completedBlocked}, favorites=${favoritesBlocked}` : undefined
+  };
 };

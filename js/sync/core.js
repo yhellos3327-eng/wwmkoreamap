@@ -103,6 +103,18 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
       localStorage.setItem("wwm_prev_completed_count", String(currentCompletedCount));
     }
 
+    // SAFETY FIX: Also save to Vault (primary database) before cloud
+    try {
+      const { primaryDb } = await import("../storage/db.js");
+      await primaryDb.setMultiple([
+        { key: "completedList", value: data.completedMarkers },
+        { key: "favorites", value: data.favorites },
+        { key: "settings", value: data.settings }
+      ]);
+    } catch (e) {
+      console.warn("[Sync] Vault save before cloud failed:", e);
+    }
+
     await saveCloudData(data);
     setLastSyncVersion(generateDataHash(data));
 
@@ -158,8 +170,12 @@ export const loadFromCloud = async (silent = false) => {
   }
 };
 
+/** @type {number} Sync lock version for optimistic locking */
+let syncVersion = 0;
+
 /**
  * Performs a full sync (merge local and cloud data).
+ * SAFETY FIX: Added optimistic locking to prevent race conditions.
  * @param {boolean} [silent=false] - Whether to suppress UI feedback.
  * @param {boolean} [broadcast=true] - Whether to broadcast the update.
  * @returns {Promise<any|null>} Merged data or null.
@@ -168,26 +184,79 @@ export const performFullSync = async (silent = false, broadcast = true) => {
   if (!isLoggedIn()) return null;
   if (getSyncState().isSyncing) return null;
 
+  // SAFETY FIX: Optimistic locking - capture version at start
+  const currentSyncVersion = ++syncVersion;
+
   setSyncing(true);
 
   // [Prevention] Save a local backup before full sync
+  let preBackupId = null;
   try {
     const { saveToVault } = await import("../storage/vault.js");
-    await saveToVault("pre_full_sync");
+    const result = await saveToVault("pre_full_sync");
+    preBackupId = result.id;
   } catch (e) {
     console.warn("[Sync] Pre-sync backup failed:", e);
   }
 
   try {
     const cloudData = await fetchCloudData();
+
+    // SAFETY FIX: Check if another sync started while we were fetching
+    if (syncVersion !== currentSyncVersion) {
+      console.warn("[Sync] Race condition detected, aborting this sync");
+      return null;
+    }
+
     const localData = getLocalData();
+
+    // SAFETY FIX: Validate data before merge
+    const localCount = (localData.completedMarkers?.length || 0) + (localData.favorites?.length || 0);
+    const cloudCount = (cloudData?.completedMarkers?.length || 0) + (cloudData?.favorites?.length || 0);
+
+    console.log(`[Sync] Data counts - Local: ${localCount}, Cloud: ${cloudCount}`);
+
     const mergedData = mergeData(localData, cloudData || {});
+
+    // SAFETY FIX: Validate merge result
+    const mergedCount = (mergedData.completedMarkers?.length || 0) + (mergedData.favorites?.length || 0);
+    if (mergedCount < Math.max(localCount, cloudCount) * 0.5) {
+      console.error("[Sync] Merge resulted in suspicious data loss, aborting");
+      if (preBackupId) {
+        try {
+          const { restoreFromVault } = await import("../storage/vault.js");
+          await restoreFromVault(preBackupId);
+        } catch (e) {
+          console.error("[Sync] Rollback failed:", e);
+        }
+      }
+      return null;
+    }
+
     const newHash = generateDataHash(mergedData);
     const dataChanged = newHash !== getSyncState().lastSyncVersion;
 
-    setLocalData(mergedData);
+    // SAFETY FIX: Check race condition again before applying changes
+    if (syncVersion !== currentSyncVersion) {
+      console.warn("[Sync] Race condition detected before save, aborting");
+      return null;
+    }
 
-    if (dataChanged) {
+    const setResult = setLocalData(mergedData);
+
+    // SAFETY FIX: Also save to Vault (primary database)
+    try {
+      const { primaryDb } = await import("../storage/db.js");
+      await primaryDb.setMultiple([
+        { key: "completedList", value: mergedData.completedMarkers },
+        { key: "favorites", value: mergedData.favorites },
+        { key: "settings", value: mergedData.settings }
+      ]);
+    } catch (e) {
+      console.warn("[Sync] Vault save failed:", e);
+    }
+
+    if (dataChanged && !setResult?.blocked) {
       await saveCloudData(mergedData);
       setLastSyncVersion(newHash);
       window.dispatchEvent(

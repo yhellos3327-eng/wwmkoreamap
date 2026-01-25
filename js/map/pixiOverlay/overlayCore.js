@@ -7,7 +7,13 @@ const Supercluster = /** @type {any} */ (window).Supercluster;
 import { state, setState } from "../../state.js";
 import { logger } from "../../logger.js";
 import { ICON_SIZE } from "./config.js";
-import { preloadTextures, clearTextureCache } from "./textureManager.js";
+import {
+  preloadTextures,
+  clearTextureCache,
+  getIconUrl,
+  getCachedTexture,
+  getDefaultTexture,
+} from "./textureManager.js";
 import {
   createSpriteForItem,
   clearSpriteDataMap,
@@ -132,49 +138,111 @@ export const initPixiOverlay = async () => {
             const count = cluster.properties.point_count;
             const clusterId = cluster.id;
 
-            const graphics = new PIXI.Graphics();
-            let color = 0x66bb6a;
-            let radius = 20;
+            // Get all items in cluster to check completion status
+            const allLeaves = supercluster.getLeaves(clusterId, Infinity);
+            const firstItem = allLeaves[0]?.properties?.item;
 
-            if (count > 100) {
-              color = 0xffca28;
-              radius = 30;
+            // Check if ALL items in cluster are completed
+            let allCompleted = allLeaves.length > 0;
+            for (const leaf of allLeaves) {
+              const item = leaf.properties?.item;
+              if (item) {
+                const isCompleted = state.completedList.some(
+                  (c) => String(c.id) === String(item.id)
+                );
+                if (!isCompleted) {
+                  allCompleted = false;
+                  break;
+                }
+              }
             }
-            if (count > 1000) {
-              color = 0xef5350;
-              radius = 40;
+
+            // Skip if hideCompleted is enabled and all items are completed
+            if (state.hideCompleted && allCompleted) {
+              return;
             }
 
-            graphics.beginFill(color, 0.8);
-            graphics.lineStyle(2, 0xffffff, 1);
-            graphics.drawCircle(0, 0, radius);
-            graphics.endFill();
-            graphics.x = coords.x;
-            graphics.y = coords.y;
+            // Create container
+            const clusterContainer = new PIXI.Container();
+            clusterContainer.x = coords.x;
+            clusterContainer.y = coords.y;
 
-            const text = new PIXI.Text(count.toString(), {
-              fontFamily: "Arial",
-              fontSize: 14,
-              fill: 0xffffff,
-              align: "center",
-              fontWeight: "bold",
-            });
-            text.anchor.set(0.5);
-            graphics.addChild(text);
+            const targetSize = ICON_SIZE / scale;
 
-            graphics.interactive = true;
-            graphics.cursor = "pointer";
-            graphics.markerData = {
+            // Main marker icon
+            let iconUrl = null;
+            if (firstItem) {
+              iconUrl = getIconUrl(firstItem.category);
+            }
+            const texture = (iconUrl && getCachedTexture(iconUrl)) || getDefaultTexture();
+
+            if (texture) {
+              const sprite = new PIXI.Sprite(texture);
+              sprite.anchor.set(0.5, 0.5);
+              sprite.width = targetSize;
+              sprite.height = targetSize;
+
+              // Apply grayscale filter if all completed (same as individual completed markers)
+              if (allCompleted) {
+                sprite.alpha = 0.4;
+                const colorMatrix = new PIXI.ColorMatrixFilter();
+                colorMatrix.desaturate();
+                sprite.filters = [colorMatrix];
+              }
+
+              clusterContainer.addChild(sprite);
+
+              // Badge - larger and more visible
+              const badgeText = count > 99 ? "99+" : count.toString();
+              const badgeRadius = Math.max(11, (badgeText.length > 2 ? 14 : 12)) / scale;
+              const badgeX = targetSize / 2.2;
+              const badgeY = -targetSize / 2.2;
+
+              const badge = new PIXI.Graphics();
+
+              // Outer glow/shadow for visibility
+              badge.beginFill(0x000000, 0.4);
+              badge.drawCircle(badgeX, badgeY, badgeRadius + 2 / scale);
+              badge.endFill();
+
+              // Main badge - gray if all completed, red otherwise
+              const badgeColor = allCompleted ? 0x888888 : 0xff3b30;
+              badge.beginFill(badgeColor, 1);
+              badge.drawCircle(badgeX, badgeY, badgeRadius);
+              badge.endFill();
+
+              // White border for contrast
+              badge.lineStyle(2 / scale, 0xffffff, 1);
+              badge.drawCircle(badgeX, badgeY, badgeRadius);
+              clusterContainer.addChild(badge);
+
+              // Badge text - larger font
+              const text = new PIXI.Text(badgeText, {
+                fontFamily: "Arial",
+                fontSize: badgeText.length > 2 ? 10 : 12,
+                fill: 0xffffff,
+                align: "center",
+                fontWeight: "bold",
+              });
+              text.anchor.set(0.5);
+              text.x = badgeX;
+              text.y = badgeY;
+              text.scale.set(1 / scale);
+              clusterContainer.addChild(text);
+            }
+
+            clusterContainer.interactive = true;
+            clusterContainer.cursor = "pointer";
+            clusterContainer.markerData = {
               isCluster: true,
               clusterId: clusterId,
               point_count: count,
               lat: lat,
               lng: lng,
+              allCompleted: allCompleted,
             };
 
-            graphics.scale.set(1 / scale);
-
-            pixiContainer.addChild(graphics);
+            pixiContainer.addChild(clusterContainer);
           } else {
             const item = cluster.properties.item;
             if (item) {
@@ -291,8 +359,8 @@ export const renderMarkersWithPixi = async (items) => {
 
   if (typeof Supercluster !== "undefined") {
     supercluster = new Supercluster({
-      radius: 60,
-      maxZoom: 16,
+      radius: 25, // Reduced: only cluster very close markers
+      maxZoom: 18,
       minPoints: 2,
     });
 

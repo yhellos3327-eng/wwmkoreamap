@@ -4,6 +4,7 @@ const PIXI = /** @type {any} */ (window).PIXI;
 
 import { ICON_SIZE } from "./config.js";
 import { createSpriteForItem, addSpriteToDataMap } from "./spriteFactory.js";
+import { updatePixiMarkers } from "./overlayCore.js";
 
 let spiderfiedClusterId = null;
 let spiderfyContainer = null;
@@ -51,9 +52,20 @@ export const updateSpiderfyPositions = (utils) => {
   const pixelLegLength = 40 + Math.min(count * 2, 100);
   const legLength = pixelLegLength / scale;
 
-  const legsGraphics = spiderfyContainer.children.find(
+  // Find hitArea (first graphics) and legs (second graphics)
+  const graphicsChildren = spiderfyContainer.children.filter(
     (c) => c instanceof PIXI.Graphics,
   );
+  const hitAreaGraphics = graphicsChildren[0];
+  const legsGraphics = graphicsChildren[1];
+
+  if (hitAreaGraphics) {
+    hitAreaGraphics.clear();
+    hitAreaGraphics.beginFill(0x000000, 0.001);
+    hitAreaGraphics.drawCircle(centerPoint.x, centerPoint.y, legLength * 1.1);
+    hitAreaGraphics.endFill();
+  }
+
   if (legsGraphics) {
     legsGraphics.clear();
     legsGraphics.lineStyle(2 / scale, 0x888888, 0.8);
@@ -120,6 +132,16 @@ export const spiderfyCluster = (
   const legLength = pixelLegLength / scale;
   const angleStep = (Math.PI * 2) / count;
 
+  // Background hit area for closing spiderfy when clicking on legs/lines
+  const hitAreaGraphics = new PIXI.Graphics();
+  hitAreaGraphics.interactive = true;
+  hitAreaGraphics.cursor = "pointer";
+  hitAreaGraphics.on("pointerdown", () => {
+    clearSpiderfy();
+    updatePixiMarkers();
+  });
+  spiderfyContainer.addChild(hitAreaGraphics);
+
   const legsGraphics = new PIXI.Graphics();
   spiderfyContainer.addChild(legsGraphics);
 
@@ -170,6 +192,12 @@ export const spiderfyCluster = (
     const currentScale = utils.getScale();
     const currentCenter = currentProject(currentCenterLatLng);
     const currentLegLength = (pixelLegLength / currentScale) * ease;
+
+    // Draw invisible hit area (circle covering the spider legs)
+    hitAreaGraphics.clear();
+    hitAreaGraphics.beginFill(0x000000, 0.001); // Nearly invisible but clickable
+    hitAreaGraphics.drawCircle(currentCenter.x, currentCenter.y, currentLegLength * 1.1);
+    hitAreaGraphics.endFill();
 
     legsGraphics.clear();
     legsGraphics.lineStyle(2 / currentScale, 0x888888, 0.8);

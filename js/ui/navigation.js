@@ -43,6 +43,12 @@ export const toggleCompleted = (id) => {
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
+  // DEBUG: Log toggle action
+  console.log(`%c[toggleCompleted] ${isNowCompleted ? '✅ 완료 추가' : '❌ 완료 삭제 (deleted: true)'}`,
+    `color: ${isNowCompleted ? 'green' : 'red'}; font-weight: bold`,
+    { id: targetId, before: state.completedList.length, action: isNowCompleted ? 'add' : 'remove' }
+  );
+
   if (isNowCompleted) {
     state.completedList.push({ id: targetId, completedAt });
     if (target?.marker) {
@@ -91,6 +97,19 @@ export const toggleCompleted = (id) => {
     }
   }
   localStorage.setItem("wwm_completed", JSON.stringify(state.completedList));
+
+  // DEBUG: Log after state change
+  console.log(`[toggleCompleted] 저장 완료 - completedList: ${state.completedList.length}개`, {
+    localStorage: JSON.parse(localStorage.getItem("wwm_completed") || "[]").length
+  });
+
+  // SAFETY: Also save to Vault (primary database)
+  import("../storage/db.js").then(({ primaryDb }) => {
+    primaryDb.set("completedList", state.completedList).then(() => {
+      console.log(`%c[toggleCompleted] ✅ Vault 저장 완료`, "color: green");
+    }).catch(console.warn);
+  }).catch(console.warn);
+
   triggerSync();
 
   updateSinglePixiMarker(targetId);
@@ -175,9 +194,26 @@ export const toggleFavorite = (id) => {
   );
   const isNowFavorite = index === -1;
 
+  // DEBUG: Log toggle action
+  console.log(`%c[toggleFavorite] ${isNowFavorite ? '⭐ 즐겨찾기 추가' : '❌ 즐겨찾기 삭제 (deleted: true)'}`,
+    `color: ${isNowFavorite ? 'gold' : 'red'}; font-weight: bold`,
+    { id: strId, before: state.favorites.length, action: isNowFavorite ? 'add' : 'remove' }
+  );
+
   if (isNowFavorite) state.favorites.push(strId);
   else state.favorites.splice(index, 1);
   localStorage.setItem("wwm_favorites", JSON.stringify(state.favorites));
+
+  // DEBUG: Log after state change
+  console.log(`[toggleFavorite] 저장 완료 - favorites: ${state.favorites.length}개`);
+
+  // SAFETY: Also save to Vault (primary database)
+  import("../storage/db.js").then(({ primaryDb }) => {
+    primaryDb.set("favorites", state.favorites).then(() => {
+      console.log(`%c[toggleFavorite] ✅ Vault 저장 완료`, "color: green");
+    }).catch(console.warn);
+  }).catch(console.warn);
+
   triggerSync();
   renderFavorites();
   const popupContainer = document.querySelector(
