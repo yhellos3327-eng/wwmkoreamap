@@ -22,7 +22,7 @@ const STORAGE_KEYS = {
   PRE_CACHE_DONE: "wwm_webllm_precache_done",
 };
 
-const MODEL_PRESETS = [
+export const MODEL_PRESETS = [
   {
     id: "Qwen2.5-0.5B-Instruct-q4f32_1-MLC",
     label: "0.5B",
@@ -77,10 +77,10 @@ const LLM_PARAMS = {
 };
 
 let webllmModule = null;
-let mlcEngine = null;
+export let mlcEngine = null;
 let currentModelId = null;
-let isEngineLoading = false;
-let engineLoadingProgress = { progress: 0, text: "" };
+export let isEngineLoading = false;
+export let engineLoadingProgress = { progress: 0, text: "" };
 let isPreCacheInProgress = false;
 
 let loadingMessageEl = null;
@@ -300,7 +300,7 @@ export function itemsToContext(items, maxItems = 20) {
  * Check whether a usable WebGPU adapter and device are available.
  * @returns {boolean} `true` if a high-performance WebGPU adapter and a device (with optional `shader-f16` feature) can be obtained, `false` otherwise.
  */
-async function checkWebGPUSupport() {
+export async function checkWebGPUSupport() {
   try {
     if (typeof navigator === "undefined" || !navigator.gpu) return false;
 
@@ -351,7 +351,7 @@ async function loadWebLLMModule() {
  * @param {string} modelId - The identifier of the model to check.
  * @returns {boolean} `true` if the model is found in the cache, `false` otherwise (also `false` if an error occurs).
  */
-async function hasModelInCache(modelId) {
+export async function hasModelInCache(modelId) {
   try {
     const module = await loadWebLLMModule();
     if (!module.hasModelInCache) {
@@ -370,7 +370,7 @@ async function hasModelInCache(modelId) {
  * Get the current model identifier from persistent storage, falling back to the default.
  * @returns {string} The stored model ID if it matches a known preset; otherwise the default model ID.
  */
-async function getStoredModelId() {
+export async function getStoredModelId() {
   const { primaryDb } = await import("./storage/db.js");
   const stored = await primaryDb.get(STORAGE_KEYS.MODEL_ID);
   if (stored && MODEL_PRESETS.some((p) => p.id === stored)) {
@@ -387,7 +387,7 @@ async function getStoredModelId() {
  * - `{kind: "not-installed"}` if it is not cached,
  * - `{kind: "error", message}` if the check failed.
  */
-async function getInstallState(modelId) {
+export async function getInstallState(modelId) {
   try {
     const inCache = await hasModelInCache(modelId);
     if (inCache) {
@@ -424,7 +424,7 @@ function createProgressCallback(onProgress) {
  * @returns {object} The MLCEngine instance ready for use.
  * @throws {Error} If an engine is already loading or if engine creation fails.
  */
-async function getOrCreateEngine(modelId, onProgress) {
+export async function getOrCreateEngine(modelId, onProgress) {
   if (isEngineLoading) {
     throw new Error("엔진이 이미 로딩 중입니다");
   }
@@ -1322,20 +1322,6 @@ export async function initWebLLM() {
 
   return initPromise;
 }
-
-export {
-  MODEL_PRESETS,
-  getStoredModelId,
-  getInstallState,
-  checkWebGPUSupport,
-  hasModelInCache,
-  getOrCreateEngine,
-  mlcEngine,
-  isEngineLoading,
-  engineLoadingProgress,
-  setThinkingEnabled,
-  isThinkingEnabled,
-};
 
 export default {
   initWebLLM,

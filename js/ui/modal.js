@@ -23,8 +23,8 @@ export const openRelatedModal = (catId) => {
   if (title) title.innerText = `${t(catId)} 전체 목록`;
   if (input) input.value = "";
   if (listEl) listEl.innerHTML = "";
-  const currentModalList = Array.from(state.allMarkers.values()).filter(
-    (m) => m.category === catId,
+  const currentModalList = state.mapData.items.filter(
+    (item) => item.category === catId,
   );
   setState("currentModalList", currentModalList);
   renderModalList(currentModalList);

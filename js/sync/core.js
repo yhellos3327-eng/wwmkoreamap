@@ -506,7 +506,7 @@ export const initSync = async () => {
     return;
   }
 
-  // showSyncTooltip("데이터 동기화 중...");
+  showSyncTooltip("데이터 동기화 중...");
 
   try {
     const mergedData = await performFullSync(true, false);
@@ -514,10 +514,10 @@ export const initSync = async () => {
       window.dispatchEvent(
         new CustomEvent("syncDataLoaded", { detail: mergedData }),
       );
-      // showSyncTooltip("동기화 완료!", "success");
-      // hideSyncTooltip(1500);
+      showSyncTooltip("동기화 완료!", "success");
+      hideSyncTooltip(1500);
     } else {
-      // hideSyncTooltip(0);
+      hideSyncTooltip(0);
     }
     setupRealtimeSync();
   } catch (error) {
