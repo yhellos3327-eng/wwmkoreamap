@@ -4,7 +4,7 @@ import { state, setState } from "../state.js";
 import { triggerSync, updateSettingWithTimestamp } from "../sync.js";
 import { renderMapDataAndMarkers } from "../map.js";
 
-export const initAdToggle = () => {
+export const initAdToggle = async () => {
   const adContainer = /** @type {HTMLElement} */ (
     document.querySelector(".ad-container")
   );
@@ -14,14 +14,15 @@ export const initAdToggle = () => {
 
   if (!adContainer || !toggleAd) return;
 
-  const storedAd = localStorage.getItem("wwm_show_ad");
+  const { primaryDb } = await import("../storage/db.js");
+  const storedAd = await primaryDb.get("wwm_show_ad");
   const showAd = storedAd === null ? true : storedAd === "true";
   toggleAd.checked = showAd;
   adContainer.style.display = showAd ? "block" : "none";
 
   toggleAd.addEventListener("change", (e) => {
     const isChecked = /** @type {HTMLInputElement} */ (e.target).checked;
-    localStorage.setItem("wwm_show_ad", String(isChecked));
+    primaryDb.set("wwm_show_ad", String(isChecked)).catch(console.warn);
     adContainer.style.display = isChecked ? "block" : "none";
     triggerSync();
   });
@@ -121,7 +122,7 @@ export const initToggles = () => {
         ) {
           overallStatus =
             status.translatorStatus === "downloadable" ||
-            status.detectorStatus === "downloadable"
+              status.detectorStatus === "downloadable"
               ? "downloadable"
               : "unavailable";
         }
@@ -172,12 +173,12 @@ export const initToggles = () => {
     webLLMToggleInput.addEventListener("change", (e) => {
       setState(
         "enableWebLLM",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
-      localStorage.setItem(
-        "wwm_enable_web_llm",
-        String(/** @type {HTMLInputElement} */ (e.target).checked),
-      );
+      updateSettingWithTimestamp(
+        "enableWebLLM",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update enableWebLLM setting:", err));
     });
   }
 
@@ -187,12 +188,12 @@ export const initToggles = () => {
     clusterToggleInput.addEventListener("change", (e) => {
       setState(
         "enableClustering",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "enable_clustering",
-        /** @type {HTMLInputElement} */ (e.target).checked,
-      );
+        "enableClustering",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update enableClustering setting:", err));
       renderMapDataAndMarkers();
     });
   }
@@ -201,12 +202,12 @@ export const initToggles = () => {
     hideCompletedInput.addEventListener("change", (e) => {
       setState(
         "hideCompleted",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "hide_completed",
-        /** @type {HTMLInputElement} */ (e.target).checked,
-      );
+        "hideCompleted",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update hideCompleted setting:", err));
       renderMapDataAndMarkers();
     });
   }
@@ -217,12 +218,12 @@ export const initToggles = () => {
     commentsToggleInput.addEventListener("change", (e) => {
       setState(
         "showComments",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "show_comments",
-        /** @type {HTMLInputElement} */ (e.target).checked,
-      );
+        "showComments",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update showComments setting:", err));
     });
   }
 
@@ -232,12 +233,12 @@ export const initToggles = () => {
     closeOnCompleteInput.addEventListener("change", (e) => {
       setState(
         "closeOnComplete",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "close_on_complete",
-        /** @type {HTMLInputElement} */ (e.target).checked,
-      );
+        "closeOnComplete",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update closeOnComplete setting:", err));
     });
   }
 
@@ -247,19 +248,20 @@ export const initToggles = () => {
     disableRegionPanInput.addEventListener("change", (e) => {
       setState(
         "disableRegionClickPan",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
-      localStorage.setItem(
-        "wwm_disable_region_click_pan",
-        String(/** @type {HTMLInputElement} */ (e.target).checked),
-      );
+      updateSettingWithTimestamp(
+        "disableRegionClickPan",
+        /** @type {HTMLInputElement} */(e.target).checked,
+      ).catch((err) => console.warn("Failed to update disableRegionClickPan setting:", err));
     });
   }
 
   return {
-    loadValues: () => {
+    loadValues: async () => {
       if (adToggleInput) {
-        const storedAd = localStorage.getItem("wwm_show_ad");
+        const { primaryDb } = await import("../storage/db.js");
+        const storedAd = await primaryDb.get("wwm_show_ad");
         /** @type {HTMLInputElement} */ (adToggleInput).checked =
           storedAd === null ? true : storedAd === "true";
       }
@@ -290,9 +292,11 @@ export const saveToggleSettings = () => {
   const adToggleInput = document.getElementById("toggle-ad");
 
   if (adToggleInput) {
-    localStorage.setItem(
-      "wwm_show_ad",
-      String(/** @type {HTMLInputElement} */ (adToggleInput).checked),
-    );
+    import("../storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set(
+        "wwm_show_ad",
+        String(/** @type {HTMLInputElement} */(adToggleInput).checked),
+      ).catch(console.warn);
+    });
   }
 };

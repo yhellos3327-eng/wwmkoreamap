@@ -17,7 +17,12 @@ import {
   getPixiContainer,
 } from "./overlayCore.js";
 import { logMarkerDebugInfo } from "../markerDebug.js";
-import { spiderfyCluster } from "./spiderfy.js";
+import {
+  spiderfyCluster,
+  clearSpiderfy,
+  getSpiderfiedClusterId,
+  getSpiderfyContainer,
+} from "./spiderfy.js";
 
 let isEventHandlerAttached = false;
 let registeredHandlers = {
@@ -25,6 +30,7 @@ let registeredHandlers = {
   contextmenu: null,
   mousemove: null,
   mousedown: null,
+  domClick: null,
 };
 
 /**
@@ -64,7 +70,40 @@ const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
 };
 
 /**
- * Finds a sprite at the given position.
+ * Gets priority score for a sprite (higher = more important).
+ * Priority: Clusters > Uncompleted markers > Completed markers
+ * @param {any} sprite - The sprite to evaluate.
+ * @returns {number} Priority score.
+ */
+const getSpritePriority = (sprite) => {
+  if (!sprite.markerData) return 0;
+
+  // Clusters have highest priority
+  if (sprite.markerData.isCluster) return 100;
+
+  // Uncompleted markers have higher priority than completed
+  if (sprite.markerData.isCompleted) return 10;
+
+  return 50; // Uncompleted marker
+};
+
+/**
+ * Calculates distance from click point to sprite center.
+ * @param {number} clickLat - Clicked latitude.
+ * @param {number} clickLng - Clicked longitude.
+ * @param {any} sprite - The sprite.
+ * @returns {number} Distance in degrees.
+ */
+const getDistanceToSprite = (clickLat, clickLng, sprite) => {
+  const dLat = clickLat - sprite.markerData.lat;
+  const dLng = clickLng - sprite.markerData.lng;
+  return Math.sqrt(dLat * dLat + dLng * dLng);
+};
+
+/**
+ * Finds a sprite at the given position with priority handling.
+ * When multiple markers overlap, prioritizes: Clusters > Uncompleted > Completed
+ * Among same priority, chooses the closest to click point.
  * @param {any} container - The PIXI container.
  * @param {number} clickLat - The clicked latitude.
  * @param {number} clickLng - The clicked longitude.
@@ -79,26 +118,50 @@ export const findSpriteAtPosition = (
 ) => {
   if (!container) return null;
 
-  const searchRecursive = (parent) => {
-    if (!parent || !parent.children) return null;
+  const candidates = [];
+
+  const collectCandidates = (parent) => {
+    if (!parent || !parent.children) return;
+
     for (let i = parent.children.length - 1; i >= 0; i--) {
       const child = parent.children[i];
-      if (child instanceof PIXI.Container && child.children.length > 0) {
-        const found = searchRecursive(child);
-        if (found) return found;
+
+      // Recursively search containers
+      if (child instanceof PIXI.Container && child.children.length > 0 && !child.markerData) {
+        collectCandidates(child);
       }
 
+      // Check if this sprite is near the click point
       if (
         child.markerData &&
         isPointNearSprite(clickLat, clickLng, child, hitRadiusDeg)
       ) {
-        return child;
+        candidates.push(child);
       }
     }
-    return null;
   };
 
-  return searchRecursive(container);
+  collectCandidates(container);
+
+  if (candidates.length === 0) return null;
+  if (candidates.length === 1) return candidates[0];
+
+  // Sort by priority (desc), then by distance (asc)
+  candidates.sort((a, b) => {
+    const priorityA = getSpritePriority(a);
+    const priorityB = getSpritePriority(b);
+
+    if (priorityA !== priorityB) {
+      return priorityB - priorityA; // Higher priority first
+    }
+
+    // Same priority - choose closest to click point
+    const distA = getDistanceToSprite(clickLat, clickLng, a);
+    const distB = getDistanceToSprite(clickLat, clickLng, b);
+    return distA - distB; // Closer first
+  });
+
+  return candidates[0];
 };
 
 /**
@@ -141,66 +204,63 @@ export const attachEventHandlers = (map, overlay, container) => {
       }
     }
 
-    if (!container || container.children.length === 0) return;
-
     const clickLat = e.latlng.lat;
     const clickLng = e.latlng.lng;
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-    const sprite = findSpriteAtPosition(
-      container,
-      clickLat,
-      clickLng,
-      hitRadiusDeg,
-    );
+    // First check spiderfied markers if spider is open
+    const spiderfyContainer = getSpiderfyContainer();
+    let sprite = null;
+
+    if (spiderfyContainer) {
+      sprite = findSpriteAtPosition(
+        spiderfyContainer,
+        clickLat,
+        clickLng,
+        hitRadiusDeg,
+      );
+
+      // If clicked outside spiderfied markers, close the spider
+      if (!sprite) {
+        clearSpiderfy();
+        updatePixiMarkers();
+        map.closePopup();
+        return;
+      }
+    }
+
+    // If no spiderfy or sprite found, check main container
+    if (!sprite && container && container.children.length > 0) {
+      sprite = findSpriteAtPosition(
+        container,
+        clickLat,
+        clickLng,
+        hitRadiusDeg,
+      );
+    }
 
     if (sprite && sprite.markerData) {
       if (sprite.markerData.isCluster) {
         const supercluster = getSupercluster();
         if (supercluster) {
           const clusterId = sprite.markerData.clusterId;
-          const expansionZoom = supercluster.getClusterExpansionZoom(clusterId);
-
           const leaves = supercluster.getLeaves(clusterId, Infinity);
 
-          let allSamePosition = true;
-          if (leaves.length > 0) {
-            const firstGeom = leaves[0].geometry.coordinates;
-            for (let i = 1; i < leaves.length; i++) {
-              const geom = leaves[i].geometry.coordinates;
-              if (geom[0] !== firstGeom[0] || geom[1] !== firstGeom[1]) {
-                allSamePosition = false;
-                break;
-              }
-            }
-          }
+          // Always use spiderfy effect for clusters (no zoom-in)
+          const utils = getPixiUtils();
+          const mainContainer = getPixiContainer();
 
-          const maxZoom = map.getMaxZoom();
-          if (
-            Number.isNaN(expansionZoom) ||
-            expansionZoom > maxZoom ||
-            allSamePosition
-          ) {
-            const utils = getPixiUtils();
-            const mainContainer = getPixiContainer();
-
-            if (utils && mainContainer) {
-              spiderfyCluster(
-                clusterId,
-                [sprite.markerData.lat, sprite.markerData.lng],
-                leaves,
-                mainContainer,
-                utils,
-              );
-
-              map.panTo([sprite.markerData.lat, sprite.markerData.lng]);
-            }
-          } else {
-            map.flyTo(
+          if (utils && mainContainer && leaves.length > 0) {
+            spiderfyCluster(
+              clusterId,
               [sprite.markerData.lat, sprite.markerData.lng],
-              expansionZoom,
+              leaves,
+              mainContainer,
+              utils,
             );
+
+            map.panTo([sprite.markerData.lat, sprite.markerData.lng]);
           }
         }
         if (e.originalEvent) {
@@ -235,26 +295,42 @@ export const attachEventHandlers = (map, overlay, container) => {
         showPopupForSprite(sprite);
       }
     } else {
+      // No sprite found - close popup
       map.closePopup();
     }
   };
 
   const handleContextMenu = (e) => {
-    if (!container || container.children.length === 0) return;
-
     const clickLat = e.latlng.lat;
     const clickLng = e.latlng.lng;
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-    const sprite = findSpriteAtPosition(
-      container,
-      clickLat,
-      clickLng,
-      hitRadiusDeg,
-    );
+    // First, check spiderfied markers (they have higher priority)
+    const spiderfyContainer = getSpiderfyContainer();
 
-    if (sprite) {
+    let sprite = null;
+
+    if (spiderfyContainer) {
+      sprite = findSpriteAtPosition(
+        spiderfyContainer,
+        clickLat,
+        clickLng,
+        hitRadiusDeg,
+      );
+    }
+
+    // If not found in spiderfy, check main container
+    if (!sprite && container && container.children.length > 0) {
+      sprite = findSpriteAtPosition(
+        container,
+        clickLat,
+        clickLng,
+        hitRadiusDeg,
+      );
+    }
+
+    if (sprite && sprite.markerData && sprite.markerData.item) {
       if (e.originalEvent) {
         L.DomEvent.preventDefault(e.originalEvent);
         L.DomEvent.stopPropagation(e.originalEvent);
@@ -262,7 +338,12 @@ export const attachEventHandlers = (map, overlay, container) => {
 
       toggleCompleted(sprite.markerData.item.id);
 
+      // Update visual state
       setTimeout(() => {
+        // If this was a spiderfied marker, close the spider and refresh
+        if (sprite.markerData.isSpiderfied) {
+          clearSpiderfy();
+        }
         updatePixiMarkers();
       }, 50);
     }
@@ -348,15 +429,63 @@ export const attachEventHandlers = (map, overlay, container) => {
     }
   };
 
+  // DOM-level click handler to catch clicks on overlays (polygons, boundaries)
+  // that don't trigger Leaflet's map click event
+  const handleDomClick = (e) => {
+    // Only process if spiderfy is open
+    if (getSpiderfiedClusterId() === null) return;
+
+    // Check if click is on an overlay element (canvas, svg path, etc.)
+    const target = /** @type {HTMLElement} */ (e.target);
+    const isOverlayClick =
+      target.tagName === "CANVAS" ||
+      target.tagName === "path" ||
+      target.tagName === "svg" ||
+      target.closest("svg") ||
+      target.classList.contains("leaflet-overlay-pane") ||
+      target.closest(".leaflet-overlay-pane");
+
+    if (isOverlayClick) {
+      // Convert screen coordinates to map coordinates
+      const point = map.containerPointToLatLng([e.clientX - map.getContainer().getBoundingClientRect().left, e.clientY - map.getContainer().getBoundingClientRect().top]);
+      const clickLat = point.lat;
+      const clickLng = point.lng;
+      const zoom = map.getZoom();
+      const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
+
+      // Check if clicking on a spiderfied marker
+      const spiderfyContainerRef = getSpiderfyContainer();
+      if (spiderfyContainerRef) {
+        const sprite = findSpriteAtPosition(
+          spiderfyContainerRef,
+          clickLat,
+          clickLng,
+          hitRadiusDeg,
+        );
+
+        // If not clicking on a spiderfied marker, close the spider
+        if (!sprite) {
+          clearSpiderfy();
+          updatePixiMarkers();
+          map.closePopup();
+        }
+      }
+    }
+  };
+
   registeredHandlers.click = handleClick;
   registeredHandlers.contextmenu = handleContextMenu;
   registeredHandlers.mousemove = handleMouseMove;
   registeredHandlers.mousedown = handleMouseDown;
+  registeredHandlers.domClick = handleDomClick;
 
   map.on("click", handleClick);
   map.on("contextmenu", handleContextMenu);
   map.on("mousemove", handleMouseMove);
   map.on("mousedown", handleMouseDown);
+
+  // Add DOM-level click listener to catch overlay clicks
+  map.getContainer().addEventListener("click", handleDomClick, true);
 
   isEventHandlerAttached = true;
   console.log("%c[GPU Events] ✓ Event handlers attached", "color: #4CAF50;");
@@ -381,12 +510,16 @@ export const detachEventHandlers = (map) => {
   if (registeredHandlers.mousedown) {
     map.off("mousedown", registeredHandlers.mousedown);
   }
+  if (registeredHandlers.domClick) {
+    map.getContainer().removeEventListener("click", registeredHandlers.domClick, true);
+  }
 
   registeredHandlers = {
     click: null,
     contextmenu: null,
     mousemove: null,
     mousedown: null,
+    domClick: null,
   };
   isEventHandlerAttached = false;
 
@@ -409,5 +542,6 @@ export const resetEventHandlers = () => {
     contextmenu: null,
     mousemove: null,
     mousedown: null,
+    domClick: null,
   };
 };

@@ -15,6 +15,45 @@ import { logger } from "../logger.js";
 import { showCompletedTooltip, hideCompletedTooltip } from "../map/markers.js";
 import { triggerSync } from "../sync.js";
 import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
+import { primaryDb } from "../storage/db.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Navigation");
+
+/**
+ * Write queue for serialized Vault writes per key.
+ * @type {Map<string, Promise<any>>}
+ */
+const vaultWriteQueues = new Map();
+
+/**
+ * Queue a Vault write to ensure serialized writes per key.
+ * @param {string} key - The storage key.
+ * @param {any} value - The value to write.
+ * @param {string} label - Label for logging.
+ * @returns {Promise<void>}
+ */
+const queueVaultWrite = async (key, value, label) => {
+  const previousWrite = vaultWriteQueues.get(key) || Promise.resolve();
+
+  const writePromise = previousWrite.then(async () => {
+    try {
+      const result = await primaryDb.set(key, value);
+      if (!result || !result.success) {
+        throw new Error(`Vault write failed: ${result?.error || 'Unknown error'}`);
+      }
+      log.vault(`${label} 저장 완료`, Array.isArray(value) ? value.length : value);
+    } catch (e) {
+      log.error(`${label} 저장 실패`, e);
+      throw e;
+    }
+  }).catch(e => {
+    log.error(`${label} write queue error`, e);
+  });
+
+  vaultWriteQueues.set(key, writePromise);
+  return writePromise;
+};
 
 /**
  * @typedef {import("../data/processors.js").MapItem} MapItem
@@ -42,6 +81,13 @@ export const toggleCompleted = (id) => {
   );
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
+
+  // Log toggle action
+  if (isNowCompleted) {
+    log.success(`완료 추가: ${targetId}`, { before: state.completedList.length });
+  } else {
+    log.warn(`완료 삭제: ${targetId}`, { before: state.completedList.length });
+  }
 
   if (isNowCompleted) {
     state.completedList.push({ id: targetId, completedAt });
@@ -90,7 +136,9 @@ export const toggleCompleted = (id) => {
       hideCompletedTooltip();
     }
   }
-  localStorage.setItem("wwm_completed", JSON.stringify(state.completedList));
+  // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
+  queueVaultWrite("completedList", state.completedList, "completedList");
+
   triggerSync();
 
   updateSinglePixiMarker(targetId);
@@ -175,9 +223,19 @@ export const toggleFavorite = (id) => {
   );
   const isNowFavorite = index === -1;
 
+  // Log toggle action
+  if (isNowFavorite) {
+    log.success(`즐겨찾기 추가: ${strId}`, state.favorites.length);
+  } else {
+    log.warn(`즐겨찾기 삭제: ${strId}`, { before: state.favorites.length });
+  }
+
   if (isNowFavorite) state.favorites.push(strId);
   else state.favorites.splice(index, 1);
-  localStorage.setItem("wwm_favorites", JSON.stringify(state.favorites));
+
+  // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
+  queueVaultWrite("favorites", state.favorites, "favorites");
+
   triggerSync();
   renderFavorites();
   const popupContainer = document.querySelector(

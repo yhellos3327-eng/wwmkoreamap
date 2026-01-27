@@ -1,6 +1,7 @@
 // @ts-check
 /**
  * @fileoverview Dexie.js wrapper for persistent storage vault.
+ * Primary database for user data (completedList, favorites, settings).
  * @module storage/db
  */
 
@@ -9,13 +10,19 @@ import { Dexie } from 'https://unpkg.com/dexie/dist/modern/dexie.mjs';
 
 const DB_NAME = "WwmVaultDB";
 const STORE_NAME = "backups";
+const PRIMARY_STORE = "primary_data";
 
 // Initialize Dexie database
 const dexieDb = new Dexie(DB_NAME);
 
-// Define schema
+// Define schema - version 2 adds primary_data store
 dexieDb.version(1).stores({
     [STORE_NAME]: '++id, timestamp, reason'
+});
+
+dexieDb.version(2).stores({
+    [STORE_NAME]: '++id, timestamp, reason',
+    [PRIMARY_STORE]: 'key, updatedAt'
 });
 
 export const db = {
@@ -123,4 +130,277 @@ export const db = {
             console.error("[Dexie] Prune failed:", error);
         }
     },
+};
+
+// ============================================================================
+// PRIMARY DATA STORE - Main database for user data
+// ============================================================================
+
+/**
+ * @typedef {Object} PrimaryDataEntry
+ * @property {string} key - The data key (e.g., 'completedList', 'favorites', 'settings')
+ * @property {any} value - The actual data
+ * @property {number} updatedAt - Timestamp of last update
+ * @property {number} [version] - Data version for conflict resolution
+ */
+
+/**
+ * Primary data store for main user data.
+ * This replaces localStorage as the source of truth.
+ */
+export const primaryDb = {
+    /**
+     * Gets a value from the primary store.
+     * @param {string} key - The data key.
+     * @returns {Promise<any|null>} The stored value or null.
+     */
+    get: async (key) => {
+        try {
+            // @ts-ignore
+            const entry = await dexieDb[PRIMARY_STORE].get(key);
+            console.log(`[PrimaryDB] get("${key}"):`, entry ? `found (${Array.isArray(entry.value) ? entry.value.length + ' items' : typeof entry.value})` : 'null');
+            return entry?.value ?? null;
+        } catch (error) {
+            console.error("[PrimaryDB] Get failed:", key, error);
+            return null;
+        }
+    },
+
+    /**
+     * Gets a value with metadata.
+     * @param {string} key - The data key.
+     * @returns {Promise<PrimaryDataEntry|null>} The entry with metadata or null.
+     */
+    getWithMeta: async (key) => {
+        try {
+            // @ts-ignore
+            const entry = await dexieDb[PRIMARY_STORE].get(key);
+            return entry || null;
+        } catch (error) {
+            console.error("[PrimaryDB] GetWithMeta failed:", key, error);
+            return null;
+        }
+    },
+
+    /**
+     * Sets a value in the primary store.
+     * @param {string} key - The data key.
+     * @param {any} value - The value to store.
+     * @param {number} [version] - Optional version number.
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    set: async (key, value, version) => {
+        try {
+            const now = Date.now();
+            // @ts-ignore
+            await dexieDb[PRIMARY_STORE].put({
+                key,
+                value,
+                updatedAt: now,
+                version: version ?? now
+            });
+            console.log(`[PrimaryDB] set("${key}"):`, Array.isArray(value) ? `${value.length} items` : typeof value);
+            return { success: true };
+        } catch (error) {
+            console.error("[PrimaryDB] Set failed:", key, error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Sets multiple values atomically.
+     * @param {Array<{key: string, value: any, version?: number}>} entries - Entries to set.
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    setMultiple: async (entries) => {
+        try {
+            const now = Date.now();
+            const records = entries.map(({ key, value, version }) => ({
+                key,
+                value,
+                updatedAt: now,
+                version: version ?? now
+            }));
+            // @ts-ignore
+            await dexieDb[PRIMARY_STORE].bulkPut(records);
+            console.log(`[PrimaryDB] setMultiple:`, entries.map(e => `${e.key}=${Array.isArray(e.value) ? e.value.length + ' items' : typeof e.value}`).join(', '));
+            return { success: true };
+        } catch (error) {
+            console.error("[PrimaryDB] SetMultiple failed:", error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Gets all entries from the primary store.
+     * @returns {Promise<Object<string, any>>} All stored data as key-value pairs.
+     */
+    getAll: async () => {
+        try {
+            // @ts-ignore
+            const entries = await dexieDb[PRIMARY_STORE].toArray();
+            const result = {};
+            for (const entry of entries) {
+                result[entry.key] = entry.value;
+            }
+            return result;
+        } catch (error) {
+            console.error("[PrimaryDB] GetAll failed:", error);
+            return {};
+        }
+    },
+
+    /**
+     * Gets all entries with metadata.
+     * @returns {Promise<PrimaryDataEntry[]>} All entries with metadata.
+     */
+    getAllWithMeta: async () => {
+        try {
+            // @ts-ignore
+            return await dexieDb[PRIMARY_STORE].toArray();
+        } catch (error) {
+            console.error("[PrimaryDB] GetAllWithMeta failed:", error);
+            return [];
+        }
+    },
+
+    /**
+     * Gets all keys from the primary store.
+     * @returns {Promise<string[]>} All keys.
+     */
+    getAllKeys: async () => {
+        try {
+            // @ts-ignore
+            return await dexieDb[PRIMARY_STORE].toCollection().primaryKeys();
+        } catch (error) {
+            console.error("[PrimaryDB] GetAllKeys failed:", error);
+            return [];
+        }
+    },
+
+    /**
+     * Deletes a value from the primary store.
+     * @param {string} key - The data key.
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    delete: async (key) => {
+        try {
+            // @ts-ignore
+            await dexieDb[PRIMARY_STORE].delete(key);
+            return { success: true };
+        } catch (error) {
+            console.error("[PrimaryDB] Delete failed:", key, error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Checks if the primary store has any data.
+     * @returns {Promise<boolean>} Whether data exists.
+     */
+    hasData: async () => {
+        try {
+            // @ts-ignore
+            const count = await dexieDb[PRIMARY_STORE].count();
+            return count > 0;
+        } catch (error) {
+            console.error("[PrimaryDB] HasData failed:", error);
+            return false;
+        }
+    },
+
+    /**
+     * Gets the count of entries.
+     * @returns {Promise<number>} Entry count.
+     */
+    count: async () => {
+        try {
+            // @ts-ignore
+            return await dexieDb[PRIMARY_STORE].count();
+        } catch (error) {
+            console.error("[PrimaryDB] Count failed:", error);
+            return 0;
+        }
+    },
+
+    /**
+     * Clears all data from the primary store (use with caution!).
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    clear: async () => {
+        try {
+            // @ts-ignore
+            await dexieDb[PRIMARY_STORE].clear();
+            return { success: true };
+        } catch (error) {
+            console.error("[PrimaryDB] Clear failed:", error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
+     * Exports all data for backup purposes.
+     * @returns {Promise<{data: Object, exportedAt: number, version: string}>}
+     */
+    exportAll: async () => {
+        try {
+            // @ts-ignore
+            const entries = await dexieDb[PRIMARY_STORE].toArray();
+            const data = {};
+            for (const entry of entries) {
+                data[entry.key] = {
+                    value: entry.value,
+                    updatedAt: entry.updatedAt,
+                    version: entry.version
+                };
+            }
+            return {
+                data,
+                exportedAt: Date.now(),
+                version: "2.0"
+            };
+        } catch (error) {
+            console.error("[PrimaryDB] ExportAll failed:", error);
+            return { data: {}, exportedAt: Date.now(), version: "2.0" };
+        }
+    },
+
+    /**
+     * Imports data from a backup (with safety checks).
+     * @param {Object<string, {value: any, updatedAt?: number, version?: number}>} data - Data to import.
+     * @param {boolean} [overwrite=false] - Whether to overwrite existing data.
+     * @returns {Promise<{success: boolean, imported: number, skipped: number, error?: string}>}
+     */
+    importAll: async (data, overwrite = false) => {
+        try {
+            let imported = 0;
+            let skipped = 0;
+            const now = Date.now();
+
+            for (const [key, entry] of Object.entries(data)) {
+                if (!overwrite) {
+                    // @ts-ignore
+                    const existing = await dexieDb[PRIMARY_STORE].get(key);
+                    if (existing) {
+                        skipped++;
+                        continue;
+                    }
+                }
+
+                // @ts-ignore
+                await dexieDb[PRIMARY_STORE].put({
+                    key,
+                    value: entry.value ?? entry,
+                    updatedAt: entry.updatedAt ?? now,
+                    version: entry.version ?? now
+                });
+                imported++;
+            }
+
+            return { success: true, imported, skipped };
+        } catch (error) {
+            console.error("[PrimaryDB] ImportAll failed:", error);
+            return { success: false, imported: 0, skipped: 0, error: error.message };
+        }
+    }
 };

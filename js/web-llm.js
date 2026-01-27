@@ -85,6 +85,35 @@ let isPreCacheInProgress = false;
 
 let loadingMessageEl = null;
 let isInitialized = false;
+let initPromise = null;
+
+/**
+ * Toggles thinking mode and persists the setting.
+ * @param {boolean} enabled - Whether thinking mode should be enabled.
+ * @returns {Promise<void>}
+ */
+export async function setThinkingEnabled(enabled) {
+  const { primaryDb } = await import("./storage/db.js");
+  const value = enabled ? "true" : "false";
+  const result = await primaryDb.set(STORAGE_KEYS.THINKING_ENABLED, value);
+  if (!result || !result.success) {
+    logger.error("WebLLM", "Failed to save thinking mode setting", result);
+  } else {
+    logger.log("WebLLM", `Thinking mode set to: ${enabled}`);
+  }
+}
+
+/**
+ * Gets the current thinking mode setting.
+ * @returns {Promise<boolean>} Whether thinking mode is enabled.
+ */
+export async function isThinkingEnabled() {
+  const { primaryDb } = await import("./storage/db.js");
+  const stored = await primaryDb.get(STORAGE_KEYS.THINKING_ENABLED);
+  // Normalize: accept string "true", boolean true, or treat null/undefined as false
+  if (stored === true || stored === "true") return true;
+  return false;
+}
 
 const categoryIdToKoreanMap = new Map();
 const infoIdToKoreanMap = new Map();
@@ -341,8 +370,9 @@ async function hasModelInCache(modelId) {
  * Get the current model identifier from persistent storage, falling back to the default.
  * @returns {string} The stored model ID if it matches a known preset; otherwise the default model ID.
  */
-function getStoredModelId() {
-  const stored = localStorage.getItem(STORAGE_KEYS.MODEL_ID);
+async function getStoredModelId() {
+  const { primaryDb } = await import("./storage/db.js");
+  const stored = await primaryDb.get(STORAGE_KEYS.MODEL_ID);
   if (stored && MODEL_PRESETS.some((p) => p.id === stored)) {
     return stored;
   }
@@ -481,7 +511,7 @@ export async function preCacheModel(options = {}) {
     return;
   }
 
-  const modelId = getStoredModelId();
+  const modelId = await getStoredModelId();
 
   if (!force) {
     const cached = await hasModelInCache(modelId);
@@ -506,7 +536,8 @@ export async function preCacheModel(options = {}) {
 
   try {
     await getOrCreateEngine(modelId, onProgress);
-    localStorage.setItem(STORAGE_KEYS.PRE_CACHE_DONE, "true");
+    const { primaryDb } = await import("./storage/db.js");
+    await primaryDb.set(STORAGE_KEYS.PRE_CACHE_DONE, "true");
     logger.success("WebLLM", "사전 캐시 완료");
     if (onComplete) onComplete();
   } catch (e) {
@@ -799,7 +830,7 @@ export async function sendChatMessage(userMessage, options = {}) {
 
   const context = itemsToContext(items, 15);
 
-  const modelId = getStoredModelId();
+  const modelId = await getStoredModelId();
   let engine;
 
   try {
@@ -1158,10 +1189,11 @@ async function handleChatSubmit() {
       logger.log("WebLLM", `RAG 검색: "${message}" -> 관련 아이템 없음`);
     }
 
+    const thinkingEnabled = await isThinkingEnabled();
+
     await sendChatMessage(message, {
       items: contextItems,
-      enableThinking:
-        localStorage.getItem(STORAGE_KEYS.THINKING_ENABLED) === "true",
+      enableThinking: thinkingEnabled,
       onStream: ({ content }) => {
         if (assistantEl) {
           assistantEl.innerHTML = formatChatMessage(content || "생각 중...");
@@ -1200,7 +1232,7 @@ async function handleChatSubmit() {
  *   and handles changes by persisting the selection, emitting a system message, updating UI state,
  *   and initiating model precaching with progress/completion/error callbacks that refresh UI status.
  */
-function setupEventListeners() {
+async function setupEventListeners() {
   const sendBtn = document.querySelector(".web-llm-send-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", handleChatSubmit);
@@ -1229,12 +1261,14 @@ function setupEventListeners() {
       (p) => `<option value="${p.id}">${p.label}</option>`,
     ).join("");
 
-    modelSelect.value = getStoredModelId();
+    modelSelect.value = await getStoredModelId();
 
-    modelSelect.addEventListener("change", (e) => {
+    modelSelect.addEventListener("change", async (e) => {
       const newModelId = e.target.value;
       const preset = MODEL_PRESETS.find((p) => p.id === newModelId);
-      localStorage.setItem(STORAGE_KEYS.MODEL_ID, newModelId);
+
+      const { primaryDb } = await import("./storage/db.js");
+      primaryDb.set(STORAGE_KEYS.MODEL_ID, newModelId).catch(console.warn);
 
       renderChatMessage(
         "system",
@@ -1272,7 +1306,7 @@ export async function initWebLLM() {
 
     logger.log("WebLLM", "WebLLM 초기화 시작");
 
-    setupEventListeners();
+    await setupEventListeners();
 
     subscribe("mapData", () => {
       initializeIdMaps();
@@ -1299,6 +1333,8 @@ export {
   mlcEngine,
   isEngineLoading,
   engineLoadingProgress,
+  setThinkingEnabled,
+  isThinkingEnabled,
 };
 
 export default {
@@ -1318,4 +1354,7 @@ export default {
   getStoredModelId,
   getInstallState,
   checkWebGPUSupport,
+  setThinkingEnabled,
+  isThinkingEnabled,
+};
 };

@@ -321,15 +321,15 @@ const openRegionModal = () => {
             </div>
             <div class="route-region-modal-list">
                 ${regions
-                  .map(
-                    (r) => `
+      .map(
+        (r) => `
                     <div class="route-region-option ${selectedRegion === r ? "selected" : ""}" data-region="${r}">
                         <span class="route-region-option-name">${t(r) || r}</span>
                         ${selectedRegion === r ? '<span class="route-region-check">✓</span>' : ""}
                     </div>
                 `,
-                  )
-                  .join("")}
+      )
+      .join("")}
             </div>
         </div>
     `;
@@ -607,11 +607,11 @@ export const updateRouteProgress = (route, currentIndex) => {
   updateSavedRoutesList();
 };
 
-const updateSavedRoutesList = () => {
+const updateSavedRoutesList = async () => {
   const container = document.getElementById("saved-routes-list");
   if (!container) return;
 
-  const savedRoutes = getSavedRoutes();
+  const savedRoutes = await getSavedRoutes();
 
   if (savedRoutes.length === 0) {
     container.innerHTML =
@@ -637,10 +637,10 @@ const updateSavedRoutesList = () => {
     .join("");
 
   container.querySelectorAll(".saved-route-load-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const routeId = btn.dataset.id;
-      const loaded = loadRoute(routeId);
+      const loaded = await loadRoute(routeId);
       if (loaded) {
         displayRoute();
       }
@@ -648,10 +648,10 @@ const updateSavedRoutesList = () => {
   });
 
   container.querySelectorAll(".saved-route-delete-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       if (confirm("이 경로를 삭제하시겠습니까?")) {
-        deleteRoute(btn.dataset.id);
+        await deleteRoute(btn.dataset.id);
         updateSavedRoutesList();
       }
     });
@@ -762,13 +762,13 @@ const attachRouteEventListeners = () => {
   document
     .getElementById("route-complete-btn")
     ?.addEventListener("click", completeCurrentStep);
-  document.getElementById("route-save-btn")?.addEventListener("click", () => {
+  document.getElementById("route-save-btn")?.addEventListener("click", async () => {
     const name = prompt(
       "경로 이름을 입력하세요:",
       `경로 ${new Date().toLocaleDateString()}`,
     );
     if (name) {
-      saveRoute(name);
+      await saveRoute(name);
       updateSavedRoutesList();
     }
   });

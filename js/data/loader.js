@@ -121,7 +121,7 @@ export const loadMapData = async (mapKey, onProgress) => {
 
     setState("regionMetaInfo", currentMeta);
     setState("uniqueRegions", uniqueRegions);
-    initializeFiltersFromStorage(mapKey);
+    await initializeFiltersFromStorage(mapKey);
 
     perfTimer.end(totalTimer);
 

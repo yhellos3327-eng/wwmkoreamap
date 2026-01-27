@@ -6,3 +6,6 @@ backend/
 backup/
 docker-compose.yml
 PROJECT_IMPROVEMENT_PLAN.md
+
+# Local Claude settings
+.claude/settings.local.json

@@ -1,11 +1,15 @@
 // @ts-check
 /**
  * 클라우드 동기화 데이터 처리 모듈
- * - Firebase 동기화 데이터를 앱 상태에 반영
+ * DEXIE.JS MIGRATION: Vault (IndexedDB) as single source of truth
  */
 import { state, setState } from "./state.js";
 import { renderMapDataAndMarkers } from "./map.js";
 import { renderFavorites } from "./ui.js";
+import { primaryDb } from "./storage/db.js";
+import { createLogger } from "./utils/logStyles.js";
+
+const log = createLogger("SyncHandler");
 
 /**
  * 클라우드에서 로드된 설정을 앱 상태에 반영
@@ -41,7 +45,9 @@ const applyCloudSettings = (settings) => {
 
     if (["on", "off", "auto"].includes(gpuSetting)) {
       state.savedGpuSetting = gpuSetting;
-      localStorage.setItem("wwm_gpu_setting", gpuSetting);
+      primaryDb.set("wwm_gpu_setting", gpuSetting).then(res => {
+        if (!res || !res.success) console.warn("Failed to save GPU setting", res);
+      }).catch(console.warn);
     }
   }
 };
@@ -53,7 +59,10 @@ const applyCloudSettings = (settings) => {
 export const applySyncData = (cloudData) => {
   if (!cloudData) return;
 
-  console.log("[SyncHandler] Sync data loaded, updating state...", cloudData);
+  log.sync("클라우드 데이터 수신", {
+    completed: cloudData.completedMarkers?.length || 0,
+    favorites: cloudData.favorites?.length || 0,
+  });
 
   if (cloudData.completedMarkers) {
     let markers = cloudData.completedMarkers;
@@ -62,18 +71,38 @@ export const applySyncData = (cloudData) => {
       markers = markers.map((id) => ({ id, completedAt: null }));
     }
     setState("completedList", markers);
-    // localStorage에도 저장하여 새로고침 시에도 유지되도록 함
-    localStorage.setItem("wwm_completed", JSON.stringify(markers));
-    console.log(
-      "[SyncHandler] State and localStorage updated:",
-      localStorage.getItem("wwm_completed"),
-    );
+
+    // Save to Vault (primary database) - ALWAYS for all users
+    // Save to Vault (primary database) - ALWAYS for all users
+    primaryDb.set("completedList", markers).then((res) => {
+      if (res && res.success) {
+        log.vault(`completedList 저장`, markers.length);
+      } else {
+        log.warn("completedList 저장 실패", res);
+      }
+    }).catch(console.warn);
+
+
   }
 
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
-    // localStorage에도 저장하여 새로고침 시에도 유지되도록 함
-    localStorage.setItem("wwm_favorites", JSON.stringify(cloudData.favorites));
+
+    // Save to Vault (primary database) - ALWAYS for all users
+    // Save to Vault (primary database) - ALWAYS for all users
+    primaryDb.set("favorites", cloudData.favorites)
+      .then((res) => {
+        if (res && res.success) {
+          log.vault(`favorites 저장`, cloudData.favorites.length);
+        } else {
+          log.error("favorites 저장 실패", res);
+        }
+      })
+      .catch((error) => {
+        log.error("favorites 저장 실패", error);
+      });
+
+
   }
 
   if (cloudData.settings) {

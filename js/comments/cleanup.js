@@ -33,7 +33,9 @@ export const cleanupOldComments = async () => {
   if (cleanupRan) return;
   cleanupRan = true;
 
-  const lastRun = localStorage.getItem(CLEANUP_COOLDOWN_KEY);
+  const { primaryDb } = await import("../storage/db.js");
+  const lastRun = await primaryDb.get(CLEANUP_COOLDOWN_KEY);
+
   if (lastRun && Date.now() - parseInt(lastRun) < COOLDOWN_MS) {
     logger.log("Cleanup", "쿨다운 중 - 24시간 내 이미 실행됨");
     return;
@@ -57,7 +59,7 @@ export const cleanupOldComments = async () => {
 
     const snapshot = await getDocs(q);
     if (snapshot.empty) {
-      localStorage.setItem(CLEANUP_COOLDOWN_KEY, Date.now().toString());
+      await primaryDb.set(CLEANUP_COOLDOWN_KEY, Date.now().toString());
       return;
     }
 
@@ -69,7 +71,7 @@ export const cleanupOldComments = async () => {
     });
 
     await Promise.all(deletePromises);
-    localStorage.setItem(CLEANUP_COOLDOWN_KEY, Date.now().toString());
+    await primaryDb.set(CLEANUP_COOLDOWN_KEY, Date.now().toString());
     logger.success("Cleanup", `${snapshot.size}개 오래된 댓글 삭제 완료`);
   } catch (error) {
     logger.warn("Cleanup", "오래된 댓글 삭제 실패:", error.message);

@@ -72,6 +72,45 @@ const validators = {
  * @type {Object<string, SchemaEntry>}
  */
 export const SCHEMA = {
+  // Vault Keys
+  completedList: {
+    type: "array",
+    defaultValue: [],
+    snapshot: true,
+    validate: (v) => {
+      // New format is array of objects {id, completedAt}
+      if (!Array.isArray(v)) return { valid: false, message: "배열이 아닙니다" };
+      return { valid: true };
+    },
+  },
+  favorites: {
+    type: "array",
+    defaultValue: [],
+    snapshot: true,
+    validate: (v) => {
+      if (!validators.isArray(v)) return { valid: false, message: "배열이 아닙니다" };
+      return { valid: true };
+    },
+  },
+  settings: {
+    type: "object",
+    defaultValue: {},
+    snapshot: true,
+  },
+  "activeCats_*": {
+    type: "array",
+    defaultValue: [],
+    snapshot: true,
+    pattern: /^activeCats_(.+)$/,
+  },
+  "activeRegs_*": {
+    type: "array",
+    defaultValue: [],
+    snapshot: true,
+    pattern: /^activeRegs_(.+)$/,
+  },
+
+  // Legacy Keys (kept for compatibility/migration)
   wwm_completed: {
     type: "array",
     defaultValue: [],
@@ -269,15 +308,17 @@ export const getSnapshotKeys = () => {
 
 /**
  * Gets all current snapshot keys from localStorage.
- * @returns {string[]} Array of keys.
+ * @returns {Promise<string[]>} Array of keys.
  */
-export const getCurrentSnapshotKeys = () => {
+export const getCurrentSnapshotKeys = async () => {
   const keys = [];
   const staticKeys = getSnapshotKeys();
   keys.push(...staticKeys);
 
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
+  const { primaryDb } = await import("./db.js");
+  const dbKeys = await primaryDb.getAllKeys();
+
+  for (const key of dbKeys) {
     const schema = getSchema(key);
     if (schema?.snapshot && !keys.includes(key)) {
       keys.push(key);

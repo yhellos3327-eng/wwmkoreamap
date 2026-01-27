@@ -1,3 +1,6 @@
+/* ============================================================================
+   Skeleton Loading - Progressive UI Loading States
+   ============================================================================ */
 
 @keyframes skeleton-loading {
     0% {
@@ -9,19 +12,185 @@
     }
 }
 
-.skeleton {
-    background: linear-gradient(90deg,
-            rgba(255, 255, 255, 0.05) 25%,
-            rgba(255, 255, 255, 0.1) 37%,
-            rgba(255, 255, 255, 0.05) 63%);
-    background-size: 400% 100%;
-    animation: skeleton-loading 1.4s ease infinite;
-    border-radius: 4px;
+@keyframes skeleton-pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
 }
 
+/* Base Skeleton Class */
+.skeleton {
+    background: linear-gradient(90deg,
+            var(--skeleton-base, rgba(255, 255, 255, 0.05)) 25%,
+            var(--skeleton-highlight, rgba(255, 255, 255, 0.12)) 37%,
+            var(--skeleton-base, rgba(255, 255, 255, 0.05)) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: 6px;
+    pointer-events: none;
+}
+
+.skeleton-pulse {
+    animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Container that shows skeleton while loading */
+.skeleton-loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.skeleton-loading::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg,
+            var(--skeleton-base, rgba(255, 255, 255, 0.05)) 25%,
+            var(--skeleton-highlight, rgba(255, 255, 255, 0.12)) 37%,
+            var(--skeleton-base, rgba(255, 255, 255, 0.05)) 63%);
+    background-size: 400% 100%;
+    animation: skeleton-loading 1.4s ease infinite;
+    border-radius: inherit;
+    z-index: 1;
+}
+
+/* ============================================================================
+   Sidebar Skeletons
+   ============================================================================ */
+
+/* Category/Region Item Skeleton */
+.skeleton-cate-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    margin-bottom: 8px;
+}
+
+.skeleton-cate-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+}
+
+.skeleton-cate-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.skeleton-cate-name {
+    width: 70%;
+    height: 14px;
+}
+
+.skeleton-cate-count {
+    width: 40%;
+    height: 12px;
+}
+
+/* Region Grid Skeleton */
+.skeleton-region-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.skeleton-region-item {
+    height: 70px;
+    border-radius: 12px;
+}
+
+/* Search Input Skeleton */
+.skeleton-search {
+    width: 100%;
+    height: 42px;
+    border-radius: 21px;
+}
+
+/* Tab Skeleton */
+.skeleton-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.skeleton-tab {
+    width: 80px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+/* ============================================================================
+   Map Skeletons
+   ============================================================================ */
+
+/* Map Container Loading State */
+#map.skeleton-loading {
+    background: linear-gradient(135deg,
+            var(--bg-primary, #1a1a2e) 0%,
+            var(--bg-secondary, #16213e) 100%);
+}
+
+#map.skeleton-loading::after {
+    background: radial-gradient(circle at center,
+            rgba(255, 189, 83, 0.05) 0%,
+            transparent 50%);
+    animation: skeleton-pulse 2s ease-in-out infinite;
+}
+
+/* Marker Skeleton */
+.skeleton-marker {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    position: absolute;
+}
+
+/* ============================================================================
+   Popup/Modal Skeletons
+   ============================================================================ */
+
+/* Popup Content Skeleton */
+.skeleton-popup {
+    padding: 16px;
+    min-width: 200px;
+}
+
+.skeleton-popup-title {
+    width: 80%;
+    height: 18px;
+    margin-bottom: 12px;
+}
+
+.skeleton-popup-desc {
+    width: 100%;
+    height: 14px;
+    margin-bottom: 8px;
+}
+
+.skeleton-popup-desc.short {
+    width: 60%;
+}
+
+/* ============================================================================
+   Comment Skeletons
+   ============================================================================ */
 
 .skeleton-comment {
-    padding: 12px;
+    padding: 14px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -29,7 +198,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
 .skeleton-avatar {
@@ -47,7 +216,7 @@
 .skeleton-text {
     width: 100%;
     height: 16px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     border-radius: 4px;
 }
 
@@ -55,16 +224,110 @@
     width: 70%;
 }
 
+/* ============================================================================
+   Progress/Stats Skeletons
+   ============================================================================ */
+
+.skeleton-progress-bar {
+    width: 100%;
+    height: 6px;
+    border-radius: 3px;
+    margin-bottom: 8px;
+}
+
+.skeleton-stat {
+    width: 120px;
+    height: 12px;
+}
+
+/* ============================================================================
+   Favorite List Skeleton
+   ============================================================================ */
+
+.skeleton-favorite-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.skeleton-favorite-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+}
+
+.skeleton-favorite-info {
+    flex: 1;
+}
+
+.skeleton-favorite-name {
+    width: 60%;
+    height: 14px;
+    margin-bottom: 6px;
+}
+
+.skeleton-favorite-region {
+    width: 40%;
+    height: 11px;
+}
+
+/* ============================================================================
+   Light Theme Support
+   ============================================================================ */
 
 @media (prefers-color-scheme: light) {
-    .skeleton {
-        background: linear-gradient(90deg,
-                rgba(0, 0, 0, 0.05) 25%,
-                rgba(0, 0, 0, 0.1) 37%,
-                rgba(0, 0, 0, 0.05) 63%);
+
+    .skeleton,
+    .skeleton-loading::after {
+        --skeleton-base: rgba(0, 0, 0, 0.06);
+        --skeleton-highlight: rgba(0, 0, 0, 0.12);
     }
 
     .skeleton-comment {
-        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        border-bottom-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .skeleton-cate-item,
+    .skeleton-favorite-item {
+        background: rgba(0, 0, 0, 0.03);
+    }
+}
+
+[data-theme="light"] {
+
+    .skeleton,
+    .skeleton-loading::after {
+        --skeleton-base: rgba(0, 0, 0, 0.06);
+        --skeleton-highlight: rgba(0, 0, 0, 0.12);
+    }
+
+    .skeleton-comment {
+        border-bottom-color: rgba(0, 0, 0, 0.05);
+    }
+
+    .skeleton-cate-item,
+    .skeleton-favorite-item {
+        background: rgba(0, 0, 0, 0.03);
+    }
+}
+
+/* ============================================================================
+   Reduced Motion
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .skeleton,
+    .skeleton-loading::after {
+        animation: none;
+        background: var(--skeleton-base, rgba(255, 255, 255, 0.08));
+    }
+
+    .skeleton-pulse {
+        animation: none;
     }
 }

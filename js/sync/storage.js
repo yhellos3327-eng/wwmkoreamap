@@ -1,4 +1,13 @@
 // @ts-check
+/**
+ * @fileoverview Sync storage module - Dexie.js (IndexedDB) as single source of truth.
+ * DEXIE.JS MIGRATION: localStorage dependencies removed, Vault only.
+ */
+
+import { primaryDb } from "../storage/db.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Storage");
 
 /**
  * @typedef {Object} SyncData
@@ -8,210 +17,196 @@
  */
 
 /**
- * Gets local data from localStorage.
- * @returns {SyncData} The local data.
+ * Safety thresholds for data protection.
+ * If current data exceeds these counts and new data is empty, block the overwrite.
  */
-export const getLocalData = () => {
-  let completedMarkers = [];
-  let favorites = [];
-  let settings = {};
-
-  const completedData = localStorage.getItem("wwm_completed");
-  if (completedData) {
-    try {
-      completedMarkers = JSON.parse(completedData) || [];
-    } catch (e) { }
-  }
-
-  const favoritesData =
-    localStorage.getItem("wwm_favorites") ||
-    localStorage.getItem("wwm_favorites_qinghe") ||
-    localStorage.getItem("wwm_favorites_kaifeng");
-  if (favoritesData) {
-    try {
-      favorites = JSON.parse(favoritesData) || [];
-    } catch (e) { }
-  }
-
-  const settingsUpdatedAt = localStorage.getItem("wwm_settings_updated_at");
-  let settingsTimestamps = {};
-  if (settingsUpdatedAt) {
-    try {
-      settingsTimestamps = JSON.parse(settingsUpdatedAt) || {};
-    } catch (e) { }
-  }
-
-  /**
-   * Gets a boolean value from localStorage.
-   * @param {string} key - The storage key.
-   * @param {boolean} defaultVal - Default value.
-   * @returns {boolean} The boolean value.
-   */
-  const getBool = (key, defaultVal) => {
-    const val = localStorage.getItem(key);
-    if (val === null) return defaultVal;
-    return val === "true";
-  };
-
-  /**
-   * Gets a JSON value from localStorage.
-   * @param {string} key - The storage key.
-   * @param {any} defaultVal - Default value.
-   * @returns {any} The parsed JSON value.
-   */
-  const getJson = (key, defaultVal = []) => {
-    const val = localStorage.getItem(key);
-    if (!val) return defaultVal;
-    try {
-      return JSON.parse(val);
-    } catch {
-      return defaultVal;
-    }
-  };
-
-  settings = {
-    showComments: getBool("wwm_show_comments", true),
-    closeOnComplete: getBool("wwm_close_on_complete", false),
-    hideCompleted: getBool("wwm_hide_completed", false),
-    enableClustering: getBool("wwm_enable_clustering", true),
-    showAd: getBool("wwm_show_ad", true),
-    regionColor: localStorage.getItem("wwm_region_color"),
-    regionFillColor: localStorage.getItem("wwm_region_fill_color"),
-    gpuMode:
-      localStorage.getItem("wwm_gpu_setting") ||
-      localStorage.getItem("wwm_gpu_mode"),
-    activeCatsQinghe: getJson("wwm_active_cats_qinghe"),
-    activeCatsKaifeng: getJson("wwm_active_cats_kaifeng"),
-    activeRegsQinghe: getJson("wwm_active_regs_qinghe"),
-    activeRegsKaifeng: getJson("wwm_active_regs_kaifeng"),
-    favoritesQinghe: getJson("wwm_favorites_qinghe"),
-    favoritesKaifeng: getJson("wwm_favorites_kaifeng"),
-    activeCatsDreamsunsun: getJson("wwm_active_cats_dreamsunsun"),
-    activeRegsDreamsunsun: getJson("wwm_active_regs_dreamsunsun"),
-    favoritesDreamsunsun: getJson("wwm_favorites_dreamsunsun"),
-    _updatedAt: settingsTimestamps,
-  };
-
-  Object.keys(settings).forEach((key) => {
-    if (settings[key] === null || settings[key] === undefined) {
-      if (key !== "_updatedAt") delete settings[key];
-    }
-  });
-
-  return { completedMarkers, favorites, settings };
+const SAFETY_CONFIG = {
+  /** Minimum items before blocking empty overwrite */
+  MIN_COMPLETED_THRESHOLD: 1,
+  /** Minimum favorites before blocking empty overwrite */
+  MIN_FAVORITES_THRESHOLD: 1,
+  /** Maximum allowed data loss ratio (0.5 = 50%) */
+  MAX_LOSS_RATIO: 0.5,
 };
 
 /**
- * Sets local data to localStorage.
- * @param {SyncData} data - The data to save.
+ * @typedef {Object} SetLocalDataResult
+ * @property {boolean} success - Whether the operation succeeded.
+ * @property {boolean} blocked - Whether the operation was blocked by safety guard.
+ * @property {string} [reason] - Reason for blocking.
  */
-export const setLocalData = (data) => {
-  if (!data) return;
 
-  if (data.completedMarkers) {
-    // Safety check: Don't overwrite with empty if we had many markers
-    const currentRaw = localStorage.getItem("wwm_completed");
-    if (data.completedMarkers.length === 0 && currentRaw) {
-      try {
-        const current = JSON.parse(currentRaw);
-        if (current.length > 5) { // Threshold for safety
-          console.error("[Storage] Blocked attempt to overwrite populated completedMarkers with empty array.");
-          return;
-        }
-      } catch (e) { }
+/**
+ * Gets local data from Vault (Dexie.js).
+ * DEXIE.JS MIGRATION: Now returns cached data or empty arrays.
+ * For async access, use getLocalDataAsync() instead.
+ * @returns {SyncData} The local data (may be empty if not yet loaded).
+ */
+export const getLocalData = () => {
+  // DEXIE.JS MIGRATION: This synchronous function now returns state data
+  // which is already loaded from Vault via initStateFromVault()
+  try {
+    // Use global state if available (set in state.js/debug.js)
+    const state = /** @type {any} */ (window).state;
+    if (!state) {
+      log.warn("Global state not ready, returning empty data");
+      return { completedMarkers: [], favorites: [], settings: {} };
     }
-    localStorage.setItem(
-      "wwm_completed",
-      JSON.stringify(data.completedMarkers),
-    );
+
+    return {
+      completedMarkers: state.completedList || [],
+      favorites: state.favorites || [],
+      settings: getSettingsFromState(state)
+    };
+  } catch (e) {
+    log.warn("getLocalData fallback to empty", e);
+    return { completedMarkers: [], favorites: [], settings: {} };
   }
+};
 
-  if (data.favorites) {
-    // Similar safety check for favorites
-    const currentRaw = localStorage.getItem("wwm_favorites");
-    if (data.favorites.length === 0 && currentRaw) {
-      try {
-        const current = JSON.parse(currentRaw);
-        if (current.length > 3) {
-          console.error("[Storage] Blocked attempt to overwrite populated favorites with empty array.");
-          return;
-        }
-      } catch (e) { }
+/**
+ * Gets settings from current state.
+ * @param {any} state - The app state.
+ * @returns {Object} The settings object.
+ */
+const getSettingsFromState = (state) => {
+  return {
+    showComments: state.showComments ?? true,
+    closeOnComplete: state.closeOnComplete ?? false,
+    hideCompleted: state.hideCompleted ?? false,
+    enableClustering: state.enableClustering ?? true,
+    regionColor: state.savedRegionColor,
+    regionFillColor: state.savedRegionFillColor,
+    gpuMode: state.savedGpuSetting,
+    aiProvider: state.savedAIProvider,
+    apiModel: state.savedApiModel,
+    menuPosition: state.savedMenuPosition,
+    useChromeTranslator: state.useChromeTranslator,
+    disableRegionClickPan: state.disableRegionClickPan,
+  };
+};
+
+/**
+ * Sets local data to Vault (Dexie.js).
+ * DEXIE.JS MIGRATION: Always uses async Vault save.
+ * @param {SyncData} data - The data to save.
+ * @returns {Promise<SetLocalDataResult>} The result of the operation.
+ */
+export const setLocalData = async (data) => {
+  if (!data) return { success: false, blocked: false, reason: "No data provided" };
+
+  // DEXIE.JS MIGRATION: Always use async Vault save
+  try {
+    const result = await setLocalDataAsync(data);
+    if (!result.success) {
+      log.error("Vault save failed", result.reason);
     }
-    localStorage.setItem("wwm_favorites", JSON.stringify(data.favorites));
+    return result;
+  } catch (e) {
+    log.error("Vault save failed", e);
+    return { success: false, blocked: false, reason: e.message };
   }
+};
 
-  if (data.settings) {
-    const s = data.settings;
-    if (s.showComments !== undefined)
-      localStorage.setItem("wwm_show_comments", s.showComments);
-    if (s.closeOnComplete !== undefined)
-      localStorage.setItem("wwm_close_on_complete", s.closeOnComplete);
-    if (s.hideCompleted !== undefined)
-      localStorage.setItem("wwm_hide_completed", s.hideCompleted);
-    if (s.enableClustering !== undefined)
-      localStorage.setItem("wwm_enable_clustering", s.enableClustering);
-    if (s.showAd !== undefined) localStorage.setItem("wwm_show_ad", s.showAd);
-    if (s.regionColor !== undefined)
-      localStorage.setItem("wwm_region_color", s.regionColor);
-    if (s.regionFillColor !== undefined)
-      localStorage.setItem("wwm_region_fill_color", s.regionFillColor);
+// ============================================================================
+// ASYNC VAULT FUNCTIONS - Dexie.js as single source of truth
+// ============================================================================
 
-    if (s.gpuMode !== undefined) {
-      localStorage.setItem("wwm_gpu_setting", s.gpuMode);
-      localStorage.setItem("wwm_gpu_mode", s.gpuMode);
+/**
+ * Gets local data asynchronously from Vault (Dexie.js).
+ * This is the primary method for data access.
+ * @returns {Promise<SyncData>} The local data.
+ */
+export const getLocalDataAsync = async () => {
+  try {
+    const completedMarkers = await primaryDb.get("completedList") || [];
+    const favorites = await primaryDb.get("favorites") || [];
+    const settings = await primaryDb.get("settings") || {};
+
+    return { completedMarkers, favorites, settings };
+  } catch (e) {
+    log.error("getLocalDataAsync failed", e);
+    return { completedMarkers: [], favorites: [], settings: {} };
+  }
+};
+
+/**
+ * Sets local data asynchronously to Vault (Dexie.js).
+ * @param {SyncData} data - The data to save.
+ * @returns {Promise<SetLocalDataResult>} The result of the operation.
+ */
+export const setLocalDataAsync = async (data) => {
+  if (!data) return { success: false, blocked: false, reason: "No data provided" };
+
+  try {
+    const entries = [];
+    let completedBlocked = false;
+    let favoritesBlocked = false;
+
+    // Handle completedMarkers with safety guard
+    if (data.completedMarkers !== undefined) {
+      const currentCompleted = await primaryDb.get("completedList") || [];
+      const currentCount = Array.isArray(currentCompleted) ? currentCompleted.length : 0;
+      const newCount = Array.isArray(data.completedMarkers) ? data.completedMarkers.length : 0;
+
+      // SAFETY: Block suspicious data loss
+      if (currentCount > SAFETY_CONFIG.MIN_COMPLETED_THRESHOLD) {
+        if (newCount === 0) {
+          log.error(`BLOCKED: Attempt to overwrite ${currentCount} completed items with empty array`);
+          completedBlocked = true;
+        } else if (newCount < currentCount * SAFETY_CONFIG.MAX_LOSS_RATIO) {
+          log.error(`BLOCKED: Suspicious data loss detected. ${currentCount} → ${newCount}`);
+          completedBlocked = true;
+        }
+      }
+
+      if (!completedBlocked) {
+        entries.push({ key: "completedList", value: data.completedMarkers });
+      }
     }
 
-    if (s.activeCatsQinghe !== undefined)
-      localStorage.setItem(
-        "wwm_active_cats_qinghe",
-        JSON.stringify(s.activeCatsQinghe),
-      );
-    if (s.activeCatsKaifeng !== undefined)
-      localStorage.setItem(
-        "wwm_active_cats_kaifeng",
-        JSON.stringify(s.activeCatsKaifeng),
-      );
-    if (s.activeRegsQinghe !== undefined)
-      localStorage.setItem(
-        "wwm_active_regs_qinghe",
-        JSON.stringify(s.activeRegsQinghe),
-      );
-    if (s.activeRegsKaifeng !== undefined)
-      localStorage.setItem(
-        "wwm_active_regs_kaifeng",
-        JSON.stringify(s.activeRegsKaifeng),
-      );
-    if (s.favoritesQinghe !== undefined)
-      localStorage.setItem(
-        "wwm_favorites_qinghe",
-        JSON.stringify(s.favoritesQinghe),
-      );
-    if (s.favoritesKaifeng !== undefined)
-      localStorage.setItem(
-        "wwm_favorites_kaifeng",
-        JSON.stringify(s.favoritesKaifeng),
-      );
-    if (s.activeCatsDreamsunsun !== undefined)
-      localStorage.setItem(
-        "wwm_active_cats_dreamsunsun",
-        JSON.stringify(s.activeCatsDreamsunsun),
-      );
-    if (s.activeRegsDreamsunsun !== undefined)
-      localStorage.setItem(
-        "wwm_active_regs_dreamsunsun",
-        JSON.stringify(s.activeRegsDreamsunsun),
-      );
-    if (s.favoritesDreamsunsun !== undefined)
-      localStorage.setItem(
-        "wwm_favorites_dreamsunsun",
-        JSON.stringify(s.favoritesDreamsunsun),
-      );
+    // Handle favorites with safety guard
+    if (data.favorites !== undefined) {
+      const currentFavorites = await primaryDb.get("favorites") || [];
+      const currentCount = Array.isArray(currentFavorites) ? currentFavorites.length : 0;
+      const newCount = Array.isArray(data.favorites) ? data.favorites.length : 0;
 
-    if (s._updatedAt)
-      localStorage.setItem(
-        "wwm_settings_updated_at",
-        JSON.stringify(s._updatedAt),
-      );
+      if (currentCount > SAFETY_CONFIG.MIN_FAVORITES_THRESHOLD) {
+        if (newCount === 0) {
+          log.error(`BLOCKED: Attempt to overwrite ${currentCount} favorites with empty array`);
+          favoritesBlocked = true;
+        } else if (newCount < currentCount * SAFETY_CONFIG.MAX_LOSS_RATIO) {
+          log.error(`BLOCKED: Suspicious favorites loss. ${currentCount} → ${newCount}`);
+          favoritesBlocked = true;
+        }
+      }
+
+      if (!favoritesBlocked) {
+        entries.push({ key: "favorites", value: data.favorites });
+      }
+    }
+
+    // Handle settings
+    if (data.settings) {
+      entries.push({ key: "settings", value: data.settings });
+    }
+
+    // Save to Vault
+    if (entries.length > 0) {
+      const result = await primaryDb.setMultiple(entries);
+      if (!result.success) {
+        return { success: false, blocked: false, reason: result.error };
+      }
+    }
+
+    const blocked = completedBlocked || favoritesBlocked;
+    return {
+      success: !blocked,
+      blocked,
+      reason: blocked ? `Blocked: completed=${completedBlocked}, favorites=${favoritesBlocked}` : undefined
+    };
+  } catch (e) {
+    log.error("setLocalDataAsync failed", e);
+    return { success: false, blocked: false, reason: e.message };
   }
 };

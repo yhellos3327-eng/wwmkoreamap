@@ -9,15 +9,17 @@ const CACHE_KEY = "patch_notes_cache";
 const CACHE_TTL = 3600000; // 1시간 캐시
 
 export const loadPatchNotes = async () => {
-  const cached = localStorage.getItem(CACHE_KEY);
+  const { primaryDb } = await import("./storage/db.js");
+  const cached = await primaryDb.get(CACHE_KEY);
+
   if (cached) {
     try {
-      const { timestamp, data } = JSON.parse(cached);
+      const { timestamp, data } = cached;
       if (Date.now() - timestamp < CACHE_TTL) {
         return data;
       }
     } catch (e) {
-      localStorage.removeItem(CACHE_KEY);
+      await primaryDb.delete(CACHE_KEY);
     }
   }
 
@@ -134,10 +136,7 @@ export const loadPatchNotes = async () => {
     const filteredNotes = patchNotes.filter((note) => note !== null);
 
     // 캐시 저장
-    localStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ timestamp: Date.now(), data: filteredNotes }),
-    );
+    await primaryDb.set(CACHE_KEY, { timestamp: Date.now(), data: filteredNotes });
 
     return filteredNotes;
   } catch (error) {
@@ -145,9 +144,9 @@ export const loadPatchNotes = async () => {
     // 에러 발생 시 만료된 캐시라도 있으면 반환
     if (cached) {
       try {
-        const { data } = JSON.parse(cached);
+        const { data } = cached;
         return data;
-      } catch (e) {}
+      } catch (e) { }
     }
     throw error;
   }

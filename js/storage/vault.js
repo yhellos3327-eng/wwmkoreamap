@@ -1,6 +1,9 @@
 import { db } from "./db.js";
 import { getCurrentSnapshotKeys } from "./schema.js";
 import { showSyncTooltip } from "../sync/ui.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Vault");
 
 /**
  * Saves the current localStorage state to the Vault (IndexedDB).
@@ -9,17 +12,11 @@ import { showSyncTooltip } from "../sync/ui.js";
  */
 export const saveToVault = async (reason = "auto") => {
     try {
-        const keys = getCurrentSnapshotKeys();
-        const data = {};
-        let hasData = false;
+        const { primaryDb } = await import("./db.js");
+        const exportData = await primaryDb.exportAll();
+        const data = exportData.data;
 
-        for (const key of keys) {
-            const value = localStorage.getItem(key);
-            if (value !== null) {
-                data[key] = value;
-                hasData = true;
-            }
-        }
+        const hasData = Object.keys(data).length > 0;
 
         if (!hasData) {
             return { success: false, error: "No data to save" };
@@ -30,7 +27,7 @@ export const saveToVault = async (reason = "auto") => {
         // Keep only last 50 backups to save space
         db.prune(50).catch(console.warn);
 
-        console.log(`[Vault] Saved backup #${id} (${reason})`);
+        log.success(`Saved backup #${id}`, reason);
 
         if (reason === "manual") {
             showSyncTooltip("로컬 백업 저장 완료!", "success");
@@ -38,7 +35,7 @@ export const saveToVault = async (reason = "auto") => {
 
         return { success: true, id };
     } catch (e) {
-        console.error("[Vault] Save failed:", e);
+        log.error("Save failed", e);
         return { success: false, error: e.message };
     }
 };
@@ -56,8 +53,10 @@ export const restoreFromVault = async (id) => {
         }
 
         const data = entry.data;
-        for (const [key, value] of Object.entries(data)) {
-            localStorage.setItem(key, value);
+        const { primaryDb } = await import("./db.js");
+        const importResult = await primaryDb.importAll(data, true);
+        if (!importResult || !importResult.success) {
+            throw new Error("Import failed: " + (importResult?.error || "Unknown error"));
         }
 
         // Update global state if possible
@@ -74,45 +73,76 @@ export const restoreFromVault = async (id) => {
                 });
             }
         } catch (e) {
-            console.warn("[Vault] State update after restore failed:", e);
+            log.warn("State update after restore failed", e);
         }
 
-        console.log(`[Vault] Restored backup #${id}`);
+        log.success(`Restored backup #${id}`);
         showSyncTooltip("백업 복원 완료!", "success");
         return { success: true };
     } catch (e) {
-        console.error("[Vault] Restore failed:", e);
+        log.error("Restore failed", e);
         return { success: false, error: e.message };
     }
 };
 
 /**
+ * Checks if a localStorage value represents actual data (not empty).
+ * SAFETY FIX: Properly detects empty arrays "[]" as having no data.
+ * @param {string|null} value - The localStorage value.
+ * @returns {boolean} Whether the value has actual data.
+ */
+const hasActualData = (value) => {
+    if (!value) return false;
+    try {
+        const parsed = JSON.parse(value);
+        if (Array.isArray(parsed)) {
+            return parsed.length > 0;
+        }
+        if (typeof parsed === "object" && parsed !== null) {
+            return Object.keys(parsed).length > 0;
+        }
+        return true;
+    } catch {
+        // If not valid JSON, consider it as having data (raw string)
+        return value.length > 0;
+    }
+};
+
+/**
  * Automatically restores the latest backup if localStorage is empty/corrupt.
- * @returns {Promise<{success: boolean, restored?: boolean, reason?: string, error?: string}>}
+ * SAFETY FIX: Properly detects empty arrays and checks Vault first.
+ * @returns {Promise<{success: boolean, restored?: boolean, reason?: string, error?: string, source?: string}>}
  */
 export const autoRestoreIfEmpty = async () => {
     try {
-        // Check if we have essential data
-        const hasCompleted = localStorage.getItem("wwm_completed");
-        const hasFavorites = localStorage.getItem("wwm_favorites");
+        // SAFETY FIX: Check if we have ACTUAL data in primaryDb
+        const { primaryDb } = await import("./db.js");
+        const hasData = await primaryDb.hasData();
 
-        // If we have data, we assume it's fine (or at least not empty)
-        if (hasCompleted || hasFavorites) {
-            return { success: true, restored: false };
+        // If primaryDb has real data, no restore needed
+        if (hasData) {
+            return { success: true, restored: false, source: "primaryDb" };
         }
 
-        console.warn("[Vault] LocalStorage appears empty. Attempting auto-restore...");
+        log.warn("PrimaryDb appears empty, checking backups...");
 
+        // Fallback: Try backup snapshots
         const latest = await db.getLatest();
         if (!latest) {
-            console.log("[Vault] No backups found.");
+            log.info("No backups found");
             return { success: false, reason: "no_backups" };
         }
 
-        await restoreFromVault(latest.id);
-        return { success: true, restored: true, reason: "restored_from_latest" };
+        const restoreResult = await restoreFromVault(latest.id);
+        if (restoreResult.success) {
+            return { success: true, restored: true, reason: "restored_from_backup", source: "backup" };
+        } else {
+            return { success: false, reason: "restore_failed", error: restoreResult.error };
+        }
+
+
     } catch (e) {
-        console.error("[Vault] Auto-restore failed:", e);
+        log.error("Auto-restore failed", e);
         return { success: false, error: e.message };
     }
 };

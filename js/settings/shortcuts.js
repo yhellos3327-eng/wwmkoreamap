@@ -107,16 +107,18 @@ let selectedKey = null;
 let pendingActionId = null;
 let keyboardModalVisible = false;
 
-export const loadShortcuts = () => {
+export const loadShortcuts = async () => {
   try {
-    const saved = localStorage.getItem("keyboardShortcuts");
+    const { primaryDb } = await import("../storage/db.js");
+    const saved = await primaryDb.get("keyboardShortcuts");
+
     if (saved) {
-      activeShortcuts = { ...DEFAULT_SHORTCUTS, ...JSON.parse(saved) };
+      activeShortcuts = { ...DEFAULT_SHORTCUTS, ...saved };
     } else {
       activeShortcuts = { ...DEFAULT_SHORTCUTS };
     }
 
-    const enabledSetting = localStorage.getItem("shortcutsEnabled");
+    const enabledSetting = await primaryDb.get("shortcutsEnabled");
     shortcutsEnabled = enabledSetting !== "false";
   } catch (error) {
     console.error("단축키 설정 로드 실패:", error);
@@ -124,10 +126,13 @@ export const loadShortcuts = () => {
   }
 };
 
-export const saveShortcuts = () => {
+export const saveShortcuts = async () => {
   try {
-    localStorage.setItem("keyboardShortcuts", JSON.stringify(activeShortcuts));
-    localStorage.setItem("shortcutsEnabled", String(shortcutsEnabled));
+    const { primaryDb } = await import("../storage/db.js");
+    await primaryDb.setMultiple([
+      { key: "keyboardShortcuts", value: activeShortcuts },
+      { key: "shortcutsEnabled", value: String(shortcutsEnabled) }
+    ]);
   } catch (error) {
     console.error("단축키 설정 저장 실패:", error);
   }
@@ -147,7 +152,7 @@ const findActionForKey = (key, ctrl, shift, alt) => {
   return null;
 };
 
-const assignActionToKey = (actionId, key, ctrl, shift, alt) => {
+const assignActionToKey = async (actionId, key, ctrl, shift, alt) => {
   const existingAction = findActionForKey(key, ctrl, shift, alt);
   if (existingAction && existingAction !== actionId) {
     delete activeShortcuts[existingAction];
@@ -164,14 +169,14 @@ const assignActionToKey = (actionId, key, ctrl, shift, alt) => {
     };
   }
 
-  saveShortcuts();
+  await saveShortcuts();
   updateKeyboardDisplay();
   renderShortcutSettings();
 };
 
-export const resetShortcuts = () => {
+export const resetShortcuts = async () => {
   activeShortcuts = { ...DEFAULT_SHORTCUTS };
-  saveShortcuts();
+  await saveShortcuts();
   updateKeyboardDisplay();
   renderShortcutSettings();
 };
@@ -203,9 +208,9 @@ const matchesShortcut = (event, shortcut) => {
   const keyMatches =
     event.key.toLowerCase() === shortcut.key.toLowerCase() ||
     event.code.replace("Key", "").toLowerCase() ===
-      shortcut.key.toLowerCase() ||
+    shortcut.key.toLowerCase() ||
     event.code.replace("Digit", "").toLowerCase() ===
-      shortcut.key.toLowerCase();
+    shortcut.key.toLowerCase();
 
   return (
     keyMatches &&
@@ -313,10 +318,10 @@ const executeShortcutAction = async (actionId) => {
       break;
 
     case "toggleTheme":
+      const { applyTheme } = await import("../theme.js");
       const currentTheme = document.documentElement.getAttribute("data-theme");
       const newTheme = currentTheme === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", newTheme);
-      localStorage.setItem("theme", newTheme);
+      applyTheme(newTheme);
       break;
 
     case "focusMap":
@@ -600,13 +605,13 @@ export const renderShortcutSettings = () => {
   }
 };
 
-export const setShortcutsEnabled = (enabled) => {
+export const setShortcutsEnabled = async (enabled) => {
   shortcutsEnabled = enabled;
-  saveShortcuts();
+  await saveShortcuts();
 };
 
-export const initShortcuts = () => {
-  loadShortcuts();
+export const initShortcuts = async () => {
+  await loadShortcuts();
 
   document.addEventListener("keydown", handleKeyDown, true);
 
@@ -614,7 +619,7 @@ export const initShortcuts = () => {
   if (toggleBtn) {
     /** @type {HTMLInputElement} */ (toggleBtn).checked = shortcutsEnabled;
     toggleBtn.addEventListener("change", (e) => {
-      setShortcutsEnabled(/** @type {HTMLInputElement} */ (e.target).checked);
+      setShortcutsEnabled(/** @type {HTMLInputElement} */(e.target).checked);
     });
   }
 

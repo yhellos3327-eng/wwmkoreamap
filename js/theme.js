@@ -6,17 +6,31 @@ export const THEME_KEY = "wwm_theme";
 /**
  * Initializes the theme system.
  */
-export const initTheme = () => {
-  const savedTheme = localStorage.getItem(THEME_KEY) || "system";
-  applyTheme(savedTheme);
+export const initTheme = async () => {
+  try {
+    const { primaryDb } = await import("./storage/db.js");
+    const savedTheme = (await primaryDb.get(THEME_KEY)) || "system";
+    applyTheme(savedTheme);
 
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", (e) => {
-      if (localStorage.getItem(THEME_KEY) === "system") {
-        applyTheme("system");
-      }
-    });
+    // Use sync callback with .then/.catch to avoid unhandled async callback
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        primaryDb.get(THEME_KEY)
+          .then((current) => {
+            if (current === "system") {
+              applyTheme("system");
+            }
+          })
+          .catch((err) => {
+            console.warn("Failed to check theme on system change:", err);
+          });
+      });
+  } catch (e) {
+    console.error("Failed to initialize theme:", e);
+    // Fallback to system theme
+    applyTheme("system");
+  }
 };
 
 /**
@@ -32,7 +46,24 @@ export const applyTheme = (theme) => {
   }
 
   document.documentElement.setAttribute("data-theme", effectiveTheme);
-  localStorage.setItem(THEME_KEY, theme);
+
+  import("./storage/db.js").then(async ({ primaryDb }) => {
+    try {
+      const result = await primaryDb.set(THEME_KEY, theme);
+      if (result && result.success) {
+        const saved = await primaryDb.get(THEME_KEY);
+        if (saved !== theme) {
+          console.error("Theme save verification failed", { expected: theme, actual: saved });
+        }
+      } else {
+        console.error("Failed to save theme", result);
+      }
+    } catch (e) {
+      console.error("Error saving theme", e);
+    }
+  }).catch((importErr) => {
+    console.error(`Failed to import storage for saving theme (${theme}):`, importErr);
+  });
 
   if (/** @type {any} */ (window).setState) {
     /** @type {any} */ (window).setState("currentTheme", theme);
@@ -41,8 +72,9 @@ export const applyTheme = (theme) => {
 
 /**
  * Gets the current theme setting.
- * @returns {string} The current theme.
+ * @returns {Promise<string>} The current theme.
  */
-export const getTheme = () => {
-  return localStorage.getItem(THEME_KEY) || "system";
+export const getTheme = async () => {
+  const { primaryDb } = await import("./storage/db.js");
+  return (await primaryDb.get(THEME_KEY)) || "system";
 };

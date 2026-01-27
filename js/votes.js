@@ -4,6 +4,35 @@ const STORAGE_COUNTS_KEY = "wwm_votes_counts";
 const STORAGE_USER_KEY = "wwm_user_votes";
 
 const votesCache = new Map();
+let isVotesInitialized = false;
+
+export const initVotes = async () => {
+  if (isVotesInitialized) return;
+  try {
+    const { primaryDb } = await import("./storage/db.js");
+    const [counts, userVotes] = await Promise.all([
+      primaryDb.get(STORAGE_COUNTS_KEY),
+      primaryDb.get(STORAGE_USER_KEY)
+    ]);
+
+    if (counts) {
+      Object.entries(counts).forEach(([id, data]) => {
+        const current = votesCache.get(id) || { up: 0, down: 0 };
+        votesCache.set(id, { ...current, ...data });
+      });
+    }
+
+    if (userVotes) {
+      Object.entries(userVotes).forEach(([id, vote]) => {
+        const current = votesCache.get(id) || { up: 0, down: 0 };
+        votesCache.set(id, { ...current, userVote: vote });
+      });
+    }
+    isVotesInitialized = true;
+  } catch (e) {
+    console.warn("Failed to init votes from DB", e);
+  }
+};
 
 /**
  * Gets the API base URL based on environment.
@@ -29,8 +58,7 @@ export const getVoteCounts = (itemId) => {
   if (votesCache.has(itemId)) {
     return votesCache.get(itemId);
   }
-  const storage = JSON.parse(localStorage.getItem(STORAGE_COUNTS_KEY)) || {};
-  return storage[itemId] || { up: 0, down: 0 };
+  return votesCache.get(itemId) || { up: 0, down: 0 };
 };
 
 /**
@@ -43,8 +71,7 @@ export const getUserVote = (itemId) => {
   if (votesCache.has(itemId) && votesCache.get(itemId).userVote !== undefined) {
     return votesCache.get(itemId).userVote;
   }
-  const storage = JSON.parse(localStorage.getItem(STORAGE_USER_KEY)) || {};
-  return storage[itemId] || null;
+  return votesCache.get(itemId)?.userVote || null;
 };
 
 /**
@@ -66,26 +93,32 @@ export const fetchVoteCounts = async (itemId) => {
 
     votesCache.set(itemId, counts);
 
-    // Update local storage for persistence/offline
-    const storageCounts =
-      JSON.parse(localStorage.getItem(STORAGE_COUNTS_KEY)) || {};
-    storageCounts[itemId] = { up: counts.up, down: counts.down };
-    localStorage.setItem(STORAGE_COUNTS_KEY, JSON.stringify(storageCounts));
+    // Update DB asynchronously
+    import("./storage/db.js").then(async ({ primaryDb }) => {
+      try {
+        const storageCounts = await primaryDb.get(STORAGE_COUNTS_KEY) || {};
+        storageCounts[itemId] = { up: counts.up, down: counts.down };
+        await primaryDb.set(STORAGE_COUNTS_KEY, storageCounts);
 
-    if (data.userVote !== undefined) {
-      const storageUser =
-        JSON.parse(localStorage.getItem(STORAGE_USER_KEY)) || {};
-      if (data.userVote) {
-        storageUser[itemId] = data.userVote;
-      } else {
-        delete storageUser[itemId];
+        if (data.userVote !== undefined) {
+          const storageUser = await primaryDb.get(STORAGE_USER_KEY) || {};
+          if (data.userVote) {
+            storageUser[itemId] = data.userVote;
+          } else {
+            delete storageUser[itemId];
+          }
+          await primaryDb.set(STORAGE_USER_KEY, storageUser);
+        }
+      } catch (e) {
+        console.warn("Failed to save vote to DB", e);
       }
-      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(storageUser));
-    }
+    });
 
     updateVoteUI(itemId, counts);
     return counts;
-  } catch (error) {}
+  } catch (error) {
+    console.warn(`Failed to fetch vote counts for item ${itemId}:`, error);
+  }
   return getVoteCounts(itemId);
 };
 
@@ -112,31 +145,30 @@ export const fetchBatchVotes = async (itemIds) => {
 
     const data = await response.json();
 
-    const storageCounts =
-      JSON.parse(localStorage.getItem(STORAGE_COUNTS_KEY)) || {};
-    const storageUser =
-      JSON.parse(localStorage.getItem(STORAGE_USER_KEY)) || {};
+    // Update DB asynchronously
+    import("./storage/db.js").then(async ({ primaryDb }) => {
+      try {
+        const storageCounts = await primaryDb.get(STORAGE_COUNTS_KEY) || {};
+        const storageUser = await primaryDb.get(STORAGE_USER_KEY) || {};
 
-    Object.keys(data).forEach((itemId) => {
-      const itemData = data[itemId];
-      const counts = {
-        up: itemData.up,
-        down: itemData.down,
-        userVote: itemData.userVote,
-      };
-      votesCache.set(itemId, counts);
+        Object.keys(data).forEach((itemId) => {
+          const itemData = data[itemId];
+          storageCounts[itemId] = { up: itemData.up, down: itemData.down };
+          if (itemData.userVote) {
+            storageUser[itemId] = itemData.userVote;
+          } else {
+            delete storageUser[itemId];
+          }
+        });
 
-      storageCounts[itemId] = { up: counts.up, down: counts.down };
-
-      if (itemData.userVote) {
-        storageUser[itemId] = itemData.userVote;
-      } else {
-        delete storageUser[itemId];
+        await primaryDb.setMultiple([
+          { key: STORAGE_COUNTS_KEY, value: storageCounts },
+          { key: STORAGE_USER_KEY, value: storageUser }
+        ]);
+      } catch (e) {
+        console.warn("Failed to save batch votes to DB", e);
       }
     });
-
-    localStorage.setItem(STORAGE_COUNTS_KEY, JSON.stringify(storageCounts));
-    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(storageUser));
 
     return data;
   } catch (error) {
@@ -196,20 +228,27 @@ export const toggleVote = async (itemId, type) => {
 
     votesCache.set(itemId, finalCounts);
 
-    // Sync storage
-    const storageCounts =
-      JSON.parse(localStorage.getItem(STORAGE_COUNTS_KEY)) || {};
-    storageCounts[itemId] = { up: finalCounts.up, down: finalCounts.down };
-    localStorage.setItem(STORAGE_COUNTS_KEY, JSON.stringify(storageCounts));
+    // Sync storage asynchronously
+    import("./storage/db.js").then(async ({ primaryDb }) => {
+      try {
+        const storageCounts = await primaryDb.get(STORAGE_COUNTS_KEY) || {};
+        storageCounts[itemId] = { up: finalCounts.up, down: finalCounts.down };
 
-    const storageUser =
-      JSON.parse(localStorage.getItem(STORAGE_USER_KEY)) || {};
-    if (finalCounts.userVote) {
-      storageUser[itemId] = finalCounts.userVote;
-    } else {
-      delete storageUser[itemId];
-    }
-    localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(storageUser));
+        const storageUser = await primaryDb.get(STORAGE_USER_KEY) || {};
+        if (finalCounts.userVote) {
+          storageUser[itemId] = finalCounts.userVote;
+        } else {
+          delete storageUser[itemId];
+        }
+
+        await primaryDb.setMultiple([
+          { key: STORAGE_COUNTS_KEY, value: storageCounts },
+          { key: STORAGE_USER_KEY, value: storageUser }
+        ]);
+      } catch (e) {
+        console.warn("Failed to save vote toggle to DB", e);
+      }
+    });
 
     updateVoteUI(itemId, finalCounts);
 

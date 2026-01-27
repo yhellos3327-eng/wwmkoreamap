@@ -84,8 +84,10 @@
         </div>
     </div>
 
-    <script>
-        (function () {
+    <script type="module">
+        import { primaryDb } from './js/storage/db.js';
+
+        (async function () {
             const params = new URLSearchParams(window.location.search);
             const token = params.get('token');
             const error = params.get('error');
@@ -105,14 +107,21 @@
                 return;
             }
 
-            localStorage.setItem('wwm_access_token', token);
+            const setTokenResult = await primaryDb.set('wwm_access_token', token);
+            if (!setTokenResult || !setTokenResult.success) {
+                console.error('Failed to save access token', setTokenResult);
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('title').textContent = '저장 실패';
+                document.getElementById('message').textContent = '토큰 저장 중 오류가 발생했습니다.';
+                return;
+            }
 
             document.getElementById('title').textContent = '로그인 완료!';
             document.getElementById('message').textContent = '잠시 후 이동합니다...';
 
-            setTimeout(() => {
-                const returnUrl = localStorage.getItem('wwm_auth_return_url') || '/';
-                localStorage.removeItem('wwm_auth_return_url');
+            setTimeout(async () => {
+                const returnUrl = await primaryDb.get('wwm_auth_return_url') || '/';
+                await primaryDb.delete('wwm_auth_return_url');
                 window.location.href = returnUrl;
             }, 1000);
         })();

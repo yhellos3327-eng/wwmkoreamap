@@ -148,7 +148,6 @@ export const createMarkerForItem = (item) => {
 
   marker.on("contextmenu", (e) => {
     e.originalEvent.preventDefault();
-    if (marker.isPopupOpen()) marker.closePopup();
     toggleCompleted(item.id);
   });
 

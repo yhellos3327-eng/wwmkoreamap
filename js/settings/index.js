@@ -42,7 +42,7 @@ export const saveSettings = (settingsModal) => {
   }
 };
 
-export const initSettingsModal = () => {
+export const initSettingsModal = async () => {
   initAuth();
 
   const settingsModal = document.getElementById("settings-modal");
@@ -56,12 +56,12 @@ export const initSettingsModal = () => {
   let initialState = toggles.getInitialState();
 
   if (openSettingsBtn && settingsModal) {
-    openSettingsBtn.addEventListener("click", () => {
+    openSettingsBtn.addEventListener("click", async () => {
       initialState = toggles.getInitialState();
 
-      aiSettings.loadValues();
-      toggles.loadValues();
-      appearance.loadValues();
+      await aiSettings.loadValues();
+      await toggles.loadValues();
+      await appearance.loadValues();
 
       settingsModal.classList.remove("hidden");
     });
@@ -90,7 +90,7 @@ export const initSettingsModal = () => {
   }
 
   initCloudBackupSection();
-  initShortcuts();
+  await initShortcuts();
 };
 
 export {

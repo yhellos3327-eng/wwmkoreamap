@@ -9,10 +9,35 @@ import { runIntegrityCheck, showResultAlert } from "./integrity.js";
 /**
  * Saves current localStorage data as a JSON backup file.
  */
-export const saveBackup = () => {
+/**
+ * Saves current Vault data as a JSON backup file.
+ */
+export const saveBackup = async () => {
   try {
-    const data = { ...localStorage };
-    if (Object.keys(data).length === 0) {
+    const { primaryDb } = await import("./storage/db.js");
+
+    // Export all data from Vault
+    const completedList = (await primaryDb.get("completedList")) || [];
+    const favorites = (await primaryDb.get("favorites")) || [];
+    const settings = {};
+
+    // Collect all settings keys
+    const allKeys = Object.keys(await primaryDb.getAll());
+    for (const key of allKeys) {
+      if (key !== "completedList" && key !== "favorites" && !key.startsWith("backup_")) {
+        settings[key] = await primaryDb.get(key);
+      }
+    }
+
+    const data = {
+      version: 2, // Backup format version
+      timestamp: Date.now(),
+      completedList,
+      favorites,
+      settings
+    };
+
+    if (completedList.length === 0 && favorites.length === 0 && Object.keys(settings).length === 0) {
       showResultAlert(
         "warning",
         "저장할 데이터 없음",
@@ -20,8 +45,9 @@ export const saveBackup = () => {
       );
       return;
     }
+
     const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
-    const fileName = `map_data_backup_${dateStr}.json`;
+    const fileName = `map_data_backup_v2_${dateStr}.json`;
     const jsonStr = JSON.stringify(data, null, 2);
     const blob = new Blob([jsonStr], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -47,6 +73,7 @@ export const saveBackup = () => {
 
 /**
  * Loads backup from a local file with integrity checking.
+ * Supports both legacy (localStorage) and new (Vault) backup formats.
  * @param {File|undefined} file - The backup file to load.
  */
 export const loadBackup = (file) => {
@@ -63,23 +90,85 @@ export const loadBackup = (file) => {
         throw new Error("잘못된 JSON 형식");
       }
 
-      const dataForCheck = convertLocalStorageToSyncFormat(parsedData);
+      // Determine format version
+      const isV2 = parsedData.version === 2 || (parsedData.completedList && Array.isArray(parsedData.completedList));
 
-      runIntegrityCheck(dataForCheck, async () => {
-        localStorage.clear();
-        for (const key in parsedData) {
-          if (Object.prototype.hasOwnProperty.call(parsedData, key)) {
-            localStorage.setItem(key, parsedData[key]);
+      let dataToRestore = {
+        completedList: [],
+        favorites: [],
+        settings: {}
+      };
+
+      if (isV2) {
+        dataToRestore.completedList = parsedData.completedList || [];
+        dataToRestore.favorites = parsedData.favorites || [];
+        dataToRestore.settings = parsedData.settings || {};
+      } else {
+        // Legacy format conversion
+        const converted = convertLocalStorageToSyncFormat(parsedData);
+        dataToRestore.completedList = converted.completedMarkers;
+        dataToRestore.favorites = converted.favorites;
+        dataToRestore.settings = converted.settings;
+      }
+
+      runIntegrityCheck({ completedMarkers: dataToRestore.completedList, favorites: dataToRestore.favorites, settings: dataToRestore.settings }, async () => {
+        // Create Vault backup before restore
+        try {
+          const { saveToVault } = await import("./storage/vault.js");
+          const backupResult = await saveToVault("pre_file_restore");
+          if (backupResult.success) {
+            console.log(`[Backup] Pre-restore backup created: #${backupResult.id}`);
           }
+        } catch (e) {
+          console.warn("[Backup] Pre-restore backup failed:", e);
         }
-        localStorage.setItem("wwm_backup_restored", Date.now().toString());
 
-        await showResultAlert(
-          "success",
-          "복원 완료",
-          "데이터 복구가 완료되었습니다. 페이지를 새로고침합니다.",
-          true,
-        );
+        try {
+          const { primaryDb } = await import("./storage/db.js");
+
+          // Clear current Vault data (except backups)
+          // We don't have a clearAllExceptBackups method, so we set keys individually
+          // Actually, we should probably clear everything to be safe, but let's just overwrite
+
+          const completedResult = await primaryDb.set("completedList", dataToRestore.completedList);
+          if (!completedResult || !completedResult.success) {
+            throw new Error("완료 목록 저장 실패");
+          }
+
+          const favoritesResult = await primaryDb.set("favorites", dataToRestore.favorites);
+          if (!favoritesResult || !favoritesResult.success) {
+            throw new Error("즐겨찾기 저장 실패");
+          }
+
+          for (const [key, value] of Object.entries(dataToRestore.settings)) {
+            const settingResult = await primaryDb.set(key, value);
+            if (!settingResult || !settingResult.success) {
+              console.warn(`Failed to restore setting: ${key}`, settingResult);
+              // We might not want to fail the whole restore for one setting, but let's log it.
+              // If strict mode is needed: throw new Error(`설정 저장 실패: ${key}`);
+            }
+          }
+
+          // Clear legacy localStorage to avoid confusion - SKIPPED for safety
+          // localStorage.clear();
+
+          // Restore auth return url if needed (optional)
+          //await primaryDb.set("wwm_backup_restored", Date.now().toString());
+
+          await showResultAlert(
+            "success",
+            "복원 완료",
+            "데이터 복구가 완료되었습니다. 페이지를 새로고침합니다.",
+            true,
+          );
+        } catch (restoreError) {
+          console.error("[Backup] Restore failed:", restoreError);
+          showResultAlert(
+            "error",
+            "복원 실패",
+            "데이터 복원 중 오류가 발생했습니다.",
+          );
+        }
       });
     } catch (err) {
       console.error("복구 실패:", err);

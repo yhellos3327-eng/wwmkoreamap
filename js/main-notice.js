@@ -1,14 +1,14 @@
 const NOTICE_ID = '2025-12-20-domain-change-v2';
 
-export function initMainNotice() {
-    const dontShowAgain = localStorage.getItem(`wwm_notice_hidden_${NOTICE_ID}`);
+export async function initMainNotice() {
+    const { primaryDb } = await import("./storage/db.js");
+    const dontShowAgain = await primaryDb.get(`notice_hidden_${NOTICE_ID}`);
 
     if (dontShowAgain === 'true') {
         return;
     }
 
-    
-    
+    createNoticeModal();
 }
 
 function createNoticeModal() {
@@ -95,7 +95,13 @@ function closeNotice() {
     const checkbox = document.getElementById('chk-dont-show-notice');
 
     if (checkbox && checkbox.checked) {
-        localStorage.setItem(`wwm_notice_hidden_${NOTICE_ID}`, 'true');
+        import("./storage/db.js")
+            .then(({ primaryDb }) => {
+                primaryDb.set(`notice_hidden_${NOTICE_ID}`, 'true');
+            })
+            .catch((error) => {
+                console.error("Failed to save notice preference:", error);
+            });
     }
 
     if (modal) {

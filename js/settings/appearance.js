@@ -51,22 +51,25 @@ export const initAppearanceSettings = () => {
       state.savedMenuPosition;
     applyMenuPosition(state.savedMenuPosition);
 
-    menuPositionSelect.addEventListener("change", (e) => {
+    menuPositionSelect.addEventListener("change", async (e) => {
       const newPos = /** @type {HTMLSelectElement} */ (e.target).value;
       state.savedMenuPosition = newPos;
-      localStorage.setItem("wwm_menu_position", newPos);
+
+      const { updateSettingWithTimestamp } = await import("../sync.js");
+      updateSettingWithTimestamp("menuPosition", newPos);
+
       applyMenuPosition(newPos);
     });
   }
 
   if (themeSelect) {
     themeSelect.addEventListener("change", (e) => {
-      applyTheme(/** @type {HTMLSelectElement} */ (e.target).value);
+      applyTheme(/** @type {HTMLSelectElement} */(e.target).value);
     });
   }
 
   return {
-    loadValues: () => {
+    loadValues: async () => {
       if (regionColorInput) {
         /** @type {HTMLInputElement} */ (regionColorInput).value =
           state.savedRegionColor;
@@ -82,7 +85,7 @@ export const initAppearanceSettings = () => {
           valDisplay.textContent = state.savedRegionFillColor.toUpperCase();
       }
       if (themeSelect) {
-        /** @type {HTMLSelectElement} */ (themeSelect).value = getTheme();
+        /** @type {HTMLSelectElement} */ (themeSelect).value = await getTheme();
       }
     },
   };
@@ -91,19 +94,20 @@ export const initAppearanceSettings = () => {
 /**
  * Saves the current appearance settings to state and local storage.
  */
-export const saveAppearanceSettings = () => {
+export const saveAppearanceSettings = async () => {
   const regionColorInput = document.getElementById("region-line-color");
   const regionFillColorInput = document.getElementById("region-fill-color");
+  const { updateSettingWithTimestamp } = await import("../sync.js");
 
   if (regionColorInput) {
     const newColor = /** @type {HTMLInputElement} */ (regionColorInput).value;
     setState("savedRegionColor", newColor);
-    localStorage.setItem("wwm_region_color", newColor);
+    updateSettingWithTimestamp("regionColor", newColor);
   }
   if (regionFillColorInput) {
     const newFillColor = /** @type {HTMLInputElement} */ (regionFillColorInput)
       .value;
     setState("savedRegionFillColor", newFillColor);
-    localStorage.setItem("wwm_region_fill_color", newFillColor);
+    updateSettingWithTimestamp("regionFillColor", newFillColor);
   }
 };

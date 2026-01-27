@@ -28,14 +28,38 @@
 </head>
 
 <body>
-    <div id="loading-screen">
+    <div id="loading-screen" class="hidden">
         <div class="loading-content">
-            <div class="loading-logo">연운 한국 맵스</div>
-            <div class="loading-bar-container">
-                <div id="loading-bar" class="loading-bar"></div>
+            <div class="loading-logo-wrapper">
+                <div class="loading-icon">
+                    <svg viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                    </svg>
+                </div>
+                <h1 class="loading-logo">연운 맵스</h1>
+                <p class="loading-subtitle">Where Winds Meet</p>
             </div>
-            <div id="loading-text" class="loading-text">Initializing...</div>
+            
+            <div class="loading-progress-section">
+                <div class="loading-bar-container">
+                    <div id="loading-bar" class="loading-bar"></div>
+                </div>
+                <div id="loading-percentage" class="loading-percentage">0<span>%</span></div>
+            </div>
+            <div id="loading-text" class="loading-text">초기화 중...</div>
             <div id="loading-detail" class="loading-detail"></div>
+            
+            <div class="loading-steps">
+                <div class="loading-step active" data-step="1"></div>
+                <div class="loading-step" data-step="2"></div>
+                <div class="loading-step" data-step="3"></div>
+                <div class="loading-step" data-step="4"></div>
+            </div>
+            
+            <div class="loading-tip">
+                <span class="loading-tip-icon">💡</span>
+                <span class="loading-tip-text">Tip: Ctrl+F로 아이템을 빠르게 검색할 수 있습니다</span>
+            </div>
         </div>
     </div>
     <div class="app-container">
@@ -122,7 +146,7 @@
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
-            <div id="map"></div>
+            <div id="map" class="skeleton-loading"></div>
         </main>
 
     </div>
