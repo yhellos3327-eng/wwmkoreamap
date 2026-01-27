@@ -331,11 +331,13 @@ export const migrateToVault = async () => {
         // Step 2: Extract localStorage data
         const localData = extractLocalStorageData();
 
-        const localHasData = localData.completedMarkers.length > 0 || localData.favorites.length > 0;
+        // Check for settings presence (non-empty settings object)
+        const hasSettings = localData.settings && Object.keys(localData.settings).length > 0;
+        const localHasData = localData.completedMarkers.length > 0 || localData.favorites.length > 0 || hasSettings;
         const vaultDataCount = (vaultCompleted?.length || 0) + (vaultFavorites?.length || 0);
-        const localDataCount = localData.completedMarkers.length + localData.favorites.length;
+        const localDataCount = localData.completedMarkers.length + localData.favorites.length + (hasSettings ? 1 : 0);
 
-        log.info(`Data check`, { vault: vaultDataCount, local: localDataCount });
+        log.info(`Data check`, { vault: vaultDataCount, local: localDataCount, hasSettings });
 
         // Step 3: Decide migration strategy
         if (!localHasData && !vaultHasData) {
@@ -527,11 +529,13 @@ export const loadDataWithFallback = async () => {
         // Calculate counts
         const vaultCompletedCount = Array.isArray(vaultCompleted) ? vaultCompleted.length : 0;
         const vaultFavoritesCount = Array.isArray(vaultFavorites) ? vaultFavorites.length : 0;
-        const vaultTotal = vaultCompletedCount + vaultFavoritesCount;
+        const vaultHasSettings = vaultSettings && Object.keys(vaultSettings).length > 0;
+        const vaultTotal = vaultCompletedCount + vaultFavoritesCount + (vaultHasSettings ? 1 : 0);
 
         const localCompletedCount = localData.completedMarkers.length;
         const localFavoritesCount = localData.favorites.length;
-        const localTotal = localCompletedCount + localFavoritesCount;
+        const localHasSettings = localData.settings && Object.keys(localData.settings).length > 0;
+        const localTotal = localCompletedCount + localFavoritesCount + (localHasSettings ? 1 : 0);
 
         log.info(`Data comparison`, { vault: `${vaultTotal} (${vaultCompletedCount}+${vaultFavoritesCount})`, local: `${localTotal} (${localCompletedCount}+${localFavoritesCount})` });
 

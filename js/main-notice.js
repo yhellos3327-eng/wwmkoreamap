@@ -1,11 +1,16 @@
 const NOTICE_ID = '2025-12-20-domain-change-v2';
 
 export async function initMainNotice() {
-    const { primaryDb } = await import("./storage/db.js");
-    const dontShowAgain = await primaryDb.get(`notice_hidden_${NOTICE_ID}`);
+    try {
+        const { primaryDb } = await import("./storage/db.js");
+        const dontShowAgain = await primaryDb.get(`notice_hidden_${NOTICE_ID}`);
 
-    if (dontShowAgain === 'true') {
-        return;
+        if (dontShowAgain === 'true') {
+            return;
+        }
+    } catch (error) {
+        console.error("Failed to check notice preference:", error);
+        // Show notice anyway on error
     }
 
     createNoticeModal();
@@ -90,18 +95,22 @@ function createNoticeModal() {
     });
 }
 
-function closeNotice() {
+async function closeNotice() {
     const modal = document.getElementById('main-notice-overlay');
     const checkbox = document.getElementById('chk-dont-show-notice');
 
     if (checkbox && checkbox.checked) {
-        import("./storage/db.js")
-            .then(({ primaryDb }) => {
-                primaryDb.set(`notice_hidden_${NOTICE_ID}`, 'true');
-            })
-            .catch((error) => {
-                console.error("Failed to save notice preference:", error);
-            });
+        try {
+            const { primaryDb } = await import("./storage/db.js");
+            const result = await primaryDb.set(`notice_hidden_${NOTICE_ID}`, 'true');
+            if (result && result.success) {
+                console.log("Notice preference saved successfully");
+            } else {
+                console.warn("Failed to save notice preference:", result?.error);
+            }
+        } catch (error) {
+            console.error("Failed to save notice preference:", error);
+        }
     }
 
     if (modal) {

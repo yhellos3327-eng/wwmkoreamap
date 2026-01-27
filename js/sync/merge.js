@@ -152,18 +152,28 @@ export const mergeData = (local, cloud) => {
  * @returns {string} The hash string.
  */
 export const generateDataHash = (data) => {
+  // Filter and sort settings to ensure consistent string representation
+  const settings = {};
+  if (data?.settings) {
+    Object.keys(data.settings)
+      .filter((k) => !k.startsWith("_")) // Ignore internal keys like _updatedAt
+      .sort()
+      .forEach((k) => {
+        settings[k] = data.settings[k];
+      });
+  }
+
   const str = JSON.stringify({
     completedCount: data?.completedMarkers?.length || 0,
     favoritesCount: data?.favorites?.length || 0,
-    settingsKeys: Object.keys(data?.settings || {})
-      .sort()
-      .join(","),
+    settings: settings,
   });
+
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i);
     hash = (hash << 5) - hash + char;
-    hash = hash & hash;
+    hash = hash & hash; // Convert to 32bit integer
   }
-  return hash.toString();
+  return Math.abs(hash).toString(36); // Use base36 for shorter string
 };

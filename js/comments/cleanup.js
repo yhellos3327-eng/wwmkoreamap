@@ -33,15 +33,15 @@ export const cleanupOldComments = async () => {
   if (cleanupRan) return;
   cleanupRan = true;
 
-  const { primaryDb } = await import("../storage/db.js");
-  const lastRun = await primaryDb.get(CLEANUP_COOLDOWN_KEY);
-
-  if (lastRun && Date.now() - parseInt(lastRun) < COOLDOWN_MS) {
-    logger.log("Cleanup", "쿨다운 중 - 24시간 내 이미 실행됨");
-    return;
-  }
-
   try {
+    const { primaryDb } = await import("../storage/db.js");
+    const lastRun = await primaryDb.get(CLEANUP_COOLDOWN_KEY);
+
+    if (lastRun && Date.now() - parseInt(lastRun) < COOLDOWN_MS) {
+      logger.log("Cleanup", "쿨다운 중 - 24시간 내 이미 실행됨");
+      return;
+    }
+
     await firebaseInitialized;
     if (!db) {
       logger.warn("Cleanup", "Firebase DB 초기화 실패, 정리 건너뛰");
@@ -74,6 +74,8 @@ export const cleanupOldComments = async () => {
     await primaryDb.set(CLEANUP_COOLDOWN_KEY, Date.now().toString());
     logger.success("Cleanup", `${snapshot.size}개 오래된 댓글 삭제 완료`);
   } catch (error) {
+    // Reset cleanupRan on error to allow retries
+    cleanupRan = false;
     logger.warn("Cleanup", "오래된 댓글 삭제 실패:", error.message);
   }
 };

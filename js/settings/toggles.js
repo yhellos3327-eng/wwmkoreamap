@@ -16,15 +16,36 @@ export const initAdToggle = async () => {
 
   const { primaryDb } = await import("../storage/db.js");
   const storedAd = await primaryDb.get("wwm_show_ad");
-  const showAd = storedAd === null ? true : storedAd === "true";
+
+  // Handle both boolean and string stored values
+  let showAd = true; // default
+  if (storedAd !== null) {
+    if (typeof storedAd === "boolean") {
+      showAd = storedAd;
+    } else {
+      showAd = storedAd.toString().toLowerCase() === "true";
+    }
+  }
+
   toggleAd.checked = showAd;
   adContainer.style.display = showAd ? "block" : "none";
 
-  toggleAd.addEventListener("change", (e) => {
+  toggleAd.addEventListener("change", async (e) => {
     const isChecked = /** @type {HTMLInputElement} */ (e.target).checked;
-    primaryDb.set("wwm_show_ad", String(isChecked)).catch(console.warn);
-    adContainer.style.display = isChecked ? "block" : "none";
-    triggerSync();
+    try {
+      const result = await primaryDb.set("wwm_show_ad", String(isChecked));
+      if (result && result.success) {
+        adContainer.style.display = isChecked ? "block" : "none";
+        triggerSync();
+      } else {
+        // Revert if save failed
+        toggleAd.checked = !isChecked;
+        console.warn("Failed to save ad toggle:", result?.error);
+      }
+    } catch (err) {
+      toggleAd.checked = !isChecked;
+      console.warn("Failed to save ad toggle:", err);
+    }
   });
 };
 
@@ -262,8 +283,17 @@ export const initToggles = () => {
       if (adToggleInput) {
         const { primaryDb } = await import("../storage/db.js");
         const storedAd = await primaryDb.get("wwm_show_ad");
-        /** @type {HTMLInputElement} */ (adToggleInput).checked =
-          storedAd === null ? true : storedAd === "true";
+
+        // Handle both boolean and string stored values
+        let showAd = true; // default
+        if (storedAd !== null) {
+          if (typeof storedAd === "boolean") {
+            showAd = storedAd;
+          } else {
+            showAd = storedAd.toString().toLowerCase() === "true";
+          }
+        }
+        /** @type {HTMLInputElement} */ (adToggleInput).checked = showAd;
       }
       if (clusterToggleInput)
         /** @type {HTMLInputElement} */ (clusterToggleInput).checked =
@@ -288,15 +318,21 @@ export const initToggles = () => {
   };
 };
 
-export const saveToggleSettings = () => {
+export const saveToggleSettings = async () => {
   const adToggleInput = document.getElementById("toggle-ad");
 
   if (adToggleInput) {
-    import("../storage/db.js").then(({ primaryDb }) => {
-      primaryDb.set(
-        "wwm_show_ad",
-        String(/** @type {HTMLInputElement} */(adToggleInput).checked),
-      ).catch(console.warn);
-    });
+    try {
+      const { primaryDb } = await import("../storage/db.js");
+      const isChecked = /** @type {HTMLInputElement} */(adToggleInput).checked;
+      const result = await primaryDb.set("wwm_show_ad", String(isChecked));
+      if (result && result.success) {
+        console.log("Ad toggle setting saved successfully");
+      } else {
+        console.warn("Failed to save ad toggle setting:", result?.error);
+      }
+    } catch (err) {
+      console.warn("Error saving ad toggle setting:", err);
+    }
   }
 };

@@ -334,11 +334,17 @@ export const updateSettingWithTimestamp = async (key, value) => {
   try {
     const settings = await primaryDb.get("settings") || {};
     settings[key] = value;
-    await primaryDb.set("settings", settings);
+    const setResult = await primaryDb.set("settings", settings);
+    if (!setResult || !setResult.success) {
+      throw new Error(`Failed to save settings: ${setResult?.error || 'Unknown error'}`);
+    }
 
     let timestamps = await primaryDb.get("settings_updated_at") || {};
     timestamps[key] = new Date().toISOString();
-    await primaryDb.set("settings_updated_at", timestamps);
+    const timeResult = await primaryDb.set("settings_updated_at", timestamps);
+    if (!timeResult || !timeResult.success) {
+      log.warn("Failed to save setting timestamp", timeResult?.error);
+    }
 
     triggerSync();
   } catch (e) {
@@ -395,9 +401,12 @@ const stopPolling = () => {
  */
 const handleRemoteData = (data) => {
   if (!data) return;
-  const currentHash = generateDataHash(getLocalData());
   const newHash = generateDataHash(data);
 
+  // Ignore if this is the same version we just synced
+  if (newHash === getSyncState().lastSyncVersion) return;
+
+  const currentHash = generateDataHash(getLocalData());
   if (currentHash !== newHash) {
     applyDataToUI(data);
     setLastSyncVersion(newHash);
@@ -411,9 +420,12 @@ const handleRemoteData = (data) => {
  */
 const handleBroadcastData = (data) => {
   if (!data) return;
-  const currentHash = generateDataHash(getLocalData());
   const newHash = generateDataHash(data);
 
+  // Ignore if this is the same version we just synced
+  if (newHash === getSyncState().lastSyncVersion) return;
+
+  const currentHash = generateDataHash(getLocalData());
   if (currentHash !== newHash) {
     applyDataToUI(data);
     setLastSyncVersion(newHash);

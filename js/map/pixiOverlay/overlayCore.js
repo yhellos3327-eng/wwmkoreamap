@@ -151,25 +151,53 @@ export const initPixiOverlay = async () => {
 
             // Get all items in cluster to check completion status
             const allLeaves = supercluster.getLeaves(clusterId, Infinity);
-            const firstItem = allLeaves[0]?.properties?.item;
 
-            // Check if ALL items in cluster are completed using O(1) Set lookup
-            let allCompleted = allLeaves.length > 0;
+            // Filter leaves by active categories and regions
+            let visibleCount = 0;
+            let allVisibleCompleted = true;
+            let hasAnyVisibleItem = false;
+            let firstVisibleItem = null; // Track first item that passes filters
+
             for (const leaf of allLeaves) {
               const item = leaf.properties?.item;
-              if (item) {
-                const isCompleted = completedIdSet.has(String(item.id));
-                if (!isCompleted) {
-                  allCompleted = false;
-                  break;
-                }
+              if (!item) continue;
+
+              // Check category filter
+              let catId = item.category;
+              const isCatActive = state.activeCategoryIds.has(catId);
+              if (!isCatActive) continue;
+
+              // Check region filter
+              const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
+              const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
+              const isRegActive = state.activeRegionNames.has(normalizedRegion);
+              if (!isRegActive) continue;
+
+              // Item passes filters
+              hasAnyVisibleItem = true;
+
+              // Track first visible item for cluster icon
+              if (!firstVisibleItem) {
+                firstVisibleItem = item;
+              }
+
+              const isCompleted = completedIdSet.has(String(item.id));
+
+              // Skip completed items if hideCompleted is enabled
+              if (state.hideCompleted && isCompleted) continue;
+
+              visibleCount++;
+              if (!isCompleted) {
+                allVisibleCompleted = false;
               }
             }
 
-            // Skip if hideCompleted is enabled and all items are completed
-            if (state.hideCompleted && allCompleted) {
+            // Skip cluster if no visible items after filtering
+            if (!hasAnyVisibleItem || visibleCount === 0) {
               return;
             }
+
+            const allCompleted = allVisibleCompleted && visibleCount > 0;
 
             // Create container
             const clusterContainer = new PIXI.Container();
@@ -178,10 +206,10 @@ export const initPixiOverlay = async () => {
 
             const targetSize = ICON_SIZE / scale;
 
-            // Main marker icon
+            // Main marker icon - use first VISIBLE item's category
             let iconUrl = null;
-            if (firstItem) {
-              iconUrl = getIconUrl(firstItem.category);
+            if (firstVisibleItem) {
+              iconUrl = getIconUrl(firstVisibleItem.category);
             }
             const texture = (iconUrl && getCachedTexture(iconUrl)) || getDefaultTexture();
 
@@ -201,8 +229,8 @@ export const initPixiOverlay = async () => {
 
               clusterContainer.addChild(sprite);
 
-              // Badge - larger and more visible
-              const badgeText = count > 99 ? "99+" : count.toString();
+              // Badge - larger and more visible (show filtered count)
+              const badgeText = visibleCount > 99 ? "99+" : visibleCount.toString();
               const badgeRadius = Math.max(11, (badgeText.length > 2 ? 14 : 12)) / scale;
               const badgeX = targetSize / 2.2;
               const badgeY = -targetSize / 2.2;
@@ -245,7 +273,7 @@ export const initPixiOverlay = async () => {
             clusterContainer.markerData = {
               isCluster: true,
               clusterId: clusterId,
-              point_count: count,
+              point_count: visibleCount,
               lat: lat,
               lng: lng,
               allCompleted: allCompleted,

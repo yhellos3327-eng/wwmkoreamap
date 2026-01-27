@@ -34,16 +34,19 @@ const setupLoadingSubscription = () => {
     // Loading screen is hidden by default - we use skeleton loading instead
     // When loading completes, show main notice and remove skeleton states
     if (!loadingState.isVisible) {
-      await initMainNotice();
+      initMainNotice()
+        .then(() => {
+          // Remove any remaining skeleton states from the page
+          document.querySelectorAll(".skeleton-loading").forEach((el) => {
+            el.classList.remove("skeleton-loading");
+          });
 
-      // Remove any remaining skeleton states from the page
-      document.querySelectorAll(".skeleton-loading").forEach((el) => {
-        el.classList.remove("skeleton-loading");
-      });
-
-      // Dispatch custom event for components to know loading is complete
-      window.dispatchEvent(new CustomEvent("app-loaded"));
-      return;
+          // Dispatch custom event for components to know loading is complete
+          window.dispatchEvent(new CustomEvent("app-loaded"));
+        })
+        .catch((err) => {
+          console.error("Failed to initialize main notice:", err);
+        });
     }
   });
 };

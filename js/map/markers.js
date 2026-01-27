@@ -108,14 +108,36 @@ export const renderMapDataAndMarkers = async () => {
     await initLazyLoading();
 
     const items = state.mapData.items;
-    const filteredItems =
-      state.activeRegionNames.size > 0
-        ? items.filter((item) => {
-          const effectiveRegion = item.forceRegion || item.region;
-          const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
-          return state.activeRegionNames.has(normalizedRegion);
-        })
-        : items;
+
+    // Apply both category AND region filters
+    // Build completed ID set once for O(1) lookups
+    const completedIdSet = new Set(
+      state.completedList.map((c) => String(c.id))
+    );
+
+    const filteredItems = items.filter((item) => {
+      // Check category filter
+      const catId = item.category;
+      if (!state.activeCategoryIds.has(catId)) {
+        return false;
+      }
+
+      // Check region filter (only if regions are selected)
+      if (state.activeRegionNames.size > 0) {
+        const rawRegion = item.forceRegion || item.region || "알 수 없음";
+        const normalizedRegion = state.reverseRegionMap[rawRegion] || rawRegion;
+        if (!state.activeRegionNames.has(normalizedRegion)) {
+          return false;
+        }
+      }
+
+      // Check hideCompleted filter
+      if (state.hideCompleted && completedIdSet.has(String(item.id))) {
+        return false;
+      }
+
+      return true;
+    });
 
     await pixi.renderMarkersWithPixi(filteredItems);
 
