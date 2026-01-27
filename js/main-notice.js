@@ -1,5 +1,11 @@
 const NOTICE_ID = '2025-12-20-domain-change-v2';
 
+/**
+ * Initialize and display the main notice modal when the user has not previously dismissed it.
+ *
+ * Checks persistent storage for the user's "don't show again" setting for this notice and,
+ * if that setting is not `'true'`, renders the notice modal.
+ */
 export async function initMainNotice() {
     const { primaryDb } = await import("./storage/db.js");
     const dontShowAgain = await primaryDb.get(`notice_hidden_${NOTICE_ID}`);
@@ -11,6 +17,11 @@ export async function initMainNotice() {
     createNoticeModal();
 }
 
+/**
+ * Render and attach the main domain-change notice modal to the document if one does not already exist.
+ *
+ * Inserts an overlay modal that informs users about the upcoming domain and tech-stack change, wires controls to close the modal, and provides a path to the settings backup section. The modal's close buttons and overlay click will dismiss the modal; the "지금 백업하러 가기" action also opens settings and scrolls/highlights the backup section. The modal includes a "다시 보지 않기" checkbox whose state is persisted when the modal is closed.
+ */
 function createNoticeModal() {
     if (document.getElementById('main-notice-overlay')) return;
 
@@ -90,6 +101,12 @@ function createNoticeModal() {
     });
 }
 
+/**
+ * Closes and removes the main notice modal and persists the "don't show again" choice when selected.
+ *
+ * If the "don't show again" checkbox is checked, sets the storage key `notice_hidden_${NOTICE_ID}` to `'true'` in the primary database.
+ * Then removes the modal's `active` class and deletes the modal element from the DOM after a 300ms delay.
+ */
 function closeNotice() {
     const modal = document.getElementById('main-notice-overlay');
     const checkbox = document.getElementById('chk-dont-show-notice');

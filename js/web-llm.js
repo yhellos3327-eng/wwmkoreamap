@@ -332,7 +332,8 @@ async function hasModelInCache(modelId) {
 }
 
 /**
- * 현재 설정된 모델 ID 가져오기
+ * Retrieve the currently configured model id from persistent storage, falling back to the default if invalid or missing.
+ * @returns {string} The stored model id if it matches one of the known presets, otherwise DEFAULT_MODEL_ID.
  */
 async function getStoredModelId() {
   const { primaryDb } = await import("./storage/db.js");
@@ -769,14 +770,15 @@ ${context}
 }
 
 /**
- * Send a chat message to the WebLLM engine using optional RAG context and streaming callbacks.
- * @param {string} userMessage - The user's message to send to the model.
+ * Send a user message to the WebLLM engine with optional RAG context and streaming callbacks.
+ *
+ * @param {string} userMessage - The user's message to deliver to the model.
  * @param {Object} [options] - Optional settings for the request.
- * @param {Array} [options.items] - Context items to include for RAG; formatted via itemsToContext.
- * @param {function(Object): void} [options.onStream] - Called repeatedly with streaming updates: `{ content, thinking, isThinking }` where `content` is the assistant-visible text, `thinking` is interim thinking text, and `isThinking` indicates whether a thinking block is active.
+ * @param {Array} [options.items] - Context items to include for retrieval-augmented generation (formatted via itemsToContext).
+ * @param {function(Object): void} [options.onStream] - Called repeatedly with streaming updates: `{ content, thinking, isThinking }` where `content` is assistant-visible text, `thinking` is interim internal deliberation text, and `isThinking` indicates whether the model is currently emitting a thinking block.
  * @param {function(Object): void} [options.onComplete] - Called once when generation finishes with the final result: `{ content, thinking }`.
- * @param {function(Error): void} [options.onError] - Called on errors that occur during engine retrieval or generation.
- * @param {boolean} [options.enableThinking=false] - If true and the selected model supports it, enable the model's "thinking" mode (internal deliberation blocks).
+ * @param {function(Error): void} [options.onError] - Called if an error occurs during engine retrieval or generation.
+ * @param {boolean} [options.enableThinking=false] - If true and the selected model supports it, enable the model's internal "thinking" mode.
  * @returns {{content: string, thinking: string}} The final assistant-visible text in `content` and any accumulated thinking text in `thinking`.
  */
 export async function sendChatMessage(userMessage, options = {}) {
