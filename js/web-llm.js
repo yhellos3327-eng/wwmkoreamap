@@ -332,7 +332,10 @@ async function hasModelInCache(modelId) {
 }
 
 /**
- * 현재 설정된 모델 ID 가져오기
+ * Get the currently configured model id.
+ *
+ * Retrieves the stored model id from persistent storage and returns it if it matches a known preset; otherwise returns DEFAULT_MODEL_ID.
+ * @returns {string} The stored model id if it matches a preset, otherwise DEFAULT_MODEL_ID.
  */
 async function getStoredModelId() {
   const { primaryDb } = await import("./storage/db.js");
@@ -1088,14 +1091,9 @@ function renderChatMessage(role, content) {
 }
 
 /**
- * Handle chat input submission and orchestrate sending the message to the model.
+ * Submit the current chat input, perform a retrieval-augmented context lookup, and stream the assistant's response into the UI and chat history.
  *
- * Reads and validates the textarea input; if valid and not already generating or loading an engine,
- * it renders the user's message, performs a retrieval-augmented search for relevant context items,
- * inserts an assistant placeholder, sends the message to the model with streaming callbacks,
- * updates the assistant message and chat history as partial and final responses arrive, and displays
- * any errors inline. The function is a no-op when the input is empty or when a generation/engine load
- * is already in progress.
+ * Validates and clears the input, renders the user's message, searches for relevant context items, sends the message to the model with streaming callbacks, updates the assistant message progressively and on completion, records chat history, and restores UI state when finished.
  */
 async function handleChatSubmit() {
   const textarea = document.querySelector(".web-llm-textarea");
@@ -1249,6 +1247,11 @@ async function setupEventListeners() {
   }
 }
 
+/**
+ * Initialize the WebLLM module and its UI/event listeners; subsequent calls wait for the same initialization to complete.
+ *
+ * Sets up event listeners and subscriptions required by the module and marks it initialized on success.
+ */
 export async function initWebLLM() {
   if (initPromise) return initPromise;
 
