@@ -31,26 +31,20 @@ const log = createLogger("Main");
  */
 const setupLoadingSubscription = () => {
   subscribe("loadingState", async (loadingState) => {
-    const loadingScreen = document.getElementById("loading-screen");
-    const loadingBar = document.getElementById("loading-bar");
-    const loadingText = document.getElementById("loading-text");
-    const loadingDetail = document.getElementById("loading-detail");
-
+    // Loading screen is hidden by default - we use skeleton loading instead
+    // When loading completes, show main notice and remove skeleton states
     if (!loadingState.isVisible) {
-      if (loadingScreen) loadingScreen.classList.add("hidden");
       await initMainNotice();
+
+      // Remove any remaining skeleton states from the page
+      document.querySelectorAll(".skeleton-loading").forEach((el) => {
+        el.classList.remove("skeleton-loading");
+      });
+
+      // Dispatch custom event for components to know loading is complete
+      window.dispatchEvent(new CustomEvent("app-loaded"));
       return;
     }
-
-    const WEIGHTS = { csv: 0.3, map: 0.7 };
-    const total =
-      loadingState.csvProgress * WEIGHTS.csv +
-      loadingState.mapProgress * WEIGHTS.map;
-
-    if (loadingBar)
-      loadingBar.style.width = `${Math.min(100, Math.round(total))}%`;
-    if (loadingText) loadingText.textContent = loadingState.message;
-    if (loadingDetail) loadingDetail.textContent = loadingState.detail;
   });
 };
 

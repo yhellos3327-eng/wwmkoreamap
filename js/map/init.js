@@ -105,6 +105,10 @@ export const initMap = async (mapKey) => {
 
   setState("currentTileLayer", tileLayer);
 
+  // Remove skeleton loading state from map
+  const mapEl = document.getElementById("map");
+  if (mapEl) mapEl.classList.remove("skeleton-loading");
+
   if (state.regionLayerGroup) {
     state.regionLayerGroup.clearLayers();
   } else {
