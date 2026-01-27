@@ -206,7 +206,12 @@ export function getCategoryKorean(categoryId) {
 }
 
 /**
- * 정보 ID를 한국어 이름으로 변환
+ * Get the Korean display name for a given information item ID.
+ *
+ * Looks up the ID in the internal info-to-Korean map, then in the global `state.koDict`,
+ * and returns the original `infoId` if no mapping is found.
+ * @param {string|number} infoId - The information item identifier to resolve.
+ * @returns {string|number} The resolved Korean name, or the original `infoId` if unresolved.
  */
 export function getInfoKorean(infoId) {
   if (!infoId) return infoId;
@@ -292,7 +297,8 @@ export function itemsToContext(items, maxItems = 20) {
 }
 
 /**
- * WebGPU 지원 여부 확인
+ * Check whether a usable WebGPU adapter and device are available.
+ * @returns {boolean} `true` if a high-performance WebGPU adapter and a device (with optional `shader-f16` feature) can be obtained, `false` otherwise.
  */
 async function checkWebGPUSupport() {
   try {
@@ -361,7 +367,8 @@ async function hasModelInCache(modelId) {
 }
 
 /**
- * 현재 설정된 모델 ID 가져오기
+ * Get the current model identifier from persistent storage, falling back to the default.
+ * @returns {string} The stored model ID if it matches a known preset; otherwise the default model ID.
  */
 async function getStoredModelId() {
   const { primaryDb } = await import("./storage/db.js");
@@ -393,7 +400,9 @@ async function getInstallState(modelId) {
 }
 
 /**
- * 진행 상태 콜백 생성
+ * Create a progress handler that updates the module's engine loading state and forwards updates.
+ * @param {(progress: {progress: number, text: string}) => void} [onProgress] - Optional callback to receive progress updates.
+ * @returns {(progress: {progress: number, text: string}) => void} A callback that accepts a progress object, sets the module-level `engineLoadingProgress`, invokes `onProgress` if provided, and logs the progress.
  */
 function createProgressCallback(onProgress) {
   return (progress) => {
@@ -409,10 +418,10 @@ function createProgressCallback(onProgress) {
 }
 
 /**
- * Create or reuse the ML engine for the specified model id.
+ * Create or reuse the ML engine for the given model identifier.
  * @param {string} modelId - Identifier of the model to load or reuse.
- * @param {function} [onProgress] - Optional callback invoked with progress updates (object with `text` and `ratio` properties).
- * @returns {object} The created or reused MLCEngine instance.
+ * @param {function({text:string,ratio:number}):void} [onProgress] - Optional callback invoked with progress updates; receives an object with `text` (status message) and `ratio` (0.0–1.0).
+ * @returns {object} The MLCEngine instance ready for use.
  * @throws {Error} If an engine is already loading or if engine creation fails.
  */
 async function getOrCreateEngine(modelId, onProgress) {
@@ -562,14 +571,12 @@ export function schedulePreCache(options = {}) {
 }
 
 /**
- * Finds map items relevant to a user's query for retrieval-augmented generation (RAG) context.
+ * Selects relevant map items for retrieval-augmented generation (RAG) based on the user's query.
  *
- * Attempts a targeted search using region and category keyword heuristics (e.g., treasure, box, fishing),
- * including handling of "ground"/"underground" qualifiers, and falls back to a scored relevance search
- * across item name, region, category, description, and id when no precise match is found.
+ * Uses region and category keyword heuristics (including "ground"/"underground" qualifiers) for a precise targeted search and falls back to a scored relevance search across item name, region, category, description, and id when no precise matches are found.
  *
- * @param {string} query - The user's search query string.
- * @returns {Array<Object>} An array of map item objects that match the query, which may be empty if no relevant items are found.
+ * @param {string} query - The user's search query.
+ * @returns {Array<Object>} An array of matching map item objects; may be empty if no relevant items are found.
  */
 function searchItemsForContext(query) {
   if (!state.mapData?.items) return [];
@@ -922,7 +929,10 @@ export async function sendChatMessage(userMessage, options = {}) {
 }
 
 /**
- * 생성 중단
+ * Attempt to interrupt any in-progress model generation.
+ *
+ * If an ML engine is active, requests it to stop the current generation.
+ * Any errors raised while attempting to interrupt are caught and suppressed.
  */
 export function interruptGeneration() {
   if (mlcEngine) {
@@ -936,9 +946,9 @@ export function interruptGeneration() {
 }
 
 /**
- * Reset the active engine's chat context.
+ * Clear the active ML engine's conversational state.
  *
- * If an engine is loaded, instructs it to clear its current conversation state; does nothing when no engine is available.
+ * If no engine is active, this function performs no action.
  */
 export function resetChat() {
   if (mlcEngine) {
@@ -990,7 +1000,9 @@ export async function openWebLLMModal() {
 }
 
 /**
- * WebLLM 모달 닫기
+ * Close the WebLLM modal and stop any ongoing model generation.
+ *
+ * Hides the modal element (id "web-llm-modal") if present and interrupts any active generation.
  */
 export function closeWebLLMModal() {
   const modal = document.getElementById("web-llm-modal");
@@ -1001,10 +1013,11 @@ export function closeWebLLMModal() {
 }
 
 /**
- * Update the WebLLM UI status indicators based on environment, engine loading, and model install state.
+ * Update the WebLLM UI status indicators to reflect environment, engine loading, and model install state.
  *
- * Adjusts the status text and visual indicators (status color, send button enabled state, loading message, and progress bar)
- * to reflect WebGPU availability, ongoing engine loading progress, and whether the selected model is installed.
+ * Checks WebGPU availability and the selected model's install state, then updates the status text, the
+ * CSS status color (--before-bg), the send button enabled state, the loading chat message, and the
+ * progress bar display/width to match the current condition.
  */
 async function updateUIStatus() {
   const statusEl = document.querySelector(".web-llm-status");
@@ -1072,11 +1085,11 @@ async function updateUIStatus() {
 }
 
 /**
- * Convert chat message text with simple markdown and `jumpToId` links into sanitized HTML.
+ * Format chat text into sanitized HTML suitable for rendering.
  *
- * Escapes HTML special characters, replaces newlines with `<br>`, renders `**bold**` as `<strong>` and `*italic*` as `<em>`, and converts links of the form `[text](jumpToId:<id>)` into clickable anchor elements that invoke `window.findItem(id)` when clicked.
- * @param {string} content - The raw chat message text to format; may include newlines, `**bold**`, `*italic*`, and `jumpToId` links.
- * @returns {string} The formatted HTML string.
+ * Escapes HTML characters, converts newlines to `<br>`, renders `**bold**` and `*italic*`, and turns links in the form `[text](jumpToId:<id>)` into anchors that call `window.findItem(id)` when clicked.
+ * @param {string} content - Raw chat message text that may include newlines, `**bold**`, `*italic*`, and `jumpToId` links.
+ * @returns {string} The resulting sanitized HTML string.
  */
 function formatChatMessage(content) {
   if (!content) return "";
@@ -1100,7 +1113,10 @@ function formatChatMessage(content) {
 }
 
 /**
- * 채팅 메시지 렌더링
+ * Render a chat message into the chat container and scroll to the bottom.
+ * @param {string} role - Message role used for styling (e.g., `'user'`, `'assistant'`, or `'system'`); applied as a CSS class on the message element.
+ * @param {string} content - Message content in plain text or markdown-like syntax accepted by formatChatMessage.
+ * @returns {HTMLElement|undefined} The appended message element, or `undefined` if the chat container is not found.
  */
 function renderChatMessage(role, content) {
   const container = document.querySelector(".web-llm-chat-container");
@@ -1117,14 +1133,9 @@ function renderChatMessage(role, content) {
 }
 
 /**
- * Handle chat input submission and orchestrate sending the message to the model.
+ * Submit the current textarea message, perform a retrieval-augmented search for context, stream the model response, and update the chat UI and history.
  *
- * Reads and validates the textarea input; if valid and not already generating or loading an engine,
- * it renders the user's message, performs a retrieval-augmented search for relevant context items,
- * inserts an assistant placeholder, sends the message to the model with streaming callbacks,
- * updates the assistant message and chat history as partial and final responses arrive, and displays
- * any errors inline. The function is a no-op when the input is empty or when a generation/engine load
- * is already in progress.
+ * Validates and clears the input, prevents concurrent generation or engine loading, renders the user's message and an assistant placeholder, invokes the model with found context items, updates the assistant element with streaming partial and final responses, records the assistant reply in chat history, and displays any errors inline. The function is a no-op when the input is empty or when a generation or engine load is already in progress.
  */
 async function handleChatSubmit() {
   const textarea = document.querySelector(".web-llm-textarea");
@@ -1211,15 +1222,15 @@ async function handleChatSubmit() {
 }
 
 /**
- * Attach UI event handlers for the WebLLM modal and chat controls.
+ * Register UI event handlers for the WebLLM modal and chat controls.
  *
- * Sets up:
- * - Click handler for the send button to submit chat.
- * - Keyboard shortcut (Ctrl/Cmd+Enter) on the textarea to submit chat.
- * - Click handler for the modal close button to close the WebLLM modal.
- * - Population of the model selection dropdown with presets and a change handler that
- *   persists the selected model, updates UI status, displays a system message, and
- *   triggers model precaching with progress and completion callbacks.
+ * Initializes:
+ * - Click handler on the send button to submit the chat input.
+ * - Ctrl/Cmd+Enter keyboard shortcut on the chat textarea to submit.
+ * - Click handler on the modal close control to close the WebLLM modal.
+ * - Model selection dropdown: populates options from MODEL_PRESETS, sets the stored value,
+ *   and handles changes by persisting the selection, emitting a system message, updating UI state,
+ *   and initiating model precaching with progress/completion/error callbacks that refresh UI status.
  */
 async function setupEventListeners() {
   const sendBtn = document.querySelector(".web-llm-send-btn");
@@ -1277,6 +1288,16 @@ async function setupEventListeners() {
   }
 }
 
+/**
+ * Initialize the WebLLM UI, event listeners, and data subscriptions.
+ *
+ * Sets up UI event handlers, subscribes to changes for `mapData` and `koDict`
+ * to populate ID-to-Korean maps, and marks the module as initialized. Calling
+ * this function multiple times is idempotent; subsequent calls return the
+ * same initialization promise.
+ *
+ * @returns {Promise<void>} A promise that resolves when initialization completes.
+ */
 export async function initWebLLM() {
   if (initPromise) return initPromise;
 
@@ -1335,4 +1356,5 @@ export default {
   checkWebGPUSupport,
   setThinkingEnabled,
   isThinkingEnabled,
+};
 };
