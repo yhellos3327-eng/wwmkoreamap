@@ -68,18 +68,32 @@ const queueVaultWrite = async (key, value, label) => {
  * Toggles the completed status of an item.
  * @param {string|number} id - The item ID.
  */
-export const toggleCompleted = (id) => {
+export const toggleCompleted = async (id) => {
   const targetId = String(id);
   const numId = Number(id);
   const index = state.completedList.findIndex(
     (item) => String(item.id) === targetId,
   );
 
-  const target = /** @type {MarkerInfo} */ (
+  let target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) ??
     state.allMarkers.get(targetId) ??
     state.allMarkers.get(numId)
   );
+
+  // Fallback to mapData if not in allMarkers (common in clustering mode)
+  if (!target) {
+    const item = state.mapData.items.find(i => String(i.id) === targetId);
+    if (item) {
+      const { getSpriteById } = await import("../map/pixiOverlay/spriteFactory.js");
+      const sprite = getSpriteById(targetId);
+      target = {
+        ...item,
+        originalName: item.name,
+        sprite: sprite
+      };
+    }
+  }
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
@@ -219,9 +233,16 @@ export { formatCompletedTime };
 export const toggleFavorite = (id) => {
   const strId = String(id);
   const index = state.favorites.findIndex((fav) => String(fav) === strId);
-  const target = /** @type {MarkerInfo} */ (
+  let target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) || state.allMarkers.get(strId)
   );
+
+  if (!target) {
+    const item = state.mapData.items.find(i => String(i.id) === strId);
+    if (item) {
+      target = { ...item, originalName: item.name };
+    }
+  }
   const isNowFavorite = index === -1;
 
   // Log toggle action
@@ -286,9 +307,25 @@ export const expandRelated = (btn) => {
  * @param {string|number} id - The item ID.
  */
 export const jumpToId = (id) => {
-  const target = /** @type {MarkerInfo} */ (
+  let target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) || state.allMarkers.get(String(id))
   );
+
+  if (!target) {
+    const item = state.mapData.items.find(i => String(i.id) === String(id));
+    if (item) {
+      import("../map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
+        const sprite = getSpriteById(id);
+        moveToLocation(
+          [parseFloat(item.x), parseFloat(item.y)],
+          sprite,
+          item.forceRegion || item.region,
+          item.id
+        );
+      });
+      return;
+    }
+  }
   if (target) {
     const latlng = target.marker
       ? target.marker.getLatLng()

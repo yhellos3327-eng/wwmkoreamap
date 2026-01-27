@@ -49,13 +49,14 @@ const SVG_ICONS = {
 const getCategoryItemsByRegion = (categoryId) => {
   /** @type {Object.<string, number>} */
   const regionCounts = {};
-  for (const m of state.allMarkers.values()) {
-    if (m.category === categoryId) {
-      const region = m.region ?? "알 수 없음";
+  state.mapData.items.forEach((item) => {
+    if (item.category === categoryId) {
+      const rawRegion = item.forceRegion || item.region || "알 수 없음";
+      const region = state.reverseRegionMap[rawRegion] || rawRegion;
       regionCounts[region] ??= 0;
       regionCounts[region]++;
     }
-  }
+  });
   return regionCounts;
 };
 
@@ -133,9 +134,11 @@ const renderSearchResults = (term, searchInput, searchResults) => {
         `;
 
     matchedRegions.forEach((region) => {
-      const markerCount = Array.from(state.allMarkers.values()).filter(
-        (m) => m.region === region,
-      ).length;
+      const markerCount = state.mapData.items.filter((item) => {
+        const rawRegion = item.forceRegion || item.region || "알 수 없음";
+        const normalizedRegion = state.reverseRegionMap[rawRegion] || rawRegion;
+        return normalizedRegion === region;
+      }).length;
       const isActive = state.activeRegionNames.has(region);
 
       html += `
@@ -476,7 +479,7 @@ export const initSearch = () => {
   const debouncedSearch = debounce((term) => {
     renderSearchResults(
       term,
-      /** @type {HTMLInputElement} */ (searchInput),
+      /** @type {HTMLInputElement} */(searchInput),
       searchResults,
     );
   }, 200);
@@ -522,7 +525,7 @@ export const initSearch = () => {
     if (term.length >= 1) {
       renderSearchResults(
         term,
-        /** @type {HTMLInputElement} */ (searchInput),
+        /** @type {HTMLInputElement} */(searchInput),
         searchResults,
       );
     }

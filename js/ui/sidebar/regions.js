@@ -50,9 +50,6 @@ const renderRegionItem = (region) => {
     return normalizedRegion === region;
   });
   const count = regionItems.length;
-  const regionMarkers = Array.from(state.allMarkers.values()).filter(
-    (m) => m.region === region,
-  );
 
   let translatedCount = 0;
   regionItems.forEach((item) => {
@@ -99,7 +96,7 @@ const renderRegionItem = (region) => {
         const { updateSinglePixiMarker } =
           await import("../../map/pixiOverlay/overlayCore.js");
 
-        const regionMarkerIds = new Set(regionMarkers.map((m) => m.id));
+        const regionMarkerIds = new Set(regionItems.map((item) => item.id));
 
         const initialLength = state.completedList.length;
         state.completedList = state.completedList.filter(
