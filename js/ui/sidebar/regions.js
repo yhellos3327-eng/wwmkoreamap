@@ -107,10 +107,8 @@ const renderRegionItem = (region) => {
         );
 
         if (state.completedList.length !== initialLength) {
-          localStorage.setItem(
-            "wwm_completed",
-            JSON.stringify(state.completedList),
-          );
+          const { primaryDb } = await import("../../storage/db.js");
+          await primaryDb.set("completedList", state.completedList);
           triggerSync();
 
           regionMarkerIds.forEach((id) => {

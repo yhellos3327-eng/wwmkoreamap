@@ -1,6 +1,9 @@
 import { db } from "./db.js";
 import { getCurrentSnapshotKeys } from "./schema.js";
 import { showSyncTooltip } from "../sync/ui.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Vault");
 
 /**
  * Saves the current localStorage state to the Vault (IndexedDB).
@@ -30,7 +33,7 @@ export const saveToVault = async (reason = "auto") => {
         // Keep only last 50 backups to save space
         db.prune(50).catch(console.warn);
 
-        console.log(`[Vault] Saved backup #${id} (${reason})`);
+        log.success(`Saved backup #${id}`, reason);
 
         if (reason === "manual") {
             showSyncTooltip("로컬 백업 저장 완료!", "success");
@@ -38,7 +41,7 @@ export const saveToVault = async (reason = "auto") => {
 
         return { success: true, id };
     } catch (e) {
-        console.error("[Vault] Save failed:", e);
+        log.error("Save failed", e);
         return { success: false, error: e.message };
     }
 };
@@ -74,14 +77,14 @@ export const restoreFromVault = async (id) => {
                 });
             }
         } catch (e) {
-            console.warn("[Vault] State update after restore failed:", e);
+            log.warn("State update after restore failed", e);
         }
 
-        console.log(`[Vault] Restored backup #${id}`);
+        log.success(`Restored backup #${id}`);
         showSyncTooltip("백업 복원 완료!", "success");
         return { success: true };
     } catch (e) {
-        console.error("[Vault] Restore failed:", e);
+        log.error("Restore failed", e);
         return { success: false, error: e.message };
     }
 };
@@ -128,7 +131,7 @@ export const autoRestoreIfEmpty = async () => {
             return { success: true, restored: false, source: "localStorage" };
         }
 
-        console.warn("[Vault] LocalStorage appears empty or contains only empty arrays.");
+        log.warn("LocalStorage appears empty or contains only empty arrays");
 
         // SAFETY FIX: Try primaryDb first (main database)
         try {
@@ -140,7 +143,7 @@ export const autoRestoreIfEmpty = async () => {
             const hasVaultFavorites = Array.isArray(vaultFavorites) && vaultFavorites.length > 0;
 
             if (hasVaultCompleted || hasVaultFavorites) {
-                console.log("[Vault] Found data in primary database, restoring to localStorage...");
+                log.info("Found data in primary database, restoring to localStorage...");
 
                 // Restore to localStorage
                 if (vaultCompleted) {
@@ -156,7 +159,7 @@ export const autoRestoreIfEmpty = async () => {
                     if (vaultCompleted) setState("completedList", vaultCompleted);
                     if (vaultFavorites) setState("favorites", vaultFavorites);
                 } catch (e) {
-                    console.warn("[Vault] State update failed:", e);
+                    log.warn("State update failed", e);
                 }
 
                 return {
@@ -167,20 +170,20 @@ export const autoRestoreIfEmpty = async () => {
                 };
             }
         } catch (e) {
-            console.warn("[Vault] PrimaryDb check failed:", e);
+            log.warn("PrimaryDb check failed", e);
         }
 
         // Fallback: Try backup snapshots
         const latest = await db.getLatest();
         if (!latest) {
-            console.log("[Vault] No backups found.");
+            log.info("No backups found");
             return { success: false, reason: "no_backups" };
         }
 
         await restoreFromVault(latest.id);
         return { success: true, restored: true, reason: "restored_from_backup", source: "backup" };
     } catch (e) {
-        console.error("[Vault] Auto-restore failed:", e);
+        log.error("Auto-restore failed", e);
         return { success: false, error: e.message };
     }
 };

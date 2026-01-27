@@ -6,14 +6,16 @@ export const THEME_KEY = "wwm_theme";
 /**
  * Initializes the theme system.
  */
-export const initTheme = () => {
-  const savedTheme = localStorage.getItem(THEME_KEY) || "system";
+export const initTheme = async () => {
+  const { primaryDb } = await import("./storage/db.js");
+  const savedTheme = (await primaryDb.get(THEME_KEY)) || "system";
   applyTheme(savedTheme);
 
   window
     .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", (e) => {
-      if (localStorage.getItem(THEME_KEY) === "system") {
+    .addEventListener("change", async (e) => {
+      const current = await primaryDb.get(THEME_KEY);
+      if (current === "system") {
         applyTheme("system");
       }
     });
@@ -32,7 +34,11 @@ export const applyTheme = (theme) => {
   }
 
   document.documentElement.setAttribute("data-theme", effectiveTheme);
-  localStorage.setItem(THEME_KEY, theme);
+  document.documentElement.setAttribute("data-theme", effectiveTheme);
+
+  import("./storage/db.js").then(({ primaryDb }) => {
+    primaryDb.set(THEME_KEY, theme).catch(console.warn);
+  });
 
   if (/** @type {any} */ (window).setState) {
     /** @type {any} */ (window).setState("currentTheme", theme);
@@ -41,8 +47,9 @@ export const applyTheme = (theme) => {
 
 /**
  * Gets the current theme setting.
- * @returns {string} The current theme.
+ * @returns {Promise<string>} The current theme.
  */
-export const getTheme = () => {
-  return localStorage.getItem(THEME_KEY) || "system";
+export const getTheme = async () => {
+  const { primaryDb } = await import("./storage/db.js");
+  return (await primaryDb.get(THEME_KEY)) || "system";
 };

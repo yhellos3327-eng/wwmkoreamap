@@ -121,7 +121,7 @@ export const initToggles = () => {
         ) {
           overallStatus =
             status.translatorStatus === "downloadable" ||
-            status.detectorStatus === "downloadable"
+              status.detectorStatus === "downloadable"
               ? "downloadable"
               : "unavailable";
         }
@@ -172,11 +172,11 @@ export const initToggles = () => {
     webLLMToggleInput.addEventListener("change", (e) => {
       setState(
         "enableWebLLM",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
-      localStorage.setItem(
-        "wwm_enable_web_llm",
-        String(/** @type {HTMLInputElement} */ (e.target).checked),
+      updateSettingWithTimestamp(
+        "enableWebLLM",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
     });
   }
@@ -187,11 +187,11 @@ export const initToggles = () => {
     clusterToggleInput.addEventListener("change", (e) => {
       setState(
         "enableClustering",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "enable_clustering",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        "enableClustering",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       renderMapDataAndMarkers();
     });
@@ -201,11 +201,11 @@ export const initToggles = () => {
     hideCompletedInput.addEventListener("change", (e) => {
       setState(
         "hideCompleted",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "hide_completed",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        "hideCompleted",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       renderMapDataAndMarkers();
     });
@@ -217,11 +217,11 @@ export const initToggles = () => {
     commentsToggleInput.addEventListener("change", (e) => {
       setState(
         "showComments",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "show_comments",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        "showComments",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
     });
   }
@@ -232,11 +232,11 @@ export const initToggles = () => {
     closeOnCompleteInput.addEventListener("change", (e) => {
       setState(
         "closeOnComplete",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
       updateSettingWithTimestamp(
-        "close_on_complete",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        "closeOnComplete",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
     });
   }
@@ -247,11 +247,11 @@ export const initToggles = () => {
     disableRegionPanInput.addEventListener("change", (e) => {
       setState(
         "disableRegionClickPan",
-        /** @type {HTMLInputElement} */ (e.target).checked,
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
-      localStorage.setItem(
-        "wwm_disable_region_click_pan",
-        String(/** @type {HTMLInputElement} */ (e.target).checked),
+      updateSettingWithTimestamp(
+        "disableRegionClickPan",
+        /** @type {HTMLInputElement} */(e.target).checked,
       );
     });
   }
@@ -292,7 +292,7 @@ export const saveToggleSettings = () => {
   if (adToggleInput) {
     localStorage.setItem(
       "wwm_show_ad",
-      String(/** @type {HTMLInputElement} */ (adToggleInput).checked),
+      String(/** @type {HTMLInputElement} */(adToggleInput).checked),
     );
   }
 };

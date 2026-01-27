@@ -13,10 +13,12 @@ let pollingInterval = null;
 let lastSyncVersion = null;
 
 /** @type {number} */
-export const SYNC_DELAY = 2000;
+// Increased from 2000ms to 5000ms to reduce sync frequency
+export const SYNC_DELAY = 5000;
 
 /** @type {number} */
-export const POLLING_INTERVAL = 60000;
+// Increased from 60000ms (1 min) to 120000ms (2 min) to reduce polling frequency
+export const POLLING_INTERVAL = 120000;
 
 /**
  * Gets the current sync state.

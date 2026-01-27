@@ -7,9 +7,28 @@
 
 import { primaryDb, db } from "./db.js";
 import { getCurrentSnapshotKeys } from "./schema.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Migration");
 
 const MIGRATION_VERSION_KEY = "wwm_migration_version";
-const CURRENT_MIGRATION_VERSION = 2;
+// Version 2: localStorage → Vault migration (localStorage kept as backup)
+// NOTE: v3 (localStorage cleanup) is deferred until state.js initialization is refactored
+// Currently state.js reads from localStorage synchronously at module load,
+// so deleting localStorage before that causes data loss on refresh.
+const CURRENT_MIGRATION_VERSION = 3;
+
+/**
+ * List of localStorage keys to be deleted after successful migration.
+ * These are the user data keys that are now stored in Vault (IndexedDB).
+ */
+const DEPRECATED_LOCALSTORAGE_KEYS = [
+    "wwm_completed",
+    "wwm_favorites",
+    "wwm_favorites_qinghe",
+    "wwm_favorites_kaifeng",
+    "wwm_favorites_dreamsunsun"
+];
 
 /**
  * @typedef {Object} MigrationResult
@@ -28,6 +47,28 @@ const CURRENT_MIGRATION_VERSION = 2;
  * @property {Object} settings
  * @property {number} timestamp
  */
+
+/**
+ * Cleans up deprecated localStorage keys after successful migration.
+ * This removes the old user data keys that are now stored in Vault.
+ * @returns {string[]} List of removed keys.
+ */
+const cleanupDeprecatedLocalStorageKeys = () => {
+    const removedKeys = [];
+
+    for (const key of DEPRECATED_LOCALSTORAGE_KEYS) {
+        try {
+            if (localStorage.getItem(key) !== null) {
+                localStorage.removeItem(key);
+                removedKeys.push(key);
+            }
+        } catch (e) {
+            log.warn(`Failed to remove ${key}`, e);
+        }
+    }
+
+    return removedKeys;
+};
 
 /**
  * Gets the current migration version.
@@ -50,7 +91,7 @@ const setMigrationVersion = (version) => {
     try {
         localStorage.setItem(MIGRATION_VERSION_KEY, String(version));
     } catch (e) {
-        console.warn("[Migration] Failed to set version:", e);
+        log.warn("Failed to set version", e);
     }
 };
 
@@ -82,7 +123,7 @@ const extractLocalStorageData = () => {
             }
         }
     } catch (e) {
-        console.warn("[Migration] Failed to parse completedMarkers:", e);
+        log.warn("Failed to parse completedMarkers", e);
     }
 
     try {
@@ -114,11 +155,12 @@ const extractLocalStorageData = () => {
             }
         }
     } catch (e) {
-        console.warn("[Migration] Failed to parse favorites:", e);
+        log.warn("Failed to parse favorites", e);
     }
 
     try {
         // Extract settings
+        /** @type {[string, string, (v: string) => any][]} */
         const settingKeys = [
             ["wwm_show_comments", "showComments", (v) => v !== "false"],
             ["wwm_close_on_complete", "closeOnComplete", (v) => v === "true"],
@@ -175,7 +217,7 @@ const extractLocalStorageData = () => {
             } catch { }
         }
     } catch (e) {
-        console.warn("[Migration] Failed to parse settings:", e);
+        log.warn("Failed to parse settings", e);
     }
 
     return result;
@@ -201,13 +243,13 @@ const createPreMigrationBackup = async (data) => {
 
         if (Object.keys(backupData).length > 0) {
             const id = await db.add(backupData, "pre_migration");
-            console.log(`[Migration] Pre-migration backup created: #${id}`);
+            log.vault(`Pre-migration backup created`, `#${id}`);
             return { success: true, id };
         }
 
         return { success: true };
     } catch (e) {
-        console.error("[Migration] Failed to create backup:", e);
+        log.error("Failed to create backup", e);
         return { success: false };
     }
 };
@@ -225,12 +267,12 @@ const validateMigration = async (original) => {
         // Check completed markers count
         if (original.completedMarkers.length > 0) {
             if (!Array.isArray(vaultCompleted)) {
-                console.error("[Migration] Validation failed: completedList not an array");
+                log.error("Validation failed: completedList not an array");
                 return false;
             }
             if (vaultCompleted.length < original.completedMarkers.length) {
-                console.error("[Migration] Validation failed: completedList count mismatch",
-                    original.completedMarkers.length, "vs", vaultCompleted.length);
+                log.error("Validation failed: completedList count mismatch",
+                    `${original.completedMarkers.length} vs ${vaultCompleted.length}`);
                 return false;
             }
         }
@@ -238,19 +280,19 @@ const validateMigration = async (original) => {
         // Check favorites count
         if (original.favorites.length > 0) {
             if (!Array.isArray(vaultFavorites)) {
-                console.error("[Migration] Validation failed: favorites not an array");
+                log.error("Validation failed: favorites not an array");
                 return false;
             }
             if (vaultFavorites.length < original.favorites.length) {
-                console.error("[Migration] Validation failed: favorites count mismatch",
-                    original.favorites.length, "vs", vaultFavorites.length);
+                log.error("Validation failed: favorites count mismatch",
+                    `${original.favorites.length} vs ${vaultFavorites.length}`);
                 return false;
             }
         }
 
         return true;
     } catch (e) {
-        console.error("[Migration] Validation error:", e);
+        log.error("Validation error", e);
         return false;
     }
 };
@@ -265,11 +307,11 @@ export const migrateToVault = async () => {
 
     // Already migrated
     if (currentVersion >= CURRENT_MIGRATION_VERSION) {
-        console.log("[Migration] Already at version", currentVersion);
+        log.info(`Already at version ${currentVersion}`);
         return { success: true, migrated: false, source: "vault" };
     }
 
-    console.log("[Migration] Starting migration from version", currentVersion, "to", CURRENT_MIGRATION_VERSION);
+    log.migration(`Starting migration`, `v${currentVersion} → v${CURRENT_MIGRATION_VERSION}`);
 
     try {
         // Step 1: Check if Vault already has data
@@ -284,7 +326,7 @@ export const migrateToVault = async () => {
         const vaultDataCount = (vaultCompleted?.length || 0) + (vaultFavorites?.length || 0);
         const localDataCount = localData.completedMarkers.length + localData.favorites.length;
 
-        console.log("[Migration] Data check - Vault:", vaultDataCount, "Local:", localDataCount);
+        log.info(`Data check`, { vault: vaultDataCount, local: localDataCount });
 
         // Step 3: Decide migration strategy
         if (!localHasData && !vaultHasData) {
@@ -295,7 +337,7 @@ export const migrateToVault = async () => {
 
         if (vaultHasData && vaultDataCount >= localDataCount) {
             // Vault already has more or equal data, use vault
-            console.log("[Migration] Vault has sufficient data, skipping localStorage migration");
+            log.vault("Vault has sufficient data, skipping localStorage migration");
             setMigrationVersion(CURRENT_MIGRATION_VERSION);
             return {
                 success: true,
@@ -382,7 +424,7 @@ export const migrateToVault = async () => {
         ]);
 
         if (!saveResult.success) {
-            console.error("[Migration] Failed to save to Vault:", saveResult.error);
+            log.error("Failed to save to Vault", saveResult.error);
             return { success: false, migrated: false, error: saveResult.error };
         }
 
@@ -395,16 +437,26 @@ export const migrateToVault = async () => {
         });
 
         if (!isValid) {
-            console.error("[Migration] Validation failed, migration aborted");
+            log.error("Validation failed, migration aborted");
             return { success: false, migrated: false, error: "Validation failed" };
         }
 
         // Step 8: Mark migration complete
         setMigrationVersion(CURRENT_MIGRATION_VERSION);
 
-        console.log("[Migration] Successfully migrated to Vault");
-        console.log(`  - Completed: ${finalCompleted.length}`);
-        console.log(`  - Favorites: ${finalFavorites.length}`);
+        // Step 9: Clean up localStorage (v3)
+        // localStorage is no longer needed as backup since state.js is now async
+        if (CURRENT_MIGRATION_VERSION >= 3) {
+            const removedKeys = cleanupDeprecatedLocalStorageKeys();
+            if (removedKeys.length > 0) {
+                log.success("Cleaned up localStorage keys", removedKeys);
+            }
+        }
+
+        log.success("Successfully migrated to Vault", {
+            completed: finalCompleted.length,
+            favorites: finalFavorites.length
+        });
 
         return {
             success: true,
@@ -415,18 +467,26 @@ export const migrateToVault = async () => {
         };
 
     } catch (e) {
-        console.error("[Migration] Migration failed:", e);
+        log.error("Migration failed", e);
         return { success: false, migrated: false, error: e.message };
     }
 };
 
 /**
+ * @deprecated Since v3 - localStorage is no longer used for user data after migration.
  * Syncs current state back to localStorage for backward compatibility.
  * This should be called after saving to Vault.
+ * Only used for non-migrated users.
  * @param {any[]} completedList - The completed list.
  * @param {any[]} favorites - The favorites list.
  */
 export const syncToLocalStorage = (completedList, favorites) => {
+    // Skip for migrated users - Vault is the single source of truth
+    if (isMigrated()) {
+        log.info("syncToLocalStorage skipped - user is migrated");
+        return;
+    }
+
     try {
         if (Array.isArray(completedList)) {
             localStorage.setItem("wwm_completed", JSON.stringify(completedList));
@@ -435,18 +495,34 @@ export const syncToLocalStorage = (completedList, favorites) => {
             localStorage.setItem("wwm_favorites", JSON.stringify(favorites));
         }
     } catch (e) {
-        console.warn("[Migration] Failed to sync to localStorage:", e);
+        log.warn("Failed to sync to localStorage", e);
     }
 };
 
 /**
- * Loads data with smart comparison between Vault and localStorage.
- * SAFETY: Returns the source with MORE data to prevent data loss from version mismatch.
+ * Loads data from Vault (IndexedDB) as the single source of truth.
+ * For migrated users: Vault ONLY (localStorage is deleted).
+ * For non-migrated users: Compare both sources and use the one with more data.
  * @returns {Promise<{completedList: any[], favorites: any[], settings: Object, source: string}>}
  */
 export const loadDataWithFallback = async () => {
     try {
-        // Get data from both sources
+        // For migrated users (v3+), Vault is the ONLY source
+        if (isMigrated()) {
+            log.vault("User is migrated - using Vault only");
+            const vaultCompleted = await primaryDb.get("completedList");
+            const vaultFavorites = await primaryDb.get("favorites");
+            const vaultSettings = await primaryDb.get("settings");
+
+            return {
+                completedList: vaultCompleted || [],
+                favorites: vaultFavorites || [],
+                settings: vaultSettings || {},
+                source: "vault_primary"
+            };
+        }
+
+        // For non-migrated users, compare both sources
         const vaultCompleted = await primaryDb.get("completedList");
         const vaultFavorites = await primaryDb.get("favorites");
         const vaultSettings = await primaryDb.get("settings");
@@ -462,12 +538,12 @@ export const loadDataWithFallback = async () => {
         const localFavoritesCount = localData.favorites.length;
         const localTotal = localCompletedCount + localFavoritesCount;
 
-        console.log(`[Migration] Data comparison - Vault: ${vaultTotal} (${vaultCompletedCount}+${vaultFavoritesCount}), Local: ${localTotal} (${localCompletedCount}+${localFavoritesCount})`);
+        log.info(`Data comparison`, { vault: `${vaultTotal} (${vaultCompletedCount}+${vaultFavoritesCount})`, local: `${localTotal} (${localCompletedCount}+${localFavoritesCount})` });
 
         // SAFETY: Choose the source with MORE data
         // This prevents data loss when user accessed with old cached JS version
         if (vaultTotal >= localTotal && vaultTotal > 0) {
-            console.log("[Migration] Using Vault (has more or equal data)");
+            log.vault("Using Vault (has more or equal data)");
             return {
                 completedList: vaultCompleted || [],
                 favorites: vaultFavorites || [],
@@ -477,7 +553,7 @@ export const loadDataWithFallback = async () => {
         }
 
         if (localTotal > vaultTotal) {
-            console.log("[Migration] Using localStorage (has more data - possible old version access)");
+            log.localStorage("Using localStorage (has more data - will migrate to Vault)");
 
             // Sync localStorage data to Vault for next time
             try {
@@ -486,9 +562,9 @@ export const loadDataWithFallback = async () => {
                     { key: "favorites", value: localData.favorites },
                     { key: "settings", value: localData.settings }
                 ]);
-                console.log("[Migration] Synced localStorage → Vault");
+                log.success("Synced localStorage → Vault");
             } catch (e) {
-                console.warn("[Migration] Failed to sync to Vault:", e);
+                log.warn("Failed to sync to Vault", e);
             }
 
             return {
@@ -508,25 +584,29 @@ export const loadDataWithFallback = async () => {
         };
 
     } catch (e) {
-        console.error("[Migration] loadDataWithFallback failed:", e);
+        log.error("loadDataWithFallback failed", e);
 
-        // Emergency fallback to localStorage
-        try {
-            const localData = extractLocalStorageData();
-            return {
-                completedList: localData.completedMarkers,
-                favorites: localData.favorites,
-                settings: localData.settings,
-                source: "localStorage_emergency"
-            };
-        } catch (e2) {
-            return {
-                completedList: [],
-                favorites: [],
-                settings: {},
-                source: "error"
-            };
+        // Emergency fallback to localStorage (only for non-migrated users)
+        if (!isMigrated()) {
+            try {
+                const localData = extractLocalStorageData();
+                return {
+                    completedList: localData.completedMarkers,
+                    favorites: localData.favorites,
+                    settings: localData.settings,
+                    source: "localStorage_emergency"
+                };
+            } catch (e2) {
+                // Fall through to error return
+            }
         }
+
+        return {
+            completedList: [],
+            favorites: [],
+            settings: {},
+            source: "error"
+        };
     }
 };
 
@@ -536,6 +616,14 @@ export const loadDataWithFallback = async () => {
  */
 export const needsMigration = () => {
     return getMigrationVersion() < CURRENT_MIGRATION_VERSION;
+};
+
+/**
+ * Checks if migration is already done.
+ * @returns {boolean} Whether migration is done.
+ */
+export const isMigrated = () => {
+    return getMigrationVersion() >= CURRENT_MIGRATION_VERSION;
 };
 
 /**

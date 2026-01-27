@@ -15,6 +15,10 @@ import { logger } from "../logger.js";
 import { showCompletedTooltip, hideCompletedTooltip } from "../map/markers.js";
 import { triggerSync } from "../sync.js";
 import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
+import { primaryDb } from "../storage/db.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Navigation");
 
 /**
  * @typedef {import("../data/processors.js").MapItem} MapItem
@@ -43,11 +47,12 @@ export const toggleCompleted = (id) => {
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
-  // DEBUG: Log toggle action
-  console.log(`%c[toggleCompleted] ${isNowCompleted ? '✅ 완료 추가' : '❌ 완료 삭제 (deleted: true)'}`,
-    `color: ${isNowCompleted ? 'green' : 'red'}; font-weight: bold`,
-    { id: targetId, before: state.completedList.length, action: isNowCompleted ? 'add' : 'remove' }
-  );
+  // Log toggle action
+  if (isNowCompleted) {
+    log.success(`완료 추가: ${targetId}`, { before: state.completedList.length });
+  } else {
+    log.warn(`완료 삭제: ${targetId}`, { before: state.completedList.length });
+  }
 
   if (isNowCompleted) {
     state.completedList.push({ id: targetId, completedAt });
@@ -96,18 +101,9 @@ export const toggleCompleted = (id) => {
       hideCompletedTooltip();
     }
   }
-  localStorage.setItem("wwm_completed", JSON.stringify(state.completedList));
-
-  // DEBUG: Log after state change
-  console.log(`[toggleCompleted] 저장 완료 - completedList: ${state.completedList.length}개`, {
-    localStorage: JSON.parse(localStorage.getItem("wwm_completed") || "[]").length
-  });
-
-  // SAFETY: Also save to Vault (primary database)
-  import("../storage/db.js").then(({ primaryDb }) => {
-    primaryDb.set("completedList", state.completedList).then(() => {
-      console.log(`%c[toggleCompleted] ✅ Vault 저장 완료`, "color: green");
-    }).catch(console.warn);
+  // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
+  primaryDb.set("completedList", state.completedList).then(() => {
+    log.vault(`completedList 저장 완료`, state.completedList.length);
   }).catch(console.warn);
 
   triggerSync();
@@ -194,24 +190,19 @@ export const toggleFavorite = (id) => {
   );
   const isNowFavorite = index === -1;
 
-  // DEBUG: Log toggle action
-  console.log(`%c[toggleFavorite] ${isNowFavorite ? '⭐ 즐겨찾기 추가' : '❌ 즐겨찾기 삭제 (deleted: true)'}`,
-    `color: ${isNowFavorite ? 'gold' : 'red'}; font-weight: bold`,
-    { id: strId, before: state.favorites.length, action: isNowFavorite ? 'add' : 'remove' }
-  );
+  // Log toggle action
+  if (isNowFavorite) {
+    log.data("favorite", `즐겨찾기 추가: ${strId}`, state.favorites.length);
+  } else {
+    log.warn(`즐겨찾기 삭제: ${strId}`, { before: state.favorites.length });
+  }
 
   if (isNowFavorite) state.favorites.push(strId);
   else state.favorites.splice(index, 1);
-  localStorage.setItem("wwm_favorites", JSON.stringify(state.favorites));
 
-  // DEBUG: Log after state change
-  console.log(`[toggleFavorite] 저장 완료 - favorites: ${state.favorites.length}개`);
-
-  // SAFETY: Also save to Vault (primary database)
-  import("../storage/db.js").then(({ primaryDb }) => {
-    primaryDb.set("favorites", state.favorites).then(() => {
-      console.log(`%c[toggleFavorite] ✅ Vault 저장 완료`, "color: green");
-    }).catch(console.warn);
+  // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
+  primaryDb.set("favorites", state.favorites).then(() => {
+    log.vault(`favorites 저장 완료`, state.favorites.length);
   }).catch(console.warn);
 
   triggerSync();

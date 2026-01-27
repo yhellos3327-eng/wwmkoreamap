@@ -334,8 +334,9 @@ async function hasModelInCache(modelId) {
 /**
  * 현재 설정된 모델 ID 가져오기
  */
-function getStoredModelId() {
-  const stored = localStorage.getItem(STORAGE_KEYS.MODEL_ID);
+async function getStoredModelId() {
+  const { primaryDb } = await import("./storage/db.js");
+  const stored = await primaryDb.get(STORAGE_KEYS.MODEL_ID);
   if (stored && MODEL_PRESETS.some((p) => p.id === stored)) {
     return stored;
   }
@@ -472,7 +473,7 @@ export async function preCacheModel(options = {}) {
     return;
   }
 
-  const modelId = getStoredModelId();
+  const modelId = await getStoredModelId();
 
   if (!force) {
     const cached = await hasModelInCache(modelId);
@@ -497,7 +498,8 @@ export async function preCacheModel(options = {}) {
 
   try {
     await getOrCreateEngine(modelId, onProgress);
-    localStorage.setItem(STORAGE_KEYS.PRE_CACHE_DONE, "true");
+    const { primaryDb } = await import("./storage/db.js");
+    await primaryDb.set(STORAGE_KEYS.PRE_CACHE_DONE, "true");
     logger.success("WebLLM", "사전 캐시 완료");
     if (onComplete) onComplete();
   } catch (e) {
@@ -792,7 +794,7 @@ export async function sendChatMessage(userMessage, options = {}) {
 
   const context = itemsToContext(items, 15);
 
-  const modelId = getStoredModelId();
+  const modelId = await getStoredModelId();
   let engine;
 
   try {

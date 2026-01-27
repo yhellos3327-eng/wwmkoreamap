@@ -80,7 +80,10 @@ export const saveAISettings = () => {
   if (apiProviderSelect) {
     const provider = apiProviderSelect.value;
     setState("savedAIProvider", provider);
-    localStorage.setItem("wwm_ai_provider", provider);
+
+    import("../sync.js").then(({ updateSettingWithTimestamp }) => {
+      updateSettingWithTimestamp("aiProvider", provider);
+    });
 
     if (apiKeyInput) {
       const newKey = apiKeyInput.value.trim();
@@ -108,7 +111,10 @@ export const saveAISettings = () => {
   if (apiModelSelect) {
     const newModel = apiModelSelect.value;
     setState("savedApiModel", newModel);
-    localStorage.setItem("wwm_api_model", newModel);
+
+    import("../sync.js").then(({ updateSettingWithTimestamp }) => {
+      updateSettingWithTimestamp("apiModel", newModel);
+    });
   }
 };
 

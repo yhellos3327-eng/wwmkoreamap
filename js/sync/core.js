@@ -16,7 +16,9 @@ import {
   POLLING_INTERVAL,
 } from "./state.js";
 import { showSyncTooltip, hideSyncTooltip, showSyncToast } from "./ui.js";
-import { getLocalData, setLocalData } from "./storage.js";
+import { getLocalData, setLocalData, getLocalDataAsync } from "./storage.js";
+import { primaryDb } from "../storage/db.js";
+import { isMigrated } from "../storage/migration.js";
 import { mergeData, generateDataHash } from "./merge.js";
 import { fetchCloudData, saveCloudData } from "./api.js";
 import {
@@ -30,6 +32,9 @@ import {
   disconnectWebSocket,
   isWebSocketConnected,
 } from "./websocket.js";
+import { createLogger } from "../utils/logStyles.js";
+
+const log = createLogger("Sync");
 
 /** @type {any} */
 let authModule = null;
@@ -82,25 +87,26 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
     const { saveToVault } = await import("../storage/vault.js");
     await saveToVault("pre_cloud_save");
   } catch (e) {
-    console.warn("[Sync] Pre-save backup failed:", e);
+    log.warn("Pre-save backup failed", e);
   }
 
   try {
-    const data = getLocalData();
+    // Use async version for migrated users to get data from Vault
+    const data = await getLocalDataAsync();
 
     // Safety Guard: Prevent syncing empty data if we previously had data
-    const prevCompletedCount = parseInt(localStorage.getItem("wwm_prev_completed_count") || "0");
+    const prevCompletedCount = await primaryDb.get("sync_safety_prev_count") || 0;
     const currentCompletedCount = data.completedMarkers?.length || 0;
 
     if (prevCompletedCount > 0 && currentCompletedCount === 0) {
-      console.warn("[Sync] Safety Guard: Prevented syncing empty data over populated cloud data.");
+      log.warn("Safety Guard: Prevented syncing empty data over populated cloud data");
       if (!silent) showSyncToast("데이터 유실 방지: 빈 데이터 동기화가 차단되었습니다.", "error");
       return false;
     }
 
     // Update count for next check
     if (currentCompletedCount > 0) {
-      localStorage.setItem("wwm_prev_completed_count", String(currentCompletedCount));
+      primaryDb.set("sync_safety_prev_count", currentCompletedCount).catch(console.warn);
     }
 
     // SAFETY FIX: Also save to Vault (primary database) before cloud
@@ -112,7 +118,7 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
         { key: "settings", value: data.settings }
       ]);
     } catch (e) {
-      console.warn("[Sync] Vault save before cloud failed:", e);
+      log.warn("Vault save before cloud failed", e);
     }
 
     await saveCloudData(data);
@@ -129,7 +135,7 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
     }
     return true;
   } catch (error) {
-    console.error("[Sync] Save failed:", error);
+    log.error("Save failed", error);
     if (!silent) {
       showSyncTooltip("동기화 실패", "error");
       hideSyncTooltip(2000);
@@ -161,7 +167,7 @@ export const loadFromCloud = async (silent = false) => {
     if (!silent) hideSyncTooltip(0);
     return null;
   } catch (error) {
-    console.error("[Sync] Load failed:", error);
+    log.error("Load failed", error);
     if (!silent) {
       showSyncTooltip("불러오기 실패", "error");
       hideSyncTooltip(2000);
@@ -196,7 +202,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
     const result = await saveToVault("pre_full_sync");
     preBackupId = result.id;
   } catch (e) {
-    console.warn("[Sync] Pre-sync backup failed:", e);
+    log.warn("Pre-sync backup failed", e);
   }
 
   try {
@@ -204,24 +210,25 @@ export const performFullSync = async (silent = false, broadcast = true) => {
 
     // SAFETY FIX: Check if another sync started while we were fetching
     if (syncVersion !== currentSyncVersion) {
-      console.warn("[Sync] Race condition detected, aborting this sync");
+      log.warn("Race condition detected, aborting this sync");
       return null;
     }
 
-    const localData = getLocalData();
+    // Use async version for migrated users to get data from Vault
+    const localData = await getLocalDataAsync();
 
     // SAFETY FIX: Validate data before merge
     const localCount = (localData.completedMarkers?.length || 0) + (localData.favorites?.length || 0);
     const cloudCount = (cloudData?.completedMarkers?.length || 0) + (cloudData?.favorites?.length || 0);
 
-    console.log(`[Sync] Data counts - Local: ${localCount}, Cloud: ${cloudCount}`);
+    log.info(`Data counts`, { local: localCount, cloud: cloudCount });
 
     const mergedData = mergeData(localData, cloudData || {});
 
     // SAFETY FIX: Validate merge result
     const mergedCount = (mergedData.completedMarkers?.length || 0) + (mergedData.favorites?.length || 0);
     if (mergedCount < Math.max(localCount, cloudCount) * 0.5) {
-      console.error(`[Sync] Merge resulted in suspicious data loss. Local: ${localCount}, Cloud: ${cloudCount}, Merged: ${mergedCount}`);
+      log.error(`Merge resulted in suspicious data loss`, { local: localCount, cloud: cloudCount, merged: mergedCount });
 
       let rollbackStatus = "백업 없음";
       if (preBackupId) {
@@ -230,7 +237,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
           await restoreFromVault(preBackupId);
           rollbackStatus = "성공";
         } catch (e) {
-          console.error("[Sync] Rollback failed:", e);
+          log.error("Rollback failed", e);
           rollbackStatus = `실패 (${e.message})`;
         }
       }
@@ -247,7 +254,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
 
     // SAFETY FIX: Check race condition again before applying changes
     if (syncVersion !== currentSyncVersion) {
-      console.warn("[Sync] Race condition detected before save, aborting");
+      log.warn("Race condition detected before save, aborting");
       return null;
     }
 
@@ -262,7 +269,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
         { key: "settings", value: mergedData.settings }
       ]);
     } catch (e) {
-      console.warn("[Sync] Vault save failed:", e);
+      log.warn("Vault save failed", e);
     }
 
     if (dataChanged && !setResult?.blocked) {
@@ -283,7 +290,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
 
     return mergedData;
   } catch (error) {
-    console.error("[Sync] Full sync failed:", error);
+    log.error("Full sync failed", error);
     if (!silent) showSyncToast("동기화 실패: " + error.message, "error");
     return null;
   } finally {
@@ -306,20 +313,25 @@ export const triggerSync = () => {
  * @param {string} key - The setting key.
  * @param {any} value - The setting value.
  */
-export const updateSettingWithTimestamp = (key, value) => {
-  localStorage.setItem(`wwm_${key}`, value);
+/**
+ * Updates a setting with timestamp tracking.
+ * @param {string} key - The setting key.
+ * @param {any} value - The setting value.
+ */
+export const updateSettingWithTimestamp = async (key, value) => {
+  try {
+    const settings = await primaryDb.get("settings") || {};
+    settings[key] = value;
+    await primaryDb.set("settings", settings);
 
-  let timestamps = {};
-  const stored = localStorage.getItem("wwm_settings_updated_at");
-  if (stored) {
-    try {
-      timestamps = JSON.parse(stored);
-    } catch (e) { }
+    let timestamps = await primaryDb.get("settings_updated_at") || {};
+    timestamps[key] = new Date().toISOString();
+    await primaryDb.set("settings_updated_at", timestamps);
+
+    triggerSync();
+  } catch (e) {
+    log.error("Failed to update setting", e);
   }
-
-  timestamps[key] = new Date().toISOString();
-  localStorage.setItem("wwm_settings_updated_at", JSON.stringify(timestamps));
-  triggerSync();
 };
 
 /**
@@ -434,11 +446,11 @@ export const initSync = async () => {
     const { autoRestoreIfEmpty } = await import("../storage/vault.js");
     const restoreResult = await autoRestoreIfEmpty();
     if (restoreResult.restored) {
-      console.log("[Sync] LocalStorage was empty, restored from latest Vault backup.");
+      log.success("LocalStorage was empty, restored from latest Vault backup");
       showSyncToast("로컬 데이터가 비어있어 최신 백업에서 복구되었습니다.", "success");
     }
   } catch (e) {
-    console.error("[Sync] Auto-restore check failed:", e);
+    log.error("Auto-restore check failed", e);
   }
 
   if (!isLoggedIn()) return;
@@ -447,9 +459,7 @@ export const initSync = async () => {
   if (backupRestoredFlag) {
     localStorage.removeItem("wwm_backup_restored");
 
-    console.log(
-      "[Sync] Backup restore detected, pushing local data to cloud...",
-    );
+    log.info("Backup restore detected, pushing local data to cloud...");
     showSyncTooltip("백업 데이터 동기화 중...");
 
     try {
@@ -462,7 +472,7 @@ export const initSync = async () => {
         hideSyncTooltip(2000);
       }
     } catch (error) {
-      console.error("[Sync] Backup sync failed:", error);
+      log.error("Backup sync failed", error);
       showSyncTooltip("동기화 실패", "error");
       hideSyncTooltip(2000);
     }
@@ -486,7 +496,7 @@ export const initSync = async () => {
     }
     setupRealtimeSync();
   } catch (error) {
-    console.error("[Sync] Init failed:", error);
+    log.error("Init failed", error);
     showSyncTooltip("동기화 실패", "error");
     hideSyncTooltip(2000);
   }

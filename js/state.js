@@ -4,6 +4,9 @@ import { createStore } from "https://esm.run/zustand@4.5.0/vanilla";
 import { logger } from "./logger.js";
 import { ACTIONS } from "./actions.js";
 import { storage } from "./storage.js";
+import { createLogger } from "./utils/logStyles.js";
+
+const log = createLogger("State");
 
 /**
  * @typedef {Object} LoadingState
@@ -118,74 +121,44 @@ const initialState = {
   activeRegionNames: new Set(),
   uniqueRegions: new Set(),
   itemsByCategory: {},
-  completedList: (() => {
-    // SAFETY FIX: Added try-catch to prevent initialization crash
-    try {
-      const raw = localStorage.getItem("wwm_completed");
-      if (!raw) return [];
-
-      const stored = JSON.parse(raw);
-      if (!Array.isArray(stored)) return [];
-
-      // Migrate old format (array of ids) to new format (array of objects)
-      if (stored.length > 0 && typeof stored[0] !== "object") {
-        const migrated = stored.map((id) => ({ id, completedAt: null }));
-        localStorage.setItem("wwm_completed", JSON.stringify(migrated));
-        return migrated;
-      }
-      return stored;
-    } catch (e) {
-      console.error("[State] Failed to parse completedList:", e);
-      // Don't return empty - trigger recovery later
-      return [];
-    }
-  })(),
-  favorites: (() => {
-    // SAFETY FIX: Added try-catch for favorites as well
-    try {
-      const raw = localStorage.getItem("wwm_favorites");
-      if (!raw) return [];
-
-      const stored = JSON.parse(raw);
-      return Array.isArray(stored) ? stored : [];
-    } catch (e) {
-      console.error("[State] Failed to parse favorites:", e);
-      return [];
-    }
-  })(),
+  // DEXIE.JS MIGRATION: Initialize with empty arrays
+  // Data will be loaded asynchronously via initStateFromVault()
+  completedList: [],
+  favorites: [],
+  isStateInitialized: false,  // Flag to track if Vault data has been loaded
   categoryItemTranslations: {},
   currentModalList: [],
   currentLightboxImages: [],
   currentLightboxIndex: 0,
   currentLightboxMedia: [],
-  showComments: localStorage.getItem("wwm_show_comments") !== "false",
-  closeOnComplete: localStorage.getItem("wwm_close_on_complete") === "true",
+  // DEXIE.JS MIGRATION: Settings use default values
+  // Will be loaded from Vault via initStateFromVault()
+  showComments: true,
+  closeOnComplete: false,
   regionMetaInfo: {},
   reverseRegionMap: {},
 
-  savedAIProvider: localStorage.getItem("wwm_ai_provider") ?? "gemini",
+  // API keys are still loaded from encrypted storage (not migrated to Vault)
+  savedAIProvider: "gemini",
   savedApiKey: storage.getApiKey("wwm_api_key", ""),
   savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
   savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
   savedClaudeKey: storage.getApiKey("wwm_claude_key", ""),
   savedDeepLKey: storage.getApiKey("wwm_deepl_key", ""),
-  savedApiModel: localStorage.getItem("wwm_api_model") ?? "gemini-1.5-flash",
-  savedRegionColor: localStorage.getItem("wwm_region_color") ?? "#242424",
-  savedRegionFillColor:
-    localStorage.getItem("wwm_region_fill_color") ?? "#ffbd53",
-  hideCompleted: localStorage.getItem("wwm_hide_completed") === "true",
-  enableClustering: localStorage.getItem("wwm_enable_clustering") === "true",
-  enableWebLLM: localStorage.getItem("wwm_enable_web_llm") === "true",
+  savedApiModel: "gemini-1.5-flash",
+  savedRegionColor: "#242424",
+  savedRegionFillColor: "#ffbd53",
+  hideCompleted: false,
+  enableClustering: true,
+  enableWebLLM: false,
   currentGuideStep: 0,
   rawCSV: null,
   parsedCSV: null,
   isDevMode: false,
-  savedGpuSetting: localStorage.getItem("wwm_gpu_setting") ?? "auto",
-  savedMenuPosition: localStorage.getItem("wwm_menu_position") ?? "center",
-  useChromeTranslator:
-    localStorage.getItem("wwm_use_chrome_translator") === "true",
-  disableRegionClickPan:
-    localStorage.getItem("wwm_disable_region_click_pan") === "true",
+  savedGpuSetting: "auto",
+  savedMenuPosition: "center",
+  useChromeTranslator: false,
+  disableRegionClickPan: false,
 
   get gpuRenderMode() {
     return checkWebGL();
@@ -404,3 +377,80 @@ export const dispatch = (actionType, payload) => {
 };
 
 export { store };
+
+/**
+ * Initializes state from Dexie.js (IndexedDB Vault).
+ * This must be called during app initialization before UI rendering.
+ * @returns {Promise<{completedList: any[], favorites: any[], settings: Object}>}
+ */
+export const initStateFromVault = async () => {
+  try {
+    log.info("Initializing state from Vault...");
+
+    const { primaryDb } = await import("./storage/db.js");
+
+    const [completedList, favorites, settings] = await Promise.all([
+      primaryDb.get("completedList"),
+      primaryDb.get("favorites"),
+      primaryDb.get("settings")
+    ]);
+
+    // Migrate old format (array of ids) to new format (array of objects)
+    let finalCompletedList = completedList || [];
+    if (finalCompletedList.length > 0 && typeof finalCompletedList[0] !== "object") {
+      finalCompletedList = finalCompletedList.map((id) => ({ id, completedAt: null }));
+      // Save migrated format back to Vault
+      await primaryDb.set("completedList", finalCompletedList);
+      log.info("Migrated completedList to new format");
+    }
+
+    const stateUpdates = {
+      completedList: finalCompletedList,
+      favorites: favorites || [],
+      isStateInitialized: true,
+    };
+
+    // Apply settings if available
+    if (settings && typeof settings === "object") {
+      if (settings.showComments !== undefined) stateUpdates.showComments = settings.showComments;
+      if (settings.closeOnComplete !== undefined) stateUpdates.closeOnComplete = settings.closeOnComplete;
+      if (settings.hideCompleted !== undefined) stateUpdates.hideCompleted = settings.hideCompleted;
+      if (settings.enableClustering !== undefined) stateUpdates.enableClustering = settings.enableClustering;
+      if (settings.enableWebLLM !== undefined) stateUpdates.enableWebLLM = settings.enableWebLLM;
+      if (settings.regionColor !== undefined) stateUpdates.savedRegionColor = settings.regionColor;
+      if (settings.regionFillColor !== undefined) stateUpdates.savedRegionFillColor = settings.regionFillColor;
+      if (settings.gpuMode !== undefined) stateUpdates.savedGpuSetting = settings.gpuMode;
+      if (settings.menuPosition !== undefined) stateUpdates.savedMenuPosition = settings.menuPosition;
+      if (settings.useChromeTranslator !== undefined) stateUpdates.useChromeTranslator = settings.useChromeTranslator;
+      if (settings.disableRegionClickPan !== undefined) stateUpdates.disableRegionClickPan = settings.disableRegionClickPan;
+      if (settings.aiProvider !== undefined) stateUpdates.savedAIProvider = settings.aiProvider;
+      if (settings.apiModel !== undefined) stateUpdates.savedApiModel = settings.apiModel;
+    }
+
+    // Batch update state
+    store.setState(stateUpdates);
+
+    log.success("State initialized from Vault", {
+      completed: stateUpdates.completedList.length,
+      favorites: stateUpdates.favorites.length,
+      hasSettings: !!settings
+    });
+
+    return {
+      completedList: stateUpdates.completedList,
+      favorites: stateUpdates.favorites,
+      settings: settings || {}
+    };
+  } catch (e) {
+    log.error("Failed to initialize state from Vault", e);
+
+    // Mark as initialized even on error to prevent infinite waiting
+    store.setState({ isStateInitialized: true });
+
+    return {
+      completedList: [],
+      favorites: [],
+      settings: {}
+    };
+  }
+};

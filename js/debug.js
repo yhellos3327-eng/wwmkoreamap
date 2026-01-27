@@ -29,6 +29,42 @@ export const initGlobalDebugHelpers = () => {
     const { dev } = await import("./dev-tools.js");
     return dev();
   };
+
+  /**
+   * [DEBUG] Simulates a legacy localStorage user for migration testing.
+   * Clears Vault and sets dummy data in localStorage.
+   */
+  /** @type {any} */ (window).resetToLocalStorageUser = async () => {
+    if (!confirm("⚠️ WARNING: This will WIPE all current data and reset to a dummy legacy state. Continue?")) return;
+
+    try {
+      // 1. Clear Vault (IndexedDB)
+      const { primaryDb, db } = await import("./storage/db.js");
+      await primaryDb.clear();
+      // await db.clear(); // Optional: clear backups too if needed
+
+      // 2. Set localStorage data (Legacy format)
+      const dummyCompleted = ["101", "102", "103"]; // Example IDs
+      const dummyFavorites = ["201", "202"];
+
+      localStorage.setItem("wwm_completed", JSON.stringify(dummyCompleted));
+      localStorage.setItem("wwm_favorites", JSON.stringify(dummyFavorites));
+      localStorage.setItem("wwm_show_comments", "true");
+
+      // 3. Reset migration version
+      localStorage.removeItem("wwm_migration_version");
+
+      console.log("%c[RESET] Environment reset to Legacy LocalStorage User.", "color: #00ff00; font-weight: bold");
+      console.log("Data set:", { completed: dummyCompleted, favorites: dummyFavorites });
+      console.log("Please RELOAD the page to trigger migration.");
+
+      alert("Reset complete. Please reload the page.");
+      location.reload();
+
+    } catch (e) {
+      console.error("Reset failed:", e);
+    }
+  };
 };
 
 /**
