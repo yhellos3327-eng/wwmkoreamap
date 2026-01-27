@@ -90,17 +90,22 @@ const getSettingsFromState = (state) => {
  * Sets local data to Vault (Dexie.js).
  * DEXIE.JS MIGRATION: Always uses async Vault save.
  * @param {SyncData} data - The data to save.
- * @returns {SetLocalDataResult} The result of the operation.
+ * @returns {Promise<SetLocalDataResult>} The result of the operation.
  */
-export const setLocalData = (data) => {
+export const setLocalData = async (data) => {
   if (!data) return { success: false, blocked: false, reason: "No data provided" };
 
   // DEXIE.JS MIGRATION: Always use async Vault save
-  setLocalDataAsync(data).catch(e => {
+  try {
+    const result = await setLocalDataAsync(data);
+    if (!result.success) {
+      log.error("Vault save failed", result.reason);
+    }
+    return result;
+  } catch (e) {
     log.error("Vault save failed", e);
-  });
-
-  return { success: true, blocked: false };
+    return { success: false, blocked: false, reason: e.message };
+  }
 };
 
 // ============================================================================

@@ -112,7 +112,8 @@ export const renderMapDataAndMarkers = async () => {
       state.activeRegionNames.size > 0
         ? items.filter((item) => {
           const effectiveRegion = item.forceRegion || item.region;
-          return state.activeRegionNames.has(effectiveRegion);
+          const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
+          return state.activeRegionNames.has(normalizedRegion);
         })
         : items;
 

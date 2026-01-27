@@ -54,7 +54,10 @@ export const restoreFromVault = async (id) => {
 
         const data = entry.data;
         const { primaryDb } = await import("./db.js");
-        await primaryDb.importAll(data, true);
+        const importResult = await primaryDb.importAll(data, true);
+        if (!importResult || !importResult.success) {
+            throw new Error("Import failed: " + (importResult?.error || "Unknown error"));
+        }
 
         // Update global state if possible
         try {
@@ -130,8 +133,12 @@ export const autoRestoreIfEmpty = async () => {
             return { success: false, reason: "no_backups" };
         }
 
-        await restoreFromVault(latest.id);
-        return { success: true, restored: true, reason: "restored_from_backup", source: "backup" };
+        const restoreResult = await restoreFromVault(latest.id);
+        if (restoreResult.success) {
+            return { success: true, restored: true, reason: "restored_from_backup", source: "backup" };
+        } else {
+            return { success: false, reason: "restore_failed", error: restoreResult.error };
+        }
 
 
     } catch (e) {

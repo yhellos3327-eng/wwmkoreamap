@@ -45,7 +45,9 @@ const applyCloudSettings = (settings) => {
 
     if (["on", "off", "auto"].includes(gpuSetting)) {
       state.savedGpuSetting = gpuSetting;
-      primaryDb.set("wwm_gpu_setting", gpuSetting).catch(console.warn);
+      primaryDb.set("wwm_gpu_setting", gpuSetting).then(res => {
+        if (!res || !res.success) console.warn("Failed to save GPU setting", res);
+      }).catch(console.warn);
     }
   }
 };
@@ -71,8 +73,13 @@ export const applySyncData = (cloudData) => {
     setState("completedList", markers);
 
     // Save to Vault (primary database) - ALWAYS for all users
-    primaryDb.set("completedList", markers).then(() => {
-      log.vault(`completedList 저장`, markers.length);
+    // Save to Vault (primary database) - ALWAYS for all users
+    primaryDb.set("completedList", markers).then((res) => {
+      if (res && res.success) {
+        log.vault(`completedList 저장`, markers.length);
+      } else {
+        log.warn("completedList 저장 실패", res);
+      }
     }).catch(console.warn);
 
 
@@ -82,9 +89,14 @@ export const applySyncData = (cloudData) => {
     setState("favorites", cloudData.favorites);
 
     // Save to Vault (primary database) - ALWAYS for all users
+    // Save to Vault (primary database) - ALWAYS for all users
     primaryDb.set("favorites", cloudData.favorites)
-      .then(() => {
-        log.vault(`favorites 저장`, cloudData.favorites.length);
+      .then((res) => {
+        if (res && res.success) {
+          log.vault(`favorites 저장`, cloudData.favorites.length);
+        } else {
+          log.error("favorites 저장 실패", res);
+        }
       })
       .catch((error) => {
         log.error("favorites 저장 실패", error);

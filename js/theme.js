@@ -35,8 +35,20 @@ export const applyTheme = (theme) => {
 
   document.documentElement.setAttribute("data-theme", effectiveTheme);
 
-  import("./storage/db.js").then(({ primaryDb }) => {
-    primaryDb.set(THEME_KEY, theme).catch(console.warn);
+  import("./storage/db.js").then(async ({ primaryDb }) => {
+    try {
+      const result = await primaryDb.set(THEME_KEY, theme);
+      if (result && result.success) {
+        const saved = await primaryDb.get(THEME_KEY);
+        if (saved !== theme) {
+          console.error("Theme save verification failed", { expected: theme, actual: saved });
+        }
+      } else {
+        console.error("Failed to save theme", result);
+      }
+    } catch (e) {
+      console.error("Error saving theme", e);
+    }
   });
 
   if (/** @type {any} */ (window).setState) {

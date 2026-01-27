@@ -85,6 +85,35 @@ let isPreCacheInProgress = false;
 
 let loadingMessageEl = null;
 let isInitialized = false;
+let initPromise = null;
+
+/**
+ * Toggles thinking mode and persists the setting.
+ * @param {boolean} enabled - Whether thinking mode should be enabled.
+ * @returns {Promise<void>}
+ */
+export async function setThinkingEnabled(enabled) {
+  const { primaryDb } = await import("./storage/db.js");
+  const value = enabled ? "true" : "false";
+  const result = await primaryDb.set(STORAGE_KEYS.THINKING_ENABLED, value);
+  if (!result || !result.success) {
+    logger.error("WebLLM", "Failed to save thinking mode setting", result);
+  } else {
+    logger.log("WebLLM", `Thinking mode set to: ${enabled}`);
+  }
+}
+
+/**
+ * Gets the current thinking mode setting.
+ * @returns {Promise<boolean>} Whether thinking mode is enabled.
+ */
+export async function isThinkingEnabled() {
+  const { primaryDb } = await import("./storage/db.js");
+  const stored = await primaryDb.get(STORAGE_KEYS.THINKING_ENABLED);
+  // Normalize: accept string "true", boolean true, or treat null/undefined as false
+  if (stored === true || stored === "true") return true;
+  return false;
+}
 
 const categoryIdToKoreanMap = new Map();
 const infoIdToKoreanMap = new Map();
@@ -1149,12 +1178,11 @@ async function handleChatSubmit() {
       logger.log("WebLLM", `RAG 검색: "${message}" -> 관련 아이템 없음`);
     }
 
-    const { primaryDb } = await import("./storage/db.js");
-    const thinkingEnabled = await primaryDb.get(STORAGE_KEYS.THINKING_ENABLED);
+    const thinkingEnabled = await isThinkingEnabled();
 
     await sendChatMessage(message, {
       items: contextItems,
-      enableThinking: thinkingEnabled === "true",
+      enableThinking: thinkingEnabled,
       onStream: ({ content }) => {
         if (assistantEl) {
           assistantEl.innerHTML = formatChatMessage(content || "생각 중...");
@@ -1284,6 +1312,8 @@ export {
   mlcEngine,
   isEngineLoading,
   engineLoadingProgress,
+  setThinkingEnabled,
+  isThinkingEnabled,
 };
 
 export default {
@@ -1303,4 +1333,6 @@ export default {
   getStoredModelId,
   getInstallState,
   checkWebGPUSupport,
+  setThinkingEnabled,
+  isThinkingEnabled,
 };

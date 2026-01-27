@@ -78,86 +78,6 @@
     <div class="container">
         <div class="spinner" id="spinner"></div>
         <h1 id="title">로그인 처리 중...</h1>
-<!DOCTYPE html>
-<html lang="ko">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>로그인 처리 중... - WWM Map</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #fff;
-        }
-
-        .container {
-            text-align: center;
-            padding: 2rem;
-        }
-
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 3px solid rgba(255, 255, 255, 0.1);
-            border-top-color: #ffbd53;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1.5rem;
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            font-weight: 500;
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            color: rgba(255, 255, 255, 0.6);
-            font-size: 0.9rem;
-        }
-
-        .error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            padding: 1rem 1.5rem;
-            border-radius: 8px;
-            margin-top: 1rem;
-            display: none;
-        }
-
-        .error.show {
-            display: block;
-        }
-
-        .error a {
-            color: #ffbd53;
-            text-decoration: none;
-        }
-    </style>
-</head>
-
-<body>
-    <div class="container">
-        <div class="spinner" id="spinner"></div>
-        <h1 id="title">로그인 처리 중...</h1>
         <p id="message">잠시만 기다려 주세요.</p>
         <div class="error" id="error">
             <p>로그인에 실패했습니다. <a href="/">다시 시도</a></p>
@@ -187,7 +107,14 @@
                 return;
             }
 
-            await primaryDb.set('wwm_access_token', token);
+            const setTokenResult = await primaryDb.set('wwm_access_token', token);
+            if (!setTokenResult || !setTokenResult.success) {
+                console.error('Failed to save access token', setTokenResult);
+                document.getElementById('spinner').style.display = 'none';
+                document.getElementById('title').textContent = '저장 실패';
+                document.getElementById('message').textContent = '토큰 저장 중 오류가 발생했습니다.';
+                return;
+            }
 
             document.getElementById('title').textContent = '로그인 완료!';
             document.getElementById('message').textContent = '잠시 후 이동합니다...';

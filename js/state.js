@@ -166,8 +166,15 @@ const initialState = {
   },
   set gpuRenderMode(value) {
     this.savedGpuSetting = value ? "on" : "off";
-    import("./storage/db.js").then(({ primaryDb }) => {
-      primaryDb.set("wwm_gpu_setting", this.savedGpuSetting).catch(console.warn);
+    import("./storage/db.js").then(async ({ primaryDb }) => {
+      try {
+        const result = await primaryDb.set("wwm_gpu_setting", this.savedGpuSetting);
+        if (!result || !result.success) {
+          console.error("Failed to save GPU setting", result);
+        }
+      } catch (e) {
+        console.error("Error saving GPU setting", e);
+      }
     });
   },
   pixiOverlay: null,

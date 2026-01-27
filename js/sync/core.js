@@ -92,13 +92,19 @@ export const saveToCloud = async (silent = false, broadcast = true) => {
 
   try {
     // Use async version for migrated users to get data from Vault
-    const data = await getLocalDataAsync();
+    let data;
+    try {
+      data = await getLocalDataAsync();
+    } catch (e) {
+      log.error("Failed to get local data for sync", e);
+      throw e;
+    }
 
     // Safety Guard: Prevent syncing empty data if we previously had data
-    const prevCompletedCount = await primaryDb.get("sync_safety_prev_count") || 0;
+    const prevCompletedCount = await primaryDb.get("sync_safety_prev_count");
     const currentCompletedCount = data.completedMarkers?.length || 0;
 
-    if (prevCompletedCount > 0 && currentCompletedCount === 0) {
+    if (prevCompletedCount !== null && prevCompletedCount !== undefined && prevCompletedCount > 0 && currentCompletedCount === 0) {
       log.warn("Safety Guard: Prevented syncing empty data over populated cloud data");
       if (!silent) showSyncToast("데이터 유실 방지: 빈 데이터 동기화가 차단되었습니다.", "error");
       return false;
@@ -215,7 +221,13 @@ export const performFullSync = async (silent = false, broadcast = true) => {
     }
 
     // Use async version for migrated users to get data from Vault
-    const localData = await getLocalDataAsync();
+    let localData;
+    try {
+      localData = await getLocalDataAsync();
+    } catch (e) {
+      log.error("Failed to get local data for full sync", e);
+      return null;
+    }
 
     // SAFETY FIX: Validate data before merge
     const localCount = (localData.completedMarkers?.length || 0) + (localData.favorites?.length || 0);
@@ -258,7 +270,7 @@ export const performFullSync = async (silent = false, broadcast = true) => {
       return null;
     }
 
-    const setResult = setLocalData(mergedData);
+    const setResult = await setLocalData(mergedData);
 
     // SAFETY FIX: Also save to Vault (primary database)
     try {

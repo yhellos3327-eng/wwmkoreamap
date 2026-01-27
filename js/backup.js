@@ -130,11 +130,23 @@ export const loadBackup = (file) => {
           // We don't have a clearAllExceptBackups method, so we set keys individually
           // Actually, we should probably clear everything to be safe, but let's just overwrite
 
-          await primaryDb.set("completedList", dataToRestore.completedList);
-          await primaryDb.set("favorites", dataToRestore.favorites);
+          const completedResult = await primaryDb.set("completedList", dataToRestore.completedList);
+          if (!completedResult || !completedResult.success) {
+            throw new Error("완료 목록 저장 실패");
+          }
+
+          const favoritesResult = await primaryDb.set("favorites", dataToRestore.favorites);
+          if (!favoritesResult || !favoritesResult.success) {
+            throw new Error("즐겨찾기 저장 실패");
+          }
 
           for (const [key, value] of Object.entries(dataToRestore.settings)) {
-            await primaryDb.set(key, value);
+            const settingResult = await primaryDb.set(key, value);
+            if (!settingResult || !settingResult.success) {
+              console.warn(`Failed to restore setting: ${key}`, settingResult);
+              // We might not want to fail the whole restore for one setting, but let's log it.
+              // If strict mode is needed: throw new Error(`설정 저장 실패: ${key}`);
+            }
           }
 
           // Clear legacy localStorage to avoid confusion - SKIPPED for safety

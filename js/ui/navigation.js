@@ -21,6 +21,41 @@ import { createLogger } from "../utils/logStyles.js";
 const log = createLogger("Navigation");
 
 /**
+ * Write queue for serialized Vault writes per key.
+ * @type {Map<string, Promise<any>>}
+ */
+const vaultWriteQueues = new Map();
+
+/**
+ * Queue a Vault write to ensure serialized writes per key.
+ * @param {string} key - The storage key.
+ * @param {any} value - The value to write.
+ * @param {string} label - Label for logging.
+ * @returns {Promise<void>}
+ */
+const queueVaultWrite = async (key, value, label) => {
+  const previousWrite = vaultWriteQueues.get(key) || Promise.resolve();
+
+  const writePromise = previousWrite.then(async () => {
+    try {
+      const result = await primaryDb.set(key, value);
+      if (!result || !result.success) {
+        throw new Error(`Vault write failed: ${result?.error || 'Unknown error'}`);
+      }
+      log.vault(`${label} 저장 완료`, Array.isArray(value) ? value.length : value);
+    } catch (e) {
+      log.error(`${label} 저장 실패`, e);
+      throw e;
+    }
+  }).catch(e => {
+    log.error(`${label} write queue error`, e);
+  });
+
+  vaultWriteQueues.set(key, writePromise);
+  return writePromise;
+};
+
+/**
  * @typedef {import("../data/processors.js").MapItem} MapItem
  */
 
@@ -102,9 +137,7 @@ export const toggleCompleted = (id) => {
     }
   }
   // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
-  primaryDb.set("completedList", state.completedList).then(() => {
-    log.vault(`completedList 저장 완료`, state.completedList.length);
-  }).catch(console.warn);
+  queueVaultWrite("completedList", state.completedList, "completedList");
 
   triggerSync();
 
@@ -201,9 +234,7 @@ export const toggleFavorite = (id) => {
   else state.favorites.splice(index, 1);
 
   // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
-  primaryDb.set("favorites", state.favorites).then(() => {
-    log.vault(`favorites 저장 완료`, state.favorites.length);
-  }).catch(console.warn);
+  queueVaultWrite("favorites", state.favorites, "favorites");
 
   triggerSync();
   renderFavorites();
