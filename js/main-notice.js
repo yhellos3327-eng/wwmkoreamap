@@ -95,9 +95,13 @@ function closeNotice() {
     const checkbox = document.getElementById('chk-dont-show-notice');
 
     if (checkbox && checkbox.checked) {
-        import("./storage/db.js").then(({ primaryDb }) => {
-            primaryDb.set(`notice_hidden_${NOTICE_ID}`, 'true');
-        });
+        import("./storage/db.js")
+            .then(({ primaryDb }) => {
+                primaryDb.set(`notice_hidden_${NOTICE_ID}`, 'true');
+            })
+            .catch((error) => {
+                console.error("Failed to save notice preference:", error);
+            });
     }
 
     if (modal) {

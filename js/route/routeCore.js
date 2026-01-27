@@ -73,7 +73,7 @@ const restoreAllRegions = () => {
         module.renderRegionButtons();
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 
   import("../map/markers.js")
     .then((/** @type {any} */ module) => {
@@ -81,7 +81,7 @@ const restoreAllRegions = () => {
         module.renderMapDataAndMarkers();
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 /**
@@ -98,7 +98,7 @@ const setOnlyRegionActive = (region) => {
         module.renderRegionButtons();
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 
   import("../map/markers.js")
     .then((/** @type {any} */ module) => {
@@ -106,7 +106,7 @@ const setOnlyRegionActive = (region) => {
         module.renderMapDataAndMarkers();
       }
     })
-    .catch(() => {});
+    .catch(() => { });
 };
 
 /**
@@ -257,15 +257,14 @@ export const clearRouteDisplay = () => {
 /**
  * Saves the current route to localStorage.
  * @param {string} [name] - Optional route name.
- * @returns {boolean} Whether save was successful.
+ * @returns {Promise<boolean>} Whether save was successful.
  */
-export const saveRoute = (name) => {
+export const saveRoute = async (name) => {
   const state = getRouteState();
   if (!state.currentRoute) return false;
 
-  const savedRoutes = JSON.parse(
-    localStorage.getItem("wwm_saved_routes") || "[]",
-  );
+  const { primaryDb } = await import("../storage/db.js");
+  const savedRoutes = (await primaryDb.get("wwm_saved_routes")) || [];
 
   const routeToSave = {
     id: Date.now().toString(),
@@ -278,7 +277,7 @@ export const saveRoute = (name) => {
   };
 
   savedRoutes.push(routeToSave);
-  localStorage.setItem("wwm_saved_routes", JSON.stringify(savedRoutes));
+  await primaryDb.set("wwm_saved_routes", savedRoutes);
 
   logger.success("RouteMode", `Route saved: ${routeToSave.name}`);
   return true;
@@ -287,12 +286,11 @@ export const saveRoute = (name) => {
 /**
  * Loads a saved route by ID.
  * @param {string} routeId - The route ID to load.
- * @returns {any|null} The loaded route or null.
+ * @returns {Promise<any|null>} The loaded route or null.
  */
-export const loadRoute = (routeId) => {
-  const savedRoutes = JSON.parse(
-    localStorage.getItem("wwm_saved_routes") || "[]",
-  );
+export const loadRoute = async (routeId) => {
+  const { primaryDb } = await import("../storage/db.js");
+  const savedRoutes = (await primaryDb.get("wwm_saved_routes")) || [];
   const savedRoute = savedRoutes.find((r) => r.id === routeId);
 
   if (!savedRoute) {
@@ -305,11 +303,11 @@ export const loadRoute = (routeId) => {
       const item = appState.mapData.items.find((i) => i.id === saved.id);
       return item
         ? {
-            ...item,
-            order: saved.order,
-            lat: parseFloat(item.x),
-            lng: parseFloat(item.y),
-          }
+          ...item,
+          order: saved.order,
+          lat: parseFloat(item.x),
+          lng: parseFloat(item.y),
+        }
         : null;
     })
     .filter(Boolean);
@@ -340,23 +338,23 @@ export const loadRoute = (routeId) => {
 
 /**
  * Gets all saved routes.
- * @returns {any[]} Array of saved routes.
+ * @returns {Promise<any[]>} Array of saved routes.
  */
-export const getSavedRoutes = () => {
-  return JSON.parse(localStorage.getItem("wwm_saved_routes") || "[]");
+export const getSavedRoutes = async () => {
+  const { primaryDb } = await import("../storage/db.js");
+  return (await primaryDb.get("wwm_saved_routes")) || [];
 };
 
 /**
  * Deletes a saved route by ID.
  * @param {string} routeId - The route ID to delete.
- * @returns {boolean} Whether deletion was successful.
+ * @returns {Promise<boolean>} Whether deletion was successful.
  */
-export const deleteRoute = (routeId) => {
-  let savedRoutes = JSON.parse(
-    localStorage.getItem("wwm_saved_routes") || "[]",
-  );
+export const deleteRoute = async (routeId) => {
+  const { primaryDb } = await import("../storage/db.js");
+  let savedRoutes = (await primaryDb.get("wwm_saved_routes")) || [];
   savedRoutes = savedRoutes.filter((r) => r.id !== routeId);
-  localStorage.setItem("wwm_saved_routes", JSON.stringify(savedRoutes));
+  await primaryDb.set("wwm_saved_routes", savedRoutes);
   return true;
 };
 

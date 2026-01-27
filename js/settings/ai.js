@@ -1,7 +1,7 @@
 // @ts-check
 /// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
-import { storage } from "../storage.js";
+
 
 export const AI_MODELS = {
   gemini: [
@@ -81,40 +81,55 @@ export const saveAISettings = () => {
     const provider = apiProviderSelect.value;
     setState("savedAIProvider", provider);
 
-    import("../sync.js").then(({ updateSettingWithTimestamp }) => {
-      updateSettingWithTimestamp("aiProvider", provider);
-    });
+    import("../sync.js")
+      .then(({ updateSettingWithTimestamp }) => {
+        updateSettingWithTimestamp("aiProvider", provider);
+      })
+      .catch((err) => {
+        console.error(
+          `Failed to update AI provider setting (${provider}):`,
+          err,
+        );
+      });
 
     if (apiKeyInput) {
       const newKey = apiKeyInput.value.trim();
-      if (provider === "gemini") {
-        setState("savedGeminiKey", newKey);
-        setState("savedApiKey", newKey);
-        storage.setApiKey("wwm_api_key", newKey);
-      } else if (provider === "openai") {
-        setState("savedOpenAIKey", newKey);
-        storage.setApiKey("wwm_openai_key", newKey);
-      } else if (provider === "claude") {
-        setState("savedClaudeKey", newKey);
-        storage.setApiKey("wwm_claude_key", newKey);
-      } else if (provider === "deepl") {
-        setState("savedDeepLKey", newKey);
-        storage.setApiKey("wwm_deepl_key", newKey);
-      }
+      import("../storage/db.js").then(({ primaryDb }) => {
+        if (provider === "gemini") {
+          setState("savedGeminiKey", newKey);
+          setState("savedApiKey", newKey);
+          primaryDb.set("wwm_api_key", newKey);
+        } else if (provider === "openai") {
+          setState("savedOpenAIKey", newKey);
+          primaryDb.set("wwm_openai_key", newKey);
+        } else if (provider === "claude") {
+          setState("savedClaudeKey", newKey);
+          primaryDb.set("wwm_claude_key", newKey);
+        } else if (provider === "deepl") {
+          setState("savedDeepLKey", newKey);
+          primaryDb.set("wwm_deepl_key", newKey);
+        }
+      });
     }
   } else if (apiKeyInput) {
     const newKey = apiKeyInput.value.trim();
     setState("savedApiKey", newKey);
-    storage.setApiKey("wwm_api_key", newKey);
+    import("../storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set("wwm_api_key", newKey);
+    });
   }
 
   if (apiModelSelect) {
     const newModel = apiModelSelect.value;
     setState("savedApiModel", newModel);
 
-    import("../sync.js").then(({ updateSettingWithTimestamp }) => {
-      updateSettingWithTimestamp("apiModel", newModel);
-    });
+    import("../sync.js")
+      .then(({ updateSettingWithTimestamp }) => {
+        updateSettingWithTimestamp("apiModel", newModel);
+      })
+      .catch((err) => {
+        console.error(`Failed to update API model setting (${newModel}):`, err);
+      });
   }
 };
 

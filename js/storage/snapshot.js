@@ -1,5 +1,4 @@
 // @ts-check
-import { core } from "./core.js";
 import { getCurrentSnapshotKeys, getSchema } from "./schema.js";
 
 /** @type {string} */
@@ -17,24 +16,19 @@ const MAX_SNAPSHOT_SIZE = 1024 * 1024;
 /**
  * Saves a snapshot of current localStorage state.
  * @param {{keys?: string[]}} [options] - Snapshot options.
- * @returns {{success: boolean, size?: number, keyCount?: number, error?: string}} Result.
+ * @returns {Promise<{success: boolean, size?: number, keyCount?: number, error?: string}>} Result.
  */
-export const saveSnapshot = (options = {}) => {
+export const saveSnapshot = async (options = {}) => {
   try {
-    const keysToSnapshot = options.keys || getCurrentSnapshotKeys();
+    const { primaryDb } = await import("./db.js");
+    // We export everything for the snapshot
+    const exportData = await primaryDb.exportAll();
 
     const snapshot = {
       version: 1,
       timestamp: Date.now(),
-      keys: {},
+      keys: exportData.data, // This matches the structure expected by importAll
     };
-
-    for (const key of keysToSnapshot) {
-      const rawValue = localStorage.getItem(key);
-      if (rawValue !== null) {
-        snapshot.keys[key] = rawValue;
-      }
-    }
 
     const snapshotStr = JSON.stringify(snapshot);
 
@@ -47,7 +41,7 @@ export const saveSnapshot = (options = {}) => {
       };
     }
 
-    localStorage.setItem(SNAPSHOT_KEY, snapshotStr);
+    await primaryDb.set(SNAPSHOT_KEY, snapshot);
 
     return {
       success: true,
@@ -62,25 +56,24 @@ export const saveSnapshot = (options = {}) => {
 
 /**
  * Gets the current snapshot.
- * @returns {{version: number, timestamp: number, keys: Object<string, string>}|null} The snapshot or null.
+ * @returns {Promise<{version: number, timestamp: number, keys: Object<string, string>}|null>} The snapshot or null.
  */
-export const getSnapshot = () => {
+export const getSnapshot = async () => {
   try {
-    const raw = localStorage.getItem(SNAPSHOT_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw);
+    const { primaryDb } = await import("./db.js");
+    return await primaryDb.get(SNAPSHOT_KEY);
   } catch (e) {
-    console.warn("[Snapshot] Parse failed:", e);
+    console.warn("[Snapshot] Get failed:", e);
     return null;
   }
 };
 
 /**
  * Gets information about the current snapshot.
- * @returns {{timestamp: number, date: string, version: number, keyCount: number, keys: string[]}|null} Snapshot info.
+ * @returns {Promise<{timestamp: number, date: string, version: number, keyCount: number, keys: string[]}|null>} Snapshot info.
  */
-export const getSnapshotInfo = () => {
-  const snapshot = getSnapshot();
+export const getSnapshotInfo = async () => {
+  const snapshot = await getSnapshot();
   if (!snapshot) return null;
 
   return {
@@ -94,34 +87,44 @@ export const getSnapshotInfo = () => {
 
 /**
  * Checks if a snapshot exists.
- * @returns {boolean} Whether a snapshot exists.
+ * @returns {Promise<boolean>} Whether a snapshot exists.
  */
-export const hasSnapshot = () => {
-  return localStorage.getItem(SNAPSHOT_KEY) !== null;
+export const hasSnapshot = async () => {
+  const { primaryDb } = await import("./db.js");
+  const data = await primaryDb.get(SNAPSHOT_KEY);
+  return data !== null;
 };
 
 /**
  * Restores data from a snapshot.
  * @param {{keys?: string[]}} [options] - Restore options.
- * @returns {{success: boolean, restored: string[], error?: string}} Result.
+ * @returns {Promise<{success: boolean, restored: string[], error?: string}>} Result.
  */
-export const restoreFromSnapshot = (options = {}) => {
-  const snapshot = getSnapshot();
+export const restoreFromSnapshot = async (options = {}) => {
+  const snapshot = await getSnapshot();
   if (!snapshot) {
     return { success: false, error: "No snapshot available", restored: [] };
   }
 
+  // snapshot.keys contains the data in the format expected by importAll
+  // (or at least compatible with it, as it was created by exportAll)
   const keysToRestore = options.keys || Object.keys(snapshot.keys || {});
   const restored = [];
 
   try {
+    const { primaryDb } = await import("./db.js");
+
+    // Filter data if specific keys requested
+    /** @type {Object<string, any>} */
+    const dataToImport = {};
     for (const key of keysToRestore) {
-      const value = snapshot.keys[key];
-      if (value !== undefined) {
-        localStorage.setItem(key, value);
+      if (snapshot.keys[key]) {
+        dataToImport[key] = snapshot.keys[key];
         restored.push(key);
       }
     }
+
+    await primaryDb.importAll(dataToImport, true);
 
     return { success: true, restored };
   } catch (e) {
@@ -133,8 +136,9 @@ export const restoreFromSnapshot = (options = {}) => {
 /**
  * Clears the stored snapshot.
  */
-export const clearSnapshot = () => {
-  localStorage.removeItem(SNAPSHOT_KEY);
+export const clearSnapshot = async () => {
+  const { primaryDb } = await import("./db.js");
+  await primaryDb.delete(SNAPSHOT_KEY);
 };
 
 /**
@@ -142,9 +146,10 @@ export const clearSnapshot = () => {
  * @param {any} error - The error.
  * @param {Object} [context] - Additional context.
  */
-export const logFailure = (error, context = {}) => {
+export const logFailure = async (error, context = {}) => {
   try {
-    const logs = core.getJSON(FAILURE_LOG_KEY, []);
+    const { primaryDb } = await import("./db.js");
+    const logs = (await primaryDb.get(FAILURE_LOG_KEY)) || [];
 
     logs.push({
       timestamp: Date.now(),
@@ -160,7 +165,7 @@ export const logFailure = (error, context = {}) => {
       logs.shift();
     }
 
-    core.setJSON(FAILURE_LOG_KEY, logs);
+    await primaryDb.set(FAILURE_LOG_KEY, logs);
   } catch (e) {
     console.warn("[Snapshot] Failed to log failure:", e);
   }
@@ -168,17 +173,19 @@ export const logFailure = (error, context = {}) => {
 
 /**
  * Gets all failure logs.
- * @returns {any[]} Array of failure logs.
+ * @returns {Promise<any[]>} Array of failure logs.
  */
-export const getFailureLogs = () => {
-  return core.getJSON(FAILURE_LOG_KEY, []);
+export const getFailureLogs = async () => {
+  const { primaryDb } = await import("./db.js");
+  return (await primaryDb.get(FAILURE_LOG_KEY)) || [];
 };
 
 /**
  * Clears all failure logs.
  */
-export const clearFailureLogs = () => {
-  core.remove(FAILURE_LOG_KEY);
+export const clearFailureLogs = async () => {
+  const { primaryDb } = await import("./db.js");
+  await primaryDb.delete(FAILURE_LOG_KEY);
 };
 
 /** @type {number|null} */
@@ -193,7 +200,7 @@ export const debouncedSave = (delayMs = 1000) => {
     clearTimeout(snapshotDebounceTimer);
   }
   snapshotDebounceTimer = window.setTimeout(() => {
-    saveSnapshot();
+    saveSnapshot(); // This is async but we don't await it in debounce
     snapshotDebounceTimer = null;
   }, delayMs);
 };

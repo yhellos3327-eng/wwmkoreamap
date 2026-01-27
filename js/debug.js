@@ -86,8 +86,10 @@ export const initDevModeSubscription = () => {
 /**
  * 개발 모드 확인 및 dev-tools 로드
  */
-export const loadDevToolsIfNeeded = () => {
-  if (state.isDevMode || localStorage.getItem("wwm_dev_mode") === "true") {
+export const loadDevToolsIfNeeded = async () => {
+  const { primaryDb } = await import("./storage/db.js");
+  const devMode = await primaryDb.get("wwm_dev_mode");
+  if (state.isDevMode || devMode === "true") {
     import("./dev-tools.js");
   }
 };

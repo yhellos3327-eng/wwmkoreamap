@@ -12,17 +12,11 @@ const log = createLogger("Vault");
  */
 export const saveToVault = async (reason = "auto") => {
     try {
-        const keys = getCurrentSnapshotKeys();
-        const data = {};
-        let hasData = false;
+        const { primaryDb } = await import("./db.js");
+        const exportData = await primaryDb.exportAll();
+        const data = exportData.data;
 
-        for (const key of keys) {
-            const value = localStorage.getItem(key);
-            if (value !== null) {
-                data[key] = value;
-                hasData = true;
-            }
-        }
+        const hasData = Object.keys(data).length > 0;
 
         if (!hasData) {
             return { success: false, error: "No data to save" };
@@ -59,9 +53,8 @@ export const restoreFromVault = async (id) => {
         }
 
         const data = entry.data;
-        for (const [key, value] of Object.entries(data)) {
-            localStorage.setItem(key, value);
-        }
+        const { primaryDb } = await import("./db.js");
+        await primaryDb.importAll(data, true);
 
         // Update global state if possible
         try {
@@ -119,59 +112,16 @@ const hasActualData = (value) => {
  */
 export const autoRestoreIfEmpty = async () => {
     try {
-        // SAFETY FIX: Check if we have ACTUAL data (not just "[]")
-        const completedRaw = localStorage.getItem("wwm_completed");
-        const favoritesRaw = localStorage.getItem("wwm_favorites");
+        // SAFETY FIX: Check if we have ACTUAL data in primaryDb
+        const { primaryDb } = await import("./db.js");
+        const hasData = await primaryDb.hasData();
 
-        const hasCompletedData = hasActualData(completedRaw);
-        const hasFavoritesData = hasActualData(favoritesRaw);
-
-        // If localStorage has real data, no restore needed
-        if (hasCompletedData || hasFavoritesData) {
-            return { success: true, restored: false, source: "localStorage" };
+        // If primaryDb has real data, no restore needed
+        if (hasData) {
+            return { success: true, restored: false, source: "primaryDb" };
         }
 
-        log.warn("LocalStorage appears empty or contains only empty arrays");
-
-        // SAFETY FIX: Try primaryDb first (main database)
-        try {
-            const { primaryDb } = await import("./db.js");
-            const vaultCompleted = await primaryDb.get("completedList");
-            const vaultFavorites = await primaryDb.get("favorites");
-
-            const hasVaultCompleted = Array.isArray(vaultCompleted) && vaultCompleted.length > 0;
-            const hasVaultFavorites = Array.isArray(vaultFavorites) && vaultFavorites.length > 0;
-
-            if (hasVaultCompleted || hasVaultFavorites) {
-                log.info("Found data in primary database, restoring to localStorage...");
-
-                // Restore to localStorage
-                if (vaultCompleted) {
-                    localStorage.setItem("wwm_completed", JSON.stringify(vaultCompleted));
-                }
-                if (vaultFavorites) {
-                    localStorage.setItem("wwm_favorites", JSON.stringify(vaultFavorites));
-                }
-
-                // Update state
-                try {
-                    const { setState } = await import("../state.js");
-                    if (vaultCompleted) setState("completedList", vaultCompleted);
-                    if (vaultFavorites) setState("favorites", vaultFavorites);
-                } catch (e) {
-                    log.warn("State update failed", e);
-                }
-
-                return {
-                    success: true,
-                    restored: true,
-                    reason: "restored_from_primary_db",
-                    source: "primaryDb"
-                };
-            }
-        } catch (e) {
-            log.warn("PrimaryDb check failed", e);
-        }
+        log.warn("PrimaryDb appears empty, checking backups...");
 
         // Fallback: Try backup snapshots
         const latest = await db.getLatest();
@@ -182,6 +132,8 @@ export const autoRestoreIfEmpty = async () => {
 
         await restoreFromVault(latest.id);
         return { success: true, restored: true, reason: "restored_from_backup", source: "backup" };
+
+
     } catch (e) {
         log.error("Auto-restore failed", e);
         return { success: false, error: e.message };

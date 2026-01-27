@@ -34,7 +34,6 @@ export const applyTheme = (theme) => {
   }
 
   document.documentElement.setAttribute("data-theme", effectiveTheme);
-  document.documentElement.setAttribute("data-theme", effectiveTheme);
 
   import("./storage/db.js").then(({ primaryDb }) => {
     primaryDb.set(THEME_KEY, theme).catch(console.warn);

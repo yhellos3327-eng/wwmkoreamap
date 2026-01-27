@@ -176,10 +176,10 @@ const runStressTest = async (autoCompare = false) => {
     for (let i = 0; i < 8; i++) {
       const item =
         sourceList[
-          Math.min(
-            i * stepSize + Math.floor(Math.random() * stepSize),
-            sourceList.length - 1,
-          )
+        Math.min(
+          i * stepSize + Math.floor(Math.random() * stepSize),
+          sourceList.length - 1,
+        )
         ];
       testPoints.push({
         center: [parseFloat(item.x), parseFloat(item.y)],
@@ -279,18 +279,6 @@ const updateRendererStatus = () => {
 };
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const originalSetItem = localStorage.setItem;
-  localStorage.setItem = (key, value) => {
-    if (
-      key.includes("wwm_active_") ||
-      key.includes("wwm_hide_completed") ||
-      key.includes("wwm_gpu_render")
-    ) {
-      return;
-    }
-    originalSetItem.call(localStorage, key, value);
-  };
-
   loadingBar.style.width = "20%";
   log("Kernel loading...");
 

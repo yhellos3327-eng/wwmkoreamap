@@ -3,7 +3,7 @@
 import { createStore } from "https://esm.run/zustand@4.5.0/vanilla";
 import { logger } from "./logger.js";
 import { ACTIONS } from "./actions.js";
-import { storage } from "./storage.js";
+
 import { createLogger } from "./utils/logStyles.js";
 
 const log = createLogger("State");
@@ -42,6 +42,7 @@ const log = createLogger("State");
  * @property {Object.<string, any[]>} itemsByCategory
  * @property {any[]} completedList
  * @property {any[]} favorites
+ * @property {boolean} isStateInitialized
  * @property {Object.<string, any>} categoryItemTranslations
  * @property {any[]} currentModalList
  * @property {any[]} currentLightboxImages
@@ -138,13 +139,13 @@ const initialState = {
   regionMetaInfo: {},
   reverseRegionMap: {},
 
-  // API keys are still loaded from encrypted storage (not migrated to Vault)
+  // API keys are initialized empty, loaded from Vault
   savedAIProvider: "gemini",
-  savedApiKey: storage.getApiKey("wwm_api_key", ""),
-  savedGeminiKey: storage.getApiKey("wwm_api_key", ""),
-  savedOpenAIKey: storage.getApiKey("wwm_openai_key", ""),
-  savedClaudeKey: storage.getApiKey("wwm_claude_key", ""),
-  savedDeepLKey: storage.getApiKey("wwm_deepl_key", ""),
+  savedApiKey: "",
+  savedGeminiKey: "",
+  savedOpenAIKey: "",
+  savedClaudeKey: "",
+  savedDeepLKey: "",
   savedApiModel: "gemini-1.5-flash",
   savedRegionColor: "#242424",
   savedRegionFillColor: "#ffbd53",
@@ -165,7 +166,9 @@ const initialState = {
   },
   set gpuRenderMode(value) {
     this.savedGpuSetting = value ? "on" : "off";
-    localStorage.setItem("wwm_gpu_setting", this.savedGpuSetting);
+    import("./storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set("wwm_gpu_setting", this.savedGpuSetting).catch(console.warn);
+    });
   },
   pixiOverlay: null,
   pixiContainer: null,
@@ -389,11 +392,31 @@ export const initStateFromVault = async () => {
 
     const { primaryDb } = await import("./storage/db.js");
 
-    const [completedList, favorites, settings] = await Promise.all([
+
+    const [
+      completedList,
+      favorites,
+      settings,
+      apiKey,
+      openaiKey,
+      claudeKey,
+      deeplKey
+    ] = await Promise.all([
       primaryDb.get("completedList"),
       primaryDb.get("favorites"),
-      primaryDb.get("settings")
+      primaryDb.get("settings"),
+      primaryDb.get("wwm_api_key"),
+      primaryDb.get("wwm_openai_key"),
+      primaryDb.get("wwm_claude_key"),
+      primaryDb.get("wwm_deepl_key")
     ]);
+
+    // API Keys are now strictly managed via Vault.
+    // Legacy migration is handled by migration.js if needed.
+    const finalApiKey = apiKey || "";
+    const finalOpenaiKey = openaiKey || "";
+    const finalClaudeKey = claudeKey || "";
+    const finalDeeplKey = deeplKey || "";
 
     // Migrate old format (array of ids) to new format (array of objects)
     let finalCompletedList = completedList || [];
@@ -408,6 +431,11 @@ export const initStateFromVault = async () => {
       completedList: finalCompletedList,
       favorites: favorites || [],
       isStateInitialized: true,
+      savedApiKey: finalApiKey || "",
+      savedGeminiKey: finalApiKey || "",
+      savedOpenAIKey: finalOpenaiKey || "",
+      savedClaudeKey: finalClaudeKey || "",
+      savedDeepLKey: finalDeeplKey || "",
     };
 
     // Apply settings if available

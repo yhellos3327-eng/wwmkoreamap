@@ -305,7 +305,7 @@ export const triggerSync = () => {
   if (!isLoggedIn()) return;
   const timeout = getSyncTimeout();
   if (timeout) clearTimeout(timeout);
-  setSyncTimeout(setTimeout(() => saveToCloud(), SYNC_DELAY));
+  setSyncTimeout(setTimeout(() => saveToCloud(true), SYNC_DELAY));
 };
 
 /**
@@ -455,9 +455,10 @@ export const initSync = async () => {
 
   if (!isLoggedIn()) return;
 
-  const backupRestoredFlag = localStorage.getItem("wwm_backup_restored");
+  const { primaryDb } = await import("../storage/db.js");
+  const backupRestoredFlag = await primaryDb.get("wwm_backup_restored");
   if (backupRestoredFlag) {
-    localStorage.removeItem("wwm_backup_restored");
+    await primaryDb.delete("wwm_backup_restored");
 
     log.info("Backup restore detected, pushing local data to cloud...");
     showSyncTooltip("백업 데이터 동기화 중...");
@@ -481,7 +482,7 @@ export const initSync = async () => {
     return;
   }
 
-  showSyncTooltip("데이터 동기화 중...");
+  // showSyncTooltip("데이터 동기화 중...");
 
   try {
     const mergedData = await performFullSync(true, false);
@@ -489,10 +490,10 @@ export const initSync = async () => {
       window.dispatchEvent(
         new CustomEvent("syncDataLoaded", { detail: mergedData }),
       );
-      showSyncTooltip("동기화 완료!", "success");
-      hideSyncTooltip(1500);
+      // showSyncTooltip("동기화 완료!", "success");
+      // hideSyncTooltip(1500);
     } else {
-      hideSyncTooltip(0);
+      // hideSyncTooltip(0);
     }
     setupRealtimeSync();
   } catch (error) {

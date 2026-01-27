@@ -265,6 +265,20 @@ export const primaryDb = {
     },
 
     /**
+     * Gets all keys from the primary store.
+     * @returns {Promise<string[]>} All keys.
+     */
+    getAllKeys: async () => {
+        try {
+            // @ts-ignore
+            return await dexieDb[PRIMARY_STORE].toCollection().primaryKeys();
+        } catch (error) {
+            console.error("[PrimaryDB] GetAllKeys failed:", error);
+            return [];
+        }
+    },
+
+    /**
      * Deletes a value from the primary store.
      * @param {string} key - The data key.
      * @returns {Promise<{success: boolean, error?: string}>}

@@ -1149,10 +1149,12 @@ async function handleChatSubmit() {
       logger.log("WebLLM", `RAG 검색: "${message}" -> 관련 아이템 없음`);
     }
 
+    const { primaryDb } = await import("./storage/db.js");
+    const thinkingEnabled = await primaryDb.get(STORAGE_KEYS.THINKING_ENABLED);
+
     await sendChatMessage(message, {
       items: contextItems,
-      enableThinking:
-        localStorage.getItem(STORAGE_KEYS.THINKING_ENABLED) === "true",
+      enableThinking: thinkingEnabled === "true",
       onStream: ({ content }) => {
         if (assistantEl) {
           assistantEl.innerHTML = formatChatMessage(content || "생각 중...");
@@ -1191,7 +1193,7 @@ async function handleChatSubmit() {
  *   persists the selected model, updates UI status, displays a system message, and
  *   triggers model precaching with progress and completion callbacks.
  */
-function setupEventListeners() {
+async function setupEventListeners() {
   const sendBtn = document.querySelector(".web-llm-send-btn");
   if (sendBtn) {
     sendBtn.addEventListener("click", handleChatSubmit);
@@ -1220,12 +1222,14 @@ function setupEventListeners() {
       (p) => `<option value="${p.id}">${p.label}</option>`,
     ).join("");
 
-    modelSelect.value = getStoredModelId();
+    modelSelect.value = await getStoredModelId();
 
-    modelSelect.addEventListener("change", (e) => {
+    modelSelect.addEventListener("change", async (e) => {
       const newModelId = e.target.value;
       const preset = MODEL_PRESETS.find((p) => p.id === newModelId);
-      localStorage.setItem(STORAGE_KEYS.MODEL_ID, newModelId);
+
+      const { primaryDb } = await import("./storage/db.js");
+      primaryDb.set(STORAGE_KEYS.MODEL_ID, newModelId).catch(console.warn);
 
       renderChatMessage(
         "system",
@@ -1253,7 +1257,7 @@ export async function initWebLLM() {
 
     logger.log("WebLLM", "WebLLM 초기화 시작");
 
-    setupEventListeners();
+    await setupEventListeners();
 
     subscribe("mapData", () => {
       initializeIdMaps();

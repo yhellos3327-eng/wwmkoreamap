@@ -45,7 +45,7 @@ const applyCloudSettings = (settings) => {
 
     if (["on", "off", "auto"].includes(gpuSetting)) {
       state.savedGpuSetting = gpuSetting;
-      localStorage.setItem("wwm_gpu_setting", gpuSetting);
+      primaryDb.set("wwm_gpu_setting", gpuSetting).catch(console.warn);
     }
   }
 };
@@ -82,9 +82,13 @@ export const applySyncData = (cloudData) => {
     setState("favorites", cloudData.favorites);
 
     // Save to Vault (primary database) - ALWAYS for all users
-    primaryDb.set("favorites", cloudData.favorites).then(() => {
-      log.vault(`favorites 저장`, cloudData.favorites.length);
-    }).catch(console.warn);
+    primaryDb.set("favorites", cloudData.favorites)
+      .then(() => {
+        log.vault(`favorites 저장`, cloudData.favorites.length);
+      })
+      .catch((error) => {
+        log.error("favorites 저장 실패", error);
+      });
 
 
   }

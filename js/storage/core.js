@@ -9,7 +9,11 @@
 
 /**
  * Core localStorage operations with error handling.
+ * @deprecated This module is deprecated. Use Vault (IndexedDB) via storage/db.js instead.
+ * Only use this for legacy migration or temporary storage of non-critical data.
  */
+console.warn("[Storage:core] This module is deprecated. Use Vault (IndexedDB) instead.");
+
 export const core = {
   /**
    * Gets a value from localStorage.

@@ -318,10 +318,10 @@ const executeShortcutAction = async (actionId) => {
       break;
 
     case "toggleTheme":
+      const { applyTheme } = await import("../theme.js");
       const currentTheme = document.documentElement.getAttribute("data-theme");
       const newTheme = currentTheme === "light" ? "dark" : "light";
-      document.documentElement.setAttribute("data-theme", newTheme);
-      localStorage.setItem("theme", newTheme);
+      applyTheme(newTheme);
       break;
 
     case "focusMap":

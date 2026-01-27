@@ -1,4 +1,9 @@
 // @ts-check
+/**
+ * @deprecated This module is deprecated. Use Vault (IndexedDB) via storage/db.js instead.
+ */
+console.warn("[Storage:index] This module is deprecated. Use Vault (IndexedDB) instead.");
+
 import { core, encoded, transaction } from "./core.js";
 import {
   SCHEMA,

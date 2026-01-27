@@ -51,9 +51,10 @@ export const getCurrentUser = () => {
  */
 const checkAuthStatus = async () => {
   if (isLocalDev()) {
-    const testData = localStorage.getItem("wwm_test_user");
+    const { primaryDb } = await import("./storage/db.js");
+    const testData = await primaryDb.get("wwm_test_user");
     if (testData) {
-      currentUser = JSON.parse(testData);
+      currentUser = testData;
     }
     return;
   }
@@ -86,7 +87,7 @@ const checkAuthStatus = async () => {
  * Initiates login with a specific provider.
  * @param {string} provider - The auth provider ('google', 'kakao', etc.)
  */
-export const loginWithProvider = (provider) => {
+export const loginWithProvider = async (provider) => {
   if (isLocalDev()) {
     console.warn(
       "OAuth login is not available in local development. Use test login instead.",
@@ -97,7 +98,8 @@ export const loginWithProvider = (provider) => {
     return;
   }
 
-  localStorage.setItem("wwm_auth_return_url", window.location.href);
+  const { primaryDb } = await import("./storage/db.js");
+  await primaryDb.set("wwm_auth_return_url", window.location.href);
   window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
@@ -118,7 +120,8 @@ export const testLogin = async () => {
     provider: "test",
   };
 
-  localStorage.setItem("wwm_test_user", JSON.stringify(testUser));
+  const { primaryDb } = await import("./storage/db.js");
+  await primaryDb.set("wwm_test_user", testUser);
   currentUser = testUser;
 
   console.log("Test login successful:", testUser);
@@ -135,7 +138,8 @@ export const logout = async () => {
   cleanupRealtimeSync();
 
   if (isLocalDev()) {
-    localStorage.removeItem("wwm_test_user");
+    const { primaryDb } = await import("./storage/db.js");
+    await primaryDb.delete("wwm_test_user");
     currentUser = null;
     updateAuthUI();
     return;

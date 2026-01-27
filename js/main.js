@@ -110,6 +110,10 @@ const loadOptionalModules = () => {
 
   import("./comments.js");
 
+  import("./votes.js").then(({ initVotes }) => {
+    initVotes();
+  });
+
   loadDevToolsIfNeeded();
 };
 

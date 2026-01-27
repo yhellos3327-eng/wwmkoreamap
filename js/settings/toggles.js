@@ -4,7 +4,7 @@ import { state, setState } from "../state.js";
 import { triggerSync, updateSettingWithTimestamp } from "../sync.js";
 import { renderMapDataAndMarkers } from "../map.js";
 
-export const initAdToggle = () => {
+export const initAdToggle = async () => {
   const adContainer = /** @type {HTMLElement} */ (
     document.querySelector(".ad-container")
   );
@@ -14,14 +14,15 @@ export const initAdToggle = () => {
 
   if (!adContainer || !toggleAd) return;
 
-  const storedAd = localStorage.getItem("wwm_show_ad");
+  const { primaryDb } = await import("../storage/db.js");
+  const storedAd = await primaryDb.get("wwm_show_ad");
   const showAd = storedAd === null ? true : storedAd === "true";
   toggleAd.checked = showAd;
   adContainer.style.display = showAd ? "block" : "none";
 
   toggleAd.addEventListener("change", (e) => {
     const isChecked = /** @type {HTMLInputElement} */ (e.target).checked;
-    localStorage.setItem("wwm_show_ad", String(isChecked));
+    primaryDb.set("wwm_show_ad", String(isChecked)).catch(console.warn);
     adContainer.style.display = isChecked ? "block" : "none";
     triggerSync();
   });
@@ -257,9 +258,10 @@ export const initToggles = () => {
   }
 
   return {
-    loadValues: () => {
+    loadValues: async () => {
       if (adToggleInput) {
-        const storedAd = localStorage.getItem("wwm_show_ad");
+        const { primaryDb } = await import("../storage/db.js");
+        const storedAd = await primaryDb.get("wwm_show_ad");
         /** @type {HTMLInputElement} */ (adToggleInput).checked =
           storedAd === null ? true : storedAd === "true";
       }
@@ -290,9 +292,11 @@ export const saveToggleSettings = () => {
   const adToggleInput = document.getElementById("toggle-ad");
 
   if (adToggleInput) {
-    localStorage.setItem(
-      "wwm_show_ad",
-      String(/** @type {HTMLInputElement} */(adToggleInput).checked),
-    );
+    import("../storage/db.js").then(({ primaryDb }) => {
+      primaryDb.set(
+        "wwm_show_ad",
+        String(/** @type {HTMLInputElement} */(adToggleInput).checked),
+      ).catch(console.warn);
+    });
   }
 };

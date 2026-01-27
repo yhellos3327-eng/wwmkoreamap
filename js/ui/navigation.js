@@ -192,7 +192,7 @@ export const toggleFavorite = (id) => {
 
   // Log toggle action
   if (isNowFavorite) {
-    log.data("favorite", `즐겨찾기 추가: ${strId}`, state.favorites.length);
+    log.success(`즐겨찾기 추가: ${strId}`, state.favorites.length);
   } else {
     log.warn(`즐겨찾기 삭제: ${strId}`, { before: state.favorites.length });
   }

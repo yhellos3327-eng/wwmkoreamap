@@ -232,7 +232,7 @@ const createPreMigrationBackup = async (data) => {
     try {
         // Save to vault backup store
         const backupData = {};
-        const keys = getCurrentSnapshotKeys();
+        const keys = await getCurrentSnapshotKeys();
 
         for (const key of keys) {
             const value = localStorage.getItem(key);
@@ -335,9 +335,9 @@ export const migrateToVault = async () => {
             return { success: true, migrated: false, source: "none" };
         }
 
-        if (vaultHasData && vaultDataCount >= localDataCount) {
-            // Vault already has more or equal data, use vault
-            log.vault("Vault has sufficient data, skipping localStorage migration");
+        if (vaultHasData && !localHasData) {
+            // Vault has data but local doesn't, nothing to migrate
+            log.vault("No localStorage data to migrate");
             setMigrationVersion(CURRENT_MIGRATION_VERSION);
             return {
                 success: true,
@@ -481,22 +481,8 @@ export const migrateToVault = async () => {
  * @param {any[]} favorites - The favorites list.
  */
 export const syncToLocalStorage = (completedList, favorites) => {
-    // Skip for migrated users - Vault is the single source of truth
-    if (isMigrated()) {
-        log.info("syncToLocalStorage skipped - user is migrated");
-        return;
-    }
-
-    try {
-        if (Array.isArray(completedList)) {
-            localStorage.setItem("wwm_completed", JSON.stringify(completedList));
-        }
-        if (Array.isArray(favorites)) {
-            localStorage.setItem("wwm_favorites", JSON.stringify(favorites));
-        }
-    } catch (e) {
-        log.warn("Failed to sync to localStorage", e);
-    }
+    // Disabled: Vault is the single source of truth
+    return;
 };
 
 /**

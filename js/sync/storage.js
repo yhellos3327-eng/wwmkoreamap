@@ -46,7 +46,13 @@ export const getLocalData = () => {
   // DEXIE.JS MIGRATION: This synchronous function now returns state data
   // which is already loaded from Vault via initStateFromVault()
   try {
-    const { state } = require("../state.js");
+    // Use global state if available (set in state.js/debug.js)
+    const state = /** @type {any} */ (window).state;
+    if (!state) {
+      log.warn("Global state not ready, returning empty data");
+      return { completedMarkers: [], favorites: [], settings: {} };
+    }
+
     return {
       completedMarkers: state.completedList || [],
       favorites: state.favorites || [],

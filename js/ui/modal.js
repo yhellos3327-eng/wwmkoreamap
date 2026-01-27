@@ -53,7 +53,7 @@ export const renderModalList = (items) => {
       '<li style="padding:15px; text-align:center; color:#666;">결과가 없습니다.</li>';
     return;
   }
-  const currComp = state.completedList || [];
+  const currComp = Array.isArray(state.completedList) ? state.completedList : [];
   items.forEach((m) => {
     const displayRegion = t(m.forceRegion || m.region);
     let displayName = String(t(m.originalName || m.name));

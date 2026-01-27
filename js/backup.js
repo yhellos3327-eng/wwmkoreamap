@@ -22,7 +22,7 @@ export const saveBackup = async () => {
     const settings = {};
 
     // Collect all settings keys
-    const allKeys = await primaryDb.keys();
+    const allKeys = Object.keys(await primaryDb.getAll());
     for (const key of allKeys) {
       if (key !== "completedList" && key !== "favorites" && !key.startsWith("backup_")) {
         settings[key] = await primaryDb.get(key);
@@ -137,11 +137,11 @@ export const loadBackup = (file) => {
             await primaryDb.set(key, value);
           }
 
-          // Clear legacy localStorage to avoid confusion
-          localStorage.clear();
+          // Clear legacy localStorage to avoid confusion - SKIPPED for safety
+          // localStorage.clear();
 
           // Restore auth return url if needed (optional)
-          // localStorage.setItem("wwm_backup_restored", Date.now().toString()); // No longer needed in localStorage
+          //await primaryDb.set("wwm_backup_restored", Date.now().toString());
 
           await showResultAlert(
             "success",
