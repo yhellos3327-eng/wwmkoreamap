@@ -116,7 +116,9 @@ export const fetchVoteCounts = async (itemId) => {
 
     updateVoteUI(itemId, counts);
     return counts;
-  } catch (error) { }
+  } catch (error) {
+    console.warn(`Failed to fetch vote counts for item ${itemId}:`, error);
+  }
   return getVoteCounts(itemId);
 };
 

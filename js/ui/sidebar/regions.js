@@ -109,7 +109,12 @@ const renderRegionItem = (region) => {
         if (state.completedList.length !== initialLength) {
           try {
             const { primaryDb } = await import("../../storage/db.js");
-            await primaryDb.set("completedList", state.completedList);
+            const result = await primaryDb.set("completedList", state.completedList);
+            if (!result || !result.success) {
+              console.error("Failed to save completedList:", result?.error);
+              alert("진행 상황 저장 중 오류가 발생했습니다.");
+              return;
+            }
             triggerSync();
           } catch (error) {
             console.error("Failed to reset region progress:", error);

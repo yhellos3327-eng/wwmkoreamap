@@ -30,7 +30,7 @@ const log = createLogger("Main");
  * @returns {void}
  */
 const setupLoadingSubscription = () => {
-  subscribe("loadingState", (loadingState) => {
+  subscribe("loadingState", async (loadingState) => {
     const loadingScreen = document.getElementById("loading-screen");
     const loadingBar = document.getElementById("loading-bar");
     const loadingText = document.getElementById("loading-text");
@@ -38,7 +38,7 @@ const setupLoadingSubscription = () => {
 
     if (!loadingState.isVisible) {
       if (loadingScreen) loadingScreen.classList.add("hidden");
-      initMainNotice();
+      await initMainNotice();
       return;
     }
 
@@ -141,6 +141,8 @@ import { autoRestoreIfEmpty, saveToVault } from "./storage/vault.js";
 const initVaultAndMigration = async () => {
   log.migration("Vault Migration 시작", new Date().toISOString());
 
+  let stateInitialized = false;
+
   try {
     // Step 1: localStorage -> Vault 마이그레이션 (기존 사용자)
     const { migrateToVault, getMigrationStatus } = await import("./storage/migration.js");
@@ -173,6 +175,7 @@ const initVaultAndMigration = async () => {
     // 이제 state.js는 빈 배열로 시작하므로, 반드시 Vault에서 로드해야 함
     log.info("Vault에서 state 초기화 중...");
     const stateResult = await initStateFromVault();
+    stateInitialized = true;
     log.success("State 초기화 완료", {
       completed: stateResult.completedList.length,
       favorites: stateResult.favorites.length
@@ -181,11 +184,14 @@ const initVaultAndMigration = async () => {
   } catch (e) {
     log.error("Vault 마이그레이션 실패", e);
 
-    // 실패 시에도 state 초기화 시도
-    try {
-      await initStateFromVault();
-    } catch (initError) {
-      log.error("State 초기화도 실패", initError);
+    // 실패 시에도 state 초기화 시도 (아직 초기화되지 않은 경우에만)
+    if (!stateInitialized) {
+      try {
+        await initStateFromVault();
+        stateInitialized = true;
+      } catch (initError) {
+        log.error("State 초기화도 실패", initError);
+      }
     }
   }
 

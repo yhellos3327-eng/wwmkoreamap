@@ -7,18 +7,30 @@ export const THEME_KEY = "wwm_theme";
  * Initializes the theme system.
  */
 export const initTheme = async () => {
-  const { primaryDb } = await import("./storage/db.js");
-  const savedTheme = (await primaryDb.get(THEME_KEY)) || "system";
-  applyTheme(savedTheme);
+  try {
+    const { primaryDb } = await import("./storage/db.js");
+    const savedTheme = (await primaryDb.get(THEME_KEY)) || "system";
+    applyTheme(savedTheme);
 
-  window
-    .matchMedia("(prefers-color-scheme: dark)")
-    .addEventListener("change", async (e) => {
-      const current = await primaryDb.get(THEME_KEY);
-      if (current === "system") {
-        applyTheme("system");
-      }
-    });
+    // Use sync callback with .then/.catch to avoid unhandled async callback
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", (e) => {
+        primaryDb.get(THEME_KEY)
+          .then((current) => {
+            if (current === "system") {
+              applyTheme("system");
+            }
+          })
+          .catch((err) => {
+            console.warn("Failed to check theme on system change:", err);
+          });
+      });
+  } catch (e) {
+    console.error("Failed to initialize theme:", e);
+    // Fallback to system theme
+    applyTheme("system");
+  }
 };
 
 /**
@@ -49,6 +61,8 @@ export const applyTheme = (theme) => {
     } catch (e) {
       console.error("Error saving theme", e);
     }
+  }).catch((importErr) => {
+    console.error(`Failed to import storage for saving theme (${theme}):`, importErr);
   });
 
   if (/** @type {any} */ (window).setState) {

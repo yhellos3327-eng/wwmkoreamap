@@ -354,7 +354,12 @@ export const deleteRoute = async (routeId) => {
   const { primaryDb } = await import("../storage/db.js");
   let savedRoutes = (await primaryDb.get("wwm_saved_routes")) || [];
   savedRoutes = savedRoutes.filter((r) => r.id !== routeId);
-  await primaryDb.set("wwm_saved_routes", savedRoutes);
+  const result = await primaryDb.set("wwm_saved_routes", savedRoutes);
+  if (!result || !result.success) {
+    logger.error("RouteMode", `Failed to delete route: ${result?.error || "Unknown error"}`);
+    return false;
+  }
+  logger.success("RouteMode", `Route deleted: ${routeId}`);
   return true;
 };
 

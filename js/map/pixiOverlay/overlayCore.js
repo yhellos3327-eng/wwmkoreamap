@@ -132,6 +132,11 @@ export const initPixiOverlay = async () => {
         const isSpiderfyActive =
           spiderfiedClusterId !== null && spiderfyContainerRef !== null;
 
+        // Build Set of completed IDs for O(1) lookups (performance optimization)
+        const completedIdSet = new Set(
+          state.completedList.map((c) => String(c.id))
+        );
+
         clusters.forEach((cluster) => {
           if (isSpiderfyActive && cluster.id === spiderfiedClusterId) {
             return;
@@ -148,14 +153,12 @@ export const initPixiOverlay = async () => {
             const allLeaves = supercluster.getLeaves(clusterId, Infinity);
             const firstItem = allLeaves[0]?.properties?.item;
 
-            // Check if ALL items in cluster are completed
+            // Check if ALL items in cluster are completed using O(1) Set lookup
             let allCompleted = allLeaves.length > 0;
             for (const leaf of allLeaves) {
               const item = leaf.properties?.item;
               if (item) {
-                const isCompleted = state.completedList.some(
-                  (c) => String(c.id) === String(item.id)
-                );
+                const isCompleted = completedIdSet.has(String(item.id));
                 if (!isCompleted) {
                   allCompleted = false;
                   break;

@@ -178,7 +178,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "enableWebLLM",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update enableWebLLM setting:", err));
     });
   }
 
@@ -193,7 +193,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "enableClustering",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update enableClustering setting:", err));
       renderMapDataAndMarkers();
     });
   }
@@ -207,7 +207,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "hideCompleted",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update hideCompleted setting:", err));
       renderMapDataAndMarkers();
     });
   }
@@ -223,7 +223,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "showComments",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update showComments setting:", err));
     });
   }
 
@@ -238,7 +238,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "closeOnComplete",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update closeOnComplete setting:", err));
     });
   }
 
@@ -253,7 +253,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "disableRegionClickPan",
         /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      ).catch((err) => console.warn("Failed to update disableRegionClickPan setting:", err));
     });
   }
 

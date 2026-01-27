@@ -11,13 +11,21 @@ export const saveFilterState = () => {
   const activeCats = [...state.activeCategoryIds];
   const activeRegs = [...state.activeRegionNames];
 
-  // Save to Vault
-  import("../storage/db.js").then(({ primaryDb }) => {
-    primaryDb.setMultiple([
-      { key: `activeCats_${state.currentMapKey}`, value: activeCats },
-      { key: `activeRegs_${state.currentMapKey}`, value: activeRegs }
-    ]).catch(console.warn);
-  });
+  // Save to Vault with proper error handling
+  (async () => {
+    try {
+      const { primaryDb } = await import("../storage/db.js");
+      const result = await primaryDb.setMultiple([
+        { key: `activeCats_${state.currentMapKey}`, value: activeCats },
+        { key: `activeRegs_${state.currentMapKey}`, value: activeRegs }
+      ]);
+      if (!result || !result.success) {
+        console.warn("Failed to save filter state:", result?.error);
+      }
+    } catch (error) {
+      console.warn("Failed to save filter state:", error);
+    }
+  })();
 };
 
 /**

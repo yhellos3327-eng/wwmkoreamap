@@ -110,6 +110,8 @@ export const saveAISettings = () => {
           setState("savedDeepLKey", newKey);
           encoded.set("wwm_deepl_key", newKey);
         }
+      }).catch((err) => {
+        console.error(`Failed to save API key for provider (${provider}):`, err);
       });
     }
   } else if (apiKeyInput) {
@@ -118,6 +120,8 @@ export const saveAISettings = () => {
     import("../storage/db.js").then(async () => {
       const { encoded } = await import("../storage/core.js");
       encoded.set("wwm_api_key", newKey);
+    }).catch((err) => {
+      console.error("Failed to save API key:", err);
     });
   }
 

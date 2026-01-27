@@ -165,17 +165,19 @@ const initialState = {
     return checkWebGL();
   },
   set gpuRenderMode(value) {
-    this.savedGpuSetting = value ? "on" : "off";
-    import("./storage/db.js").then(async ({ primaryDb }) => {
+    const saved = value ? "on" : "off";
+    this.savedGpuSetting = saved;
+    (async () => {
       try {
-        const result = await primaryDb.set("wwm_gpu_setting", this.savedGpuSetting);
+        const { primaryDb } = await import("./storage/db.js");
+        const result = await primaryDb.set("wwm_gpu_setting", saved);
         if (!result || !result.success) {
           console.error("Failed to save GPU setting", result);
         }
       } catch (e) {
         console.error("Error saving GPU setting", e);
       }
-    });
+    })();
   },
   pixiOverlay: null,
   pixiContainer: null,
@@ -405,6 +407,7 @@ export const initStateFromVault = async () => {
       favorites,
       settings,
       apiKey,
+      geminiKey,
       openaiKey,
       claudeKey,
       deeplKey
@@ -413,6 +416,7 @@ export const initStateFromVault = async () => {
       primaryDb.get("favorites"),
       primaryDb.get("settings"),
       primaryDb.get("wwm_api_key"),
+      primaryDb.get("wwm_gemini_key"),
       primaryDb.get("wwm_openai_key"),
       primaryDb.get("wwm_claude_key"),
       primaryDb.get("wwm_deepl_key")
@@ -421,6 +425,7 @@ export const initStateFromVault = async () => {
     // API Keys are now strictly managed via Vault.
     // Legacy migration is handled by migration.js if needed.
     const finalApiKey = apiKey || "";
+    const finalGeminiKey = geminiKey || "";
     const finalOpenaiKey = openaiKey || "";
     const finalClaudeKey = claudeKey || "";
     const finalDeeplKey = deeplKey || "";
@@ -439,7 +444,7 @@ export const initStateFromVault = async () => {
       favorites: favorites || [],
       isStateInitialized: true,
       savedApiKey: finalApiKey || "",
-      savedGeminiKey: finalApiKey || "",
+      savedGeminiKey: finalGeminiKey || "",
       savedOpenAIKey: finalOpenaiKey || "",
       savedClaudeKey: finalClaudeKey || "",
       savedDeepLKey: finalDeeplKey || "",

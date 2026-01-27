@@ -152,7 +152,7 @@ const findActionForKey = (key, ctrl, shift, alt) => {
   return null;
 };
 
-const assignActionToKey = (actionId, key, ctrl, shift, alt) => {
+const assignActionToKey = async (actionId, key, ctrl, shift, alt) => {
   const existingAction = findActionForKey(key, ctrl, shift, alt);
   if (existingAction && existingAction !== actionId) {
     delete activeShortcuts[existingAction];
@@ -169,14 +169,14 @@ const assignActionToKey = (actionId, key, ctrl, shift, alt) => {
     };
   }
 
-  saveShortcuts();
+  await saveShortcuts();
   updateKeyboardDisplay();
   renderShortcutSettings();
 };
 
-export const resetShortcuts = () => {
+export const resetShortcuts = async () => {
   activeShortcuts = { ...DEFAULT_SHORTCUTS };
-  saveShortcuts();
+  await saveShortcuts();
   updateKeyboardDisplay();
   renderShortcutSettings();
 };
@@ -605,9 +605,9 @@ export const renderShortcutSettings = () => {
   }
 };
 
-export const setShortcutsEnabled = (enabled) => {
+export const setShortcutsEnabled = async (enabled) => {
   shortcutsEnabled = enabled;
-  saveShortcuts();
+  await saveShortcuts();
 };
 
 export const initShortcuts = async () => {

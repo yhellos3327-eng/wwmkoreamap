@@ -241,6 +241,15 @@ const createPreMigrationBackup = async (data) => {
             }
         }
 
+        // Merge provided data object into backupData if valid
+        if (data && typeof data === "object") {
+            for (const [key, value] of Object.entries(data)) {
+                if (value != null) {
+                    backupData[key] = value;
+                }
+            }
+        }
+
         if (Object.keys(backupData).length > 0) {
             const id = await db.add(backupData, "pre_migration");
             log.vault(`Pre-migration backup created`, `#${id}`);

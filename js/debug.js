@@ -89,7 +89,7 @@ export const initDevModeSubscription = () => {
 export const loadDevToolsIfNeeded = async () => {
   const { primaryDb } = await import("./storage/db.js");
   const devMode = await primaryDb.get("wwm_dev_mode");
-  if (state.isDevMode || devMode === "true") {
+  if (state.isDevMode || devMode === true || devMode === "true") {
     import("./dev-tools.js");
   }
 };
