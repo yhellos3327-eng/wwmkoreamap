@@ -166,16 +166,21 @@ const initialState = {
   },
   set gpuRenderMode(value) {
     const saved = value ? "on" : "off";
+    const previousValue = this.savedGpuSetting;
     this.savedGpuSetting = saved;
     (async () => {
       try {
         const { primaryDb } = await import("./storage/db.js");
         const result = await primaryDb.set("wwm_gpu_setting", saved);
         if (!result || !result.success) {
-          console.error("Failed to save GPU setting", result);
+          // Rollback on failure
+          this.savedGpuSetting = previousValue;
+          console.error("Failed to save GPU setting, rolled back:", result);
         }
       } catch (e) {
-        console.error("Error saving GPU setting", e);
+        // Rollback on error
+        this.savedGpuSetting = previousValue;
+        console.error("Error saving GPU setting, rolled back:", e);
       }
     })();
   },
@@ -432,8 +437,21 @@ export const initStateFromVault = async () => {
 
     // Migrate old format (array of ids) to new format (array of objects)
     let finalCompletedList = completedList || [];
-    if (finalCompletedList.length > 0 && typeof finalCompletedList[0] !== "object") {
-      finalCompletedList = finalCompletedList.map((id) => ({ id, completedAt: null }));
+
+    // Check if any items need migration (primitive ids instead of objects)
+    const needsMigration = finalCompletedList.some((item) =>
+      item !== null && typeof item !== "object"
+    );
+
+    if (needsMigration) {
+      finalCompletedList = finalCompletedList.map((item) => {
+        // Already an object, keep as-is
+        if (item !== null && typeof item === "object") {
+          return item;
+        }
+        // Primitive id, convert to object format
+        return { id: item, completedAt: null };
+      });
       // Save migrated format back to Vault
       await primaryDb.set("completedList", finalCompletedList);
       log.info("Migrated completedList to new format");
@@ -469,6 +487,9 @@ export const initStateFromVault = async () => {
 
     // Batch update state
     store.setState(stateUpdates);
+
+    // Expose state to window for sync/storage modules
+    /** @type {any} */ (window).state = store.getState();
 
     log.success("State initialized from Vault", {
       completed: stateUpdates.completedList.length,

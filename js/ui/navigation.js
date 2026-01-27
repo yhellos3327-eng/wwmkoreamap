@@ -48,7 +48,8 @@ const queueVaultWrite = async (key, value, label) => {
       throw e;
     }
   }).catch(e => {
-    log.error(`${label} write queue error`, e);
+    // Re-throw without duplicate logging (inner catch already logged)
+    throw e;
   });
 
   vaultWriteQueues.set(key, writePromise);

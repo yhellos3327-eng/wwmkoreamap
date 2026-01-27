@@ -5,6 +5,7 @@
  */
 
 import { primaryDb } from "../storage/db.js";
+import { store } from "../state.js";
 import { createLogger } from "../utils/logStyles.js";
 
 const log = createLogger("Storage");
@@ -46,10 +47,10 @@ export const getLocalData = () => {
   // DEXIE.JS MIGRATION: This synchronous function now returns state data
   // which is already loaded from Vault via initStateFromVault()
   try {
-    // Use global state if available (set in state.js/debug.js)
-    const state = /** @type {any} */ (window).state;
-    if (!state) {
-      log.warn("Global state not ready, returning empty data");
+    // Use store state directly
+    const state = store.getState();
+    if (!state || !state.isStateInitialized) {
+      log.warn("State not yet initialized from Vault, returning empty data");
       return { completedMarkers: [], favorites: [], settings: {} };
     }
 
@@ -83,6 +84,7 @@ const getSettingsFromState = (state) => {
     menuPosition: state.savedMenuPosition,
     useChromeTranslator: state.useChromeTranslator,
     disableRegionClickPan: state.disableRegionClickPan,
+    enableWebLLM: state.enableWebLLM ?? false,
   };
 };
 

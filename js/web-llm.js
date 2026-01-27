@@ -1357,4 +1357,3 @@ export default {
   setThinkingEnabled,
   isThinkingEnabled,
 };
-};

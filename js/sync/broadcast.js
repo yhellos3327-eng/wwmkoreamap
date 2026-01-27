@@ -3,6 +3,9 @@
 /** @type {string} */
 const CHANNEL_NAME = "wwm-sync-channel";
 
+/** @type {string} */
+const tabId = Math.random().toString(36).substring(2, 15);
+
 /** @type {BroadcastChannel|null} */
 let broadcastChannel = null;
 
@@ -17,6 +20,9 @@ export const initBroadcastChannel = (onDataReceived) => {
   broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
 
   broadcastChannel.onmessage = (event) => {
+    // Ignore messages from this same tab
+    if (event.data?.senderId === tabId) return;
+
     if (event.data?.type === "SYNC_UPDATE") {
       onDataReceived?.(event.data.payload);
     }
@@ -34,6 +40,7 @@ export const broadcastSyncUpdate = (data) => {
   broadcastChannel.postMessage({
     type: "SYNC_UPDATE",
     payload: data,
+    senderId: tabId,
     timestamp: Date.now(),
   });
 };

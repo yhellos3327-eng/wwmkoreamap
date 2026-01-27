@@ -86,29 +86,6 @@ export const restoreFromVault = async (id) => {
 };
 
 /**
- * Checks if a localStorage value represents actual data (not empty).
- * SAFETY FIX: Properly detects empty arrays "[]" as having no data.
- * @param {string|null} value - The localStorage value.
- * @returns {boolean} Whether the value has actual data.
- */
-const hasActualData = (value) => {
-    if (!value) return false;
-    try {
-        const parsed = JSON.parse(value);
-        if (Array.isArray(parsed)) {
-            return parsed.length > 0;
-        }
-        if (typeof parsed === "object" && parsed !== null) {
-            return Object.keys(parsed).length > 0;
-        }
-        return true;
-    } catch {
-        // If not valid JSON, consider it as having data (raw string)
-        return value.length > 0;
-    }
-};
-
-/**
  * Automatically restores the latest backup if localStorage is empty/corrupt.
  * SAFETY FIX: Properly detects empty arrays and checks Vault first.
  * @returns {Promise<{success: boolean, restored?: boolean, reason?: string, error?: string, source?: string}>}
