@@ -66,7 +66,7 @@ export const updateApiKeyInput = (provider) => {
   apiKeyInput.placeholder = placeholder;
 };
 
-export const saveAISettings = () => {
+export const saveAISettings = async () => {
   const apiProviderSelect = /** @type {HTMLSelectElement} */ (
     document.getElementById("api-provider-select")
   );
@@ -81,20 +81,20 @@ export const saveAISettings = () => {
     const provider = apiProviderSelect.value;
     setState("savedAIProvider", provider);
 
-    import("../sync.js")
-      .then(({ updateSettingWithTimestamp }) => {
-        updateSettingWithTimestamp("aiProvider", provider);
-      })
-      .catch((err) => {
-        console.error(
-          `Failed to update AI provider setting (${provider}):`,
-          err,
-        );
-      });
+    try {
+      const { updateSettingWithTimestamp } = await import("../sync.js");
+      await updateSettingWithTimestamp("aiProvider", provider);
+    } catch (err) {
+      console.error(
+        `Failed to update AI provider setting (${provider}):`,
+        err,
+      );
+    }
 
     if (apiKeyInput) {
       const newKey = apiKeyInput.value.trim();
-      import("../storage/db.js").then(async ({ primaryDb }) => {
+      try {
+        const { primaryDb } = await import("../storage/db.js");
         if (provider === "gemini") {
           setState("savedGeminiKey", newKey);
           setState("savedApiKey", newKey);
@@ -110,31 +110,31 @@ export const saveAISettings = () => {
           setState("savedDeepLKey", newKey);
           await primaryDb.set("wwm_deepl_key", newKey);
         }
-      }).catch((err) => {
+      } catch (err) {
         console.error(`Failed to save API key for provider (${provider}):`, err);
-      });
+      }
     }
   } else if (apiKeyInput) {
     const newKey = apiKeyInput.value.trim();
     setState("savedApiKey", newKey);
-    import("../storage/db.js").then(async ({ primaryDb }) => {
+    try {
+      const { primaryDb } = await import("../storage/db.js");
       await primaryDb.set("wwm_api_key", newKey);
-    }).catch((err) => {
+    } catch (err) {
       console.error("Failed to save API key:", err);
-    });
+    }
   }
 
   if (apiModelSelect) {
     const newModel = apiModelSelect.value;
     setState("savedApiModel", newModel);
 
-    import("../sync.js")
-      .then(({ updateSettingWithTimestamp }) => {
-        updateSettingWithTimestamp("apiModel", newModel);
-      })
-      .catch((err) => {
-        console.error(`Failed to update API model setting (${newModel}):`, err);
-      });
+    try {
+      const { updateSettingWithTimestamp } = await import("../sync.js");
+      await updateSettingWithTimestamp("apiModel", newModel);
+    } catch (err) {
+      console.error(`Failed to update API model setting (${newModel}):`, err);
+    }
   }
 };
 

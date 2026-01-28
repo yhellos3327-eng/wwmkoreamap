@@ -25,11 +25,11 @@ import {
 import { initCloudBackupSection, loadCloudBackups } from "./backup.js";
 import { initShortcuts } from "./shortcuts.js";
 
-export const saveSettings = (settingsModal) => {
+export const saveSettings = async (settingsModal) => {
   try {
-    saveAISettings();
-    saveAppearanceSettings();
-    saveToggleSettings();
+    await saveAISettings();
+    await saveAppearanceSettings();
+    await saveToggleSettings();
 
     triggerSync();
 

@@ -102,12 +102,12 @@ export const saveAppearanceSettings = async () => {
   if (regionColorInput) {
     const newColor = /** @type {HTMLInputElement} */ (regionColorInput).value;
     setState("savedRegionColor", newColor);
-    updateSettingWithTimestamp("regionColor", newColor);
+    await updateSettingWithTimestamp("regionColor", newColor);
   }
   if (regionFillColorInput) {
     const newFillColor = /** @type {HTMLInputElement} */ (regionFillColorInput)
       .value;
     setState("savedRegionFillColor", newFillColor);
-    updateSettingWithTimestamp("regionFillColor", newFillColor);
+    await updateSettingWithTimestamp("regionFillColor", newFillColor);
   }
 };
