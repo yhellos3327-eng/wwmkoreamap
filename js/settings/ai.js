@@ -95,20 +95,20 @@ export const saveAISettings = () => {
     if (apiKeyInput) {
       const newKey = apiKeyInput.value.trim();
       import("../storage/db.js").then(async ({ primaryDb }) => {
-        const { encoded } = await import("../storage/core.js");
         if (provider === "gemini") {
           setState("savedGeminiKey", newKey);
           setState("savedApiKey", newKey);
-          encoded.set("wwm_api_key", newKey);
+          await primaryDb.set("wwm_api_key", newKey);
+          await primaryDb.set("wwm_gemini_key", newKey);
         } else if (provider === "openai") {
           setState("savedOpenAIKey", newKey);
-          encoded.set("wwm_openai_key", newKey);
+          await primaryDb.set("wwm_openai_key", newKey);
         } else if (provider === "claude") {
           setState("savedClaudeKey", newKey);
-          encoded.set("wwm_claude_key", newKey);
+          await primaryDb.set("wwm_claude_key", newKey);
         } else if (provider === "deepl") {
           setState("savedDeepLKey", newKey);
-          encoded.set("wwm_deepl_key", newKey);
+          await primaryDb.set("wwm_deepl_key", newKey);
         }
       }).catch((err) => {
         console.error(`Failed to save API key for provider (${provider}):`, err);
@@ -117,9 +117,8 @@ export const saveAISettings = () => {
   } else if (apiKeyInput) {
     const newKey = apiKeyInput.value.trim();
     setState("savedApiKey", newKey);
-    import("../storage/db.js").then(async () => {
-      const { encoded } = await import("../storage/core.js");
-      encoded.set("wwm_api_key", newKey);
+    import("../storage/db.js").then(async ({ primaryDb }) => {
+      await primaryDb.set("wwm_api_key", newKey);
     }).catch((err) => {
       console.error("Failed to save API key:", err);
     });
