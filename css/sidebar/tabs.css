@@ -18,7 +18,7 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    padding: 6px 0;
+    padding: 8px 0;
     cursor: pointer;
     font-weight: 500;
     font-size: 0.85rem;
@@ -26,6 +26,22 @@
     border-radius: 7px;
     text-align: center;
     position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.tab-btn .icon-mask {
+    width: 18px;
+    height: 18px;
+    background-color: currentColor;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    mask-position: center;
 }
 
 .tab-btn:hover {

@@ -1,0 +1,210 @@
+#region-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+#region-modal.hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+#region-modal .modal-content {
+    width: 600px;
+    max-width: 95vw;
+    max-height: 85vh;
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border-radius: 24px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--glass-shadow);
+    color: var(--text-main);
+    overflow: hidden;
+    position: relative;
+    border: 1px solid var(--border);
+    animation: modal-slide-in 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+#region-modal .modal-header {
+    padding: 20px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.2);
+}
+
+#region-modal .modal-header h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#region-modal .close-modal-btn {
+    background: var(--bg-item);
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    padding: 0;
+}
+
+#region-modal .close-modal-btn:hover {
+    color: var(--text-main);
+    background: var(--bg-item-hover);
+    transform: scale(1.05);
+}
+
+#region-modal .modal-body {
+    padding: 24px;
+    overflow-y: auto;
+    flex: 1;
+}
+
+#region-modal-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 12px;
+}
+
+.region-modal-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+    position: relative;
+}
+
+.region-modal-item:hover {
+    background: var(--bg-item-hover);
+    border-color: var(--border-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.region-modal-item.active {
+    background: var(--accent-bg);
+    border-color: var(--accent);
+}
+
+.region-checkbox {
+    position: relative;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.region-checkbox input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+    position: absolute;
+}
+
+.checkbox-visual {
+    width: 100%;
+    height: 100%;
+    border: 2px solid var(--text-muted);
+    border-radius: 6px;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.region-modal-item:hover .checkbox-visual {
+    border-color: var(--text-main);
+}
+
+.region-modal-item.active .checkbox-visual {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.checkbox-icon {
+    width: 14px;
+    height: 14px;
+    color: white;
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.region-modal-item.active .checkbox-icon {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.region-name {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-main);
+}
+
+#region-modal .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    background: rgba(0, 0, 0, 0.2);
+    gap: 12px;
+}
+
+.modal-btn-group {
+    display: flex;
+    gap: 8px;
+}
+
+.modal-btn {
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg-item);
+    color: var(--text-main);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-btn:hover {
+    background: var(--bg-item-hover);
+    transform: translateY(-1px);
+}
+
+.modal-btn.primary {
+    background: var(--accent);
+    color: #000;
+    border-color: var(--accent);
+}
+
+.modal-btn.primary:hover {
+    background: var(--accent-hover);
+}

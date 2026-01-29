@@ -57,6 +57,39 @@ export const initToggleButtons = () => {
       setAllRegions(!allActive);
     });
   }
+
+  // New global action buttons
+  const btnCompleteCat = document.getElementById("btn-complete-cat");
+  const btnResetCat = document.getElementById("btn-reset-cat");
+  const btnCompleteReg = document.getElementById("btn-complete-reg");
+  const btnResetReg = document.getElementById("btn-reset-reg");
+
+  if (btnCompleteCat) {
+    btnCompleteCat.addEventListener("click", () => {
+      import("./ui/sidebar/categories.js").then((m) =>
+        m.completeAllActiveCategories(),
+      );
+    });
+  }
+  if (btnResetCat) {
+    btnResetCat.addEventListener("click", () => {
+      import("./ui/sidebar/categories.js").then((m) =>
+        m.resetAllActiveCategories(),
+      );
+    });
+  }
+  if (btnCompleteReg) {
+    btnCompleteReg.addEventListener("click", () => {
+      import("./ui/sidebar/regions.js").then((m) =>
+        m.completeAllActiveRegions(),
+      );
+    });
+  }
+  if (btnResetReg) {
+    btnResetReg.addEventListener("click", () => {
+      import("./ui/sidebar/regions.js").then((m) => m.resetAllActiveRegions());
+    });
+  }
 };
 
 /**

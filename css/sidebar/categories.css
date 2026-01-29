@@ -54,7 +54,7 @@
 
 .group-toggle-btn.all-active:hover {
     background: var(--accent-bg);
-    
+
     opacity: 0.8;
 }
 
@@ -211,7 +211,7 @@
 
 .cate-item.active .cate-name {
     color: var(--text-main);
-    
+
 }
 
 .cate-meta {
@@ -260,12 +260,12 @@
 }
 
 .btn-toggle-all {
-    width: 100%;
+    flex: 1;
     background: var(--bg-item);
     border: 1px solid var(--border);
     color: var(--text-main);
     padding: 14px;
-    margin-bottom: 28px;
+    margin-bottom: 0;
     border-radius: 12px;
     cursor: pointer;
     font-weight: 600;

@@ -159,6 +159,58 @@ export const refreshCategoryList = () => {
                 </div>
             `;
 
+      const completeBtn = btn.querySelector(".cate-complete-btn");
+      if (completeBtn) {
+        completeBtn.addEventListener("click", async (e) => {
+          e.stopPropagation();
+          const catName = t(cat.name);
+          if (confirm(`${catName} 카테고리의 모든 항목을 완료 처리하시겠습니까?`)) {
+            const { triggerSync } = await import("../../sync.js");
+            const { updateSinglePixiMarker } = await import("../../map/pixiOverlay/overlayCore.js");
+            const { primaryDb } = await import("../../storage/db.js");
+
+            const catItems = state.itemsByCategory[cat.id] || [];
+            const catMarkerIds = catItems.map(item => String(item.id));
+            const completedAt = Date.now();
+            let changed = false;
+
+            catMarkerIds.forEach(id => {
+              if (!state.completedList.find(c => String(c.id) === id)) {
+                state.completedList.push({ id, completedAt });
+                changed = true;
+              }
+            });
+
+            if (changed) {
+              try {
+                await primaryDb.set("completedList", state.completedList);
+                triggerSync();
+              } catch (error) {
+                console.error("Failed to save completedList:", error);
+                alert("저장 중 오류가 발생했습니다.");
+                return;
+              }
+
+              catMarkerIds.forEach((id) => {
+                const target = state.allMarkers.get(id) || state.allMarkers.get(Number(id));
+                if (target && target.marker) {
+                  if (target.marker._icon) target.marker._icon.classList.add("completed-marker");
+                  if (target.marker.options.icon?.options) {
+                    target.marker.options.icon.options.className += " completed-marker";
+                  }
+                }
+                updateSinglePixiMarker(id);
+              });
+
+              updateMapVisibility();
+              alert(`${catName} 카테고리 완료 처리가 끝났습니다.`);
+            } else {
+              alert("이미 모든 항목이 완료되어 있습니다.");
+            }
+          }
+        });
+      }
+
       btn.addEventListener("mouseenter", () => {
         const nameWrapper = /** @type {HTMLElement} */ (
           btn.querySelector(".cate-name")
@@ -214,4 +266,107 @@ export const refreshCategoryList = () => {
   updateToggleButtonsState();
 
   lazyLoader.observeAll(".lazy-load", categoryListEl);
+};
+
+export const completeAllActiveCategories = async () => {
+  if (state.activeCategoryIds.size === 0) {
+    alert("선택된 카테고리가 없습니다.");
+    return;
+  }
+
+  if (!confirm(`현재 선택된 ${state.activeCategoryIds.size}개 카테고리의 모든 항목을 완료 처리하시겠습니까?`)) return;
+
+  const { triggerSync } = await import("../../sync.js");
+  const { updateSinglePixiMarker } = await import("../../map/pixiOverlay/overlayCore.js");
+  const { primaryDb } = await import("../../storage/db.js");
+
+  const activeCategoryIds = Array.from(state.activeCategoryIds);
+  const targetItems = state.mapData.items.filter(item => activeCategoryIds.includes(item.category));
+
+  const completedAt = Date.now();
+  let changed = false;
+  const changedIds = [];
+
+  targetItems.forEach(item => {
+    const id = String(item.id);
+    if (!state.completedList.find(c => String(c.id) === id)) {
+      state.completedList.push({ id, completedAt });
+      changed = true;
+      changedIds.push(id);
+    }
+  });
+
+  if (changed) {
+    try {
+      await primaryDb.set("completedList", state.completedList);
+      triggerSync();
+    } catch (error) {
+      console.error("Failed to save completedList:", error);
+      alert("저장 중 오류가 발생했습니다.");
+      return;
+    }
+
+    changedIds.forEach((id) => {
+      const target = state.allMarkers.get(id) || state.allMarkers.get(Number(id));
+      if (target && target.marker) {
+        if (target.marker._icon) target.marker._icon.classList.add("completed-marker");
+        if (target.marker.options.icon?.options) {
+          target.marker.options.icon.options.className += " completed-marker";
+        }
+      }
+      updateSinglePixiMarker(id);
+    });
+
+    updateMapVisibility();
+    alert("완료 처리가 끝났습니다.");
+  } else {
+    alert("이미 모든 항목이 완료되어 있습니다.");
+  }
+};
+
+export const resetAllActiveCategories = async () => {
+  if (state.activeCategoryIds.size === 0) {
+    alert("선택된 카테고리가 없습니다.");
+    return;
+  }
+
+  if (!confirm(`현재 선택된 ${state.activeCategoryIds.size}개 카테고리의 완료 기록을 초기화하시겠습니까?`)) return;
+
+  const { triggerSync } = await import("../../sync.js");
+  const { updateSinglePixiMarker } = await import("../../map/pixiOverlay/overlayCore.js");
+  const { primaryDb } = await import("../../storage/db.js");
+
+  const activeCategoryIds = Array.from(state.activeCategoryIds);
+  const targetItems = state.mapData.items.filter(item => activeCategoryIds.includes(item.category));
+  const targetIds = new Set(targetItems.map(i => String(i.id)));
+
+  const initialLength = state.completedList.length;
+  state.completedList = state.completedList.filter(item => !targetIds.has(String(item.id)));
+
+  if (state.completedList.length !== initialLength) {
+    try {
+      await primaryDb.set("completedList", state.completedList);
+      triggerSync();
+    } catch (error) {
+      console.error("Failed to save completedList:", error);
+      alert("저장 중 오류가 발생했습니다.");
+      return;
+    }
+
+    targetIds.forEach((id) => {
+      const target = state.allMarkers.get(id) || state.allMarkers.get(Number(id));
+      if (target && target.marker) {
+        if (target.marker._icon) target.marker._icon.classList.remove("completed-marker");
+        if (target.marker.options.icon?.options) {
+          target.marker.options.icon.options.className = target.marker.options.icon.options.className.replace(" completed-marker", "");
+        }
+      }
+      updateSinglePixiMarker(id);
+    });
+
+    updateMapVisibility();
+    alert("초기화가 완료되었습니다.");
+  } else {
+    alert("초기화할 완료 기록이 없습니다.");
+  }
 };
