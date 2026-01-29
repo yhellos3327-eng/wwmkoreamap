@@ -113,9 +113,18 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" data-tab="category-tab">카테고리</button>
-    <button class="tab-btn" data-tab="region-tab">지역</button>
-    <button class="tab-btn" data-tab="favorite-tab">즐겨찾기</button>
+    <button class="tab-btn active" data-tab="category-tab">
+        <div class="icon-mask" style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Crect x='3' y='3' width='7' height='7'/%3E%3Crect x='14' y='3' width='7' height='7'/%3E%3Crect x='14' y='14' width='7' height='7'/%3E%3Crect x='3' y='14' width='7' height='7'/%3E%3C/svg%3E&quot;);"></div>
+        카테고리
+    </button>
+    <button class="tab-btn" data-tab="region-tab">
+        <div class="icon-mask" style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z'/%3E%3Ccircle cx='12' cy='10' r='3'/%3E%3C/svg%3E&quot;);"></div>
+        지역
+    </button>
+    <button class="tab-btn" data-tab="favorite-tab">
+        <div class="icon-mask" style="--mask-url: url(&quot;data:image/svg+xml,%3Csvg viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'/%3E%3C/svg%3E&quot;);"></div>
+        즐겨찾기
+    </button>
   </div>
 
   <div class="filter-container">
@@ -142,7 +151,11 @@
         </div>
         <div class="progress-stats" id="trans-stats">0 / 0 항목 번역됨</div>
       </div>
-      <button id="btn-toggle-cat" class="btn-toggle-all">👁️ 모두 끄기</button>
+      <div class="tab-actions">
+        <button id="btn-toggle-cat" class="btn-toggle-all">👁️ 모두 끄기</button>
+        <button id="btn-complete-cat" class="btn-action-all" title="현재 표시된 항목 모두 완료">✓</button>
+        <button id="btn-reset-cat" class="btn-action-all" title="현재 표시된 항목 초기화">↻</button>
+      </div>
       <div id="category-list" class="category-list">
         <!-- Skeleton placeholders shown while loading -->
         <div class="skeleton-cate-item" aria-hidden="true">
@@ -177,7 +190,11 @@
     </div>
 
     <div id="region-tab" class="tab-content">
-      <button id="btn-toggle-reg" class="btn-toggle-all">👁️ 모두 끄기</button>
+      <div class="tab-actions">
+        <button id="btn-toggle-reg" class="btn-toggle-all">👁️ 모두 끄기</button>
+        <button id="btn-complete-reg" class="btn-action-all" title="현재 표시된 지역 모두 완료">✓</button>
+        <button id="btn-reset-reg" class="btn-action-all" title="현재 표시된 지역 초기화">↻</button>
+      </div>
       <div id="region-list" class="category-list region-grid">
         <!-- Skeleton placeholders for regions -->
         <div class="skeleton skeleton-region-item" aria-hidden="true"></div>
@@ -196,3 +213,85 @@
     </div>
   </div>
 </aside>
+
+<style>
+.tab-actions {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+#region-tab .tab-actions {
+    grid-template-columns: 1fr auto auto auto;
+}
+
+.btn-toggle-all {
+    width: 100%;
+    margin-bottom: 0 !important;
+    height: 42px;
+    font-size: 0.95em;
+}
+
+.btn-action-all {
+    width: 42px;
+    height: 42px;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.2em;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn-action-all:hover {
+    background: var(--bg-item-hover);
+    border-color: var(--text-muted);
+    color: var(--text-main);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.btn-action-all:active {
+    transform: translateY(0);
+}
+
+/* Tooltip style for better accessibility */
+.btn-action-all::after {
+    content: attr(title);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(-8px);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 10;
+}
+
+.btn-action-all:hover::after {
+    opacity: 1;
+    transition-delay: 0.5s;
+}
+
+/* Special styling for the list select button */
+#btn-open-region-modal {
+    width: auto;
+    padding: 0 12px;
+    font-size: 0.9em;
+    font-weight: 600;
+    gap: 6px;
+}
+</style>

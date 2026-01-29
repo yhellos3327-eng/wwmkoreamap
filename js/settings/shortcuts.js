@@ -23,6 +23,7 @@ const AVAILABLE_ACTIONS = [
   { id: "closeModal", name: "모달/팝업 닫기", icon: "✕" },
   { id: "toggleTheme", name: "테마 전환", icon: "🌓" },
   { id: "focusMap", name: "지도에 포커스", icon: "🗺️" },
+  { id: "toggleComplete", name: "완료 토글", icon: "✅" },
   { id: "none", name: "할당 해제", icon: "−" },
 ];
 
@@ -331,6 +332,35 @@ const executeShortcutAction = async (actionId) => {
         if (state.map) {
           state.map.invalidateSize();
         }
+      }
+      break;
+
+    case "toggleComplete":
+      let itemId = null;
+      if (state.map && state.map._popup) {
+        // 1. Try direct property
+        itemId = state.map._popup.itemId;
+
+        // 2. Try source marker options
+        if (!itemId && state.map._popup._source && state.map._popup._source.options) {
+          itemId = state.map._popup._source.options.itemId;
+        }
+
+        // 3. Try parsing from content
+        if (!itemId) {
+          const content = state.map._popup.getContent();
+          if (typeof content === 'string') {
+            const match = content.match(/data-id="([^"]+)"/);
+            if (match) itemId = match[1];
+          } else if (content instanceof HTMLElement) {
+            itemId = content.dataset.id || /** @type {HTMLElement} */ (content.querySelector('[data-id]'))?.dataset.id;
+          }
+        }
+      }
+
+      if (itemId) {
+        const { toggleCompleted } = await import("../ui.js");
+        toggleCompleted(itemId);
       }
       break;
   }

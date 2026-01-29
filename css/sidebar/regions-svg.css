@@ -1,0 +1,16 @@
+.cate-icon svg {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    filter: grayscale(100%) opacity(0.7);
+    transition: all 0.3s ease;
+    color: var(--text-main);
+}
+
+.cate-item:hover .cate-icon svg,
+.cate-item.active .cate-icon svg {
+    filter: none;
+    opacity: 1;
+    transform: scale(1.1);
+    color: var(--accent);
+}
