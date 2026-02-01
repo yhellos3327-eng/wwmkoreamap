@@ -164,14 +164,22 @@ export const initPixiOverlay = async () => {
 
               // Check category filter
               let catId = item.category;
-              const isCatActive = state.activeCategoryIds.has(catId);
-              if (!isCatActive) continue;
+              let isCatActive = state.activeCategoryIds.has(catId);
 
               // Check region filter
               const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
-              const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
-              const isRegActive = state.activeRegionNames.has(normalizedRegion);
-              if (!isRegActive) continue;
+              const normalizedRegion =
+                state.reverseRegionMap[effectiveRegion] || effectiveRegion;
+              let isRegActive = state.activeRegionNames.has(normalizedRegion);
+
+              // Community Mode Bypass
+              if (state.showCommunityMarkers && item.isBackend) {
+                if (item.status === "rejected") continue;
+                isCatActive = true;
+                isRegActive = true;
+              }
+
+              if (!isCatActive || !isRegActive) continue;
 
               // Item passes filters
               hasAnyVisibleItem = true;
@@ -409,7 +417,10 @@ export const renderMarkersWithPixi = async (items) => {
       properties: { cluster: false, item: item },
       geometry: {
         type: "Point",
-        coordinates: [parseFloat(item.y), parseFloat(item.x)],
+        coordinates: [
+          parseFloat(item.lng ?? item.y),
+          parseFloat(item.lat ?? item.x),
+        ],
       },
     }));
 
@@ -475,22 +486,15 @@ export const renderMarkersWithPixi = async (items) => {
 };
 
 /**
- * Updates PixiJS markers.
+ * Updates PixiJS markers using the centralized rendering logic.
  */
 export const updatePixiMarkers = async () => {
   if (!isGpuRenderingAvailable()) return;
 
-  const items = state.mapData?.items || [];
-  const filteredItems =
-    state.activeRegionNames.size > 0
-      ? items.filter((item) => {
-        const effectiveRegion = item.forceRegion || item.region;
-        const normalizedRegion = state.reverseRegionMap[effectiveRegion] || effectiveRegion;
-        return state.activeRegionNames.has(normalizedRegion);
-      })
-      : items;
-
-  await renderMarkersWithPixi(filteredItems);
+  // Use the centralized rendering logic from markers.js to ensure all
+  // filters and community mode state are respected.
+  const { renderMapDataAndMarkers } = await import("../markers.js");
+  await renderMapDataAndMarkers();
 };
 
 /**

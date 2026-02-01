@@ -5,7 +5,7 @@
     height: 44px;
     padding: 0 18px 0 14px;
 
-    
+
     background: var(--bg-panel);
     backdrop-filter: var(--glass-blur) saturate(180%);
     -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
@@ -13,7 +13,7 @@
     box-shadow: var(--glass-shadow);
 
     border-radius: 22px;
-    color: #000;
+    color: #fff;
 
     display: none;
     align-items: center;
@@ -25,7 +25,7 @@
     transition: all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
     overflow: hidden;
 
-    
+
     animation: heartbeat 2s infinite ease-in-out;
 }
 
@@ -61,7 +61,7 @@
     content: "메뉴";
     font-size: 15px;
     font-weight: 600;
-    color: #000;
+    color: #fff;
     padding-top: 1px;
     letter-spacing: -0.5px;
     z-index: 20;
@@ -73,7 +73,7 @@
     transform: translateY(-2px);
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
     animation: none;
-    
+
 }
 
 .floating-sidebar-toggle:active {

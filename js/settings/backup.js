@@ -122,7 +122,6 @@ const renderBackupList = (backups) => {
     style.textContent = `
       .backup-section { margin-bottom: 24px; }
       .pinned-section { 
-          margin-bottom: 32px; 
           border-bottom: 1px dashed rgba(255, 255, 255, 0.1); 
           padding-bottom: 24px; 
       }

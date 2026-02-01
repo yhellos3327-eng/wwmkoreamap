@@ -79,9 +79,13 @@ export const getUserVote = (itemId) => {
  * @param {string|number} itemId - The item ID.
  * @returns {Promise<{up: number, down: number}>} The vote counts.
  */
-export const fetchVoteCounts = async (itemId) => {
+export const fetchVoteCounts = async (itemId, isBackend = false) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/votes/${itemId}`);
+    const endpoint = isBackend
+      ? `${API_BASE_URL}/markers/${itemId}/votes`
+      : `${API_BASE_URL}/votes/${itemId}`;
+
+    const response = await fetch(endpoint);
     if (!response.ok) throw new Error("Network response was not ok");
 
     const data = await response.json();
@@ -131,7 +135,7 @@ export const fetchBatchVotes = async (itemIds) => {
   if (!itemIds || itemIds.length === 0) return {};
   try {
     console.log("[Votes] Fetching batch votes for:", itemIds);
-    const response = await fetch(`${API_BASE_URL}/votes/batch`, {
+    const response = await fetch(`${API_BASE_URL}/markers/votes/batch`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -183,7 +187,7 @@ export const fetchBatchVotes = async (itemIds) => {
  * @param {string} type - The vote type ('up' or 'down').
  * @returns {Promise<{counts: {up: number, down: number}, userVote: string|null}>} The new vote state.
  */
-export const toggleVote = async (itemId, type) => {
+export const toggleVote = async (itemId, type, isBackend = false) => {
   // Optimistic UI update
   const currentCounts = getVoteCounts(itemId);
   const currentUserVote = getUserVote(itemId);
@@ -206,7 +210,19 @@ export const toggleVote = async (itemId, type) => {
 
   try {
     console.log("[Votes] Sending vote:", itemId, type);
-    const response = await fetch(`${API_BASE_URL}/votes/${itemId}`, {
+
+    // Map 'report' to 'down' if needed, or keep as is.
+    // Backend markers expect 'report' or 'up'. Standard votes expect 'up' or 'down'.
+    // If standard vote receives 'report', it might fail if not handled.
+    // Standard votes.js (backend) checks for ["up", "down"].
+
+    let dbType = type;
+
+    const endpoint = isBackend
+      ? `${API_BASE_URL}/markers/${itemId}/vote`
+      : `${API_BASE_URL}/votes/${itemId}`;
+
+    const response = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -292,22 +308,28 @@ const updateVoteUI = (itemId, data) => {
  * @param {boolean} [small=false] - Whether to use small button style.
  * @returns {string} The HTML string.
  */
-export const renderVoteButtons = (itemId, small = false) => {
+export const renderVoteButtons = (itemId, small = false, isBackend = false) => {
   const counts = getVoteCounts(itemId);
   const userVote = getUserVote(itemId);
 
   const sizeClass = small ? "vote-small" : "";
 
+  // For backend markers, use 'report' (신고), for others use 'down' (비추천 is rarely used but generic)
+  const downType = isBackend ? "report" : "down";
+  const downTitle = isBackend ? "신고 (부적절한 위치/내용)" : "비추천";
+  const downIconColor = isBackend ? "color: #ff6b6b;" : "";
+  const activeClass = userVote === downType ? "active" : "";
+
   return `
-        <div class="vote-container ${sizeClass}" data-item-id="${itemId}">
+        <div class="vote-container ${sizeClass}" data-item-id="${itemId}" data-is-backend="${isBackend}">
             ${!small ? '<span class="vote-label">이 정보가 유용한가요?</span>' : ""}
             <div class="vote-buttons">
-                <button class="btn-vote btn-up ${userVote === "up" ? "active" : ""}" data-action="vote" data-type="up" data-item-id="${itemId}">
+                <button class="btn-vote btn-up ${userVote === "up" ? "active" : ""}" data-action="vote" data-type="up" data-item-id="${itemId}" data-is-backend="${isBackend}" title="추천" style="gap:4px;">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                     <span class="vote-count">${counts.up}</span>
                 </button>
-                <button class="btn-vote btn-down ${userVote === "down" ? "active" : ""}" data-action="vote" data-type="down" data-item-id="${itemId}">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>
+                <button class="btn-vote btn-down ${activeClass}" data-action="vote" data-type="${downType}" data-item-id="${itemId}" data-is-backend="${isBackend}" title="${downTitle}" style="gap:4px; ${downIconColor}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg>
                     <span class="vote-count">${counts.down}</span>
                 </button>
             </div>

@@ -54,6 +54,11 @@ export const USE_WORKERS = true;
  * @property {boolean} [hasCustomPosition]
  * @property {number} [imageSizeW]
  * @property {number} [imageSizeH]
+ * @property {boolean} [isBackend]
+ * @property {number} [votes]
+ * @property {string|number} [user_id]
+ * @property {string} [status]
+ * @property {MapItem[]} [aggregated]
  */
 
 /**

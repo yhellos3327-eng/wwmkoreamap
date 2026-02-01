@@ -84,8 +84,8 @@ export const createSpriteForItem = (item) => {
     catId = mappedValue;
   }
 
-  const lat = parseFloat(item.x);
-  const lng = parseFloat(item.y);
+  const lat = parseFloat(item.lat ?? item.x);
+  const lng = parseFloat(item.lng ?? item.y);
   if (isNaN(lat) || isNaN(lng)) return null;
 
   let finalRegionName = item.forceRegion || item.region || "알 수 없음";
@@ -104,10 +104,16 @@ export const createSpriteForItem = (item) => {
     }
   }
 
-  const isCatActive = state.activeCategoryIds.has(catId);
-  const isRegActive = state.activeRegionNames.has(finalRegionName);
+  let isCatActive = state.activeCategoryIds.has(catId);
+  let isRegActive = state.activeRegionNames.has(finalRegionName);
 
-  if (!isCatActive || !isRegActive) {
+  let shouldRender = isCatActive && isRegActive;
+  if (state.showCommunityMarkers && item.isBackend) {
+    if (item.status === "rejected") return null;
+    shouldRender = true;
+  }
+
+  if (!shouldRender) {
     return null;
   }
 

@@ -169,7 +169,7 @@ export const createMarkerForItem = (item) => {
   marker.on("popupopen", () => {
     hideCompletedTooltip();
     if (loadComments) loadComments(item.id);
-    fetchVoteCounts(item.id);
+    fetchVoteCounts(item.id, !!item.isBackend);
   });
 
   marker.bindPopup(() => createPopupHtml(item, lat, lng, finalRegionName));

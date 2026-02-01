@@ -9,6 +9,7 @@ import {
   switchLightbox,
   renderContributionModal,
 } from "./ui.js";
+import { toggleCommunityMode } from "./map/community.js";
 
 /**
  * Initializes tab event listeners.
@@ -262,6 +263,17 @@ export const initArcaChannel = () => {
 };
 
 /**
+ * Initializes Community Mode toggle.
+ */
+export const initCommunityMode = () => {
+  const btn = document.getElementById("community-mode-toggle");
+  const btnTop = document.getElementById("community-mode-toggle-top");
+
+  if (btn) btn.addEventListener("click", toggleCommunityMode);
+  if (btnTop) btnTop.addEventListener("click", toggleCommunityMode);
+};
+
+/**
  * Initializes all event handlers.
  */
 export const initAllEventHandlers = () => {
@@ -274,4 +286,5 @@ export const initAllEventHandlers = () => {
   initGlobalEventDelegation();
   initRouteMode();
   initArcaChannel();
+  initCommunityMode();
 };
