@@ -23,11 +23,11 @@ const log = createLogger("Storage");
  */
 const SAFETY_CONFIG = {
   /** Minimum items before blocking empty overwrite */
-  MIN_COMPLETED_THRESHOLD: 1,
+  MIN_COMPLETED_THRESHOLD: 10,
   /** Minimum favorites before blocking empty overwrite */
-  MIN_FAVORITES_THRESHOLD: 1,
-  /** Maximum allowed data loss ratio (0.5 = 50%) */
-  MAX_LOSS_RATIO: 0.5,
+  MIN_FAVORITES_THRESHOLD: 5,
+  /** Maximum allowed data loss ratio (0.3 = 30%) */
+  MAX_LOSS_RATIO: 0.3,
 };
 
 /**

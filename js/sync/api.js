@@ -3,7 +3,7 @@ import { BACKEND_URL } from "../config.js";
 
 /**
  * Fetches user data from the cloud.
- * @returns {Promise<any|null>} The cloud data or null.
+ * @returns {Promise<{data: any|null, version: number}>} The cloud data and version.
  */
 export const fetchCloudData = async () => {
   const response = await fetch(`${BACKEND_URL}/api/sync/load`, {
@@ -11,21 +11,41 @@ export const fetchCloudData = async () => {
   });
   if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
   const result = await response.json();
-  return result.success ? result.data : null;
+  // Backend returns: { success, data: {...}, version: N }
+  return {
+    data: result.success ? result.data : null,
+    version: result.version || 0
+  };
 };
 
 /**
  * Saves user data to the cloud.
  * @param {any} data - The data to save.
+ * @param {number|undefined} expectedVersion - The expected server version for optimistic locking.
  * @returns {Promise<any>} The save response.
  */
-export const saveCloudData = async (data) => {
+export const saveCloudData = async (data, expectedVersion = undefined) => {
+  const payload = { ...data };
+  if (expectedVersion !== undefined) {
+    payload.expectedVersion = expectedVersion;
+  }
+
   const response = await fetch(`${BACKEND_URL}/api/sync/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
+
+  // Handle Conflict (409) specifically
+  if (response.status === 409) {
+    const errorData = await response.json();
+    const error = new Error(`Conflict detected: ${errorData.message}`);
+    error.name = "VersionConflictError";
+    error.serverVersion = errorData.currentVersion;
+    throw error;
+  }
+
   if (!response.ok) throw new Error(`Failed to save: ${response.status}`);
   return await response.json();
 };

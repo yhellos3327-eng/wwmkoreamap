@@ -130,7 +130,13 @@ export const toggleCompleted = async (id) => {
       target.marker.on("mouseout", mouseoutHandler);
     }
   } else {
-    state.completedList.splice(index, 1);
+    // Remove ALL instances of this ID to fix any duplication bugs (preserves array reference)
+    for (let i = state.completedList.length - 1; i >= 0; i--) {
+      if (String(state.completedList[i].id) === targetId) {
+        state.completedList.splice(i, 1);
+      }
+    }
+
     if (target?.marker) {
       target.marker._icon?.classList.remove("completed-marker");
 

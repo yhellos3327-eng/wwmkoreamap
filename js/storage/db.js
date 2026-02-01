@@ -203,6 +203,9 @@ export const primaryDb = {
             return { success: true };
         } catch (error) {
             console.error("[PrimaryDB] Set failed:", key, error);
+            if (error.name === 'QuotaExceededError') {
+                console.error("[PrimaryDB] Storage quota exceeded!");
+            }
             return { success: false, error: error.message };
         }
     },
@@ -227,6 +230,9 @@ export const primaryDb = {
             return { success: true };
         } catch (error) {
             console.error("[PrimaryDB] SetMultiple failed:", error);
+            if (error.name === 'QuotaExceededError') {
+                console.error("[PrimaryDB] Storage quota exceeded during bulk save!");
+            }
             return { success: false, error: error.message };
         }
     },

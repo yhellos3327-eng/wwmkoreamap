@@ -13,45 +13,104 @@ export const getMarkerId = (marker) => {
 /**
  * Normalizes markers to consistent object format.
  * @param {any[]} markers - The markers array.
- * @returns {Array<{id: any, completedAt: any}>} Normalized markers.
- */
-const normalizeMarkers = (markers) => {
-  if (!Array.isArray(markers)) return [];
-  return markers.map((marker) => {
-    if (typeof marker === "object" && marker !== null) return marker;
-    return { id: marker, completedAt: null };
+ * @returns {Array<{id: any, completedAt: any}>}// Normalizes markers to ensure they have an ID and completedAt
+// Also deduplicates by ID to prevent "double-click" issues
+const normalizeMarkers = (arr) => {
+  if (!Array.isArray(arr)) return [];
+  const uniqueMap = new Map();
+  
+  arr.forEach((item) => {
+    let id, completedAt;
+    if (typeof item === "object" && item !== null) {
+      id = String(item.id);
+      completedAt = item.completedAt;
+    } else {
+      id = String(item);
+      completedAt = Date.now();
+    }
+    
+    // If ID exists, keep the one with newer timestamp, or existing if same
+    const existing = uniqueMap.get(id);
+    if (!existing) {
+      uniqueMap.set(id, { id, completedAt });
+    } else if (completedAt && existing.completedAt && new Date(completedAt) > new Date(existing.completedAt)) {
+      uniqueMap.set(id, { id, completedAt });
+    }
   });
+
+  return Array.from(uniqueMap.values());
 };
 
 /**
- * Merges two marker arrays with conflict resolution.
+ * Merges two marker arrays with conflict resolution (3-Way Merge).
  * @param {any[]} localArr - Local markers.
  * @param {any[]} cloudArr - Cloud markers.
+ * @param {any[]} [baseArr=[]] - Base markers (snapshot from last sync).
  * @returns {any[]} Merged markers.
  */
-const mergeArrays = (localArr, cloudArr) => {
+const mergeArrays = (localArr, cloudArr, baseArr = []) => {
   const localNormalized = normalizeMarkers(localArr);
   const cloudNormalized = normalizeMarkers(cloudArr);
+  const baseNormalized = normalizeMarkers(baseArr);
+
   const mergedMap = new Map();
+  const allIds = new Set();
 
-  cloudNormalized.forEach((item) => {
-    mergedMap.set(getMarkerId(item), item);
-  });
+  const localMap = new Map();
+  localNormalized.forEach(i => { const id = String(getMarkerId(i)); localMap.set(id, i); allIds.add(id); });
 
-  localNormalized.forEach((item) => {
-    const id = getMarkerId(item);
-    const existing = mergedMap.get(id);
-    if (existing) {
-      if (item.completedAt && existing.completedAt) {
-        const localTime = new Date(item.completedAt).getTime();
-        const cloudTime = new Date(existing.completedAt).getTime();
-        if (localTime >= cloudTime) mergedMap.set(id, item);
-      } else if (item.completedAt) {
-        mergedMap.set(id, item);
+  const cloudMap = new Map();
+  cloudNormalized.forEach(i => { const id = String(getMarkerId(i)); cloudMap.set(id, i); allIds.add(id); });
+
+  const baseMap = new Map();
+  baseNormalized.forEach(i => { const id = String(getMarkerId(i)); baseMap.set(id, i); allIds.add(id); });
+
+  allIds.forEach(id => {
+    const local = localMap.get(id);
+    const cloud = cloudMap.get(id);
+    const base = baseMap.get(id);
+
+    // 1. Present in both Local and Cloud -> Merge (Newest wins or Keep)
+    if (local && cloud) {
+      // If conflict, check timestamps if available
+      if (local.completedAt && cloud.completedAt) {
+        const localTime = new Date(local.completedAt).getTime();
+        const cloudTime = new Date(cloud.completedAt).getTime();
+        mergedMap.set(id, localTime >= cloudTime ? local : cloud);
+      } else {
+        // Default to local if no timestamps (or arbitrary stability)
+        mergedMap.set(id, local);
       }
-    } else {
-      mergedMap.set(id, item);
+      return;
     }
+
+    // 2. Present in Local, Missing in Cloud
+    if (local && !cloud) {
+      if (base) {
+        // Was in Base, now missing in Cloud -> Deleted Remotely
+        // Action: Delete (Do not add to mergedMap)
+      } else {
+        // Not in Base -> Added Locally
+        // Action: Keep
+        mergedMap.set(id, local);
+      }
+      return;
+    }
+
+    // 3. Missing in Local, Present in Cloud
+    if (!local && cloud) {
+      if (base) {
+        // Was in Base, now missing in Local -> Deleted Locally
+        // Action: Delete (Do not add to mergedMap)
+      } else {
+        // Not in Base -> Added Remotely
+        // Action: Keep
+        mergedMap.set(id, cloud);
+      }
+      return;
+    }
+
+    // 4. Missing in both (should not happen given we iterate Union)
   });
 
   return Array.from(mergedMap.values());
@@ -114,18 +173,24 @@ const mergeSettings = (localSettings, cloudSettings) => {
 };
 
 /**
- * Merges local and cloud data.
+ * Merges full data objects (3-Way Merge).
  * @param {any} local - Local data.
  * @param {any} cloud - Cloud data.
+ * @param {any} [base={}] - Base data (snapshot).
  * @returns {{completedMarkers: any[], favorites: any[], settings: any}} Merged data.
  */
-export const mergeData = (local, cloud) => {
+export const mergeData = (local, cloud, base = {}) => {
   const merged = {
     completedMarkers: mergeArrays(
       local?.completedMarkers || [],
       cloud?.completedMarkers || [],
+      base?.completedMarkers || []
     ),
-    favorites: mergeArrays(local?.favorites || [], cloud?.favorites || []),
+    favorites: mergeArrays(
+      local?.favorites || [],
+      cloud?.favorites || [],
+      base?.favorites || []
+    ),
     settings: mergeSettings(local?.settings || {}, cloud?.settings || {}),
   };
 
