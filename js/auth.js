@@ -9,6 +9,7 @@ import { initSync, cleanupRealtimeSync } from "./sync.js";
  * @property {string} email - User email
  * @property {string} provider - Auth provider (google, kakao, etc.)
  * @property {string} [avatar] - User avatar URL
+ * @property {boolean} [isAdmin] - Whether user is admin
  */
 
 /** @type {User | null} */
@@ -45,6 +46,14 @@ export const getCurrentUser = () => {
 };
 
 /**
+ * Checks if the current user is an admin.
+ * @returns {boolean} True if admin.
+ */
+export const isAdminUser = () => {
+  return currentUser?.isAdmin || false;
+};
+
+/**
  * Checks the authentication status with the backend.
  * Handles local dev test user if applicable.
  * @returns {Promise<void>}
@@ -73,6 +82,7 @@ const checkAuthStatus = async () => {
         email: data.user.email,
         provider: data.user.provider,
         avatar: data.user.profileImage,
+        isAdmin: data.isAdmin,
       };
     } else {
       currentUser = null;
