@@ -111,7 +111,15 @@ export const openLightbox = (itemId, index) => {
 
   const mediaList = [];
   if (item.images && item.images.length > 0) {
-    item.images.forEach((img) => mediaList.push({ type: "image", src: img }));
+    item.images.forEach((img) => {
+      let src = img;
+      if (src && !src.startsWith("http") && !src.startsWith("data:") && !src.startsWith("/")) {
+        if (src.startsWith("assets.wwmmap.kr")) {
+          src = "https://" + src;
+        }
+      }
+      mediaList.push({ type: "image", src: src });
+    });
   }
 
   if (item.video_url) {
