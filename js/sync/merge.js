@@ -48,9 +48,11 @@ const normalizeMarkers = (markers) => {
  * @param {any[]} localArr - Local markers.
  * @param {any[]} cloudArr - Cloud markers.
  * @param {any[]} [baseArr=[]] - Base markers (snapshot from last sync).
+ * @param {boolean} [ignoreRemoteDeletions=false] - Whether to ignore remote deletions (for safety).
+ * @param {boolean} [ignoreLocalDeletions=false] - Whether to ignore local deletions (for safety).
  * @returns {any[]} Merged markers.
  */
-const mergeArrays = (localArr, cloudArr, baseArr = []) => {
+const mergeArrays = (localArr, cloudArr, baseArr = [], ignoreRemoteDeletions = false, ignoreLocalDeletions = false) => {
   const localNormalized = normalizeMarkers(localArr);
   const cloudNormalized = normalizeMarkers(cloudArr);
   const baseNormalized = normalizeMarkers(baseArr);
@@ -90,7 +92,12 @@ const mergeArrays = (localArr, cloudArr, baseArr = []) => {
     if (local && !cloud) {
       if (base) {
         // Was in Base, now missing in Cloud -> Deleted Remotely
-        // Action: Delete (Do not add to mergedMap)
+        if (ignoreRemoteDeletions) {
+          // Treating as "Cloud lost it", so we restore it from local
+          mergedMap.set(id, local);
+        } else {
+          // Action: Delete (Do not add to mergedMap)
+        }
       } else {
         // Not in Base -> Added Locally
         // Action: Keep
@@ -103,7 +110,12 @@ const mergeArrays = (localArr, cloudArr, baseArr = []) => {
     if (!local && cloud) {
       if (base) {
         // Was in Base, now missing in Local -> Deleted Locally
-        // Action: Delete (Do not add to mergedMap)
+        if (ignoreLocalDeletions) {
+          // Treating as "Local lost it", so we restore it from cloud
+          mergedMap.set(id, cloud);
+        } else {
+          // Action: Delete (Do not add to mergedMap)
+        }
       } else {
         // Not in Base -> Added Remotely
         // Action: Keep
@@ -182,11 +194,35 @@ const mergeSettings = (localSettings, cloudSettings) => {
  * @returns {{completedMarkers: any[], favorites: any[], settings: any}} Merged data.
  */
 export const mergeData = (local, cloud, base = {}) => {
+  // Cloud Wipe Protection:
+  // If Local and Base are similar in size (large), but Cloud is suspiciously empty (< 10%),
+  // we assume Cloud was reset and should typically NOT propagate deletions.
+  const localCount = local?.completedMarkers?.length || 0;
+  const cloudCount = cloud?.completedMarkers?.length || 0;
+  const baseCount = base?.completedMarkers?.length || 0;
+
+  let ignoreRemoteDeletions = false;
+  if (localCount > 100 && baseCount > 100 && cloudCount < baseCount * 0.1) {
+    console.warn(`[Merge] Suspicious Cloud wipe detected (Local: ${localCount}, Cloud: ${cloudCount}, Base: ${baseCount}). Ignoring remote deletions to protect local data.`);
+    ignoreRemoteDeletions = true;
+  }
+
+  // Local Wipe Protection:
+  // If Cloud and Base are similar in size (large), but Local is suspiciously empty (< 10%),
+  // we assume Local was reset and should typically NOT propagate deletions.
+  let ignoreLocalDeletions = false;
+  if (cloudCount > 100 && baseCount > 100 && localCount < baseCount * 0.1) {
+    console.warn(`[Merge] Suspicious Local wipe detected (Local: ${localCount}, Cloud: ${cloudCount}, Base: ${baseCount}). Ignoring local deletions to protect cloud data.`);
+    ignoreLocalDeletions = true;
+  }
+
   const merged = {
     completedMarkers: mergeArrays(
       local?.completedMarkers || [],
       cloud?.completedMarkers || [],
-      base?.completedMarkers || []
+      base?.completedMarkers || [],
+      ignoreRemoteDeletions,
+      ignoreLocalDeletions
     ),
     favorites: mergeArrays(
       local?.favorites || [],
