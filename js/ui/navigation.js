@@ -17,6 +17,8 @@ import { triggerSync } from "../sync.js";
 import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
 import { primaryDb } from "../storage/db.js";
 import { createLogger } from "../utils/logStyles.js";
+import { BACKEND_URL } from "../config.js";
+import { isLoggedIn } from "../auth.js";
 
 const log = createLogger("Navigation");
 
@@ -94,8 +96,44 @@ export const toggleCompleted = async (id) => {
       };
     }
   }
+
+
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
+
+  // Community Marker Backend Sync
+  if (target?.isBackend) {
+    if (!isLoggedIn()) {
+      import("../sync/ui.js").then(({ showSyncToast }) => {
+        showSyncToast("커뮤니티 마커를 체크하려면 로그인이 필요합니다.", "error");
+      });
+      return;
+    }
+
+    // Optimistic update - trigger API
+    fetch(`${BACKEND_URL}/markers/${id}/toggle-complete`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      credentials: "include" // Send cookies
+    }).then(async res => {
+      if (!res.ok) {
+        throw new Error("Backend sync failed");
+      }
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error);
+      log.success("Backend Sync", `완료 상태 동기화 성공: ${targetId}`);
+    }).catch(err => {
+      console.error("Backend completion toggle failed", err);
+      // alert("서버와 동기화 실패. 완료 상태가 취소됩니다.");
+      import("../sync/ui.js").then(({ showSyncToast }) => {
+        showSyncToast("서버와 동기화 실패. 완료 상태가 취소됩니다.", "error");
+      });
+      // Revert state if failed
+      toggleCompleted(id);
+    });
+  }
 
   // Log toggle action
   if (isNowCompleted) {

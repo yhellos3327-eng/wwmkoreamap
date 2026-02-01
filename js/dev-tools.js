@@ -5,7 +5,7 @@
  * @module dev-tools
  */
 
-import { state } from "./state.js";
+import { state, setState } from "./state.js";
 import { MAP_CONFIGS } from "./config.js";
 import { t, isPointInPolygon } from "./utils.js";
 import { getRegionPolygonsCache } from "./map/markerFactory.js";
@@ -70,6 +70,10 @@ const createDevModal = () => {
                     <span class="dev-btn-icon">📐</span>
                     <span class="dev-btn-text">영역 편집</span>
                 </button>
+                <button class="dev-btn" id="dev-btn-test-dup" title="현재 위치에 중복 마커 생성 테스트" style="background: rgba(218, 172, 113, 0.1); border-color: rgba(218, 172, 113, 0.4);">
+                    <span class="dev-btn-icon">🧪</span>
+                    <span class="dev-btn-text">중복 마커 테스트</span>
+                </button>
             </div>
 
             
@@ -125,6 +129,27 @@ const createAddMarkerModal = (lat, lng) => {
     modal.id = "dev-add-marker-modal";
     modal.className = "dev-modal-overlay";
     document.body.appendChild(modal);
+
+    // Temporary pin logic
+    if (devState.tempMarker) {
+      state.map.removeLayer(devState.tempMarker);
+    }
+    const pinIcon = /** @type {any} */ (L).divIcon({
+      className: "",
+      html: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); fill: #ff4444;">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+    devState.tempMarker = /** @type {any} */ (L).marker([lat, lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(state.map);
+  } else {
+    // If updating existing modal (e.g. just moving), update pin position
+    if (devState.tempMarker) {
+      devState.tempMarker.setLatLng([lat, lng]);
+    }
   }
 
   let categories = state.mapData.categories || [];
@@ -132,13 +157,13 @@ const createAddMarkerModal = (lat, lng) => {
 
   if (categories.length <= 1 || (config && config.type === "image")) {
     const allCatIds = Object.keys(state.categoryItemTranslations).filter(
-      (id) => id.length > 5 && !isNaN(id),
+      (id) => id.length > 5 && !isNaN(Number(id)),
     );
 
     if (allCatIds.length > 0) {
       const transCats = allCatIds.map((id) => ({
         id: id,
-        name: t(id),
+        name: t(id) || id,
         image: `./icons/${id}.png`,
       }));
       const existingIds = new Set(categories.map((c) => c.id));
@@ -183,7 +208,7 @@ const createAddMarkerModal = (lat, lng) => {
   }
 
   const sortedCategories = [...categories].sort((a, b) =>
-    t(a.name).localeCompare(t(b.name)),
+    String(t(a.name)).localeCompare(String(t(b.name))),
   );
 
   const categoryItems = sortedCategories
@@ -200,7 +225,12 @@ const createAddMarkerModal = (lat, lng) => {
   modal.innerHTML = `
         <div class="dev-modal-content" style="width: 400px;">
             <div class="dev-modal-header">
-                <span class="dev-modal-title">✨ 새 마커 추가</span>
+                <span class="dev-modal-title" style="display: flex; align-items: center; gap: 8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; color: #daac71;">
+                        <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/>
+                    </svg>
+                    커뮤니티 마커 추가
+                </span>
                 <button class="dev-modal-close" id="dev-add-close">×</button>
             </div>
             <div class="dev-modal-body">
@@ -229,6 +259,26 @@ const createAddMarkerModal = (lat, lng) => {
                     <input type="text" id="dev-add-title" placeholder="마커 이름을 입력하세요" value="새 마커">
                 </div>
                 <div class="dev-form-group">
+                    <label>이미지 첨부 (선택)</label>
+                    <div class="dev-drop-zone" id="dev-drop-zone">
+                        <div class="dev-drop-message" id="dev-drop-message">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #daac71; margin-bottom: 8px;">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <span>클릭하거나 이미지를 드래그하세요</span>
+                        </div>
+                        <div class="dev-drop-preview" id="dev-drop-preview"></div>
+                        <div class="dev-drop-remove" id="dev-drop-remove" style="display: none;">×</div>
+                        <input type="file" id="dev-add-screenshot" accept="image/*" hidden>
+                    </div>
+                </div>
+                <div class="dev-form-group">
+                    <label for="dev-add-video">유튜브/영상 URL (선택)</label>
+                    <input type="text" id="dev-add-video" placeholder="유튜브 링크 등">
+                </div>
+                <div class="dev-form-group">
                     <label for="dev-add-desc">설명 (선택)</label>
                     <textarea id="dev-add-desc" placeholder="설명을 입력하세요"></textarea>
                 </div>
@@ -254,18 +304,77 @@ const createAddMarkerModal = (lat, lng) => {
       }
     }
   }
-  document.getElementById("dev-add-region").value = detectedRegion;
+  /** @type {HTMLInputElement} */ (document.getElementById("dev-add-region")).value = detectedRegion;
 
-  const close = () => (modal.style.display = "none");
+  const close = () => closeAddMarkerModal();
   document.getElementById("dev-add-close").onclick = close;
   document.getElementById("dev-add-cancel").onclick = close;
 
   const catGrid = document.getElementById("dev-cat-grid");
-  const catInput = document.getElementById("dev-add-cat");
+  const catInput = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-cat"));
   const catSearch = document.getElementById("dev-cat-search");
 
+  // Drag and Drop Logic
+  const dropZone = document.getElementById("dev-drop-zone");
+  const fileInput = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-screenshot"));
+  const preview = document.getElementById("dev-drop-preview");
+  const dropMessage = document.getElementById("dev-drop-message");
+  const removeBtn = document.getElementById("dev-drop-remove");
+
+  const resetFile = (e) => {
+    if (e) e.stopPropagation();
+    fileInput.value = "";
+    preview.style.backgroundImage = "";
+    preview.classList.remove("active");
+    dropMessage.style.display = "flex";
+    removeBtn.style.display = "none";
+  };
+
+  const handleFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      preview.style.backgroundImage = `url('${e.target.result}')`;
+      preview.classList.add("active");
+      dropMessage.style.display = "none";
+      removeBtn.style.display = "flex";
+    };
+    reader.readAsDataURL(file);
+
+    // Create new DataTransfer to update file input
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+  };
+
+  dropZone.addEventListener("click", () => fileInput.click());
+  removeBtn.addEventListener("click", resetFile);
+
+  fileInput.addEventListener("change", (e) => {
+    const file = /** @type {HTMLInputElement} */ (e.target).files[0];
+    handleFile(file);
+  });
+
+  dropZone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropZone.classList.add("dragover");
+  });
+
+  dropZone.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropZone.classList.remove("dragover");
+    const file = e.dataTransfer.files[0];
+    handleFile(file);
+  });
+
   catGrid.addEventListener("click", (e) => {
-    const item = e.target.closest(".dev-cat-item");
+    const item = /** @type {HTMLElement} */ (/** @type {HTMLElement} */ (e.target).closest(".dev-cat-item"));
     if (!item) return;
 
     catGrid
@@ -276,8 +385,8 @@ const createAddMarkerModal = (lat, lng) => {
   });
 
   catSearch.addEventListener("input", (e) => {
-    const term = e.target.value.toLowerCase();
-    catGrid.querySelectorAll(".dev-cat-item").forEach((item) => {
+    const term = /** @type {HTMLInputElement} */ (e.target).value.toLowerCase();
+    catGrid.querySelectorAll(".dev-cat-item").forEach((/** @type {any} */ item) => {
       const name = item
         .querySelector(".dev-cat-name")
         .textContent.toLowerCase();
@@ -288,17 +397,19 @@ const createAddMarkerModal = (lat, lng) => {
   });
 
   document.getElementById("dev-add-save").onclick = () => {
-    const catId = document.getElementById("dev-add-cat").value;
-    const title = document.getElementById("dev-add-title").value;
-    const desc = document.getElementById("dev-add-desc").value;
-    const region = document.getElementById("dev-add-region").value;
+    const catId = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-cat")).value;
+    const title = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-title")).value;
+    const desc = /** @type {HTMLTextAreaElement} */ (document.getElementById("dev-add-desc")).value;
+    const region = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-region")).value;
+    const screenshotFile = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-screenshot")).files[0];
+    const videoUrl = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-video")).value;
 
     if (!catId || !title) {
       alert("카테고리와 이름을 입력해주세요.");
       return;
     }
 
-    saveNewMarker(lat, lng, catId, title, desc, region);
+    saveNewMarker(lat, lng, catId, title, desc, region, screenshotFile, videoUrl);
     close();
   };
 };
@@ -306,46 +417,92 @@ const createAddMarkerModal = (lat, lng) => {
 /**
  * 신규 마커 저장 및 표시
  */
-const saveNewMarker = (lat, lng, catId, title, desc, region) => {
-  const newId = Date.now();
-  const newMarker = {
-    id: newId,
-    category: catId,
-    title: title,
-    originalName: title,
-    description: desc,
-    lat: parseFloat(lat),
-    lng: parseFloat(lng),
-    region: region,
-    regionId: 0,
-  };
+import { BACKEND_URL } from "./config.js";
+import { isLoggedIn } from "./auth.js";
 
-  devState.newMarkers.push(newMarker);
+/**
+ * 신규 마커 저장 및 표시
+ */
+const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFile, videoUrl) => {
+  if (!isLoggedIn()) {
+    import("./sync/ui.js").then(({ showSyncToast }) => {
+      showSyncToast("로그인이 필요합니다.", "error");
+    });
+    return;
+  }
 
-  const emojiIcon = L.divIcon({
-    className: "",
-    html: '<div style="font-size: 36px; line-height: 1; filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer;">✨</div>',
-    iconSize: [36, 36],
-    iconAnchor: [18, 36],
-  });
+  try {
+    const formData = new FormData();
+    formData.append("lat", String(parseFloat(lat)));
+    formData.append("lng", String(parseFloat(lng)));
+    formData.append("title", title);
+    formData.append("description", desc || "");
+    formData.append("type", catId);
+    if (region) formData.append("region", region);
+    if (screenshotFile) formData.append("screenshot", screenshotFile);
+    if (videoUrl) formData.append("video", videoUrl);
 
-  const popupContent = `
-        <div style="font-size:12px; line-height:1.4; text-align: center;">
-            <b style="font-size:14px; color:#daac71;">${title}</b><br>
-            <span style="color:#888;">ID: ${newId}</span><br>
-            <span style="color:#aaa;">카테고리: ${catId}</span><br>
-            <span style="color:#aaa;">지역: ${region || "미지정"}</span><br>
-            <span style="color:#aaa;">좌표: ${lat}, ${lng}</span><br>
-            <p style="margin-top:4px; color:#ddd;">${desc || ""}</p>
-        </div>
-    `;
+    const response = await fetch(`${BACKEND_URL}/markers`, {
+      method: "POST",
+      credentials: "include", // 쿠키 인증
+      body: formData, // FormData 전송
+    });
 
-  L.marker([parseFloat(lat), parseFloat(lng)], { icon: emojiIcon })
-    .addTo(state.map)
-    .bindPopup(popupContent);
+    const data = await response.json();
 
-  addLog(`추가됨: ${title} (${newId})`, "success");
-  updateUI();
+    if (!response.ok || !data.success) {
+      throw new Error(data.error || "마커 생성 실패");
+    }
+
+    const newMarkerData = data.marker;
+    const newId = newMarkerData.id;
+
+    devState.newMarkers.push(newMarkerData);
+
+    const svgIcon = /** @type {any} */ (L).divIcon({
+      className: "",
+      html: `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); cursor: pointer; fill: #daac71;">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+        </svg>
+      `,
+      iconSize: [36, 36],
+      iconAnchor: [18, 36],
+    });
+
+    const { createPopupHtml } = await import("./map/popup.js");
+    const popupContent = createPopupHtml(
+      {
+        id: String(newId),
+        name: title,
+        description: (desc || "").replace(/<[^>]*>/g, ""), // Sanitize: strip HTML
+        category: catId,
+        images: screenshotFile ? [URL.createObjectURL(screenshotFile)] : [],
+        video_url: videoUrl ? [videoUrl] : [],
+        isBackend: true,
+        status: 'pending',
+        votes: 0,
+        user_id: null // Pending locally
+      },
+      parseFloat(lat),
+      parseFloat(lng),
+      region || ""
+    );
+
+    /** @type {any} */ (L).marker([parseFloat(lat), parseFloat(lng)], { icon: svgIcon })
+      .addTo(state.map)
+      .bindPopup(popupContent);
+
+    addLog(`서버 저장됨: ${title} (${newId})`, "success");
+    updateUI();
+
+    alert("마커가 추가되었습니다. 관리자 승인 후 공개됩니다.");
+
+  } catch (error) {
+    console.error("Save marker error:", error);
+    addLog(`오류: ${error.message}`, "warn");
+    alert(`저장 실패: ${error.message}`);
+  }
 };
 
 /**
@@ -609,191 +766,209 @@ const addDevStyles = () => {
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0); /* Removed opacity */
             display: none;
-            justify-content: center;
-            align-items: center;
+            justify-content: flex-end; /* Right align */
+            align-items: flex-start; /* Top align */
             z-index: 10000;
-            backdrop-filter: blur(4px);
+            pointer-events: none; /* Allow clicking through to map */
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         .dev-modal-content {
-            width: 320px;
-            background: #1a1a1f;
-            border: 1px solid #444;
-            border-radius: 16px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            overflow: hidden;
+            width: 340px;
+            max-height: 80vh;
+            background: rgba(20, 20, 25, 0.85); /* Semi-transparent dark */
+            backdrop-filter: blur(12px); /* Glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
             animation: devModalFadeIn 0.3s ease;
+            pointer-events: auto;
+            margin-right: 20px;
+            margin-top: 20px;
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         }
 
-        @keyframes devModalFadeIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
+        .dev-modal-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        .dev-modal-content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .dev-modal-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
         }
 
         .dev-modal-header {
-            padding: 16px;
-            background: rgba(218, 172, 113, 0.1);
-            border-bottom: 1px solid #333;
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .dev-modal-title {
+            font-size: 16px;
             font-weight: 700;
-            color: #daac71;
+            color: #fff;
+            letter-spacing: -0.02em;
         }
 
         .dev-modal-close {
-            background: none;
+            background: transparent;
             border: none;
-            color: #888;
+            color: rgba(255, 255, 255, 0.5);
             font-size: 24px;
+            line-height: 1;
             cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .dev-modal-close:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
         }
 
         .dev-modal-body {
             padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 16px;
+            gap: 20px;
         }
 
         .dev-form-group {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
         }
 
         .dev-form-group label {
-            font-size: 12px;
-            color: #888;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
             font-weight: 600;
         }
 
         .dev-coords-display {
-            font-family: monospace;
-            background: #000;
-            padding: 8px;
-            border-radius: 4px;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px 12px;
+            border-radius: 8px;
             font-size: 13px;
             color: #4ade80;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .dev-form-group input, 
         .dev-form-group select, 
         .dev-form-group textarea {
-            background: #2a2a2f;
-            border: 1px solid #444;
-            border-radius: 6px;
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 10px 12px;
             color: #fff;
             font-size: 14px;
             width: 100%;
             box-sizing: border-box;
+            transition: border-color 0.2s, background-color 0.2s;
         }
 
-        .dev-cat-input-wrapper {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .dev-cat-preview {
-            width: 36px;
-            height: 36px;
-            background: #000;
-            border-radius: 6px;
-            border: 1px solid #444;
-            padding: 4px;
-            object-fit: contain;
-        }
-
-        .dev-cat-search-wrapper {
-            margin-bottom: 8px;
+        .dev-form-group input:focus, 
+        .dev-form-group select:focus, 
+        .dev-form-group textarea:focus {
+            outline: none;
+            border-color: #4a9eff;
+            background: rgba(0, 0, 0, 0.4);
         }
 
         .dev-cat-search-wrapper input {
             width: 100%;
-            padding: 8px 12px;
-            background: #000;
-            border: 1px solid #444;
-            border-radius: 6px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
             color: #fff;
             font-size: 13px;
+            margin-bottom: 8px;
+        }
+        .dev-cat-search-wrapper input:focus {
+            border-color: #daac71;
         }
 
         .dev-cat-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 8px;
-            max-height: 240px;
+            max-height: 200px;
             overflow-y: auto;
-            background: #000;
-            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 8px;
             border-radius: 8px;
-            border: 1px solid #444;
+            border: 1px solid rgba(255, 255, 255, 0.05);
         }
 
         .dev-cat-item {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 6px;
-            padding: 10px 6px;
-            background: #1a1a1f;
-            border: 1px solid #333;
+            gap: 8px;
+            padding: 12px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid transparent;
             border-radius: 8px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .dev-cat-item:hover {
-            background: #25252a;
-            border-color: #555;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
         }
 
         .dev-cat-item.active {
-            background: rgba(218, 172, 113, 0.2);
+            background: rgba(218, 172, 113, 0.15);
             border-color: #daac71;
+            box-shadow: 0 0 10px rgba(218, 172, 113, 0.1);
+        }
+
+        .dev-cat-item.active .dev-cat-name {
+            color: #daac71;
+            font-weight: 700;
         }
 
         .dev-cat-item img {
             width: 32px;
             height: 32px;
             object-fit: contain;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
         }
 
         .dev-cat-name {
-            font-size: 10px;
-            color: #aaa;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.6);
             text-align: center;
-            word-break: keep-all;
-            line-height: 1.2;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
+            line-height: 1.3;
         }
-
-        .dev-cat-item.active .dev-cat-name {
-            color: #daac71;
-            font-weight: 600;
-        }
-
 
         .dev-form-group textarea {
             height: 80px;
-            resize: none;
+            resize: vertical;
         }
 
         .dev-modal-footer {
-            padding: 16px;
-            background: #141419;
+            padding: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .dev-modal-btn {
@@ -802,23 +977,107 @@ const addDevStyles = () => {
             border: none;
             border-radius: 8px;
             font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .dev-btn-cancel {
-            background: #333;
-            color: #ccc;
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        .dev-btn-cancel:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
         }
 
         .dev-btn-save {
-            background: #daac71;
+            background: linear-gradient(135deg, #daac71, #b8864c);
             color: #000;
+            box-shadow: 0 4px 12px rgba(218, 172, 113, 0.3);
+        }
+        .dev-btn-save:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(218, 172, 113, 0.4);
+        }
+        
+        .dev-btn-save:active {
+            transform: translateY(0);
         }
 
-        .dev-btn-save:hover {
-            background: #e5bc8a;
-            transform: translateY(-1px);
+        /* Drag and Drop Zone */
+        .dev-drop-zone {
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dev-drop-zone:hover {
+            border-color: #daac71;
+            background: rgba(218, 172, 113, 0.05);
+        }
+
+        .dev-drop-zone.dragover {
+            border-color: #daac71;
+            background: rgba(218, 172, 113, 0.1);
+            transform: scale(0.99);
+        }
+        
+        .dev-drop-message {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 13px;
+            pointer-events: none;
+        }
+
+        .dev-drop-preview {
+            display: none;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-radius: 6px;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        
+        .dev-drop-preview.active {
+            display: block;
+        }
+        
+        .dev-drop-remove {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0, 0, 0, 0.7);
+            color: #fff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            z-index: 10;
         }
     `;
 
@@ -973,17 +1232,17 @@ const handleMarkerClick = (e) => {
  * GPU 모드 마커 클릭 핸들러 (ID 기반)
  */
 const handleGpuMarkerClick = (markerId) => {
-  if (!devState.isActive || !devState.currentMode) return;
+  if (!devState.isActive || !devState.currentMode) return false;
 
   const markerData =
     state.allMarkers.get(markerId) || state.allMarkers.get(String(markerId));
-  if (!markerData) return;
+  if (!markerData) return false;
 
   if (state.map && state.map._popup) {
     state.map.closePopup();
   }
 
-  handleMarkerAction(markerData, null);
+  return handleMarkerAction(markerData, null);
 };
 
 /**
@@ -1005,6 +1264,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
 
     addLog(`선택: ${markerData.originalName || markerData.id}`, "info");
     updateUI();
+    return true;
   } else if (devState.currentMode === "inspect") {
     const info = {
       id: markerData.id,
@@ -1022,7 +1282,9 @@ const handleMarkerAction = (markerData, leafletMarker) => {
     console.table(info);
 
     addLog(`정보 출력: ${markerData.originalName || markerData.id}`, "success");
+    return true;
   }
+  return false;
 };
 
 /**
@@ -1258,9 +1520,7 @@ const resetAllChanges = () => {
 
   const count = devState.changes.size + devState.newMarkers.length;
   devState.changes.clear();
-  devState.newMarkers.clear
-    ? devState.newMarkers.clear()
-    : (devState.newMarkers = []);
+  devState.newMarkers = [];
   devState.originalPositions.clear();
 
   addLog(`${count}개 변경사항 초기화됨`, "success");
@@ -1290,6 +1550,9 @@ const bindDevEvents = () => {
   document
     .getElementById("dev-btn-region")
     ?.addEventListener("click", () => toggleRegionEditor());
+  document
+    .getElementById("dev-btn-test-dup")
+    ?.addEventListener("click", () => simulateDuplicates());
 
   document
     .getElementById("dev-btn-export")
@@ -1492,7 +1755,7 @@ const createRegionEditorUI = () => {
 
 const startNewPolygon = () => {
   clearPolygon();
-  devState.currentPolygon = L.polygon([], {
+  devState.currentPolygon = /** @type {any} */ (L).polygon([], {
     color: "#ff4444",
     weight: 3,
   }).addTo(state.map);
@@ -1517,9 +1780,9 @@ const updatePolygonShape = () => {
 const addPolygonPoint = (latlng) => {
   if (!devState.currentPolygon) startNewPolygon();
 
-  const handle = L.marker(latlng, {
+  const handle = /** @type {any} */ (L).marker(latlng, {
     draggable: true,
-    icon: L.divIcon({
+    icon: /** @type {any} */ (L).divIcon({
       className: "region-handle",
       html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
       iconSize: [16, 16],
@@ -1596,15 +1859,15 @@ const loadRegion = (region) => {
     parseFloat(coord[0]),
   ]);
 
-  devState.currentPolygon = L.polygon(latlngs, {
+  devState.currentPolygon = /** @type {any} */ (L).polygon(latlngs, {
     color: "#4444ff",
     weight: 3,
   }).addTo(state.map);
 
   latlngs.forEach((ll) => {
-    const handle = L.marker(ll, {
+    const handle = /** @type {any} */ (L).marker(ll, {
       draggable: true,
-      icon: L.divIcon({
+      icon: /** @type {any} */ (L).divIcon({
         className: "region-handle",
         html: '<div style="width: 12px; height: 12px; background: white; border: 2px solid #ff4444; border-radius: 50%; box-shadow: 0 0 4px rgba(0,0,0,0.5);"></div>',
         iconSize: [16, 16],
@@ -1630,4 +1893,88 @@ const loadRegion = (region) => {
 dev.loadRegion = loadRegion;
 dev.isRegionMode = () => devState.currentMode === "region";
 
+export const openAddMarkerModal = (lat, lng) => {
+  // Ensure dev mode is properly initialized if not active
+  if (!devState.isActive) {
+    startDev();
+  }
+
+  // Hide the main dev tools panel as requested
+  const devPanel = document.getElementById("dev-tools-modal");
+  if (devPanel) devPanel.style.display = "none";
+
+  createAddMarkerModal(lat, lng);
+};
+
+/**
+ * 시뮬레이션: 현재 지도 중심에 중복 마커(근처 위치)들을 생성하여 로직 확인
+ */
+const simulateDuplicates = async () => {
+  if (!state.map) return;
+
+  // 1. Community Mode 강제 활성화 (마커가 보이도록 필수 설정)
+  if (!state.showCommunityMarkers) {
+    setState("showCommunityMarkers", true);
+    const communityToggle = document.getElementById("community-mode-toggle");
+    if (communityToggle && communityToggle instanceof HTMLInputElement) {
+      communityToggle.checked = true;
+    }
+  }
+
+  const center = state.map.getCenter();
+  const category = "17310010001"; // 보물상자
+
+  // 5개의 가상 마커 생성
+  // i=1~3: 거의 동일 위치 (통합 테스트용)
+  // i=4~5: 근처 위치 (개별 표시 테스트용)
+  for (let i = 1; i <= 5; i++) {
+    const latOffset = (i <= 3) ? (i * 0.00001) : (i * 0.003 + (Math.random() * 0.001));
+    const lngOffset = (i <= 3) ? (i * 0.00001) : (i * 0.003 + (Math.random() * 0.001));
+    const fakeId = `SIM-${Date.now()}-${i}`;
+
+    const fakeMarker = {
+      id: fakeId,
+      name: `시뮬레이션 마커 ${i}`,
+      description: `이것은 테스트용 제보 ${i}입니다. ${i === 1 ? '가장 추천이 많아 대표로 표시됩니다.' : ''}`,
+      category: category,
+      lat: center.lat + latOffset,
+      lng: center.lng + lngOffset,
+      x: center.lat + latOffset, // Supercluster compatibility
+      y: center.lng + lngOffset, // Supercluster compatibility
+      isBackend: true,
+      status: 'approved',
+      votes: { up: i === 1 ? 99 : Math.floor(Math.random() * 10), down: 0 },
+      images: [],
+      video_url: [],
+      user_id: `tester_${i}`
+    };
+
+    state.communityMarkers.set(fakeId, fakeMarker);
+  }
+
+  import("./sync/ui.js").then(({ showSyncToast }) => {
+    showSyncToast("5개의 테스트 마커가 생성되었습니다.", "success");
+  });
+
+  // 2. 렌더링 강제 업데이트
+  const { renderMapDataAndMarkers } = await import("./map/markers.js");
+  renderMapDataAndMarkers();
+};
+
+dev.simulateDuplicates = simulateDuplicates;
+dev.handleGpuClick = handleGpuMarkerClick;
+
 export { dev, startDev, stopDev };
+
+// Clean up temp marker when modal is closed (this function needs to be called by close handler)
+export const closeAddMarkerModal = () => {
+  const modal = document.getElementById("dev-add-marker-modal");
+  if (modal) {
+    modal.style.display = "none";
+    // modal.remove(); // Optional: remove entirely or just hide
+  }
+  if (devState.tempMarker) {
+    if (state.map) state.map.removeLayer(devState.tempMarker);
+    devState.tempMarker = null;
+  }
+};

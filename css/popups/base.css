@@ -7,7 +7,7 @@
     box-shadow: var(--glass-shadow);
     color: var(--text-main);
     padding: 0;
-    
+
     overflow: hidden;
 }
 
@@ -22,7 +22,7 @@
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
     padding: 0;
-    
+
 }
 
 .leaflet-popup-content::-webkit-scrollbar {
@@ -96,13 +96,13 @@
     justify-content: space-between;
     padding: 16px 20px;
     padding-right: 54px;
-    
+
     background: var(--bg-item);
     border-bottom: 1px solid var(--border);
     width: 100%;
-    
+
     box-sizing: border-box;
-    
+
     z-index: 10;
 }
 
@@ -217,9 +217,19 @@
     line-height: 1.3;
 }
 
-.popup-content h1 { font-size: 1.2rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
-.popup-content h2 { font-size: 1.1rem; }
-.popup-content h3 { font-size: 1.0rem; }
+.popup-content h1 {
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 4px;
+}
+
+.popup-content h2 {
+    font-size: 1.1rem;
+}
+
+.popup-content h3 {
+    font-size: 1.0rem;
+}
 
 .popup-content p {
     margin: 0 0 8px 0;
@@ -294,4 +304,51 @@
     border: 0;
     border-bottom: 1px solid var(--border);
     margin: 16px 0;
+}
+
+.popup-aggregated-section {
+    margin-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+.agg-card {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.agg-card:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateY(-1px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.agg-card.active {
+    background: rgba(218, 172, 113, 0.1) !important;
+    border-color: var(--accent) !important;
+    box-shadow: 0 0 12px rgba(218, 172, 113, 0.15);
+}
+
+.agg-card.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent);
+}
+
+.aggregated-cards::-webkit-scrollbar {
+    width: 4px;
+}
+
+.aggregated-cards::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
 }

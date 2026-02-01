@@ -28,26 +28,40 @@ import { lazyLoader } from "../ui/lazy-loader.js";
  * @param {string} regionName - Region name.
  * @returns {string} The HTML string.
  */
-export const createPopupHtml = (item, lat, lng, regionName) => {
+export const createPopupHtml = (item, lat, lng, regionName, activeReportId = null) => {
+  let displayItem = item;
+
+  // Use activeReportId to find which report to show in the main area
+  if (activeReportId && String(item.id) !== String(activeReportId)) {
+    if (item.aggregated) {
+      const found = item.aggregated.find(
+        (a) => String(a.id) === String(activeReportId),
+      );
+      if (found) displayItem = found;
+    }
+  }
+
   const isFav =
     state.favorites.includes(String(item.id)) ||
     state.favorites.includes(item.id);
+  // @ts-ignore
+  const completedId = item.masterId || item.id; // Completion status follows master
   const completedItem = state.completedList.find(
-    (c) => String(c.id) === String(item.id),
+    (c) => String(c.id) === String(completedId),
   );
   const isCompleted = !!completedItem;
   const completedTimeStr =
     completedItem && completedItem.completedAt
       ? formatCompletedTime(completedItem.completedAt)
       : "";
-  const displayRegion = item.forceRegion || regionName;
-  let translatedName = t(item.name);
+  const displayRegion = displayItem.forceRegion || regionName;
+  let translatedName = t(displayItem.name);
   if (translatedName) {
     translatedName = String(translatedName).replace(/{region}/g, displayRegion);
   }
-  const categoryName = t(item.category);
+  const categoryName = t(displayItem.category);
 
-  let itemDescription = (item.description || "").trim();
+  let itemDescription = (displayItem.description || "").trim();
   let replaceName = translatedName;
   const josa =
     typeof getJosa === "function"
@@ -93,8 +107,8 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
   /** @type {MediaItem[]} */
   const mediaItems = [];
 
-  if (item.images && item.images.length > 0) {
-    item.images.forEach((src, idx) => {
+  if (displayItem.images && displayItem.images.length > 0) {
+    displayItem.images.forEach((src, idx) => {
       mediaItems.push({
         type: "image",
         src: src,
@@ -197,6 +211,7 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
   let translateBtnHtml = "";
   if (
     !item.isTranslated &&
+    !item.isBackend && // Skip translation for community reports
     item.description &&
     item.description.trim() !== "" &&
     !isExternalContent
@@ -295,30 +310,83 @@ export const createPopupHtml = (item, lat, lng, regionName) => {
     ? `<div id="${contentId}"></div>`
     : `<div class="popup-content">${itemDescription}</div>`;
 
+  let aggregatedReportsHtml = "";
+  if (item.aggregated && item.aggregated.length > 0) {
+    const allReports = [item, ...item.aggregated];
+    const listItems = allReports
+      .map((report) => {
+        const isActive = String(report.id) === String(displayItem.id);
+        const reportAuthor = report.user_id || "Anonymous";
+        const reportTitle = t(report.name) || "제보 내용";
+
+        return `
+          <div class="report-item ${isActive ? "active" : ""}" 
+               data-action="switch-report" 
+               data-item-id="${item.id}" 
+               data-report-id="${report.id}"
+               style="padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border: 1px solid ${isActive ? "var(--accent)" : "rgba(255,255,255,0.05)"}; background: ${isActive ? "rgba(255,187,0,0.1)" : "rgba(255,255,255,0.03)"};">
+              <div class="report-author-icon" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: ${isActive ? "var(--accent)" : "rgba(255,255,255,0.1)"}; display: flex; align-items: center; justify-content: center;">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isActive ? "#000" : "currentColor"}" stroke-width="3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              </div>
+              <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 11px; font-weight: 700; color: ${isActive ? "var(--accent)" : "#eee"}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${reportTitle}</div>
+                  <div style="font-size: 9px; color: rgba(255,255,255,0.5);">${reportAuthor}</div>
+              </div>
+              ${isActive ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ""}
+          </div>
+        `;
+      })
+      .join("");
+
+    aggregatedReportsHtml = `
+      <div class="popup-aggregated-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
+          <h5 style="margin: 0 0 8px 4px; font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px;">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              이 위치의 다른 제보 (${allReports.length})
+          </h5>
+          <div class="report-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+              ${listItems}
+          </div>
+      </div>
+    `;
+  }
+
   return `
     <div class="popup-container" data-id="${item.id}" data-lat="${lat}" data-lng="${lng}">
         <div class="popup-header">
-            <div style="display: flex; align-items: center;">
-                <img src="./icons/${item.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
-                <h4>${translatedName}</h4>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <img src="./icons/${displayItem.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
+                <div style="display:flex; flex-direction:column; gap: 4px;">
+                    <h4 style="margin:0;">${translatedName}</h4>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        ${displayItem.user_id ? `
+                            <div class="author-profile" style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
+                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span style="font-size: 10px; font-weight: 600; color: #eee; letter-spacing: -0.2px;">${displayItem.user_id}</span>
+                            </div>
+                        ` : ''} 
+                        ${displayItem.id !== item.id ? '<span style="font-size: 10px; color: var(--accent); font-weight: 700; background: rgba(255, 187, 0, 0.15); padding: 2px 6px; border-radius: 12px;">중복 제보</span>' : ''}
+                    </div>
+                </div>
             </div>
         </div>
         <div class="popup-body">
             ${mediaHtml}
             ${bodyContent}
             ${translateBtnHtml}
-            ${renderVoteButtons(item.id)}
+            ${renderVoteButtons(displayItem.id, false, !!displayItem.isBackend)}
+            ${aggregatedReportsHtml}
         </div>
         ${relatedHtml}
         <div class="popup-actions">
-            <button class="action-btn btn-fav ${isFav ? "active" : ""}" data-action="toggle-fav" data-item-id="${item.id}" title="즐겨찾기">
+            <button class="action-btn btn-fav ${isFav ? "active" : ""}" data-action="toggle-fav" data-item-id="${displayItem.id}" title="즐겨찾기">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </button>
-            <button class="action-btn btn-complete ${isCompleted ? "active" : ""}" data-action="toggle-complete" data-item-id="${item.id}" title="완료 상태로 표시">
+            <button class="action-btn btn-complete ${isCompleted ? "active" : ""}" data-action="toggle-complete" data-item-id="${completedId}" title="완료 상태로 표시">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
                 ${isCompleted ? `완료${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ""}` : "완료"}
             </button>
-            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${item.id}" title="경로에 추가">
+            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${displayItem.id}" title="경로에 추가">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
                 경로
             </button>
@@ -425,7 +493,8 @@ export const initPopupEventDelegation = () => {
         break;
       case "vote":
         const type = target.dataset.type;
-        toggleVote(itemId, type).then((result) => {
+        const isBackend = target.dataset.isBackend === "true";
+        toggleVote(itemId, type, isBackend).then((result) => {
           const voteContainer = target.closest(".vote-container");
           if (voteContainer && result && result.counts) {
             const upBtn = voteContainer.querySelector(".btn-up");
@@ -443,6 +512,46 @@ export const initPopupEventDelegation = () => {
           }
         });
         break;
+      case "switch-report": {
+        const reportId = target.dataset.reportId;
+        const mainItemId = target.dataset.itemId;
+
+        // Try to find the master item in lastRenderedItems (which has the aggregated data)
+        let masterItem = state.lastRenderedItems.find((it) => String(it.id) === String(mainItemId));
+
+        // Fallback to other sources
+        if (!masterItem) {
+          const items = state.mapData?.items || [];
+          masterItem = items.find((it) => String(it.id) === String(mainItemId));
+        }
+
+        if (!masterItem && state.communityMarkers) {
+          masterItem = state.communityMarkers.get(String(mainItemId));
+        }
+
+        if (masterItem && state.map) {
+          // Use getPopup() or fall back to internal _popup for Leaflet
+          const popup = state.map.getPopup ? state.map.getPopup() : state.map._popup;
+          if (popup) {
+            const latlng = popup.getLatLng();
+            const newHtml = createPopupHtml(
+              masterItem,
+              latlng.lat,
+              latlng.lng,
+              masterItem.forceRegion || masterItem.region,
+              reportId,
+            );
+            popup.setContent(newHtml);
+
+            // Re-observe for lazy loading in the updated content
+            const element = popup.getElement();
+            if (element) {
+              lazyLoader.observeAll(".lazy-load", element);
+            }
+          }
+        }
+        break;
+      }
     }
   });
 

@@ -77,7 +77,11 @@ const log = createLogger("State");
  * @property {any} pixiContainer
  * @property {LoadingState} loadingState
  * @property {string|null} deeplGlossaryId
+ * @property {string|null} deeplGlossaryId
  * @property {Map<string|number, string>} globalMarkerNames
+ * @property {boolean} showCommunityMarkers
+ * @property {Map<string, any>} communityMarkers
+ * @property {any[]} lastRenderedItems
  */
 
 const checkWebGL = (() => {
@@ -138,6 +142,11 @@ const initialState = {
   closeOnComplete: false,
   regionMetaInfo: {},
   reverseRegionMap: {},
+
+  // Community Mode
+  showCommunityMarkers: false,
+  communityMarkers: new Map(), // Store backend markers: id -> marker data
+  lastRenderedItems: [], // Persist filtered/aggregated items for popup access
 
   // API keys are initialized empty, loaded from Vault
   savedAIProvider: "gemini",

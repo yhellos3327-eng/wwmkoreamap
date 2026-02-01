@@ -1,0 +1,124 @@
+/* Leaflet Control Redesign */
+
+.leaflet-control-container .leaflet-bar {
+    border: none !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+    background: rgba(20, 20, 20, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    overflow: hidden;
+}
+
+.leaflet-control-zoom-in,
+.leaflet-control-zoom-out {
+    background: transparent !important;
+    color: #eee !important;
+    width: 36px !important;
+    height: 36px !important;
+    line-height: 36px !important;
+    font-size: 18px !important;
+    transition: all 0.2s ease !important;
+    border: none !important;
+}
+
+.leaflet-control-zoom-in:hover,
+.leaflet-control-zoom-out:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+    color: var(--accent, #ffbb00) !important;
+}
+
+.leaflet-control-zoom-in {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Rounded corners for the bar items */
+.leaflet-bar a:first-child {
+    border-top-left-radius: 12px !important;
+    border-top-right-radius: 12px !important;
+}
+
+.leaflet-bar a:last-child {
+    border-bottom-left-radius: 12px !important;
+    border-bottom-right-radius: 12px !important;
+}
+
+/* Layer Control */
+.leaflet-control-layers {
+    background: rgba(20, 20, 20, 0.7) !important;
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 12px !important;
+    color: #eee !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+
+.leaflet-control-layers-toggle {
+    background-image: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 36px !important;
+    height: 36px !important;
+}
+
+.leaflet-control-layers-toggle::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background-color: #eee;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolygon points='12 2 2 7 12 12 22 7 12 2'/%3E%3Cpolyline points='2 17 12 22 22 17'/%3E%3Cpolyline points='2 12 12 17 22 12'/%3E%3C/svg%3E") no-repeat center;
+}
+
+.leaflet-control-layers:hover .leaflet-control-layers-toggle::after {
+    background-color: var(--accent, #ffbb00);
+}
+
+.leaflet-control-layers-expanded {
+    padding: 12px !important;
+}
+
+/* Attribution */
+.leaflet-control-attribution {
+    background: rgba(0, 0, 0, 0.3) !important;
+    backdrop-filter: blur(4px) !important;
+    color: rgba(255, 255, 255, 0.5) !important;
+    font-size: 10px !important;
+    border-top-left-radius: 8px !important;
+    border: none !important;
+    margin: 0 !important;
+    padding: 2px 8px !important;
+}
+
+.leaflet-control-attribution a {
+    color: rgba(255, 255, 255, 0.7) !important;
+    text-decoration: none !important;
+}
+
+.leaflet-control-attribution a:hover {
+    color: var(--accent, #ffbb00) !important;
+}
+
+/* Positioning adjustments */
+.leaflet-top.leaflet-left {
+    top: 20px;
+    left: 20px;
+}
+
+.leaflet-top.leaflet-right {
+    top: 20px;
+    right: 20px;
+}
+
+.leaflet-bottom.leaflet-left {
+    bottom: 20px;
+    left: 20px;
+}
+
+.leaflet-bottom.leaflet-right {
+    bottom: 0px;
+    right: 0px;
+}

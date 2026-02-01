@@ -79,6 +79,25 @@ export const initMap = async (mapKey) => {
     map.on("click", () => {
       if (window.innerWidth <= 768) toggleSidebar("close");
     });
+
+    // Middle click (auxclick) handler for adding markers
+    const mapContainer = map.getContainer();
+    mapContainer.addEventListener("auxclick", (e) => {
+      // Button 1 is middle mouse button (wheel click)
+      // Only allow if Community Mode is active
+      if (!state.showCommunityMarkers) return;
+
+      console.log("Auxclick detected:", e.button);
+      if (e.button === 1) {
+        e.preventDefault();
+        console.log("Middle click confirmed. Importing dev-tools...");
+        import("../dev-tools.js").then(({ openAddMarkerModal }) => {
+          console.log("dev-tools imported. Opening modal...");
+          const latlng = map.mouseEventToLatLng(e);
+          openAddMarkerModal(latlng.lat, latlng.lng);
+        }).catch(err => console.error("Failed to import dev-tools:", err));
+      }
+    });
   } else {
     state.map.setView(config.center, config.zoom);
     if (config.minZoom !== undefined) state.map.setMinZoom(config.minZoom);

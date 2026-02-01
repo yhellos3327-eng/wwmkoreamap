@@ -115,7 +115,35 @@ export const renderMapDataAndMarkers = async () => {
       state.completedList.map((c) => String(c.id))
     );
 
-    const filteredItems = items.filter((item) => {
+    // Get Boundary Stone ID if needed
+    let boundaryStoneId = null;
+    if (state.showCommunityMarkers) {
+      // Dynamically import to avoid circular dependency issues if possible, or just use re-exported
+      // Assuming we import getBoundaryStoneId at top or use logic here
+      // For simplicity:
+      boundaryStoneId = "17310010083"; // Hardcoded for safety, or imported
+    }
+
+    // Combine standard items and community markers if enabled
+    let contentItems = items;
+    if (state.showCommunityMarkers && state.communityMarkers.size > 0) {
+      contentItems = [...items, ...state.communityMarkers.values()];
+    }
+
+    let filteredItems = contentItems.filter((item) => {
+      // 1. Community Mode Filter
+      if (state.showCommunityMarkers) {
+        // Show only Backend Markers OR Boundary Stones
+        if (item.isBackend) {
+          return item.status !== "rejected";
+        }
+        if (String(item.category) === "17310010083") return true; // Boundary Stone
+        return false; // Hide everything else
+      } else {
+        // Standard Mode: Hide backend markers
+        if (item.isBackend) return false;
+      }
+
       // Check category filter
       const catId = item.category;
       if (!state.activeCategoryIds.has(catId)) {
@@ -138,6 +166,97 @@ export const renderMapDataAndMarkers = async () => {
 
       return true;
     });
+
+    // --- Start Performance & Sampling Optimization ---
+    if (state.showCommunityMarkers) {
+      const communityList = filteredItems.filter((item) => !!item.isBackend);
+      const staticList = filteredItems.filter((item) => !item.isBackend);
+
+      // 1. Spatial Deduplication (Group by Category + Position)
+      // Uses a grid based approach to identify markers in the 'same or nearby' location
+      const uniqueGrid = new Map();
+      const PRECISION = 4; // ~11 meters at current scale, captures 'nearby' duplicates
+
+      const dedupedCommunity = [];
+      communityList.forEach((item) => {
+        // Key: rounded coords + category
+        const key = `${parseFloat(item.lat).toFixed(PRECISION)}_${parseFloat(item.lng).toFixed(PRECISION)}_${item.category}`;
+
+        const existing = uniqueGrid.get(key);
+        if (!existing) {
+          uniqueGrid.set(key, { ...item, aggregated: [] });
+        } else {
+          // Rule: Keep higher votes, or if equal, keep latest ID as the master
+          const getVoteScore = (v) => {
+            if (typeof v === 'number') return v;
+            if (v && typeof v === 'object') return (v.up || 0) - (v.down || 0);
+            return 0;
+          };
+
+          const existingVotes = getVoteScore(existing.votes);
+          const currentVotes = getVoteScore(item.votes);
+
+          if (
+            currentVotes > existingVotes ||
+            (currentVotes === existingVotes &&
+              parseInt(item.id) > parseInt(existing.id))
+          ) {
+            // New is better: promote current to master, move old to aggregated
+            const oldMaster = { ...existing };
+            delete oldMaster.aggregated; // Prevent nesting
+
+            const newMaster = { ...item, aggregated: [...(existing.aggregated || []), oldMaster] };
+            uniqueGrid.set(key, newMaster);
+          } else {
+            // Existing is better: add current to aggregated
+            existing.aggregated = existing.aggregated || [];
+            existing.aggregated.push(item);
+          }
+        }
+      });
+
+      const processedCommunity = Array.from(uniqueGrid.values());
+
+      // 2. Redundancy check against Static markers (Optional but good)
+      // If a community marker is exactly where a static one is, and same category, skip it.
+      const staticKeys = new Set(
+        staticList.map(
+          (s) =>
+            `${parseFloat(s.lat).toFixed(PRECISION)}_${parseFloat(s.lng).toFixed(PRECISION)}_${s.category}`
+        )
+      );
+      const nonRedundantCommunity = processedCommunity.filter((item) => {
+        const key = `${parseFloat(item.lat).toFixed(PRECISION)}_${parseFloat(item.lng).toFixed(PRECISION)}_${item.category}`;
+        return !staticKeys.has(key);
+      });
+
+      // 3. Random Sampling (if over limit)
+      const LIMIT = 300;
+      let finalCommunity = nonRedundantCommunity;
+
+      if (finalCommunity.length > LIMIT) {
+        // Always keep essential items like "Boundary Stones" out of sampling if they were community-made (though they shouldn't be usually)
+        // Shuffling
+        for (let i = finalCommunity.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [finalCommunity[i], finalCommunity[j]] = [
+            finalCommunity[j],
+            finalCommunity[i],
+          ];
+        }
+        finalCommunity = finalCommunity.slice(0, LIMIT);
+      }
+
+      // Combine back
+      filteredItems = [...staticList, ...finalCommunity];
+
+      if (nonRedundantCommunity.length > LIMIT) {
+        console.log(`[Markers] Sampled ${LIMIT} from ${nonRedundantCommunity.length} community markers.`);
+      }
+    }
+    // --- End Performance & Sampling Optimization ---
+
+    setState("lastRenderedItems", filteredItems);
 
     await pixi.renderMarkersWithPixi(filteredItems);
 

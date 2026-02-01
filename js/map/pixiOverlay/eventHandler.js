@@ -194,13 +194,13 @@ export const attachEventHandlers = (map, overlay, container) => {
       );
 
       if (sprite) {
-        /** @type {any} */ (window).dev.handleGpuClick(
-        sprite.markerData.item.id,
-      );
-        if (e.originalEvent) {
-          e.originalEvent.stopPropagation();
+        // Only return if the dev handler claims to have handled the click
+        if (/** @type {any} */ (window).dev.handleGpuClick(sprite.markerData.item.id)) {
+          if (e.originalEvent) {
+            e.originalEvent.stopPropagation();
+          }
+          return;
         }
-        return;
       }
     }
 
@@ -241,6 +241,7 @@ export const attachEventHandlers = (map, overlay, container) => {
     }
 
     if (sprite && sprite.markerData) {
+      // 1. Handle Supercluster Clusters
       if (sprite.markerData.isCluster) {
         const supercluster = getSupercluster();
         if (supercluster) {
