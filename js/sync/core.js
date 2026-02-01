@@ -356,14 +356,10 @@ export const performFullSync = async (silent = false, broadcast = true) => {
       }
 
       log.info("User confirmed INTENTIONAL DELETION. Proceeding with merge.");
-      // Fall through to 3-way merge, which will respect the deletions because Local is empty 
-      // and Base has data => Logic will see (In Base, !Local) -> Deleted.
     }
 
     log.info(`Data counts`, { local: localCount, cloud: cloudCount });
 
-    // CLOUD PRIORITY CHECK: If Cloud has much more data, we explicitly trust it.
-    // (Disable this if we trust 3-way merge, but keep as failsafe for massive discrepancies)
     if (cloudCount > localCount + 50) {
       log.info("Cloud data is significantly larger. Prioritizing Cloud merge.");
     }
@@ -371,19 +367,15 @@ export const performFullSync = async (silent = false, broadcast = true) => {
     // 3-Way Merge
     const mergedData = mergeData(localData, cloudData || {}, baseData);
 
-    // Update Snapshot after successful merge
     primaryDb.set("sync_base_snapshot", mergedData).catch(e => log.warn("Failed to update snapshot", e));
 
-    // SAFETY FIX: Validate merge result
     const mergedCount = (mergedData.completedMarkers?.length || 0) + (mergedData.favorites?.length || 0);
 
-    // Only block if we had significant local data that disappeared
-    // If local was small, it's okay for merged < max * 0.5 because merged will be >= cloud anyway.
-    // The dangerous case is: Local(1000) + Cloud(10) -> Merged(500) [Loss of 500]
-    // The case we WANT: Local(5) + Cloud(1000) -> Merged(1005) [Gain]
+    const unexpectedLoss = mergedCount < cloudCount * 0.8 && mergedCount < localCount * 0.8;
+
     const maxSourceCount = Math.max(localCount, cloudCount);
 
-    if (maxSourceCount > 10 && mergedCount < maxSourceCount * 0.5) {
+    if (maxSourceCount > 10 && mergedCount < maxSourceCount * 0.5 && mergedCount < cloudCount * 0.8) {
       log.error(`Merge resulted in suspicious data loss`, { local: localCount, cloud: cloudCount, merged: mergedCount });
 
       let rollbackStatus = "백업 없음";
