@@ -29,6 +29,7 @@ export const fetchCommunityMarkers = async () => {
                     video_url: m.video ? [m.video] : [],
                     votes: m.votes,
                     user_id: m.userId,
+                    region: m.region,
                     status: m.status // "pending", "approved", "rejected"
                 });
             });

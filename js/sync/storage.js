@@ -55,7 +55,11 @@ export const getLocalData = () => {
     }
 
     return {
-      completedMarkers: state.completedList || [],
+      completedMarkers: (state.completedList || []).filter(item => {
+        const idStr = String(item.id);
+        const communityMarkers = state.communityMarkers;
+        return !communityMarkers || !communityMarkers.has(idStr);
+      }),
       favorites: state.favorites || [],
       settings: getSettingsFromState(state)
     };
@@ -125,7 +129,15 @@ export const getLocalDataAsync = async () => {
     const favorites = await primaryDb.get("favorites") || [];
     const settings = await primaryDb.get("settings") || {};
 
-    return { completedMarkers, favorites, settings };
+    const state = store.getState();
+    const communityMarkers = state.communityMarkers;
+
+    // Filter out community markers from the persisted list
+    const filteredCompletedList = Array.isArray(completedMarkers)
+      ? completedMarkers.filter(item => !communityMarkers || !communityMarkers.has(String(item.id)))
+      : [];
+
+    return { completedMarkers: filteredCompletedList, favorites, settings };
   } catch (e) {
     log.error("getLocalDataAsync failed", e);
     return { completedMarkers: [], favorites: [], settings: {} };
@@ -163,7 +175,15 @@ export const setLocalDataAsync = async (data) => {
       }
 
       if (!completedBlocked) {
-        entries.push({ key: "completedList", value: data.completedMarkers });
+        const state = store.getState();
+        const communityMarkers = state.communityMarkers;
+
+        // Ensure we don't accidentally save community markers to IndexedDB
+        const filteredValue = Array.isArray(data.completedMarkers)
+          ? data.completedMarkers.filter(item => !communityMarkers || !communityMarkers.has(String(item.id)))
+          : data.completedMarkers;
+
+        entries.push({ key: "completedList", value: filteredValue });
       }
     }
 

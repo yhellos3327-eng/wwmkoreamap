@@ -333,44 +333,70 @@ const createAddMarkerModal = (lat, lng) => {
   const handleFile = (file) => {
     if (!file || !file.type.startsWith("image/")) return;
 
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      preview.style.backgroundImage = `url('${e.target.result}')`;
+    try {
+      const objectUrl = URL.createObjectURL(file);
+      preview.style.backgroundImage = `url('${objectUrl}')`;
       preview.classList.add("active");
       dropMessage.style.display = "none";
       removeBtn.style.display = "flex";
-    };
-    reader.readAsDataURL(file);
 
-    // Create new DataTransfer to update file input
-    const dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
+      // Update file input safely
+      try {
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        fileInput.files = dataTransfer.files;
+      } catch (dtError) {
+        console.warn("DataTransfer not supported, manual file sync might fail on drop", dtError);
+        // Fallback: We'll store it in a temporary property on the input
+        /** @type {any} */ (fileInput)._droppedFile = file;
+      }
+    } catch (err) {
+      console.error("File processing error:", err);
+    }
   };
 
-  dropZone.addEventListener("click", () => fileInput.click());
-  removeBtn.addEventListener("click", resetFile);
+  dropZone.addEventListener("click", (e) => {
+    // Only trigger if not clicking the remove button
+    if (e.target !== removeBtn) {
+      fileInput.click();
+    }
+  });
+
+  removeBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    resetFile();
+  });
 
   fileInput.addEventListener("change", (e) => {
     const file = /** @type {HTMLInputElement} */ (e.target).files[0];
     handleFile(file);
   });
 
-  dropZone.addEventListener("dragover", (e) => {
+  const preventDefaults = (e) => {
     e.preventDefault();
+    e.stopPropagation();
+  };
+
+  ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
+    dropZone.addEventListener(eventName, preventDefaults, false);
+    // Also prevent on the whole modal to prevent accidental navigation
+    modal.addEventListener(eventName, preventDefaults, false);
+  });
+
+  dropZone.addEventListener("dragover", () => {
     dropZone.classList.add("dragover");
   });
 
-  dropZone.addEventListener("dragleave", (e) => {
-    e.preventDefault();
+  dropZone.addEventListener("dragleave", () => {
     dropZone.classList.remove("dragover");
   });
 
   dropZone.addEventListener("drop", (e) => {
-    e.preventDefault();
     dropZone.classList.remove("dragover");
     const file = e.dataTransfer.files[0];
-    handleFile(file);
+    if (file) {
+      handleFile(file);
+    }
   });
 
   catGrid.addEventListener("click", (e) => {
@@ -401,7 +427,8 @@ const createAddMarkerModal = (lat, lng) => {
     const title = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-title")).value;
     const desc = /** @type {HTMLTextAreaElement} */ (document.getElementById("dev-add-desc")).value;
     const region = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-region")).value;
-    const screenshotFile = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-screenshot")).files[0];
+    const screenshotInput = /** @type {any} */ (document.getElementById("dev-add-screenshot"));
+    const screenshotFile = screenshotInput.files[0] || screenshotInput._droppedFile;
     const videoUrl = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-video")).value;
 
     if (!catId || !title) {
@@ -978,9 +1005,6 @@ const addDevStyles = () => {
             border-radius: 8px;
             font-weight: 600;
             font-size: 14px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
             cursor: pointer;
             transition: all 0.2s;
         }
