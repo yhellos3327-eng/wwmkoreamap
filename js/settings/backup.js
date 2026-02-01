@@ -25,7 +25,9 @@ const ICONS = {
   star: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>`,
   sliders: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>`,
   settings: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`,
-  shield: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`
+  shield: `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`,
+  clock: `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>`,
+  lock: `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`
 };
 
 /**
@@ -34,7 +36,13 @@ const ICONS = {
  * @returns {string} The formatted date string.
  */
 const formatBackupDate = (dateStr) => {
-  const date = new Date(dateStr);
+  // Handle SQLite UTC date (e.g., "2024-01-01 12:00:00")
+  let targetDateStr = dateStr;
+  if (typeof dateStr === 'string' && !dateStr.includes('T') && !dateStr.includes('Z')) {
+    targetDateStr = dateStr.replace(' ', 'T') + 'Z';
+  }
+
+  const date = new Date(targetDateStr);
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / (1000 * 60));
@@ -107,31 +115,126 @@ const renderBackupList = (backups) => {
   const container = document.getElementById("cloud-backup-list");
   if (!container) return;
 
+  // Inject Styles if not present
+  if (!document.getElementById('backup-list-styles')) {
+    const style = document.createElement('style');
+    style.id = 'backup-list-styles';
+    style.textContent = `
+      .backup-section { margin-bottom: 24px; }
+      .pinned-section { 
+          margin-bottom: 32px; 
+          border-bottom: 1px dashed rgba(255, 255, 255, 0.1); 
+          padding-bottom: 24px; 
+      }
+      .backup-section-title { 
+          font-size: 0.85rem; 
+          text-transform: uppercase; 
+          letter-spacing: 0.05em; 
+          color: var(--text-muted, #888); 
+          margin-bottom: 12px; 
+          font-weight: 600; 
+          display: flex;
+          align-items: center;
+          gap: 6px;
+      }
+      .pinned-section .backup-section-title {
+          color: var(--accent, #ffd700); 
+      }
+      .backup-item.pinned {
+          background: linear-gradient(to right, rgba(255, 215, 0, 0.08), rgba(255, 215, 0, 0.01));
+          border-left: 3px solid #ffd700;
+          border-top: 1px solid rgba(255, 215, 0, 0.15);
+          border-bottom: 1px solid rgba(255, 215, 0, 0.15);
+          border-right: 1px solid rgba(255, 215, 0, 0.15);
+      }
+      .backup-badge-pinned {
+          background: #ffd700;
+          color: #000;
+          font-weight: 700;
+          padding: 2px 6px;
+          border-radius: 4px;
+          font-size: 0.75rem;
+          margin-right: 8px;
+          vertical-align: 1px;
+          display: inline-flex;
+          align-items: center;
+          gap: 3px;
+      }
+      .backup-item { margin-bottom: 12px; }
+      .backup-empty-state {
+        padding: 30px;
+        text-align: center;
+        color: var(--text-muted);
+        background: var(--bg-item);
+        border-radius: 12px;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
   if (!backups || backups.length === 0) {
     container.innerHTML =
       '<div class="backup-empty-state">저장된 백업이 없습니다.</div>';
     return;
   }
 
-  container.innerHTML = backups
-    .map(
-      (backup, index) => `
-        <div class="backup-item" data-backup-id="${backup.id}">
-            <div class="backup-info">
-                <span class="backup-label">${backup.label || `백업 #${backups.length - index}`}</span>
-                <span class="backup-date">${formatBackupDate(backup.created_at)}</span>
-                <span class="backup-stats">완료: ${backup.completed_count || 0}개</span>
+  const pinnedBackups = backups.filter(b => b.is_pinned);
+  const recentBackups = backups.filter(b => !b.is_pinned);
+
+  let html = '';
+
+  // Render Pinned Section
+  if (pinnedBackups.length > 0) {
+    html += `
+          <div class="backup-section pinned-section">
+              <h4 class="backup-section-title">
+                  ${ICONS.trophy} 영구 보존 (최대 데이터)
+              </h4>
+              ${pinnedBackups.map((backup, index) => renderBackupItem(backup, index, true)).join('')}
+          </div>
+      `;
+  }
+
+  // Render Recent Section (Always show header if pinned exists, or if recents exist)
+  if (recentBackups.length > 0 || (pinnedBackups.length > 0 && recentBackups.length === 0)) {
+    // Even if empty, if pinned exists, we might want to show "Recent: None"? No, just hide.
+    if (recentBackups.length > 0) {
+      html += `
+            <div class="backup-section recent-section">
+                <h4 class="backup-section-title">
+                    ${ICONS.clock} 최근 백업 기록
+                </h4>
+                ${recentBackups.map((backup, index) => renderBackupItem(backup, index, false)).join('')}
             </div>
-            <button class="backup-restore-btn" data-backup-id="${backup.id}">복원</button>
-        </div>
-    `,
-    )
-    .join("");
+        `;
+    }
+  }
+
+  // Fallback if somehow both are empty but logic passed
+  if (!html) {
+    html = '<div class="backup-empty-state">표시할 백업이 없습니다.</div>';
+  }
+
+  container.innerHTML = html;
 
   container.querySelectorAll(".backup-restore-btn").forEach((btn) => {
     btn.addEventListener("click", handleRestore);
   });
 };
+
+const renderBackupItem = (backup, index, isPinned) => `
+    <div class="backup-item ${isPinned ? 'pinned' : ''}" data-backup-id="${backup.id}">
+        <div class="backup-info">
+            <span class="backup-label">
+                ${isPinned ? `<span class="backup-badge-pinned">${ICONS.lock} 보존됨</span>` : ''}
+                ${backup.label || (isPinned ? '자동 보존된 백업' : `백업 #${index + 1}`)}
+            </span>
+            <span class="backup-date">${formatBackupDate(backup.created_at)}</span>
+            <span class="backup-stats">완료: ${backup.completed_count || 0}개</span>
+        </div>
+        <button class="backup-restore-btn" data-backup-id="${backup.id}">복원</button>
+    </div>
+`;
 
 /**
  * Handles the restore button click.

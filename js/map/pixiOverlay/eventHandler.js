@@ -195,8 +195,8 @@ export const attachEventHandlers = (map, overlay, container) => {
 
       if (sprite) {
         /** @type {any} */ (window).dev.handleGpuClick(
-          sprite.markerData.item.id,
-        );
+        sprite.markerData.item.id,
+      );
         if (e.originalEvent) {
           e.originalEvent.stopPropagation();
         }

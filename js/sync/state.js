@@ -12,6 +12,12 @@ let pollingInterval = null;
 /** @type {string|null} */
 let lastSyncVersion = null;
 
+/** @type {boolean} */
+let isInitialSyncComplete = false;
+
+/** @type {number} */
+let serverDataVersion = 0;
+
 /** @type {number} */
 // Increased from 2000ms to 5000ms to reduce sync frequency
 export const SYNC_DELAY = 5000;
@@ -22,9 +28,9 @@ export const POLLING_INTERVAL = 120000;
 
 /**
  * Gets the current sync state.
- * @returns {{isSyncing: boolean, lastSyncVersion: string|null}} The sync state.
+ * @returns {{isSyncing: boolean, lastSyncVersion: string|null, isInitialSyncComplete: boolean, serverDataVersion: number}} The sync state.
  */
-export const getSyncState = () => ({ isSyncing, lastSyncVersion });
+export const getSyncState = () => ({ isSyncing, lastSyncVersion, isInitialSyncComplete, serverDataVersion });
 
 /**
  * Sets the syncing flag.
@@ -32,6 +38,22 @@ export const getSyncState = () => ({ isSyncing, lastSyncVersion });
  */
 export const setSyncing = (val) => {
   isSyncing = val;
+};
+
+/**
+ * Sets the server data version.
+ * @param {number} val - The version number.
+ */
+export const setServerDataVersion = (val) => {
+  serverDataVersion = val;
+};
+
+/**
+ * Sets the initial sync completion status.
+ * @param {boolean} val - The completion status.
+ */
+export const setInitialSyncComplete = (val) => {
+  isInitialSyncComplete = val;
 };
 
 /**

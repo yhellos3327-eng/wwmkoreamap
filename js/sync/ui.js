@@ -1,5 +1,9 @@
 // @ts-check
 
+let tooltipTimeout = null;
+let lastTooltipTime = 0;
+const TOOLTIP_THROTTLE_MS = 5000;
+
 /**
  * Creates the sync tooltip element if it doesn't exist.
  * @returns {HTMLElement} The tooltip element.
@@ -84,6 +88,15 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   );
   const text = /** @type {HTMLElement} */ (tooltip.querySelector(".sync-text"));
 
+  // Throttle success messages
+  if (type === "success") {
+    const now = Date.now();
+    if (now - lastTooltipTime < TOOLTIP_THROTTLE_MS) {
+      return; // Skip too frequent updates
+    }
+    lastTooltipTime = now;
+  }
+
   tooltip.classList.remove(
     "hidden",
     "sync-success",
@@ -114,6 +127,12 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   // Force reflow
   tooltip.offsetHeight;
   tooltip.classList.remove("hidden");
+
+  // Reset existing timeout if any
+  if (tooltipTimeout) {
+    clearTimeout(tooltipTimeout);
+    tooltipTimeout = null;
+  }
 };
 
 /**
@@ -121,7 +140,7 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
  * @param {number} [delay=0] - Delay in milliseconds.
  */
 export const hideSyncTooltip = (delay = 0) => {
-  setTimeout(() => {
+  tooltipTimeout = setTimeout(() => {
     const tooltip = document.getElementById("sync-tooltip");
     if (tooltip) {
       tooltip.classList.add("hidden");
@@ -182,4 +201,102 @@ export const showSyncToast = (message, type = "info") => {
     toast.style.opacity = "0";
     toast.style.transform = "translateX(-50%) translateY(-20px)";
   }, 3000);
+};
+
+/**
+ * Shows a data loss warning modal and returns the user's choice.
+ * @param {number} localCount - Local item count.
+ * @param {number} cloudCount - Cloud item count.
+ * @returns {Promise<'restore'|'overwrite'|'cancel'>} The user's choice.
+ */
+export const showDataLossWarning = (localCount, cloudCount) => {
+  return new Promise((resolve) => {
+    // Remove existing if any
+    const existing = document.getElementById("sync-warning-modal");
+    if (existing) existing.remove();
+
+    const modal = document.createElement("div");
+    modal.id = "sync-warning-modal";
+    modal.style.cssText = `
+        position: fixed;
+        top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 99999;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    `;
+
+    modal.innerHTML = `
+        <div style="
+            background: var(--bg-panel, #1a1a1a);
+            border: 1px solid var(--glass-border, #333);
+            border-radius: 16px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            text-align: center;
+            color: var(--text-main, #fff);
+        ">
+            <div style="margin-bottom: 16px; color: #ffcc00; display: flex; justify-content: center;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+            </div>
+            <h3 style="margin: 0 0 12px 0; font-size: 1.2rem; font-weight: 700;">데이터 유실 경고</h3>
+            <p style="margin: 0 0 24px 0; font-size: 0.95rem; line-height: 1.5; color: var(--text-muted, #aaa);">
+                로컬 데이터가 비어있습니다 (${localCount}개).<br>
+                반면 클라우드에는 <b>${cloudCount}개</b>의 데이터가 있습니다.<br><br>
+                정말로 모든 데이터를 삭제하시겠습니까?<br>
+                아니면 클라우드 데이터를 복구하시겠습니까?
+            </p>
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                <button id="btn-restore" style="
+                    background: #007aff; border: none; padding: 12px; border-radius: 8px;
+                    color: white; font-weight: 600; cursor: pointer; font-size: 1rem;
+                ">
+                    클라우드 데이터 복구 (권장)
+                </button>
+                <button id="btn-overwrite" style="
+                    background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); 
+                    padding: 12px; border-radius: 8px;
+                    color: #ff3b30; font-weight: 600; cursor: pointer; font-size: 0.9rem;
+                ">
+                    아니요, 전부 삭제합니다 (초기화)
+                </button>
+                <button id="btn-cancel" style="
+                    background: transparent; border: none; padding: 8px; 
+                    color: var(--text-muted, #888); cursor: pointer; font-size: 0.9rem;
+                    margin-top: 4px;
+                ">
+                    나중에 결정 (취소)
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    const cleanup = () => modal.remove();
+
+    modal.querySelector("#btn-restore").addEventListener("click", () => {
+      cleanup();
+      resolve('restore');
+    });
+
+    modal.querySelector("#btn-overwrite").addEventListener("click", () => {
+      cleanup();
+      resolve('overwrite');
+    });
+
+    modal.querySelector("#btn-cancel").addEventListener("click", () => {
+      cleanup();
+      resolve('cancel');
+    });
+  });
 };
