@@ -111,7 +111,7 @@ export const toggleCompleted = async (id) => {
     }
 
     // Optimistic update - trigger API
-    fetch(`${BACKEND_URL}/markers/${id}/toggle-complete`, {
+    fetch(`${BACKEND_URL}/api/markers/${id}/toggle-complete`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"

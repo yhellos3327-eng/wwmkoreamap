@@ -442,7 +442,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     if (screenshotFile) formData.append("screenshot", screenshotFile);
     if (videoUrl) formData.append("video", videoUrl);
 
-    const response = await fetch(`${BACKEND_URL}/markers`, {
+    const response = await fetch(`${BACKEND_URL}/api/markers`, {
       method: "POST",
       credentials: "include", // 쿠키 인증
       body: formData, // FormData 전송
