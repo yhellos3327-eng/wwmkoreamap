@@ -146,9 +146,19 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
         const activeClass = index === 0 ? "active" : "";
 
         if (media.type === "image") {
+          let imgSrc = media.src;
+          if (imgSrc && !imgSrc.startsWith("http") && !imgSrc.startsWith("data:") && !imgSrc.startsWith("/")) {
+            // Assume it's a domain-relative or absolute URL needing protocol if it looks like one, or just prepend relative path?
+            // If it starts with 'assets.wwmmap.kr', it definitely needs https://
+            if (imgSrc.startsWith("assets.wwmmap.kr")) {
+              imgSrc = "https://" + imgSrc;
+            }
+          }
+
           const placeholder =
             "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-          return `<img data-src="${media.src}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
+          // Use imgSrc instead of media.src
+          return `<img data-src="${imgSrc}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
         } else {
           let videoSrc = media.src.replace(/^http:/, "https:");
           if (videoSrc.startsWith("//")) videoSrc = "https:" + videoSrc;

@@ -22,7 +22,7 @@ import { getLocalData, setLocalData, getLocalDataAsync } from "./storage.js";
 import { primaryDb } from "../storage/db.js";
 import { isMigrated } from "../storage/migration.js";
 import { mergeData, generateDataHash } from "./merge.js";
-import { fetchCloudData, saveCloudData } from "./api.js";
+import { fetchCloudData, saveCloudData, saveCloudBackup } from "./api.js";
 import {
   initBroadcastChannel,
   broadcastSyncUpdate,
@@ -195,6 +195,23 @@ export const saveToCloud = async (silent = false, broadcast = true, force = fals
 
     // Update Base Snapshot
     primaryDb.set("sync_base_snapshot", data).catch(console.warn);
+
+    // AUTO BACKUP (Periodic Cloud Snapshot)
+    try {
+      const lastBackup = await primaryDb.get("last_auto_cloud_backup");
+      // Interval: 1 hour
+      if (!lastBackup || Date.now() - lastBackup > 1000 * 60 * 60) {
+        // Run in background, don't await blocking
+        saveCloudBackup("Auto Save", data)
+          .then(() => {
+            primaryDb.set("last_auto_cloud_backup", Date.now());
+            log.info("Auto cloud backup created");
+          })
+          .catch(e => log.warn("Auto cloud backup failed", e));
+      }
+    } catch (e) {
+      console.warn("Auto backup check failed", e);
+    }
 
     return true;
   } catch (error) {
