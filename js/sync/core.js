@@ -553,11 +553,13 @@ const stopPolling = () => {
 /**
  * Handles remote data update.
  * @param {any} data - The remote data.
- */
 /**
+ * Handles remote data update.
+ * @param {any} data - The remote data.
+ */
 const handleRemoteData = (data) => {
   if (!data) return;
-  
+
   // GUARD: Ignore external updates if we are currently syncing to prevent conflicts/overwrites
   if (getSyncState().isSyncing) {
     log.info("Ignoring remote update because sync is in progress.");
@@ -581,10 +583,10 @@ const handleRemoteData = (data) => {
   if (currentHash !== newHash) {
     applyDataToUI(data, 'external');
     setLastSyncVersion(newHash);
-    
+
     // Update server version to the new one
     if (data.version) setServerDataVersion(data.version);
-    
+
     showSyncToast("다른 기기에서 변경사항이 동기화되었습니다", "update");
   }
 };

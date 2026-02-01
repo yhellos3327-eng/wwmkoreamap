@@ -13,13 +13,15 @@ export const getMarkerId = (marker) => {
 /**
  * Normalizes markers to consistent object format.
  * @param {any[]} markers - The markers array.
- * @returns {Array<{id: any, completedAt: any}>}// Normalizes markers to ensure they have an ID and completedAt
+ * @returns {Array<{id: any, completedAt: any}>}
+ */
+// Normalizes markers to ensure they have an ID and completedAt
 // Also deduplicates by ID to prevent "double-click" issues
-const normalizeMarkers = (arr) => {
-  if (!Array.isArray(arr)) return [];
+const normalizeMarkers = (markers) => {
+  if (!Array.isArray(markers)) return [];
   const uniqueMap = new Map();
-  
-  arr.forEach((item) => {
+
+  markers.forEach((item) => {
     let id, completedAt;
     if (typeof item === "object" && item !== null) {
       id = String(item.id);
@@ -28,7 +30,7 @@ const normalizeMarkers = (arr) => {
       id = String(item);
       completedAt = Date.now();
     }
-    
+
     // If ID exists, keep the one with newer timestamp, or existing if same
     const existing = uniqueMap.get(id);
     if (!existing) {
