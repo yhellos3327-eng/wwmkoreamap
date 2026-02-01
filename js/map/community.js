@@ -10,7 +10,7 @@ const BOUNDARY_STONE_NAME = "경계석"; // OR "Boundary Stone"
  */
 export const fetchCommunityMarkers = async () => {
     try {
-        const response = await fetch(`${BACKEND_URL}/markers`); // Fetch all markers (approved & pending)
+        const response = await fetch(`${BACKEND_URL}/api/markers`); // Fetch all markers (approved & pending)
         const data = await response.json();
 
         if (data.success && Array.isArray(data.markers)) {
@@ -47,7 +47,7 @@ export const fetchCommunityMarkers = async () => {
 export const fetchUserCompletions = async () => {
     // Rely on httpOnly cookies for auth
     try {
-        const response = await fetch(`${BACKEND_URL}/markers/completed`, {
+        const response = await fetch(`${BACKEND_URL}/api/markers/completed`, {
             credentials: "include"
         });
         if (response.status === 401) return; // Not logged in
