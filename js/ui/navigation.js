@@ -40,7 +40,13 @@ const queueVaultWrite = async (key, value, label) => {
 
   const writePromise = previousWrite.then(async () => {
     try {
-      const result = await primaryDb.set(key, value);
+      let finalValue = value;
+      // Filter out community markers from IndexedDB/Vault storage
+      if (key === "completedList" && Array.isArray(value)) {
+        finalValue = value.filter(item => !state.communityMarkers?.has(String(item.id)));
+      }
+
+      const result = await primaryDb.set(key, finalValue);
       if (!result || !result.success) {
         throw new Error(`Vault write failed: ${result?.error || 'Unknown error'}`);
       }
@@ -69,8 +75,9 @@ const queueVaultWrite = async (key, value, label) => {
 /**
  * Toggles the completed status of an item.
  * @param {string|number} id - The item ID.
+ * @param {boolean} [skipSync=false] - Whether to skip backend sync (used for reverts).
  */
-export const toggleCompleted = async (id) => {
+export const toggleCompleted = async (id, skipSync = false) => {
   const targetId = String(id);
   const numId = Number(id);
   const index = state.completedList.findIndex(
@@ -83,34 +90,24 @@ export const toggleCompleted = async (id) => {
     state.allMarkers.get(numId)
   );
 
-  // Fallback to mapData if not in allMarkers (common in clustering mode)
+  // Fallback check in all data sources
   if (!target) {
-    const item = state.mapData.items.find(i => String(i.id) === targetId);
-    if (item) {
-      const { getSpriteById } = await import("../map/pixiOverlay/spriteFactory.js");
-      const sprite = getSpriteById(targetId);
-      target = {
-        ...item,
-        originalName: item.name,
-        sprite: sprite
-      };
+    const staticItem = state.mapData.items.find(i => String(i.id) === targetId);
+    if (staticItem) {
+      target = { ...staticItem, originalName: staticItem.name };
+    } else if (state.communityMarkers) {
+      const communityItem = state.communityMarkers.get(targetId);
+      if (communityItem) {
+        target = { ...communityItem, isBackend: true };
+      }
     }
   }
-
 
   const isNowCompleted = index === -1;
   const completedAt = Date.now();
 
-  // Community Marker Backend Sync
-  if (target?.isBackend) {
-    if (!isLoggedIn()) {
-      import("../sync/ui.js").then(({ showSyncToast }) => {
-        showSyncToast("커뮤니티 마커를 체크하려면 로그인이 필요합니다.", "error");
-      });
-      return;
-    }
-
-    // Optimistic update - trigger API
+  // Backend Sync (Dedicated Table Sync)
+  if (isLoggedIn() && !skipSync) {
     fetch(`${BACKEND_URL}/api/markers/${id}/toggle-complete`, {
       method: "POST",
       headers: {
@@ -123,16 +120,20 @@ export const toggleCompleted = async (id) => {
       }
       const data = await res.json();
       if (!data.success) throw new Error(data.error);
-      log.success("Backend Sync", `완료 상태 동기화 성공: ${targetId}`);
+      log.success("Backend Sync", `서버 동기화 성공: ${targetId}`);
     }).catch(err => {
       console.error("Backend completion toggle failed", err);
-      // alert("서버와 동기화 실패. 완료 상태가 취소됩니다.");
       import("../sync/ui.js").then(({ showSyncToast }) => {
         showSyncToast("서버와 동기화 실패. 완료 상태가 취소됩니다.", "error");
       });
       // Revert state if failed
-      toggleCompleted(id);
+      toggleCompleted(id, true);
     });
+  } else if (!isLoggedIn() && target?.isBackend) {
+    import("../sync/ui.js").then(({ showSyncToast }) => {
+      showSyncToast("커뮤니티 마커를 체크하려면 로그인이 필요합니다.", "error");
+    });
+    return;
   }
 
   // Log toggle action
@@ -196,9 +197,10 @@ export const toggleCompleted = async (id) => {
     }
   }
   // DEXIE.JS MIGRATION: Save to Vault only (localStorage no longer used)
-  queueVaultWrite("completedList", state.completedList, "completedList");
-
-  triggerSync();
+  if (!target?.isBackend) {
+    queueVaultWrite("completedList", state.completedList, "completedList");
+    triggerSync();
+  }
 
   updateSinglePixiMarker(targetId);
 

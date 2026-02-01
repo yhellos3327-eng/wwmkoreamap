@@ -224,6 +224,10 @@ export const initAuth = async () => {
 
   if (isLoggedIn()) {
     await initSync();
+    // Sync completion status from dedicated backend table
+    import("./map/community.js").then(({ fetchUserCompletions }) => {
+      fetchUserCompletions();
+    }).catch(() => { });
   }
 
   const kakaoBtn = document.getElementById("btn-kakao-login");
