@@ -97,7 +97,13 @@ export const openLightbox = (itemId, index) => {
     return;
   }
 
-  const item = state.mapData.items.find((i) => i.id == itemId);
+  let item = state.mapData.items.find((i) => i.id == itemId);
+
+  // Fallback for Community Markers
+  if (!item && state.communityMarkers) {
+    item = state.communityMarkers.get(String(itemId));
+  }
+
   if (!item) {
     console.warn("Lightbox: Item not found", itemId);
     return;
