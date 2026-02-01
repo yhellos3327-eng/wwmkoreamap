@@ -66,14 +66,20 @@ export const fetchBackupList = async () => {
 /**
  * Creates a cloud backup.
  * @param {string|null} [label=null] - Optional backup label.
+ * @param {any|null} [data=null] - Optional data to backup directly (overrides server state).
  * @returns {Promise<any>} The save response.
  */
-export const saveCloudBackup = async (label = null) => {
+export const saveCloudBackup = async (label = null, data = null) => {
+  const payload = { label };
+  if (data) {
+    Object.assign(payload, data);
+  }
+
   const response = await fetch(`${BACKEND_URL}/api/backup/save`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ label }),
+    body: JSON.stringify(payload),
   });
   if (!response.ok) throw new Error(`Failed to save: ${response.status}`);
   return await response.json();

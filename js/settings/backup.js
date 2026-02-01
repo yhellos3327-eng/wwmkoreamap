@@ -1,7 +1,7 @@
 // @ts-check
 /// <reference path="../types.d.ts" />
 import { isLoggedIn } from "../auth.js";
-import { setLocalData } from "../sync.js";
+import { setLocalData, getLocalData } from "../sync.js";
 import {
   fetchBackupList,
   saveCloudBackup,
@@ -366,10 +366,14 @@ export const initCloudBackupSection = () => {
       const label = prompt("백업 이름을 입력하세요 (선택사항):");
 
       try {
-        /** @type {HTMLButtonElement} */ (saveBtn).disabled = true;
+          /** @type {HTMLButtonElement} */ (saveBtn).disabled = true;
         saveBtn.textContent = "저장 중...";
 
-        const result = await saveCloudBackup(label || null);
+        // Capture current local state for backup using getLocalData (sanitized settings)
+        // This ensures API keys are excluded and data format is consistent with sync
+        const backupData = getLocalData();
+
+        const result = await saveCloudBackup(label || null, backupData);
         if (result.success) {
           showResultAlert(
             "success",
