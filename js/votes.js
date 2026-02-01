@@ -62,6 +62,16 @@ export const getVoteCounts = (itemId) => {
 };
 
 /**
+ * Manually sets vote cache (e.g. from loaded marker data).
+ * @param {string|number} itemId 
+ * @param {{up: number, down: number, userVote?: string}} counts 
+ */
+export const setVoteCache = (itemId, counts) => {
+  const current = votesCache.get(itemId) || {};
+  votesCache.set(itemId, { ...current, ...counts });
+};
+
+/**
  * Gets the user's vote for an item.
  * @param {string|number} itemId - The item ID.
  * @returns {string|null} The vote type ('up', 'down') or null.
