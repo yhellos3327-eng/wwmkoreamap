@@ -2,6 +2,7 @@
 import { state, setState, updateState } from "../state.js";
 import { BACKEND_URL } from "../config.js";
 import { renderMapDataAndMarkers } from "./markers.js";
+import { setVoteCache } from "../votes.js";
 
 const BOUNDARY_STONE_NAME = "경계석"; // OR "Boundary Stone"
 
@@ -32,6 +33,11 @@ export const fetchCommunityMarkers = async () => {
                     region: m.region,
                     status: m.status // "pending", "approved", "rejected"
                 });
+
+                // Populate vote cache immediately so UI renders correct counts
+                if (m.votes) {
+                    setVoteCache(String(m.id), m.votes);
+                }
             });
 
             setState("communityMarkers", newMap);
