@@ -8,10 +8,12 @@ import {
   switchImage,
   translateItem,
   openRelatedModal,
-  toggleFavorite,
   toggleCompleted,
   shareLocation,
+  toggleFavorite,
 } from "../ui.js";
+import { isLoggedIn, isAdminUser } from "../auth.js";
+import { BACKEND_URL } from "../config.js";
 import { toggleStickerModal, submitAnonymousComment } from "../comments.js";
 import { renderVoteButtons, toggleVote } from "../votes.js";
 import { lazyLoader } from "../ui/lazy-loader.js";
@@ -394,6 +396,22 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
             </button>
         </div>
+        ${(() => {
+      if (displayItem.isBackend && isAdminUser()) {
+        return `
+              <div class="admin-actions" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
+                  <div style="font-size: 10px; font-weight: bold; color: #ff6b6b; margin-bottom: 5px; text-transform: uppercase;">Admin Tools</div>
+                  <div style="display: flex; gap: 5px; flex-wrap: wrap;">
+                      <button class="action-btn" data-action="admin-delete" data-item-id="${displayItem.id}" style="background: rgba(255,0,0,0.2); color: #ff6b6b; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(255,0,0,0.3);">삭제</button>
+                      ${displayItem.status === 'pending' || displayItem.status === 'rejected' ? `<button class="action-btn" data-action="admin-approve" data-item-id="${displayItem.id}" style="background: rgba(0,255,0,0.2); color: #4ade80; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(0,255,0,0.3);">승인</button>` : ''}
+                      ${displayItem.status !== 'rejected' ? `<button class="action-btn" data-action="admin-reject" data-item-id="${displayItem.id}" style="background: rgba(255,165,0,0.2); color: #fb923c; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(255,165,0,0.3);">거부</button>` : ''}
+                      <button class="action-btn" data-action="admin-block-user" data-user-id="${displayItem.user_id}" style="background: rgba(100,100,100,0.2); color: #aaa; font-size: 11px; padding: 4px 8px; margin-left: auto; border: 1px solid rgba(255,255,255,0.1);">유저 차단</button>
+                  </div>
+              </div>
+            `;
+      }
+      return '';
+    })()}
         <div class="popup-footer">
             <div class="footer-badges">
                 <span class="badge">${categoryName}</span>
@@ -549,6 +567,76 @@ export const initPopupEventDelegation = () => {
               lazyLoader.observeAll(".lazy-load", element);
             }
           }
+        }
+        break;
+      }
+
+      case "admin-delete":
+        if (confirm("정말 이 마커를 영구 삭제하시겠습니까?")) {
+          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}`, {
+            method: "DELETE",
+            credentials: "include"
+          }).then(res => res.json()).then(data => {
+            if (data.success) {
+              alert("삭제되었습니다.");
+              state.map.closePopup();
+              import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+                import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+              }));
+            } else alert("오류: " + data.error);
+          });
+        }
+        break;
+
+      case "admin-approve":
+        fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/approve`, {
+          method: "POST",
+          credentials: "include"
+        }).then(res => res.json()).then(data => {
+          if (data.success) {
+            alert("승인되었습니다.");
+            state.map.closePopup();
+            import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+              import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+            }));
+          } else alert("오류: " + data.error);
+        });
+        break;
+
+      case "admin-reject":
+        if (confirm("이 제보를 거부하시겠습니까?")) {
+          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/reject`, {
+            method: "POST",
+            credentials: "include"
+          }).then(res => res.json()).then(data => {
+            if (data.success) {
+              alert("거부되었습니다.");
+              state.map.closePopup();
+              import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+                import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+              }));
+            } else alert("오류: " + data.error);
+          });
+        }
+        break;
+
+      case "admin-block-user": {
+        const userId = target.dataset.userId;
+        if (!userId || userId === "null") {
+          alert("유저 ID가 없는 마커입니다.");
+          break;
+        }
+        const reason = prompt("이 유저를 차단하시겠습니까? 사유를 입력하세요:");
+        if (reason) {
+          fetch(`${BACKEND_URL}/api/admin/users/block`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ userId, reason }),
+            credentials: "include"
+          }).then(res => res.json()).then(data => {
+            if (data.success) alert(`유저(${userId})가 차단되었습니다.\n사유: ${reason}`);
+            else alert("오류: " + data.error);
+          });
         }
         break;
       }

@@ -260,8 +260,9 @@ const createAddMarkerModal = (lat, lng) => {
                 </div>
                 <div class="dev-form-group">
                     <label>이미지 첨부 (선택)</label>
-                    <div class="dev-drop-zone" id="dev-drop-zone">
-                        <div class="dev-drop-message" id="dev-drop-message">
+                    <div class="dev-drop-zone" id="dev-drop-zone" style="position: relative; z-index: 10;">
+                        <input type="file" id="dev-add-screenshot" accept="image/*" style="opacity: 0; position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: pointer; z-index: 20;">
+                        <div class="dev-drop-message" id="dev-drop-message" style="pointer-events: none;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: #daac71; margin-bottom: 8px;">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                                 <polyline points="17 8 12 3 7 8"/>
@@ -269,9 +270,8 @@ const createAddMarkerModal = (lat, lng) => {
                             </svg>
                             <span>클릭하거나 이미지를 드래그하세요</span>
                         </div>
-                        <div class="dev-drop-preview" id="dev-drop-preview"></div>
-                        <div class="dev-drop-remove" id="dev-drop-remove" style="display: none;">×</div>
-                        <input type="file" id="dev-add-screenshot" accept="image/*" hidden>
+                        <div class="dev-drop-preview" id="dev-drop-preview" style="pointer-events: none;"></div>
+                        <div class="dev-drop-remove" id="dev-drop-remove" style="display: none; pointer-events: auto; z-index: 30;">×</div>
                     </div>
                 </div>
                 <div class="dev-form-group">
@@ -355,14 +355,11 @@ const createAddMarkerModal = (lat, lng) => {
     }
   };
 
-  dropZone.addEventListener("click", (e) => {
-    // Only trigger if not clicking the remove button
-    if (e.target !== removeBtn) {
-      fileInput.click();
-    }
-  });
+  // Input covers the zone, so click is handled automatically by the input.
+  // We just need to handle file selection.
 
   removeBtn.addEventListener("click", (e) => {
+    e.preventDefault(); // Prevent input click
     e.stopPropagation();
     resetFile();
   });
@@ -379,6 +376,7 @@ const createAddMarkerModal = (lat, lng) => {
 
   ["dragenter", "dragover", "dragleave", "drop"].forEach(eventName => {
     dropZone.addEventListener(eventName, preventDefaults, false);
+    fileInput.addEventListener(eventName, preventDefaults, false); // Add this
     // Also prevent on the whole modal to prevent accidental navigation
     modal.addEventListener(eventName, preventDefaults, false);
   });
@@ -391,13 +389,16 @@ const createAddMarkerModal = (lat, lng) => {
     dropZone.classList.remove("dragover");
   });
 
-  dropZone.addEventListener("drop", (e) => {
+  const handleDrop = (e) => {
     dropZone.classList.remove("dragover");
     const file = e.dataTransfer.files[0];
     if (file) {
       handleFile(file);
     }
-  });
+  };
+
+  dropZone.addEventListener("drop", handleDrop);
+  fileInput.addEventListener("drop", handleDrop);
 
   catGrid.addEventListener("click", (e) => {
     const item = /** @type {HTMLElement} */ (/** @type {HTMLElement} */ (e.target).closest(".dev-cat-item"));
