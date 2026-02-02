@@ -15,7 +15,7 @@ import {
 import { isLoggedIn, isAdminUser } from "../auth.js";
 import { BACKEND_URL } from "../config.js";
 import { toggleStickerModal, submitAnonymousComment } from "../comments.js";
-import { renderVoteButtons, toggleVote } from "../votes.js";
+import { renderVoteButtons, toggleVote, fetchVoteCounts } from "../votes.js";
 import { lazyLoader } from "../ui/lazy-loader.js";
 
 /**
@@ -442,6 +442,13 @@ export const initPopupEventDelegation = () => {
       const popupNode = e.popup.getElement();
       if (popupNode) {
         lazyLoader.observeAll(".lazy-load", popupNode);
+
+        // Fetch votes for community markers to ensure fresh data
+        const voteContainer = popupNode.querySelector(".vote-container");
+        if (voteContainer && voteContainer.dataset.isBackend === "true") {
+          const itemId = voteContainer.dataset.itemId;
+          if (itemId) fetchVoteCounts(itemId, true);
+        }
       }
     });
   }
@@ -583,49 +590,61 @@ export const initPopupEventDelegation = () => {
 
       case "admin-delete":
         if (confirm("정말 이 마커를 영구 삭제하시겠습니까?")) {
-          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}`, {
-            method: "DELETE",
-            credentials: "include"
+          import("../auth.js").then(async ({ getAuthToken }) => {
+            const token = await getAuthToken();
+            fetch(`${BACKEND_URL}/api/admin/markers/${itemId}`, {
+              method: "DELETE",
+              credentials: "include",
+              headers: token ? { "Authorization": `Bearer ${token}` } : {}
+            }).then(res => res.json()).then(data => {
+              if (data.success) {
+                alert("삭제되었습니다.");
+                state.map.closePopup();
+                import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+                  import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+                }));
+              } else alert("오류: " + data.error);
+            });
+          });
+        }
+        break;
+
+      case "admin-approve":
+        import("../auth.js").then(async ({ getAuthToken }) => {
+          const token = await getAuthToken();
+          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/approve`, {
+            method: "POST",
+            credentials: "include",
+            headers: token ? { "Authorization": `Bearer ${token}` } : {}
           }).then(res => res.json()).then(data => {
             if (data.success) {
-              alert("삭제되었습니다.");
+              alert("승인되었습니다.");
               state.map.closePopup();
               import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
                 import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
               }));
             } else alert("오류: " + data.error);
           });
-        }
-        break;
-
-      case "admin-approve":
-        fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/approve`, {
-          method: "POST",
-          credentials: "include"
-        }).then(res => res.json()).then(data => {
-          if (data.success) {
-            alert("승인되었습니다.");
-            state.map.closePopup();
-            import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
-              import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
-            }));
-          } else alert("오류: " + data.error);
         });
         break;
 
       case "admin-reject":
         if (confirm("이 제보를 거부하시겠습니까?")) {
-          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/reject`, {
-            method: "POST",
-            credentials: "include"
-          }).then(res => res.json()).then(data => {
-            if (data.success) {
-              alert("거부되었습니다.");
-              state.map.closePopup();
-              import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
-                import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
-              }));
-            } else alert("오류: " + data.error);
+          import("../auth.js").then(async ({ getAuthToken }) => {
+            const token = await getAuthToken();
+            fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/reject`, {
+              method: "POST",
+              credentials: "include",
+              headers: token ? { "Authorization": `Bearer ${token}` } : {}
+            }).then(res => res.json()).then(data => {
+              if (data.success) {
+                alert("거부되었습니다.");
+                state.map.closePopup();
+                import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+                  import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+                }));
+              } else alert("오류: " + data.error);
+            });
           });
         }
         break;
@@ -638,14 +657,20 @@ export const initPopupEventDelegation = () => {
         }
         const reason = prompt("이 유저를 차단하시겠습니까? 사유를 입력하세요:");
         if (reason) {
-          fetch(`${BACKEND_URL}/api/admin/users/block`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ userId, reason }),
-            credentials: "include"
-          }).then(res => res.json()).then(data => {
-            if (data.success) alert(`유저(${userId})가 차단되었습니다.\n사유: ${reason}`);
-            else alert("오류: " + data.error);
+          import("../auth.js").then(async ({ getAuthToken }) => {
+            const token = await getAuthToken();
+            fetch(`${BACKEND_URL}/api/admin/users/block`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                ...(token ? { "Authorization": `Bearer ${token}` } : {})
+              },
+              body: JSON.stringify({ userId, reason }),
+              credentials: "include"
+            }).then(res => res.json()).then(data => {
+              if (data.success) alert(`유저(${userId})가 차단되었습니다.\n사유: ${reason}`);
+              else alert("오류: " + data.error);
+            });
           });
         }
         break;

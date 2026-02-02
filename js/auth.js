@@ -45,12 +45,26 @@ export const getCurrentUser = () => {
   return currentUser;
 };
 
-/**
- * Checks if the current user is an admin.
- * @returns {boolean} True if admin.
- */
 export const isAdminUser = () => {
   return currentUser?.isAdmin || false;
+};
+
+/**
+ * Gets the current auth token (if firebase).
+ * @returns {Promise<string|null>} Token or null.
+ */
+export const getAuthToken = async () => {
+  if (currentUser?.provider === "firebase") {
+    try {
+      const { auth } = await import("./firebase-config.js");
+      if (auth.currentUser) {
+        return await auth.currentUser.getIdToken();
+      }
+    } catch (e) {
+      console.warn("Failed to get firebase token", e);
+    }
+  }
+  return null;
 };
 
 /**
@@ -59,38 +73,74 @@ export const isAdminUser = () => {
  * @returns {Promise<void>}
  */
 const checkAuthStatus = async () => {
-  if (isLocalDev()) {
-    const { primaryDb } = await import("./storage/db.js");
-    const testData = await primaryDb.get("wwm_test_user");
-    if (testData) {
-      currentUser = testData;
-    }
-    return;
-  }
-
   try {
     const response = await fetch(`${BACKEND_URL}/auth/user`, {
       credentials: "include",
     });
 
-    const data = await response.json();
+    if (response.ok) {
+      const data = await response.json();
 
-    if (data.isAuthenticated && data.user) {
+      if (data.isAuthenticated && data.user) {
+        currentUser = {
+          id: data.user.id,
+          name: data.user.name || data.user.display_name || "사용자",
+          email: data.user.email,
+          provider: data.user.provider,
+          avatar: data.user.profileImage,
+          isAdmin: data.isAdmin,
+        };
+        return; // Successfully got user from backend
+      }
+    }
+  } catch (error) {
+    console.warn("Backend auth check failed, checking firebase/local...", error);
+  }
+
+  // Check Firebase Auth (from admin.html login)
+  try {
+    const { auth, firebaseInitialized } = await import("./firebase-config.js");
+    await firebaseInitialized;
+
+    // Wait for auth state to resolve (with timeout)
+    const firebaseUser = await new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged((user) => {
+        unsubscribe();
+        resolve(user);
+      });
+      // Fallback for slow load
+      setTimeout(() => resolve(auth.currentUser), 1000);
+    });
+
+    if (firebaseUser) {
       currentUser = {
-        id: data.user.id,
-        name: data.user.name || data.user.display_name || "사용자",
-        email: data.user.email,
-        provider: data.user.provider,
-        avatar: data.user.profileImage,
-        isAdmin: data.isAdmin,
+        id: firebaseUser.uid,
+        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
+        email: firebaseUser.email,
+        provider: "firebase",
+        avatar: firebaseUser.photoURL,
+        isAdmin: true // Assume firebase login (via admin.html) implies admin
       };
+      console.log("[Auth] Synced with Firebase Admin user");
+      return;
+    }
+  } catch (e) {
+    console.warn("[Auth] Firebase check failed", e);
+  }
+
+  // Fallback for Local Dev
+  if (isLocalDev()) {
+    const { primaryDb } = await import("./storage/db.js");
+    const testData = await primaryDb.get("wwm_test_user");
+    if (testData) {
+      currentUser = testData;
     } else {
       currentUser = null;
     }
-  } catch (error) {
-    console.error("Failed to check auth status:", error);
-    currentUser = null;
+    return;
   }
+
+  currentUser = null;
 };
 
 /**
@@ -130,9 +180,10 @@ export const testLogin = async () => {
 
   const testUser = {
     id: "test-user-123",
-    name: "테스트 사용자",
+    name: "테스트 사용자 (Admin)",
     email: "test@example.com",
     provider: "test",
+    isAdmin: true,
   };
 
   const { primaryDb } = await import("./storage/db.js");
