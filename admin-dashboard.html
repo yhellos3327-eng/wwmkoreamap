@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>관리자 대시보드 - 연운 지도</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Suit', sans-serif;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #333;
+        }
+
+        h1 {
+            color: #daac71;
+            margin: 0;
+        }
+
+        .btn-logout {
+            padding: 8px 16px;
+            background-color: #ff5555;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .card h2 {
+            margin-top: 0;
+            color: #ccc;
+            font-size: 18px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #daac71;
+            margin: 10px 0;
+        }
+
+        .action-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .action-list li {
+            margin-bottom: 10px;
+        }
+
+        .action-btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background-color: #2d2d2d;
+            border: 1px solid #444;
+            color: #eee;
+            text-align: left;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background-color: #3d3d3d;
+            border-color: #daac71;
+        }
+
+        .message {
+             background: rgba(255, 187, 0, 0.1);
+             color: #daac71;
+             padding: 15px;
+             border-radius: 4px;
+             margin-bottom: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard-container">
+        <header>
+            <h1>관리자 대시보드</h1>
+            <div style="display: flex; gap: 10px;">
+                <a href="/" class="btn-logout" style="background-color: #444; text-decoration: none; line-height: 20px;">지도 보기</a>
+                <button id="btn-logout" class="btn-logout">로그아웃</button>
+            </div>
+        </header>
+
+        <div id="auth-check" class="message" style="display: none;">
+            권한 확인 중...
+        </div>
+
+        <div class="dashboard-grid">
+            <div class="card">
+                <h2>빠른 실행</h2>
+                <ul class="action-list">
+                    <li><a href="/" class="action-btn">🗺️ 지도 메인으로 이동</a></li>
+                    <li><button class="action-btn" onclick="openUserManager()">👥 유저 관리 (차단 해제 등)</button></li>
+                    <li><button class="action-btn" onclick="openPendingMarkers()">📝 제보 일괄 처리</button></li>
+                </ul>
+            </div>
+            
+            <div class="card">
+                <h2>통계 (Demo)</h2>
+                <div class="stat-value" id="stats-users">-</div>
+                <div style="color: #888; font-size: 14px;">총 가입 유저</div>
+            </div>
+
+            <div class="card">
+                <h2>시스템 상태</h2>
+                <div style="margin-top: 15px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+                        <span>서버 상태</span>
+                        <span style="color: #4ade80;">정상 ✅</span>
+                    </div>
+                     <div style="display: flex; justify-content: space-between;">
+                        <span>DB 연결</span>
+                        <span style="color: #4ade80;">정상 ✅</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Modal -->
+    <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
+        <div style="background:#1e1e1e; width:90%; max-width:600px; max-height:80vh; border-radius:8px; padding:20px; display:flex; flex-direction:column; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
+                <h3 id="modal-title" style="margin:0; color:#daac71;">Modal Title</h3>
+                <button onclick="closeModal()" style="background:none; border:none; color:#aaa; font-size:24px; cursor:pointer;">&times;</button>
+            </div>
+            <div id="modal-content" style="flex:1; overflow-y:auto; color:#eee;">
+                <!-- Content goes here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, firebaseInitialized } from "./js/firebase-config.js";
+        import { BACKEND_URL } from "./js/config.js";
+        import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
+
+        const init = async () => {
+            await firebaseInitialized;
+            
+            const authCheck = document.getElementById("auth-check");
+            // authCheck.style.display = "block";
+
+            onAuthStateChanged(auth, (user) => {
+                // authCheck.style.display = "none";
+                if (!user) {
+                    alert("로그인이 필요합니다.");
+                    window.location.href = "admin.html";
+                } else {
+                    console.log("Admin Logged In:", user.email);
+                    fetchStats();
+                }
+            });
+
+            document.getElementById("btn-logout").addEventListener("click", async () => {
+                if(confirm("로그아웃 하시겠습니까?")) {
+                    await signOut(auth);
+                    window.location.href = "admin.html";
+                }
+            });
+        };
+
+        const fetchStats = async () => {
+            const statsUsers = document.getElementById("stats-users");
+            statsUsers.innerText = "Loading...";
+            
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/admin/stats`, {
+                    headers: {
+                        "Authorization": `Bearer ${token}`
+                    }
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 401 || response.status === 403) {
+                         const email = auth.currentUser?.email;
+                         alert(`접근 권한이 없습니다.\n관리자 이메일 목록(backend/.env > ADMIN_EMAILS)에 다음 이메일을 추가해주세요:\n${email}`);
+                         throw new Error("Unauthorized");
+                    }
+                    throw new Error("Failed to fetch stats");
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    statsUsers.innerText = data.stats.users;
+                }
+            } catch (e) {
+                console.error(e);
+                if (statsUsers.innerText === "Loading...") {
+                    statsUsers.innerText = "Error";
+                }
+            }
+        };
+
+        window.openUserManager = async () => {
+            const container = document.getElementById('modal-content');
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('modal-title');
+            
+            title.innerText = "👥 유저 관리 (차단된 유저)";
+            container.innerHTML = "로딩 중...";
+            modal.style.display = "flex";
+
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/admin/users/blocked`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.blocks.length === 0) {
+                        container.innerHTML = "<p style='color:#888; text-align:center;'>차단된 유저가 없습니다.</p>";
+                        return;
+                    }
+                    
+                    let html = `<ul style="list-style:none; padding:0;">`;
+                    data.blocks.forEach(block => {
+                        html += `
+                            <li style="background:#2d2d2d; padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
+                                <div>
+                                    <div style="font-weight:bold; color:#ff6b6b;">${block.reason}</div>
+                                    <div style="font-size:12px; color:#888;">User: ${block.user_id || '-'} / IP: ${block.ip || '-'}</div>
+                                    <div style="font-size:10px; color:#666;">${new Date(block.blocked_at).toLocaleString()}</div>
+                                </div>
+                                <button onclick="unblockUser(${block.id})" style="padding:4px 8px; background:#444; border:none; color:#eee; border-radius:4px; cursor:pointer;">해제</button>
+                            </li>
+                        `;
+                    });
+                    html += `</ul>`;
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                container.innerText = "Error loading users: " + e.message;
+            }
+        };
+
+        window.unblockUser = async (blockId) => {
+            if (!confirm("차단을 해제하시겠습니까?")) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                await fetch(`${BACKEND_URL}/api/admin/users/blocked/${blockId}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                alert("차단이 해제되었습니다.");
+                window.openUserManager(); // Refresh
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.openPendingMarkers = async () => {
+            const container = document.getElementById('modal-content');
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('modal-title');
+            
+            title.innerText = "📝 제보 일괄 처리 (Pending Markers)";
+            container.innerHTML = "로딩 중...";
+            modal.style.display = "flex";
+
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/admin/markers/pending`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.markers.length === 0) {
+                        container.innerHTML = "<p style='color:#888; text-align:center;'>대기 중인 제보가 없습니다.</p>";
+                        return;
+                    }
+
+                    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                    data.markers.forEach(marker => {
+                        html += `
+                            <div style="background:#2d2d2d; padding:12px; border-radius:4px; border:1px solid #444;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                    <span style="font-weight:bold; color:#daac71;">${marker.title}</span>
+                                    <span style="font-size:11px; background:#444; padding:2px 6px; border-radius:4px;">${marker.type}</span>
+                                </div>
+                                <div style="font-size:13px; color:#ccc; margin-bottom:8px;">${marker.description || '(내용 없음)'}</div>
+                                ${marker.screenshot ? `<img src="${marker.screenshot}" style="max-height:100px; max-width:100%; object-fit:contain; margin-bottom:8px; border-radius:4px;">` : ''}
+                                <div style="display:flex; gap:10px; margin-top:5px;">
+                                    <button onclick="processMarker(${marker.id}, 'approve')" style="flex:1; padding:6px; background:rgba(0,255,0,0.2); border:1px solid rgba(0,255,0,0.3); color:#4ade80; cursor:pointer; border-radius:4px;">승인</button>
+                                    <button onclick="processMarker(${marker.id}, 'reject')" style="flex:1; padding:6px; background:rgba(255,165,0,0.2); border:1px solid rgba(255,165,0,0.3); color:#fb923c; cursor:pointer; border-radius:4px;">거부</button>
+                                    <button onclick="processMarker(${marker.id}, 'delete')" style="padding:6px 12px; background:rgba(255,0,0,0.2); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; cursor:pointer; border-radius:4px;">삭제</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                container.innerText = "Error loading markers: " + e.message;
+            }
+        };
+
+        window.processMarker = async (markerId, action) => {
+            if (!confirm(`${action} 처리 하시겠습니까?`)) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                let url = `${BACKEND_URL}/api/admin/markers/${markerId}`;
+                let method = "POST";
+                
+                if (action === 'delete') {
+                    method = "DELETE";
+                } else if (action === 'approve') {
+                    url += "/approve";
+                } else if (action === 'reject') {
+                    url += "/reject";
+                }
+
+                await fetch(url, {
+                    method: method,
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                
+                // Refresh list
+                window.openPendingMarkers();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.closeModal = () => {
+             document.getElementById('admin-modal').style.display = "none";
+        };
+
+        init();
+    </script>
+</body>
+
+</html>

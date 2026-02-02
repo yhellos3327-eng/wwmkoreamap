@@ -95,7 +95,9 @@ export const fetchVoteCounts = async (itemId, isBackend = false) => {
       ? `${API_BASE_URL}/markers/${itemId}/votes`
       : `${API_BASE_URL}/votes/${itemId}`;
 
-    const response = await fetch(endpoint);
+    const response = await fetch(endpoint, {
+      credentials: "include"
+    });
     if (!response.ok) throw new Error("Network response was not ok");
 
     const data = await response.json();
@@ -105,7 +107,8 @@ export const fetchVoteCounts = async (itemId, isBackend = false) => {
       userVote: data.userVote,
     };
 
-    votesCache.set(itemId, counts);
+    const current = votesCache.get(itemId) || {};
+    votesCache.set(itemId, { ...current, ...counts });
 
     // Update DB asynchronously
     import("./storage/db.js").then(async ({ primaryDb }) => {

@@ -63,8 +63,8 @@ const init = async () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      alert("관리자로 로그인되었습니다.");
-      window.location.href = "/";
+      // alert("관리자로 로그인되었습니다.");
+      window.location.href = "/admin-dashboard.html";
     } catch (error) {
       console.error("Login failed:", error);
       let msg = "로그인 실패: " + error.message;
