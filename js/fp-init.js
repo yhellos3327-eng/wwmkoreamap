@@ -5,6 +5,8 @@
         const result = await fp.get();
         window.visitorId = result.visitorId;
 
+        // Fetch patching disabled due to CORS issues with backend
+        /*
         const originalFetch = window.fetch;
         window.fetch = async (url, options = {}) => {
             if (!options) options = {};
@@ -22,7 +24,8 @@
 
             return originalFetch(url, options);
         };
-        console.log("[FP] Security initialized");
+        */
+        console.log("[FP] Security initialized (Header injection disabled)");
     } catch (e) {
         console.warn("[FP] Failed", e);
     }
