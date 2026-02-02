@@ -4,9 +4,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>연운 - 한국어 지도 맵</title>
+    <title>연운 맵스</title>
     <meta property="og:type" content="website">
-    <meta property="og:title" content="연운 - 한국어 지도 맵">
+    <meta property="og:title" content="연운 맵스">
     <meta property="og:url" content="https://wwmmap.kr/">
     <meta property="og:description" content="연운(Where Winds Meet) 한국어 인터랙티브 지도">
     <meta property="og:image" content="https://cdn.discordapp.com/emojis/1410879101194993744.webp?size=256">
@@ -65,6 +65,38 @@
         </div>
     </div>
     <div class="app-container">
+        <!-- New Mobile UI Elements -->
+        <div id="mobile-header">
+            <div class="mobile-logo">연운 맵스</div>
+            <div id="mobile-region-btn" class="mobile-region-selector">
+                <span id="mobile-region-text">청하</span>
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+        </div>
+
+        <nav id="mobile-bottom-nav">
+            <button class="nav-item active" data-target="home">
+                <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+                <span>지도</span>
+            </button>
+            <button class="nav-item" data-target="list">
+                <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                <span>목록</span>
+            </button>
+            <button class="nav-item" data-target="route">
+                <svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="3"></circle><path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15"></path><circle cx="18" cy="5" r="3"></circle></svg>
+                <span>경로</span>
+            </button>
+            <button class="nav-item" data-target="community">
+                <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <span>커뮤니티</span>
+            </button>
+            <button class="nav-item" data-target="more">
+                <img src="icons/arca-logo.svg" class="arca-logo" alt="ArcaLive">
+                <span>아카라이브</span>
+            </button>
+        </nav>
+
         <div id="sidebar-placeholder"></div>
 
         <main id="map-container">

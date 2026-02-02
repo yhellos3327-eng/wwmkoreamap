@@ -301,6 +301,10 @@ const initializeApp = async () => {
 
     loadOptionalModules();
 
+    import("./mobile-nav.js").then(({ initMobileNav }) => {
+      initMobileNav();
+    });
+
     // [Vault] 앱 종료/숨김 시 자동 백업
     document.addEventListener("visibilitychange", () => {
       if (document.visibilityState === "hidden") {

@@ -97,3 +97,9 @@
         color: var(--text-muted);
     }
 }
+
+#open-arca-channel:hover .arca-logo-sidebar {
+    filter: none !important;
+    opacity: 1 !important;
+    transform: scale(1.1);
+}

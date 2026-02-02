@@ -1,0 +1,174 @@
+/* New Mobile UI Styles */
+@media (max-width: 768px) {
+
+    /* Hide Desktop Elements */
+    .top-controls,
+    .floating-sidebar-toggle,
+    .map-toolbar {
+        display: none !important;
+    }
+
+    /* Adjust Map Container */
+    #map-container {
+        height: calc(100vh - 60px) !important;
+        /* Reserve space for bottom nav */
+        position: relative;
+    }
+
+    #map {
+        height: 100% !important;
+    }
+
+    /* Mobile Header - Minimal Floating Style */
+    #mobile-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: auto;
+        padding: 12px 0;
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        z-index: 3000;
+        display: flex;
+        justify-content: center;
+        /* Center the button */
+        align-items: flex-start;
+        box-shadow: none;
+        border-bottom: none;
+        pointer-events: none;
+        /* Let clicks pass through to map */
+    }
+
+    .mobile-logo {
+        display: none;
+    }
+
+    .mobile-region-selector {
+        pointer-events: auto;
+        /* Enable clicks on button */
+        background: rgba(18, 18, 18, 0.85);
+        padding: 12px 28px;
+        border-radius: 999px;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1px solid rgba(218, 172, 113, 0.3);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
+            0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        letter-spacing: -0.02em;
+    }
+
+    .mobile-region-selector:active {
+        transform: scale(0.95);
+        background: rgba(20, 20, 20, 0.9);
+        border-color: #daac71;
+    }
+
+    .mobile-region-selector svg {
+        opacity: 0.8;
+        transition: transform 0.2s;
+    }
+
+    .mobile-region-selector:active svg {
+        transform: rotate(180deg);
+    }
+
+    /* Mobile Bottom Navigation */
+    #mobile-bottom-nav {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background: #1e1e1e;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        z-index: 3000;
+        padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    .nav-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #888;
+        font-size: 10px;
+        flex: 1;
+        height: 100%;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+    .nav-item.active {
+        color: #daac71;
+    }
+
+    .nav-item svg {
+        width: 24px;
+        height: 24px;
+        stroke: currentColor;
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .nav-item.active svg {
+        stroke: #daac71;
+        stroke-width: 2.5;
+        filter: drop-shadow(0 0 5px rgba(218, 172, 113, 0.4));
+    }
+
+    .arca-logo {
+        width: 24px;
+        height: 24px;
+        filter: grayscale(100%) brightness(0.7);
+        /* Dimmed for inactive */
+        transition: all 0.2s ease;
+        object-fit: contain;
+    }
+
+    .nav-item:active .arca-logo,
+    .nav-item:hover .arca-logo,
+    .nav-item.active .arca-logo {
+        /* Handle active class if we add it later logic */
+        filter: none;
+        /* Show original Gold color */
+        transform: scale(1.1);
+    }
+
+    /* Adjust Sidebar for Mobile (Bottom Sheet style ideally, or Full Screen) */
+    .sidebar {
+        z-index: 4000 !important;
+        /* Above nav */
+        width: 100% !important;
+        max-width: 100% !important;
+        border-radius: 0 !important;
+    }
+
+    /* Adjust Zoom Controls Position */
+    .leaflet-control-zoom {
+        margin-bottom: 70px !important;
+        /* Above bottom nav */
+    }
+}
+
+@media (min-width: 769px) {
+
+    #mobile-header,
+    #mobile-bottom-nav {
+        display: none !important;
+    }
+}
