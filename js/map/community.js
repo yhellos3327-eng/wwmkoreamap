@@ -11,7 +11,8 @@ const BOUNDARY_STONE_NAME = "경계석"; // OR "Boundary Stone"
  */
 export const fetchCommunityMarkers = async () => {
     try {
-        const response = await fetch(`${BACKEND_URL}/api/markers`); // Fetch all markers (approved & pending)
+        const mapId = state.currentMapKey || "qinghe";
+        const response = await fetch(`${BACKEND_URL}/api/markers?mapId=${mapId}`); // Fetch all markers (approved & pending) for this map
         const data = await response.json();
 
         if (data.success && Array.isArray(data.markers)) {

@@ -467,6 +467,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     formData.append("description", desc || "");
     formData.append("type", catId);
     if (region) formData.append("region", region);
+    formData.append("mapId", state.currentMapKey || 'qinghe');
     if (screenshotFile) formData.append("screenshot", screenshotFile);
     if (videoUrl) formData.append("video", videoUrl);
 
@@ -505,6 +506,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         name: title,
         description: (desc || "").replace(/<[^>]*>/g, ""), // Sanitize: strip HTML
         category: catId,
+        mapId: state.currentMapKey || 'qinghe',
         images: screenshotFile ? [URL.createObjectURL(screenshotFile)] : [],
         video_url: videoUrl ? [videoUrl] : [],
         isBackend: true,

@@ -45,6 +45,9 @@ export const loadMapData = async (mapKey, onProgress) => {
     }
     closeModal();
 
+    // Reset Community Markers for new map
+    setState("communityMarkers", new Map());
+
     // Reset PixiOverlay to ensure fresh state for new map, preventing flickering/artifacts
     resetPixiOverlay();
 
@@ -129,6 +132,12 @@ export const loadMapData = async (mapKey, onProgress) => {
       "Data",
       `${config.name} 데이터 로드 완료 (${mapData.items.length} items)`,
     );
+
+    if (state.showCommunityMarkers) {
+      const { fetchCommunityMarkers, fetchUserCompletions } = await import("../map/community.js");
+      await fetchCommunityMarkers();
+      await fetchUserCompletions();
+    }
 
     renderMapDataAndMarkers();
     calculateTranslationProgress();
