@@ -35,9 +35,10 @@ export const cleanupOldComments = async () => {
 
   try {
     const { primaryDb } = await import("../storage/db.js");
-    const lastRun = await primaryDb.get(CLEANUP_COOLDOWN_KEY);
+    const lastRunVal = await primaryDb.get(CLEANUP_COOLDOWN_KEY);
+    const lastRun = lastRunVal ? parseInt(String(lastRunVal), 10) : 0;
 
-    if (lastRun && Date.now() - parseInt(lastRun) < COOLDOWN_MS) {
+    if (!isNaN(lastRun) && lastRun > 0 && Date.now() - lastRun < COOLDOWN_MS) {
       logger.log("Cleanup", "쿨다운 중 - 24시간 내 이미 실행됨");
       return;
     }

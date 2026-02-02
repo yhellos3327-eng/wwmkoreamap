@@ -59,6 +59,7 @@ export const USE_WORKERS = true;
  * @property {string|number} [user_id]
  * @property {string} [status]
  * @property {MapItem[]} [aggregated]
+ * @property {string} [mapId]
  */
 
 /**
