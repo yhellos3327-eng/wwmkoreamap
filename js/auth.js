@@ -97,37 +97,6 @@ const checkAuthStatus = async () => {
     console.warn("Backend auth check failed, checking firebase/local...", error);
   }
 
-  // Check Firebase Auth (from admin.html login)
-  try {
-    const { auth, firebaseInitialized } = await import("./firebase-config.js");
-    await firebaseInitialized;
-
-    // Wait for auth state to resolve (with timeout)
-    const firebaseUser = await new Promise((resolve) => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        unsubscribe();
-        resolve(user);
-      });
-      // Fallback for slow load
-      setTimeout(() => resolve(auth.currentUser), 1000);
-    });
-
-    if (firebaseUser) {
-      currentUser = {
-        id: firebaseUser.uid,
-        name: firebaseUser.displayName || firebaseUser.email.split('@')[0],
-        email: firebaseUser.email,
-        provider: "firebase",
-        avatar: firebaseUser.photoURL,
-        isAdmin: true // Assume firebase login (via admin.html) implies admin
-      };
-      console.log("[Auth] Synced with Firebase Admin user");
-      return;
-    }
-  } catch (e) {
-    console.warn("[Auth] Firebase check failed", e);
-  }
-
   // Fallback for Local Dev
   if (isLocalDev()) {
     const { primaryDb } = await import("./storage/db.js");
