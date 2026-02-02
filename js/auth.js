@@ -208,6 +208,19 @@ export const testLogin = async () => {
 export const logout = async () => {
   cleanupRealtimeSync();
 
+  // Determine if we need to logout from Firebase
+  // We do this if we are currently logged in via Firebase OR if we want to be safe
+  try {
+    const { auth, firebaseInitialized } = await import("./firebase-config.js");
+    await firebaseInitialized;
+    if (auth && auth.currentUser) {
+      await auth.signOut();
+      console.log("[Auth] Signed out from Firebase key");
+    }
+  } catch (e) {
+    console.warn("[Auth] Firebase signout attempt failed", e);
+  }
+
   if (isLocalDev()) {
     const { primaryDb } = await import("./storage/db.js");
     const result = await primaryDb.delete("wwm_test_user");
