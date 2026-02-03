@@ -536,7 +536,11 @@ const runSettingsCheck = async (settings, context, opts, data) => {
         }
       }
     } else if (key === "wwm_cleanup_last_run" || key.includes("last_run")) {
-      if (typeof value !== "number" || isNaN(value)) {
+      if (
+        (typeof value !== "number" && typeof value !== "string") ||
+        (typeof value === "number" && isNaN(value)) ||
+        (typeof value === "string" && !/^\d+$/.test(value))
+      ) {
         isValid = false;
         msg = "유효한 숫자가 아님";
       }
