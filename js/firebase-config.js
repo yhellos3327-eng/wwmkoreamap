@@ -10,7 +10,7 @@ import { getStorage } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-s
 import { getAuth } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 /** @type {string} */
-const BACKEND_URL = "https://api.wwmmap.kro.kr:5555";
+const BACKEND_URL = "https://api.wwmmap.kr";
 
 /** @type {any} */
 let app;
@@ -97,7 +97,7 @@ export const firebaseInitialized = (async () => {
     if (!config) {
       let response;
       try {
-        response = await fetch(BACKEND_URL, { cache: "no-cache" });
+        response = await fetch(`${BACKEND_URL}/api/config`, { cache: "no-cache" });
         if (!response.ok) {
           throw new Error(
             `Failed to fetch config: ${response.status} ${response.statusText}`,

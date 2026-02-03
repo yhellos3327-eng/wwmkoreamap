@@ -44,6 +44,9 @@ const getApiBaseUrl = () => {
   // if (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") {
   //   return "http://localhost:3000/api";
   // }
+
+  // Use HTTP for tunnel to avoid SSL certificate issues (ERR_CERT_COMMON_NAME_INVALID)
+  // return "http://api.wwmmap.kro.kr:5555/api";
   return "https://api.wwmmap.kr/api";
 };
 
