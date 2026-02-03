@@ -536,18 +536,13 @@ const runSettingsCheck = async (settings, context, opts, data) => {
         }
       }
     } else if (key === "wwm_cleanup_last_run" || key.includes("last_run")) {
-      // Compatibility: Handle both Number and String
-      // If it's a number, convert to string. If it's a numeric string, keep it.
-      if ((typeof value === "number" && !isNaN(value)) || (typeof value === "string" && /^\d+$/.test(value))) {
-        if (typeof value === "number") {
-          settings[key] = String(value);
-          consoleLog(`    [${key}]: ${value} (호환성: 문자열로 변환됨) ✓`, "success");
-          continue; // Skip standard success log
-        }
-        // Valid string, let it fall through to standard success log
-      } else {
+      if (
+        (typeof value !== "number" && typeof value !== "string") ||
+        (typeof value === "number" && isNaN(value)) ||
+        (typeof value === "string" && !/^\d+$/.test(value))
+      ) {
         isValid = false;
-        msg = "유효한 숫자 또는 문자열 형식이 아님";
+        msg = "유효한 숫자가 아님";
       }
     } else if (
       [
