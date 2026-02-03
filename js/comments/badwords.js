@@ -112,16 +112,36 @@ export const loadBadWords = async () => {
     }
   }
 
+  // Load exceptions
+  let exceptions = [];
+  try {
+    const response = await fetch("./js/badwords/exceptions.json");
+    const data = await response.json();
+    exceptions = data.exceptions || [];
+  } catch (e) {
+    logger.warn("BadWords", "예외 목록 로드 실패", e.message);
+  }
+
+  // Filter out exceptions
+  const filterExceptions = (set) => {
+    exceptions.forEach(ex => {
+      if (ex) set.delete(ex.toLowerCase());
+    });
+  };
+
+  filterExceptions(allBadWords);
+  filterExceptions(allSpamKeywords);
+
   badWordsList = [...allBadWords];
   spamKeywordsList = [...allSpamKeywords];
 
   // Debug log to check loaded keywords count and sample
-  console.log(`[BadWords] Loaded ${badWordsList.length} bad words, ${spamKeywordsList.length} spam keywords.`);
+  console.log(`[BadWords] Loaded ${badWordsList.length} bad words, ${spamKeywordsList.length} spam keywords. (Exceptions applied: ${exceptions.length})`);
   if (spamKeywordsList.length > 0) {
     console.log(`[BadWords] Sample spam keywords:`, spamKeywordsList.slice(0, 5));
   }
 
-  logger.success("BadWords", `${badWordsList.length}개 비속어, ${spamKeywordsList.length}개 스팸 키워드 로드 완료`);
+  logger.success("BadWords", `${badWordsList.length}개 비속어, ${spamKeywordsList.length}개 스팸 키워드 로드 완료 (예외 ${exceptions.length}개 적용)`);
 };
 
 /**
