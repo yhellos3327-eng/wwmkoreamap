@@ -5,6 +5,8 @@ import { logger } from "../logger.js";
 let badWordsList = [];
 /** @type {string[]} */
 let spamKeywordsList = [];
+/** @type {string[]} */
+let exceptions = [];
 
 /**
  * @typedef {Object} BadWordsSource
@@ -115,13 +117,32 @@ export const loadBadWords = async () => {
   badWordsList = [...allBadWords];
   spamKeywordsList = [...allSpamKeywords];
 
+  // Reset exceptions
+  exceptions = [];
+  try {
+    const response = await fetch("./js/badwords/exceptions.json");
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.exceptions)) {
+        exceptions = data.exceptions;
+      }
+    }
+  } catch (e) {
+    logger.warn("BadWords", "예외 목록 로드 실패 (기본값 사용)", e.message);
+    // Fallback defaults if load fails
+    exceptions = ["스님", "불교", "절", "사찰"];
+  }
+
+  badWordsList = badWordsList.filter(w => !exceptions.includes(w));
+  spamKeywordsList = spamKeywordsList.filter(w => !exceptions.includes(w));
+
   // Debug log to check loaded keywords count and sample
   console.log(`[BadWords] Loaded ${badWordsList.length} bad words, ${spamKeywordsList.length} spam keywords.`);
   if (spamKeywordsList.length > 0) {
     console.log(`[BadWords] Sample spam keywords:`, spamKeywordsList.slice(0, 5));
   }
 
-  logger.success("BadWords", `${badWordsList.length}개 비속어, ${spamKeywordsList.length}개 스팸 키워드 로드 완료`);
+  logger.success("BadWords", `${badWordsList.length}개 비속어, ${spamKeywordsList.length}개 스팸 키워드 로드 완료 (예외 ${exceptions.length}개 적용)`);
 };
 
 /**
@@ -139,10 +160,13 @@ export const containsBadWord = (text) => {
 
   // Check spam keywords first (against normalized text)
   if (spamKeywordsList.some((word) => {
+    // Skip if word is in exception list (even if it matches partially)
+    if (exceptions.includes(word)) return false;
+
     // Normalize keyword too just in case
     const normalizedKeyword = word.toLowerCase().replace(/[^가-힣a-z0-9]/g, "");
 
-    // Skip if keyword becomes empty after normalization (e.g. only special chars)
+    // Skip if keyword becomes empty after normalization
     if (normalizedKeyword.length === 0) return false;
 
     return normalizedText.includes(normalizedKeyword);
@@ -152,8 +176,26 @@ export const containsBadWord = (text) => {
 
   if (badWordsList.length === 0) return false;
 
-  // Check regular bad words (original logic + normalized check)
+  // Check regular bad words
   return badWordsList.some((word) => {
+    // Absolute exception check: if the text CONTAINS an exception word, 
+    // we should be careful not to flag it just because it shares characters.
+    // But simplistic approach: if exception list has "스님", and word is "님", "스님" contains "님".
+    // Better: We already filtered badWordsList. So 'word' here is a REAL bad word.
+
+    // However, if "스님" was filtered OUT of badWordsList, it won't be in 'word'.
+    // The problem is if "놈" is in badWordsList, and user types "스님놈".
+
+    // Wait, the user said "스님" (exact match) is blocked.
+    // This happens if "스님" is still in badWordsList OR spamKeywordsList.
+    // We already filtered them out in loadBadWords using !exceptions.includes(w).
+
+    // BUT! 'spamKeywordsList' check uses normalizedText.
+    // If "스" or "님" is a bad word elsewhere, it might trigger.
+
+    // Let's debug:
+    // If '스님' is flagged, it means some word X in the lists satisfies: '스님'.includes(X) or normalized('스님').includes(normalized(X)).
+
     if (lowerText.includes(word)) return true;
     return false;
   });

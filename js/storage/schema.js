@@ -252,12 +252,13 @@ export const SCHEMA = {
   wwm_claude_key: { type: "encoded", defaultValue: "" },
 
   wwm_cleanup_last_run: {
-    type: "number",
-    defaultValue: 0,
+    type: "string",
+    defaultValue: "0",
     validate: (v) =>
-      validators.isNumber(v)
+      typeof v === "string" && /^\d+$/.test(v)
         ? { valid: true }
-        : { valid: false, message: "숫자가 아닙니다" },
+        : { valid: false, message: "숫자 형식의 문자열이 아닙니다" },
+    parse: (v) => String(v),
   },
 
   wwm_settings_updated_at: {
