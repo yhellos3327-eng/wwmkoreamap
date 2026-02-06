@@ -452,7 +452,10 @@ import { isLoggedIn } from "./auth.js";
  * 신규 마커 저장 및 표시
  */
 const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFile, videoUrl) => {
-  if (!isLoggedIn()) {
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const isDev = isLocal || devState.isActive;
+
+  if (!isDev && !isLoggedIn()) {
     import("./sync/ui.js").then(({ showSyncToast }) => {
       showSyncToast("로그인이 필요합니다.", "error");
     });
@@ -460,30 +463,95 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
   }
 
   try {
-    const formData = new FormData();
-    formData.append("lat", String(parseFloat(lat)));
-    formData.append("lng", String(parseFloat(lng)));
-    formData.append("title", title);
-    formData.append("description", desc || "");
-    formData.append("type", catId);
-    if (region) formData.append("region", region);
-    formData.append("mapId", state.currentMapKey || 'qinghe');
-    if (screenshotFile) formData.append("screenshot", screenshotFile);
-    if (videoUrl) formData.append("video", videoUrl);
+    let newMarkerData;
 
-    const response = await fetch(`${BACKEND_URL}/api/markers`, {
-      method: "POST",
-      credentials: "include", // 쿠키 인증
-      body: formData, // FormData 전송
-    });
+    if (isDev) {
+      // Local registration
+      const newId = Date.now();
+      let uploadedImageUrl = "";
 
-    const data = await response.json();
+      // Upload image to backend for consistent URL generation
+      if (screenshotFile) {
+        try {
+          const uploadFormData = new FormData();
+          uploadFormData.append("screenshot", screenshotFile);
 
-    if (!response.ok || !data.success) {
-      throw new Error(data.error || "마커 생성 실패");
+          addLog("이미지 업로드 중...", "info");
+          const uploadRes = await fetch(`${BACKEND_URL}/api/markers/upload`, {
+            method: "POST",
+            body: uploadFormData
+          });
+
+          if (!uploadRes.ok) throw new Error(`HTTP ${uploadRes.status}`);
+
+          const uploadData = await uploadRes.json();
+          if (uploadData.success) {
+            uploadedImageUrl = uploadData.url;
+            addLog("이미지 업로드 완료", "success");
+          } else {
+            throw new Error(uploadData.error || "Upload failed");
+          }
+        } catch (e) {
+          console.error("Local image upload failed:", e);
+          addLog(`이미지 업로드 실패: ${e.message}`, "warn");
+        }
+      }
+
+      newMarkerData = {
+        id: String(newId),
+        title: title,
+        description: desc || "",
+        type: catId,
+        category_id: catId, // For CSV export
+        latitude: parseFloat(lat),
+        longitude: parseFloat(lng),
+        lat: parseFloat(lat), // Compatibility
+        lng: parseFloat(lng), // Compatibility
+        region: region || "",
+        regionId: 0,
+        mapId: state.currentMapKey || 'qinghe',
+        screenshot: screenshotFile ? URL.createObjectURL(screenshotFile) : null,
+        uploadedImage: uploadedImageUrl, // Custom validation for CSV
+        video: videoUrl || null,
+        status: 'approved'
+      };
+
+      addLog(`로컬 등록됨: ${title} (${newId})`, "success");
+    } else {
+      // Backend registration
+      const formData = new FormData();
+      formData.append("lat", String(parseFloat(lat)));
+      formData.append("lng", String(parseFloat(lng)));
+      formData.append("title", title);
+      formData.append("description", desc || "");
+      formData.append("type", catId);
+      if (region) formData.append("region", region);
+      formData.append("mapId", state.currentMapKey || 'qinghe');
+      if (screenshotFile) formData.append("screenshot", screenshotFile);
+      if (videoUrl) formData.append("video", videoUrl);
+
+      const response = await fetch(`${BACKEND_URL}/api/markers`, {
+        method: "POST",
+        credentials: "include", // 쿠키 인증
+        body: formData, // FormData 전송
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || "마커 생성 실패");
+      }
+
+      newMarkerData = data.marker;
+
+      // Ensure properties needed for CSV export exist
+      if (!newMarkerData.latitude && newMarkerData.lat) newMarkerData.latitude = newMarkerData.lat;
+      if (!newMarkerData.longitude && newMarkerData.lng) newMarkerData.longitude = newMarkerData.lng;
+      if (!newMarkerData.category_id && newMarkerData.type) newMarkerData.category_id = newMarkerData.type;
+
+      addLog(`서버 저장됨: ${title} (${newMarkerData.id})`, "success");
     }
 
-    const newMarkerData = data.marker;
     const newId = newMarkerData.id;
 
     devState.newMarkers.push(newMarkerData);
@@ -523,10 +591,29 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
       .addTo(state.map)
       .bindPopup(popupContent);
 
-    addLog(`서버 저장됨: ${title} (${newId})`, "success");
     updateUI();
 
-    alert("마커가 추가되었습니다. 관리자 승인 후 공개됩니다.");
+    if (!isDev) {
+      alert("마커가 추가되었습니다. 관리자 승인 후 공개됩니다.");
+    } else {
+      console.log(`[DEV] Local marker added: ${title} (${newId})`);
+
+      // Auto-copy to clipboard in data3/4.csv format
+      const csvTitle = title.includes(",") ? `"${title}"` : title;
+      const csvDesc = desc ? `"${desc.replace(/"/g, '""')}"` : '""';
+      const csvLat = parseFloat(lat).toFixed(6);
+      const csvLng = parseFloat(lng).toFixed(6);
+
+      // Image: [URL] format if uploaded
+      const csvImage = newMarkerData.uploadedImage ? `[${newMarkerData.uploadedImage}]` : "";
+      const csvVideo = videoUrl || "";
+
+      const csvLine = `${newId},${catId},${csvTitle},${csvDesc},${csvLat},${csvLng},${region || ""},${csvImage},${csvVideo}`;
+
+      navigator.clipboard.writeText(csvLine).then(() => {
+        addLog("CSV 데이터(이미지 포함)가 클립보드에 복사되었습니다.", "success");
+      });
+    }
 
   } catch (error) {
     console.error("Save marker error:", error);
@@ -1481,32 +1568,37 @@ const exportChanges = () => {
   );
   console.log(csvOutput);
 
-  navigator.clipboard.writeText(csvOutput).then(() => {
-    addLog(`${changesArray.length}개 마커 CSV 복사됨`, "success");
-  });
+  let clipboardText = csvOutput;
+  let copyMessage = `${changesArray.length}개 마커 수정사항(translation.csv용) 복사됨`;
 
   if (devState.newMarkers.length > 0) {
     const newMarkersCsv = devState.newMarkers
-      .map(
-        (m) =>
-          `${m.id},${m.category_id},"${m.title}","${m.description}",${m.latitude},${m.longitude},${m.regionId},,""`,
-      )
+      .map((m) => {
+        // Match data3.csv format: id,category_id,title,description,latitude,longitude,region
+        const id = m.id;
+        const catId = m.category_id || m.type;
+        const title = m.title.includes(",") ? `"${m.title}"` : m.title;
+        const desc = m.description ? `"${m.description.replace(/"/g, '""')}"` : '""';
+        const lat = typeof m.latitude === "number" ? m.latitude.toFixed(6) : m.latitude;
+        const lng = typeof m.longitude === "number" ? m.longitude.toFixed(6) : m.longitude;
+        const region = m.region || "";
+
+        return `${id},${catId},${title},${desc},${lat},${lng},${region}`;
+      })
       .join("\n");
 
-    const currentMap =
-      state.currentMapKey === "qinghe" ? "data3.csv" : "data4.csv";
-
-    console.log(
-      `%c📋 신규 마커 목록 (${currentMap}용)`,
-      "color: #daac71; font-size: 16px; font-weight: bold;",
-    );
-    console.log(
-      "id,category_id,title,description,latitude,longitude,regionId,image,video_url",
-    );
+    const currentMap = state.currentMapKey === "qinghe" ? "data3.csv" : "data4.csv";
+    console.log(`%c📋 신규 마커 목록 (${currentMap}용)`, "color: #daac71; font-size: 16px; font-weight: bold;");
+    console.log("id,category_id,title,description,latitude,longitude,regionId,image,video_url");
     console.log(newMarkersCsv);
 
-    addLog(`${devState.newMarkers.length}개 신규 마커 콘솔 출력됨`, "success");
+    clipboardText = newMarkersCsv;
+    copyMessage = `${devState.newMarkers.length}개 신규 마커(data3/4.csv용) 복사됨`;
   }
+
+  navigator.clipboard.writeText(clipboardText).then(() => {
+    addLog(copyMessage, "success");
+  });
 
   const blob = new Blob([JSON.stringify(jsonOutput, null, 2)], {
     type: "application/json",
