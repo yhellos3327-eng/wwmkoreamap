@@ -48,5 +48,6 @@ export const loadAllComponents = async () => {
     loadComponent("components/result-alert-modal.html"),
     loadComponent("components/arca-panel.html"),
     loadComponent("components/region-modal.html"),
+    loadComponent("components/quest-guide-panel.html"),
   ]);
 };

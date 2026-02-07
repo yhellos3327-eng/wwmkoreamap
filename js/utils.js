@@ -6,6 +6,7 @@ import { josa } from "https://esm.run/es-hangul@2.3.0";
 import pointInPolygon from "https://esm.run/point-in-polygon@1.1.0";
 import { debounce } from "https://esm.run/lodash-es@4.17.22";
 import axios from "https://esm.run/axios@1.12.0";
+import { marked } from "https://esm.run/marked@12.0.0";
 
 /**
  * Translates a key using the Korean dictionary in the state.
@@ -206,9 +207,77 @@ export const fetchUserIp = async (masked = true) => {
  */
 export const getCachedMaskedIp = () => cachedMaskedIp;
 
+// --- Marked Parser (Quest Guide Usage) ---
+const renderer = new marked.Renderer();
+
+const sanitizeUrlMarked = (url) => {
+  if (!url) return "";
+  try {
+    const decoded = decodeURIComponent(url.toString().trim()).toLowerCase();
+    if (decoded.startsWith("javascript:") || decoded.startsWith("vbscript:") || decoded.startsWith("data:") || decoded.startsWith("file:")) {
+      return "#";
+    }
+  } catch { }
+  return url.toString().trim();
+};
+
+renderer.link = (hrefOrObj, titleArg, textArg) => {
+  let href, title, text;
+  if (typeof hrefOrObj === "object" && hrefOrObj !== null) {
+    ({ href, title, text } = hrefOrObj);
+  } else {
+    href = hrefOrObj;
+    title = titleArg;
+    text = textArg;
+  }
+  const cleanHref = sanitizeUrlMarked(href);
+  return `<a href="${cleanHref}" target="_blank" style="color: var(--accent); text-decoration: underline;" title="${title || ''}">${text}</a>`;
+};
+
+renderer.image = (hrefOrObj, titleArg, textArg) => {
+  let href, title, text;
+  if (typeof hrefOrObj === "object" && hrefOrObj !== null) {
+    ({ href, title, text } = hrefOrObj);
+  } else {
+    href = hrefOrObj;
+    title = titleArg;
+    text = textArg;
+  }
+  const cleanHref = sanitizeUrlMarked(href);
+  return `<img src="${cleanHref}" alt="${text}" title="${title || ''}" loading="lazy" class="quest-step-inline-image" data-action="view-image">`;
+};
+
+marked.use({ renderer, breaks: true, gfm: true });
+
 /**
- * Simple Markdown Parser
- * Supports: Bold, Italic, Strikethrough, Links, Headers, Blockquotes, Code, HR
+ * Parse text using marked library (Dedicated for Quest Guide)
+ * @param {string} text - The markdown text.
+ * @returns {string} The converted HTML.
+ */
+export const parseQuestMarkdown = (text) => {
+  if (!text) return "";
+
+  try {
+    // Use marked to parse
+    let html = marked.parse(text);
+
+    // Post-process custom spoiler tags
+    html = html.replace(
+      /{spoiler}([\s\S]*?){\/spoiler}/g,
+      '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
+    );
+
+    return html;
+  } catch (e) {
+    console.error("Marked parsing error:", e);
+    // Fallback? Or just return text
+    return text.toString().replace(/\n/g, '<br>');
+  }
+};
+
+/**
+ * Simple Regex Markdown Parser (Legacy/Global Usage)
+ * Restored for compatibility with other components
  * @param {string} text - The markdown text.
  * @returns {string} The converted HTML.
  */
@@ -216,30 +285,13 @@ export const parseMarkdown = (text) => {
   if (!text) return "";
   let html = text;
 
-  html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
-  html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
-  html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
-
-  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-  html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
-
-  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-  html = html.replace(/_(.*?)_/g, "<em>$1</em>");
-
-  html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
-
-  html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
-  html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-  html = html.replace(/^---$/gm, "<hr>");
-
-  // Lists
+  // 1. Lists - Process block-level lists first to avoid conflict with emphasis (*)
   html = html.replace(
-    /(^|\n)((?:[-*] .+(?:\n|$))+)/g,
+    /(^|\r?\n)((?:[-*] .+(?:\r?\n|$))+)/g,
     (match, prefix, list) => {
       const items = list
         .trim()
-        .split(/\n/)
+        .split(/\r?\n/)
         .map((line) => {
           return `<li>${line.replace(/^[-*] /, "")}</li>`;
         })
@@ -248,8 +300,24 @@ export const parseMarkdown = (text) => {
     },
   );
 
+  // 2. Headers
+  html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
+  html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
+  html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
+
+  // 3. Blockquotes
+  html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
+
+  // 4. Code Blocks
+  html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+  // 5. HR
+  html = html.replace(/^---$/gm, "<hr>");
+
+  // 6. Images & Links
   const sanitizeUrl = (url) => {
-    // Decode URL to catch encoded attacks
+    if (!url) return "";
     let decoded;
     try {
       decoded = decodeURIComponent(url.trim()).toLowerCase();
@@ -277,12 +345,51 @@ export const parseMarkdown = (text) => {
     );
 
   html = html.replace(
+    /!\[([^\]]*)\]\(([^)]+)\)/g,
+    (match, alt, url) =>
+      `<img src="" data-src="${sanitizeUrl(url)}" alt="${escapeHtml(alt)}" loading="lazy" class="quest-step-inline-image lazy-load" data-action="view-image">`,
+  );
+
+  html = html.replace(
     /\[([^\]]+)\]\(([^)]+)\)/g,
     (match, text, url) =>
       `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${escapeHtml(text)}</a>`,
   );
 
+  // 7. Emphasis
+  html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+  html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
+
+  html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
+  // Change underscore italic to require boundaries to avoid breaking URLs with underscores
+  html = html.replace(/(^|[^\w])_(.*?)_([^\w]|$)/g, "$1<em>$2</em>$3");
+
+  html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
+
+  // 8. Spoilers
+  html = html.replace(
+    /{spoiler}([\s\S]*?){\/spoiler}/g,
+    '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
+  );
+
   return html;
+};
+
+/**
+ * Resets a GIF animation by reloading its source.
+ * @param {Element|null} img - The image element.
+ */
+export const resetGif = (img) => {
+  if (!(img instanceof HTMLImageElement) || !img.src) return;
+  const url = img.src.split("?")[0].split("#")[0];
+  if (url.toLowerCase().endsWith(".gif")) {
+    const src = img.src;
+    img.src = "";
+    // Use a small delay to ensure the browser registers the empty src
+    setTimeout(() => {
+      img.src = src;
+    }, 0);
+  }
 };
 
 export { debounce };

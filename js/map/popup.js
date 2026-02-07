@@ -1,6 +1,6 @@
 // @ts-check
 import { state } from "../state.js";
-import { t, getJosa, parseMarkdown } from "../utils.js";
+import { t, getJosa, parseMarkdown, resetGif } from "../utils.js";
 import { formatCompletedTime } from "../ui/navigation.js";
 import {
   openLightbox,
@@ -157,8 +157,15 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
 
           const placeholder =
             "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-          // Use imgSrc instead of media.src
-          return `<img data-src="${imgSrc}" src="${placeholder}" class="popup-media lazy-load ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}">`;
+
+          const isFirst = index === 0;
+          const srcAttr = isFirst ? imgSrc : placeholder;
+          const lazyClass = isFirst ? "" : "lazy-load";
+          const loadingAttr = isFirst ? "eager" : "lazy";
+          const priorityAttr = isFirst ? 'fetchpriority="high"' : "";
+          const dataSrcAttr = isFirst ? "" : `data-src="${imgSrc}"`;
+
+          return `<img ${dataSrcAttr} src="${srcAttr}" class="popup-media ${lazyClass} ${activeClass}" data-action="lightbox" data-item-id="${item.id}" data-index="${media.index}" alt="${translatedName}" loading="${loadingAttr}" ${priorityAttr}>`;
         } else {
           let videoSrc = media.src.replace(/^http:/, "https:");
           if (videoSrc.startsWith("//")) videoSrc = "https:" + videoSrc;
@@ -171,21 +178,20 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
           );
           if (ytMatch && ytMatch[1]) {
             const ytId = ytMatch[1];
-            // Extract start time from t= or start= parameter
             const timeMatch = videoSrc.match(/[?&](?:t|start)=(\d+)/);
             const startTime = timeMatch ? timeMatch[1] : null;
-            const startParam = startTime ? `&start=${startTime}` : '';
-            thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0${startParam}`;
-            lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1${startParam}`;
+            const startParam = startTime ? `&start=${startTime}` : "";
+            thumbSrc = `https://www.youtube.com/embed/${ytId}?autoplay=0&mute=1&controls=0&showinfo=0&rel=0&loop=1&playlist=${ytId}${startParam}`;
+            lightboxSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1&loop=1&playlist=${ytId}${startParam}`;
           }
 
           if (videoSrc.includes("bilibili.com")) {
             const separator = videoSrc.includes("?") ? "&" : "?";
             lightboxSrc = videoSrc.replace(/&?autoplay=\d/, "");
-            lightboxSrc += `${separator}autoplay=1&high_quality=1`;
+            lightboxSrc += `${separator}autoplay=1&loop=1&high_quality=1`;
 
             thumbSrc = videoSrc.replace(/&?autoplay=\d/, "");
-            thumbSrc += `${separator}autoplay=0&t=0&danmaku=0&high_quality=1&muted=1`;
+            thumbSrc += `${separator}autoplay=0&loop=1&t=0&danmaku=0&high_quality=1&muted=1`;
           }
 
           return `
@@ -382,6 +388,9 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                 </div>
             </div>
         </div>
+        <div class="popup-quest-info hidden" data-item-id="${item.id}">
+            <!-- Quest info loaded via JS -->
+        </div>
         <div class="popup-body">
             ${mediaHtml}
             ${bodyContent}
@@ -449,176 +458,199 @@ export const initPopupEventDelegation = () => {
           const itemId = voteContainer.dataset.itemId;
           if (itemId) fetchVoteCounts(itemId, true);
         }
-      }
-    });
-  }
 
-  document.addEventListener("click", (e) => {
-    const targetElement =
-      e.target instanceof HTMLElement
-        ? e.target.closest("[data-action]")
-        : null;
-    if (!targetElement || !(targetElement instanceof HTMLElement)) return;
-
-    const target = targetElement;
-    const action = target.dataset.action;
-    const itemId = target.dataset.itemId;
-    const popupContainer = target.closest(".popup-container");
-
-    e.stopPropagation();
-
-    switch (action) {
-      case "lightbox":
-        openLightbox(parseInt(itemId), parseInt(target.dataset.index));
-        break;
-      case "video-lightbox":
-        openVideoLightbox(target.dataset.src);
-        break;
-      case "switch-image":
-        switchImage(target, parseInt(target.dataset.dir));
-        break;
-      case "translate":
-        const translateType = target.dataset.translateType || "ai";
-        translateItem(parseInt(itemId), translateType);
-        break;
-      case "open-modal":
-        openRelatedModal(target.dataset.category);
-        break;
-      case "toggle-guide":
-        document
-          .getElementById(target.dataset.target)
-          ?.classList.toggle("hidden");
-        break;
-      case "reveal-spoiler":
-        target.classList.add("revealed");
-        break;
-      case "toggle-sticker":
-        toggleStickerModal(parseInt(itemId));
-        break;
-      case "toggle-fav":
-        toggleFavorite(parseInt(itemId));
-        break;
-      case "toggle-complete":
-        toggleCompleted(itemId);
-        break;
-      case "share":
-        shareLocation(parseInt(itemId));
-        break;
-
-      case "add-to-route":
-        import("../route/index.js")
-          .then((routeModule) => {
-            if (routeModule.isManualRouteMode()) {
-              const added = routeModule.addToManualRoute(itemId);
-              if (added) {
-                target.textContent = "✓";
-                target.style.background = "var(--success)";
-                target.style.color = "white";
+        // Check for quest info
+        const questInfoEl = popupNode.querySelector(".popup-quest-info");
+        if (questInfoEl && questInfoEl.dataset.itemId) {
+          const itemId = questInfoEl.dataset.itemId;
+          import("../quest-guide/index.js").then(({ findQuestLineForMarker }) => {
+            findQuestLineForMarker(itemId).then((quest) => {
+              if (quest) {
+                questInfoEl.innerHTML = `
+                  <div class="quest-link-banner" data-action="open-quest" data-quest-id="${quest.id}">
+                    <div class="banner-icon">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </div>
+                    <div class="banner-info">
+                      <div class="banner-label">관련 퀘스트</div>
+                      <div class="banner-title">${quest.title}</div>
+                    </div>
+                    <svg class="banner-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                  </div>
+                `;
+                questInfoEl.classList.remove("hidden");
+                // Allow clicking the banner to open the quest
+                const banner = questInfoEl.querySelector(".quest-link-banner");
+                if (banner) {
+                  banner.addEventListener("click", (e) => {
+                    e.stopPropagation();
+                    import("../quest-guide/index.js").then(({ openQuestGuide }) => {
+                      openQuestGuide(quest.id);
+                    });
+                  });
+                }
               }
-            } else {
-              alert(
-                '수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.',
-              );
-            }
-          })
-          .catch((err) => {
-            console.error("Route module load failed:", err);
-            alert("경로 모듈을 불러올 수 없습니다.");
-          });
-        break;
-      case "vote":
-        const type = target.dataset.type;
-        const isBackend = target.dataset.isBackend === "true";
-        toggleVote(itemId, type, isBackend).then((result) => {
-          const voteContainer = target.closest(".vote-container");
-          if (voteContainer && result && result.counts) {
-            const upBtn = voteContainer.querySelector(".btn-up");
-            const downBtn = voteContainer.querySelector(".btn-down");
-            const upCount = upBtn.querySelector(".vote-count");
-            const downCount = downBtn.querySelector(".vote-count");
-
-            if (upCount) upCount.textContent = String(result.counts.up);
-            if (downCount) downCount.textContent = String(result.counts.down);
-
-            if (upBtn)
-              upBtn.classList.toggle("active", result.userVote === "up");
-            if (downBtn)
-              downBtn.classList.toggle("active", result.userVote === "down");
-          }
-        });
-        break;
-      case "switch-report": {
-        const reportId = target.dataset.reportId;
-        const mainItemId = target.dataset.itemId;
-
-        // Try to find the master item in lastRenderedItems (which has the aggregated data)
-        let masterItem = state.lastRenderedItems.find((it) => String(it.id) === String(mainItemId));
-
-        // Fallback to other sources
-        if (!masterItem) {
-          const items = state.mapData?.items || [];
-          masterItem = items.find((it) => String(it.id) === String(mainItemId));
-        }
-
-        if (!masterItem && state.communityMarkers) {
-          masterItem = state.communityMarkers.get(String(mainItemId));
-        }
-
-        if (masterItem && state.map) {
-          // Use getPopup() or fall back to internal _popup for Leaflet
-          const popup = state.map.getPopup ? state.map.getPopup() : state.map._popup;
-          if (popup) {
-            const latlng = popup.getLatLng();
-            const newHtml = createPopupHtml(
-              masterItem,
-              latlng.lat,
-              latlng.lng,
-              masterItem.forceRegion || masterItem.region,
-              reportId,
-            );
-            popup.setContent(newHtml);
-
-            // Re-observe for lazy loading in the updated content
-            const element = popup.getElement();
-            if (element) {
-              lazyLoader.observeAll(".lazy-load", element);
-            }
-          }
-        }
-        break;
-      }
-
-      case "admin-delete":
-        if (confirm("정말 이 마커를 영구 삭제하시겠습니까?")) {
-          import("../auth.js").then(async ({ getAuthToken }) => {
-            const token = await getAuthToken();
-            fetch(`${BACKEND_URL}/api/admin/markers/${itemId}`, {
-              method: "DELETE",
-              credentials: "include",
-              headers: token ? { "Authorization": `Bearer ${token}` } : {}
-            }).then(res => res.json()).then(data => {
-              if (data.success) {
-                alert("삭제되었습니다.");
-                state.map.closePopup();
-                import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
-                  import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
-                }));
-              } else alert("오류: " + data.error);
             });
           });
         }
-        break;
+      }
+    });
+  }
+};
 
-      case "admin-approve":
+document.addEventListener("click", (e) => {
+  const targetElement =
+    e.target instanceof HTMLElement
+      ? e.target.closest("[data-action]")
+      : null;
+  if (!targetElement || !(targetElement instanceof HTMLElement)) return;
+
+  const target = targetElement;
+  const action = target.dataset.action;
+  const itemId = target.dataset.itemId;
+  const popupContainer = target.closest(".popup-container");
+
+  e.stopPropagation();
+
+  switch (action) {
+    case "lightbox":
+      if (target instanceof HTMLImageElement || target.querySelector("img")) {
+        const img =
+          target instanceof HTMLImageElement
+            ? target
+            : target.querySelector("img");
+        if (img) resetGif(img);
+      }
+      openLightbox(parseInt(itemId), parseInt(target.dataset.index));
+      break;
+    case "video-lightbox":
+      openVideoLightbox(target.dataset.src);
+      break;
+    case "switch-image":
+      switchImage(target, parseInt(target.dataset.dir));
+      break;
+    case "translate":
+      const translateType = target.dataset.translateType || "ai";
+      translateItem(parseInt(itemId), translateType);
+      break;
+    case "open-modal":
+      openRelatedModal(target.dataset.category);
+      break;
+    case "toggle-guide":
+      document
+        .getElementById(target.dataset.target)
+        ?.classList.toggle("hidden");
+      break;
+    case "reveal-spoiler":
+      target.classList.add("revealed");
+      break;
+    case "toggle-sticker":
+      toggleStickerModal(parseInt(itemId));
+      break;
+    case "toggle-fav":
+      toggleFavorite(parseInt(itemId));
+      break;
+    case "toggle-complete":
+      toggleCompleted(itemId);
+      break;
+    case "share":
+      shareLocation(parseInt(itemId));
+      break;
+
+    case "add-to-route":
+      import("../route/index.js")
+        .then((routeModule) => {
+          if (routeModule.isManualRouteMode()) {
+            const added = routeModule.addToManualRoute(itemId);
+            if (added) {
+              target.textContent = "✓";
+              target.style.background = "var(--success)";
+              target.style.color = "white";
+            }
+          } else {
+            alert(
+              '수동 경로 구성 모드가 아닙니다. 경로 모드에서 "직접 구성"을 선택해주세요.',
+            );
+          }
+        })
+        .catch((err) => {
+          console.error("Route module load failed:", err);
+          alert("경로 모듈을 불러올 수 없습니다.");
+        });
+      break;
+    case "vote":
+      const type = target.dataset.type;
+      const isBackend = target.dataset.isBackend === "true";
+      toggleVote(itemId, type, isBackend).then((result) => {
+        const voteContainer = target.closest(".vote-container");
+        if (voteContainer && result && result.counts) {
+          const upBtn = voteContainer.querySelector(".btn-up");
+          const downBtn = voteContainer.querySelector(".btn-down");
+          const upCount = upBtn.querySelector(".vote-count");
+          const downCount = downBtn.querySelector(".vote-count");
+
+          if (upCount) upCount.textContent = String(result.counts.up);
+          if (downCount) downCount.textContent = String(result.counts.down);
+
+          if (upBtn)
+            upBtn.classList.toggle("active", result.userVote === "up");
+          if (downBtn)
+            downBtn.classList.toggle("active", result.userVote === "down");
+        }
+      });
+      break;
+    case "switch-report": {
+      const reportId = target.dataset.reportId;
+      const mainItemId = target.dataset.itemId;
+
+      // Try to find the master item in lastRenderedItems (which has the aggregated data)
+      let masterItem = state.lastRenderedItems.find((it) => String(it.id) === String(mainItemId));
+
+      // Fallback to other sources
+      if (!masterItem) {
+        const items = state.mapData?.items || [];
+        masterItem = items.find((it) => String(it.id) === String(mainItemId));
+      }
+
+      if (!masterItem && state.communityMarkers) {
+        masterItem = state.communityMarkers.get(String(mainItemId));
+      }
+
+      if (masterItem && state.map) {
+        // Use getPopup() or fall back to internal _popup for Leaflet
+        const popup = state.map.getPopup ? state.map.getPopup() : state.map._popup;
+        if (popup) {
+          const latlng = popup.getLatLng();
+          const newHtml = createPopupHtml(
+            masterItem,
+            latlng.lat,
+            latlng.lng,
+            masterItem.forceRegion || masterItem.region,
+            reportId,
+          );
+          popup.setContent(newHtml);
+
+          // Re-observe for lazy loading in the updated content
+          const element = popup.getElement();
+          if (element) {
+            lazyLoader.observeAll(".lazy-load", element);
+          }
+        }
+      }
+      break;
+    }
+
+    case "admin-delete":
+      if (confirm("정말 이 마커를 영구 삭제하시겠습니까?")) {
         import("../auth.js").then(async ({ getAuthToken }) => {
           const token = await getAuthToken();
-          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/approve`, {
-            method: "POST",
+          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}`, {
+            method: "DELETE",
             credentials: "include",
             headers: token ? { "Authorization": `Bearer ${token}` } : {}
           }).then(res => res.json()).then(data => {
             if (data.success) {
-              alert("승인되었습니다.");
+              alert("삭제되었습니다.");
               state.map.closePopup();
               import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
                 import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
@@ -626,68 +658,87 @@ export const initPopupEventDelegation = () => {
             } else alert("오류: " + data.error);
           });
         });
-        break;
+      }
+      break;
 
-      case "admin-reject":
-        if (confirm("이 제보를 거부하시겠습니까?")) {
-          import("../auth.js").then(async ({ getAuthToken }) => {
-            const token = await getAuthToken();
-            fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/reject`, {
-              method: "POST",
-              credentials: "include",
-              headers: token ? { "Authorization": `Bearer ${token}` } : {}
-            }).then(res => res.json()).then(data => {
-              if (data.success) {
-                alert("거부되었습니다.");
-                state.map.closePopup();
-                import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
-                  import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
-                }));
-              } else alert("오류: " + data.error);
-            });
-          });
-        }
-        break;
+    case "admin-approve":
+      import("../auth.js").then(async ({ getAuthToken }) => {
+        const token = await getAuthToken();
+        fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/approve`, {
+          method: "POST",
+          credentials: "include",
+          headers: token ? { "Authorization": `Bearer ${token}` } : {}
+        }).then(res => res.json()).then(data => {
+          if (data.success) {
+            alert("승인되었습니다.");
+            state.map.closePopup();
+            import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+              import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+            }));
+          } else alert("오류: " + data.error);
+        });
+      });
+      break;
 
-      case "admin-block-user": {
-        const userId = target.dataset.userId;
-        if (!userId || userId === "null") {
-          alert("유저 ID가 없는 마커입니다.");
-          break;
-        }
-        const reason = prompt("이 유저를 차단하시겠습니까? 사유를 입력하세요:");
-        if (reason) {
-          import("../auth.js").then(async ({ getAuthToken }) => {
-            const token = await getAuthToken();
-            fetch(`${BACKEND_URL}/api/admin/users/block`, {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                ...(token ? { "Authorization": `Bearer ${token}` } : {})
-              },
-              body: JSON.stringify({ userId, reason }),
-              credentials: "include"
-            }).then(res => res.json()).then(data => {
-              if (data.success) alert(`유저(${userId})가 차단되었습니다.\n사유: ${reason}`);
-              else alert("오류: " + data.error);
-            });
+    case "admin-reject":
+      if (confirm("이 제보를 거부하시겠습니까?")) {
+        import("../auth.js").then(async ({ getAuthToken }) => {
+          const token = await getAuthToken();
+          fetch(`${BACKEND_URL}/api/admin/markers/${itemId}/reject`, {
+            method: "POST",
+            credentials: "include",
+            headers: token ? { "Authorization": `Bearer ${token}` } : {}
+          }).then(res => res.json()).then(data => {
+            if (data.success) {
+              alert("거부되었습니다.");
+              state.map.closePopup();
+              import("../map/community.js").then(m => m.fetchCommunityMarkers().then(() => {
+                import("../map/markers.js").then(mm => mm.renderMapDataAndMarkers());
+              }));
+            } else alert("오류: " + data.error);
           });
-        }
+        });
+      }
+      break;
+
+    case "admin-block-user": {
+      const userId = target.dataset.userId;
+      if (!userId || userId === "null") {
+        alert("유저 ID가 없는 마커입니다.");
         break;
       }
-    }
-  });
-
-  document.addEventListener("submit", (e) => {
-    const form = /** @type {HTMLElement} */ (
-      /** @type {HTMLElement} */ (e.target).closest(".comment-form")
-    );
-    if (form) {
-      e.preventDefault();
-      const itemId = form.dataset.itemId;
-      if (itemId && submitAnonymousComment) {
-        submitAnonymousComment(e, parseInt(itemId));
+      const reason = prompt("이 유저를 차단하시겠습니까? 사유를 입력하세요:");
+      if (reason) {
+        import("../auth.js").then(async ({ getAuthToken }) => {
+          const token = await getAuthToken();
+          fetch(`${BACKEND_URL}/api/admin/users/block`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              ...(token ? { "Authorization": `Bearer ${token}` } : {})
+            },
+            body: JSON.stringify({ userId, reason }),
+            credentials: "include"
+          }).then(res => res.json()).then(data => {
+            if (data.success) alert(`유저(${userId})가 차단되었습니다.\n사유: ${reason}`);
+            else alert("오류: " + data.error);
+          });
+        });
       }
+      break;
     }
-  });
-};
+  }
+});
+
+document.addEventListener("submit", (e) => {
+  const form = /** @type {HTMLElement} */ (
+    /** @type {HTMLElement} */ (e.target).closest(".comment-form")
+  );
+  if (form) {
+    e.preventDefault();
+    const itemId = form.dataset.itemId;
+    if (itemId && submitAnonymousComment) {
+      submitAnonymousComment(e, parseInt(itemId));
+    }
+  }
+});

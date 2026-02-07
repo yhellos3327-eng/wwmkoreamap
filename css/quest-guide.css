@@ -1,0 +1,415 @@
+.quest-guide-panel {
+    position: fixed;
+    top: 16px;
+    left: calc(var(--sidebar-width, 320px) + 32px);
+    width: 0;
+    height: calc(100vh - 32px);
+    background: var(--bg-panel);
+    backdrop-filter: var(--glass-blur) saturate(180%);
+    -webkit-backdrop-filter: var(--glass-blur) saturate(180%);
+    border-radius: 24px;
+    z-index: 1000;
+    overflow: hidden;
+    transition: width 0.4s cubic-bezier(0.25, 0.1, 0.25, 1),
+        opacity 0.3s ease,
+        transform 0.4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--glass-shadow);
+    opacity: 0;
+    transform: translateX(-20px);
+    pointer-events: none;
+}
+
+.quest-guide-panel.open {
+    width: 460px;
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+}
+
+/* Animated border */
+.quest-guide-panel::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(from var(--border-angle, 0deg),
+            transparent 0%,
+            var(--border-anim-light) 15%,
+            var(--border-anim-mid) 45%,
+            var(--border-anim-highlight) 50%,
+            var(--border-anim-mid) 55%,
+            var(--border-anim-light) 85%,
+            transparent 100%);
+    -webkit-mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    mask:
+        linear-gradient(#fff 0 0) content-box,
+        linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    animation: rotate-border 8s linear infinite;
+    z-index: 10;
+    will-change: transform;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+}
+
+.quest-guide-panel.open::after {
+    opacity: 1;
+}
+
+/* Header */
+.quest-guide-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background: var(--bg-darker);
+    border-bottom: 1px solid var(--glass-border);
+    min-height: 52px;
+    border-radius: 24px 24px 0 0;
+    gap: 8px;
+}
+
+.quest-guide-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-main);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.quest-guide-back {
+    background: var(--bg-item);
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.quest-guide-back:hover {
+    color: var(--text-main);
+    background: var(--bg-item-hover);
+}
+
+.quest-guide-back.hidden {
+    display: none;
+}
+
+/* Display toggles */
+.quest-display-toggles {
+    display: flex;
+    gap: 4px;
+    flex-shrink: 0;
+}
+
+.quest-toggle-btn {
+    background: var(--bg-item);
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.quest-toggle-btn.active {
+    color: var(--accent);
+    border-color: var(--accent);
+    background: var(--accent-bg);
+}
+
+.quest-toggle-btn:hover {
+    background: var(--bg-item-hover);
+}
+
+/* Close button */
+.quest-guide-close {
+    background: var(--bg-item);
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.quest-guide-close:hover {
+    color: var(--text-main);
+    background: var(--bg-item-hover);
+    transform: scale(1.05);
+}
+
+/* Content area */
+.quest-guide-content {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 16px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+.quest-guide-content::-webkit-scrollbar {
+    width: 4px;
+}
+
+.quest-guide-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.quest-guide-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 2px;
+}
+
+/* Empty state */
+.quest-guide-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+}
+
+/* Bottom navigation */
+.quest-guide-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-top: 1px solid var(--glass-border);
+    background: var(--bg-darker);
+    border-radius: 0 0 24px 24px;
+}
+
+.quest-guide-nav.hidden {
+    display: none;
+}
+
+.quest-nav-btn {
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.quest-nav-btn:hover {
+    background: var(--bg-item-hover);
+    border-color: var(--text-muted);
+}
+
+.quest-nav-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.quest-step-indicator {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+body.sidebar-open .quest-guide-panel {
+    left: calc(var(--sidebar-width, 320px) + 32px);
+}
+
+body:not(.sidebar-open) .quest-guide-panel {
+    left: 16px;
+}
+
+.quest-glow-marker {
+    filter: drop-shadow(0 0 8px rgba(218, 172, 113, 0.8)) drop-shadow(0 0 16px rgba(218, 172, 113, 0.5)) !important;
+    animation: quest-marker-glow 2s ease-in-out infinite !important;
+    opacity: 1 !important;
+}
+
+@keyframes quest-marker-glow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 8px rgba(218, 172, 113, 0.8)) drop-shadow(0 0 16px rgba(218, 172, 113, 0.5));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 12px rgba(218, 172, 113, 1)) drop-shadow(0 0 24px rgba(218, 172, 113, 0.7));
+    }
+}
+
+.quest-polyline {
+    filter: drop-shadow(0 0 6px rgba(218, 172, 113, 0.6));
+    stroke-dasharray: 8, 8;
+    animation: dash-flow 25s linear infinite;
+}
+
+.quest-badge-container {
+    pointer-events: none !important;
+}
+
+.quest-badge-marker {
+    width: 20px;
+    height: 20px;
+    background: rgba(0, 0, 0, 0.9);
+    border: 2px solid var(--accent);
+    color: var(--accent);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    pointer-events: none;
+    backdrop-filter: blur(2px);
+}
+
+.quest-badge-marker.active {
+    background: linear-gradient(135deg, var(--accent) 0%, #c9995f 100%);
+    color: #000;
+    border-color: #fff;
+    box-shadow: 0 2px 12px rgba(218, 172, 113, 0.9), 0 0 0 2px rgba(255, 255, 255, 0.3);
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.3);
+    animation: badge-pulse 2s ease-in-out infinite;
+}
+
+.quest-badge-marker.completed {
+    background: rgba(50, 215, 75, 0.4);
+    border-color: #32d74b;
+    color: #32d74b;
+    text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+    opacity: 0.9;
+}
+
+/* ============================================
+   Mobile Responsive
+   ============================================ */
+
+@media (max-width: 768px) {
+    .quest-guide-panel {
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100vh;
+        height: 100dvh;
+        margin: 0;
+        border-radius: 0;
+    }
+
+    .quest-guide-panel.open {
+        width: 100%;
+    }
+
+    .quest-guide-header {
+        border-radius: 0;
+        min-height: 56px;
+        padding: 12px 16px;
+    }
+
+    .quest-guide-content {
+        border-radius: 0;
+    }
+
+    .quest-guide-nav {
+        border-radius: 0;
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+    }
+
+    body.sidebar-open .quest-guide-panel,
+    body:not(.sidebar-open) .quest-guide-panel {
+        left: 0;
+    }
+
+    .quest-nav-btn {
+        min-height: 44px;
+        padding: 10px 20px;
+    }
+
+    .quest-toggle-btn {
+        width: 36px;
+        height: 36px;
+    }
+}
+
+/* Quest Filter Bar */
+.quest-filter-bar {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg-lighter);
+    border-bottom: 1px solid var(--glass-border);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.quest-filter-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.quest-filter-btn {
+    flex: 0 0 auto;
+    padding: 8px 16px;
+    border-radius: 12px;
+    background: var(--bg-item);
+    border: 1px solid var(--glass-border);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    white-space: nowrap;
+}
+
+.quest-filter-btn:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+    transform: translateY(-1px);
+}
+
+.quest-filter-btn.active {
+    background: var(--accent-gradient, linear-gradient(135deg, #4facfe 0%, #00f2fe 100%));
+    border-color: transparent;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(79, 172, 254, 0.4);
+}
