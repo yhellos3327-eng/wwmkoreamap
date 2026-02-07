@@ -131,7 +131,17 @@ export const renderMapDataAndMarkers = async () => {
     }
 
     let filteredItems = contentItems.filter((item) => {
-      // 1. Community Mode Filter
+      // 1. Quest Guide Filter (High Priority)
+      if (state.questGuideOpen && state.currentQuestLineId) {
+        // If a quest is open, ONLY show markers related to that quest
+        // Bypass other filters (category, region, etc.) to ensure they are visible
+        if (state.activeQuestMarkerIds.has(String(item.id))) {
+          return true;
+        }
+        return false;
+      }
+
+      // 2. Community Mode Filter
       if (state.showCommunityMarkers) {
         // Show only Backend Markers OR Boundary Stones
         if (item.isBackend) {

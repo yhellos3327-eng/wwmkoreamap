@@ -274,6 +274,24 @@ export const initCommunityMode = () => {
 };
 
 /**
+ * Initializes Quest Guide panel events.
+ */
+export const initQuestGuide = () => {
+  const openBtn = document.getElementById("open-quest-guide");
+  if (openBtn) {
+    openBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      import("./quest-guide/index.js").then((m) => m.openQuestGuide());
+    });
+  }
+
+  // Initialize quest guide event delegation
+  import("./quest-guide/index.js").then((m) => {
+    if (m.initQuestGuideEvents) m.initQuestGuideEvents();
+  });
+};
+
+/**
  * Initializes all event handlers.
  */
 export const initAllEventHandlers = () => {
@@ -287,4 +305,5 @@ export const initAllEventHandlers = () => {
   initRouteMode();
   initArcaChannel();
   initCommunityMode();
+  initQuestGuide();
 };

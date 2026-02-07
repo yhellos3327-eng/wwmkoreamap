@@ -273,6 +273,7 @@ const createAddMarkerModal = (lat, lng) => {
                         <div class="dev-drop-preview" id="dev-drop-preview" style="pointer-events: none;"></div>
                         <div class="dev-drop-remove" id="dev-drop-remove" style="display: none; pointer-events: auto; z-index: 30;">×</div>
                     </div>
+                    <input type="text" id="dev-add-image-url" placeholder="또는 이미지 URL 입력 (GIF 지원)" style="margin-top: 8px;">
                 </div>
                 <div class="dev-form-group">
                     <label for="dev-add-video">유튜브/영상 URL (선택)</label>
@@ -430,6 +431,7 @@ const createAddMarkerModal = (lat, lng) => {
     const region = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-region")).value;
     const screenshotInput = /** @type {any} */ (document.getElementById("dev-add-screenshot"));
     const screenshotFile = screenshotInput.files[0] || screenshotInput._droppedFile;
+    const imageUrl = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-image-url")).value;
     const videoUrl = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-video")).value;
 
     if (!catId || !title) {
@@ -437,7 +439,7 @@ const createAddMarkerModal = (lat, lng) => {
       return;
     }
 
-    saveNewMarker(lat, lng, catId, title, desc, region, screenshotFile, videoUrl);
+    saveNewMarker(lat, lng, catId, title, desc, region, screenshotFile, videoUrl, imageUrl);
     close();
   };
 };
@@ -451,7 +453,7 @@ import { isLoggedIn } from "./auth.js";
 /**
  * 신규 마커 저장 및 표시
  */
-const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFile, videoUrl) => {
+const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFile, videoUrl, imageUrl) => {
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
   const isDev = isLocal || devState.isActive;
 
@@ -468,10 +470,10 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     if (isDev) {
       // Local registration
       const newId = Date.now();
-      let uploadedImageUrl = "";
+      let uploadedImageUrl = imageUrl || "";
 
-      // Upload image to backend for consistent URL generation
-      if (screenshotFile) {
+      // Upload image to backend for consistent URL generation (only if file exists and no external URL)
+      if (screenshotFile && !imageUrl) {
         try {
           const uploadFormData = new FormData();
           uploadFormData.append("screenshot", screenshotFile);
@@ -510,7 +512,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         region: region || "",
         regionId: 0,
         mapId: state.currentMapKey || 'qinghe',
-        screenshot: screenshotFile ? URL.createObjectURL(screenshotFile) : null,
+        screenshot: screenshotFile ? URL.createObjectURL(screenshotFile) : (imageUrl || null),
         uploadedImage: uploadedImageUrl, // Custom validation for CSV
         video: videoUrl || null,
         status: 'approved'
@@ -528,6 +530,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
       if (region) formData.append("region", region);
       formData.append("mapId", state.currentMapKey || 'qinghe');
       if (screenshotFile) formData.append("screenshot", screenshotFile);
+      if (imageUrl) formData.append("imageUrl", imageUrl); // Assuming backend supports this!
       if (videoUrl) formData.append("video", videoUrl);
 
       const response = await fetch(`${BACKEND_URL}/api/markers`, {
@@ -575,7 +578,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         description: (desc || "").replace(/<[^>]*>/g, ""), // Sanitize: strip HTML
         category: catId,
         mapId: state.currentMapKey || 'qinghe',
-        images: screenshotFile ? [URL.createObjectURL(screenshotFile)] : [],
+        images: isDev ? [newMarkerData.uploadedImage || newMarkerData.screenshot].filter(Boolean) : (newMarkerData.images || [newMarkerData.screenshot]).filter(Boolean),
         video_url: videoUrl ? [videoUrl] : [],
         isBackend: true,
         status: 'pending',

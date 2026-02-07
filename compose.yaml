@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build: .
+    container_name: map-tiles-backend
+    ports:
+      - "3327:3000"
+    env_file:
+      - ./.env
+    volumes:
+      - ./:/app
+      - /app/node_modules
+      - /volume1/docker/backend/database.sqlite:/app/database.sqlite
+    environment:
+      - DB_PATH=/app/database.sqlite
+    restart: always
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: map-tiles-tunnel
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoiNWI4ZGZjNWEyNzVmNTZkZTUyOGVlNmNhYTllOTM1OGYiLCJ0IjoiMTRmYzNlMGUtYjdjNS00ZmMyLTg5ODYtZmM3ZWViZjg0MWI0IiwicyI6IlptRmxPRFE1WkRZdE1qVmtNeTAwTlRBekxXRmxObVl0TkRGbU1XSXlNMlJpT0dKbCJ9

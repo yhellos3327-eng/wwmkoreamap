@@ -91,6 +91,9 @@ export const createMarkerForItem = (item) => {
     ? "game-marker-icon completed-marker"
     : "game-marker-icon";
   if (isDefault) iconClass += " blue-overlay";
+  if (state.activeQuestMarkerIds && state.activeQuestMarkerIds.has(String(item.id))) {
+    iconClass += " quest-glow-marker";
+  }
 
   const customIcon = L.icon({
     iconUrl: iconUrl,

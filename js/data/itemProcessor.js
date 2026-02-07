@@ -115,8 +115,8 @@ export const applyItemTranslations = (
         commonDesc = catTrans._common_description;
     }
 
-    // Apply default category names
-    if (CATEGORY_DEFAULT_NAMES[item.category]) {
+    const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(item.name);
+    if (CATEGORY_DEFAULT_NAMES[item.category] && !hasKorean) {
         item.name = CATEGORY_DEFAULT_NAMES[item.category];
         item.isTranslated = true;
     }

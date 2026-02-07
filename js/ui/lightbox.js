@@ -1,6 +1,7 @@
 // @ts-check
 /// <reference path="../types.d.ts" />
 import { state, setState } from "../state.js";
+import { resetGif } from "../utils.js";
 
 /**
  * @typedef {import("../data/processors.js").MapItem} MapItem
@@ -33,6 +34,14 @@ function updateLightboxImage() {
       img.style.maxWidth = "100%";
       img.style.maxHeight = "100%";
       img.style.objectFit = "contain";
+
+      // Allow re-playing GIFs on click
+      img.onclick = () => resetGif(img);
+      if (img.src.toLowerCase().includes(".gif")) {
+        img.style.cursor = "pointer";
+        img.title = "Click to replay animation";
+      }
+
       container.appendChild(img);
     } else if (media.type === "video") {
       let videoSrc = media.src.replace(/^http:/, "https:");
@@ -44,17 +53,20 @@ function updateLightboxImage() {
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
       );
       if (ytMatch && ytMatch[1]) {
+        const videoId = ytMatch[1];
         // Extract start time from t= or start= parameter
         const timeMatch = videoSrc.match(/[?&](?:t|start)=(\d+)/);
         const startTime = timeMatch ? timeMatch[1] : null;
-        const startParam = startTime ? `&start=${startTime}` : '';
-        embedSrc = `https://www.youtube.com/embed/${ytMatch[1]}?autoplay=1${startParam}`;
+        const startParam = startTime ? `&start=${startTime}` : "";
+        // YouTube requires both loop=1 and playlist=VIDEO_ID to loop
+        embedSrc = `https://www.youtube.com/embed/${videoId}?autoplay=1&loop=1&playlist=${videoId}${startParam}`;
       }
 
       if (videoSrc.includes("bilibili.com")) {
         const separator = videoSrc.includes("?") ? "&" : "?";
         embedSrc = videoSrc.replace(/&?autoplay=\d/, "");
-        embedSrc += `${separator}autoplay=1&high_quality=1`;
+        // Add loop=1 for Bilibili
+        embedSrc += `${separator}autoplay=1&loop=1&high_quality=1`;
       }
 
       const iframe = document.createElement("iframe");
@@ -247,8 +259,33 @@ export const switchImage = (btn, direction) => {
   if (currentIdx < 0) currentIdx = total - 1;
 
   images[currentIdx].classList.add("active");
+  resetGif(images[currentIdx]);
+
   container.dataset.idx = String(currentIdx);
   if (counter)
-    /** @type {HTMLElement} */ (counter).innerText =
-      `${currentIdx + 1} / ${total}`;
+    /** @type {HTMLElement} */ (counter).innerText = `${currentIdx + 1} / ${total}`;
 };
+
+// Background loop to auto-restart GIFs that might have finished playing (for one-shot GIFs)
+setInterval(() => {
+  const activeSelectors = [
+    ".popup-media.active",
+    ".lightbox-content",
+    ".quest-step-image",
+  ];
+  activeSelectors.forEach((selector) => {
+    document.querySelectorAll(selector).forEach((el) => {
+      if (
+        el instanceof HTMLImageElement &&
+        el.src.toLowerCase().includes(".gif")
+      ) {
+        // Only reset if visible in viewport
+        const rect = el.getBoundingClientRect();
+        if (rect.top < window.innerHeight && rect.bottom > 0) {
+          resetGif(el);
+        }
+      }
+    });
+  });
+}, 20000);
+
