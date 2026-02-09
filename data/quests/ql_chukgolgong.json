@@ -228,9 +228,9 @@
       "tips": "낮은 의자 밑 공간을 **축골공**으로 탐색하세요."
     },
     {
-      "id": "step_finish",
+      "id": "step_skill",
       "order": 17,
-      "group": "finish",
+      "group": "skill",
       "title": "제출 · 기예단 단장",
       "content": "모은 재료들을 기예단 단장에게 제출하여 보상을 얻을수 있습니다.![스크린샷](https://assets.wwmmap.kr/markers/%EA%B8%B0%EC%98%88%EB%8B%A8.png)",
       "markerId": "1770389034331"
