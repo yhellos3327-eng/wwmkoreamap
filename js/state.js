@@ -82,6 +82,11 @@ const log = createLogger("State");
  * @property {boolean} showCommunityMarkers
  * @property {Map<string, any>} communityMarkers
  * @property {any[]} lastRenderedItems
+ * @property {boolean} questGuideOpen
+ * @property {string|null} currentQuestLineId
+ * @property {Set<string>} activeQuestMarkerIds
+ * @property {Object.<string, string[]>} questProgress
+ * @property {{showImages: boolean, showVideos: boolean, showMapCoords: boolean}} questDisplayOptions
  */
 
 const checkWebGL = (() => {
@@ -147,6 +152,13 @@ const initialState = {
   showCommunityMarkers: false,
   communityMarkers: new Map(), // Store backend markers: id -> marker data
   lastRenderedItems: [], // Persist filtered/aggregated items for popup access
+
+  // Quest Guide
+  questGuideOpen: false,
+  currentQuestLineId: null,
+  activeQuestMarkerIds: new Set(),
+  questProgress: {},
+  questDisplayOptions: { showImages: true, showVideos: true, showMapCoords: true },
 
   // API keys are initialized empty, loaded from Vault
   savedAIProvider: "gemini",
@@ -424,7 +436,8 @@ export const initStateFromVault = async () => {
       geminiKey,
       openaiKey,
       claudeKey,
-      deeplKey
+      deeplKey,
+      questProgress
     ] = await Promise.all([
       primaryDb.get("completedList"),
       primaryDb.get("favorites"),
@@ -433,7 +446,8 @@ export const initStateFromVault = async () => {
       primaryDb.get("wwm_gemini_key"),
       primaryDb.get("wwm_openai_key"),
       primaryDb.get("wwm_claude_key"),
-      primaryDb.get("wwm_deepl_key")
+      primaryDb.get("wwm_deepl_key"),
+      primaryDb.get("questProgress")
     ]);
 
     // API Keys are now strictly managed via Vault.
@@ -475,6 +489,7 @@ export const initStateFromVault = async () => {
       savedOpenAIKey: finalOpenaiKey || "",
       savedClaudeKey: finalClaudeKey || "",
       savedDeepLKey: finalDeeplKey || "",
+      questProgress: questProgress || {},
     };
 
     // Apply settings if available

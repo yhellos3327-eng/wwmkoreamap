@@ -43,6 +43,10 @@ declare module "https://esm.run/@mlc-ai/web-llm@0.2.78" {
   export const hasModelInCache: any;
 }
 
+declare module "https://esm.run/marked@12.0.0" {
+  export const marked: any;
+}
+
 declare namespace L {
   export type Layer = any;
   export type Polygon = any;
