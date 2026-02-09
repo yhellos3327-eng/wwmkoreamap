@@ -48,6 +48,11 @@ export const renderQuestList = (questLines, categories, progress) => {
               <span>${completedSteps} / ${total} 완료</span>
             </div>
           </div>
+          <div class="quest-list-actions" style="margin-left: auto; margin-right: 8px;">
+            <button class="quest-share-btn-list" data-action="quest-share-link-list" data-quest-id="${quest.id}" title="링크 복사" style="background: none; border: none; color: var(--text-muted); padding: 4px; cursor: pointer; border-radius: 4px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+            </button>
+          </div>
           <div class="quest-list-arrow">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </div>
@@ -132,6 +137,19 @@ export const renderQuestDetail = (
 
   container.innerHTML = `
     <div class="quest-detail">
+      <div class="quest-share-header" style="display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 12px;">
+        <button class="quest-share-btn" data-action="quest-share-link" data-url="${window.location.origin}${window.location.pathname}?quest=${quest.id}" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-muted); font-size: 12px; cursor: pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+          링크 복사
+        </button>
+        ${quest.externalLink
+      ? `<a href="${quest.externalLink}" target="_blank" class="quest-external-link-btn" style="display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--accent); background: rgba(218, 172, 113, 0.1); color: var(--accent); font-size: 12px; text-decoration: none;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                가이드 보기
+              </a>`
+      : ""
+    }
+      </div>
       ${progressHtml}
       ${descHtml}
       ${filterHtml}
@@ -363,5 +381,65 @@ export const updateStepHighlight = (activeIndex) => {
     if (num) num.classList.toggle("active", i === activeIndex);
     const box = card.querySelector(".quest-step-content-box");
     if (box) box.classList.toggle("active", i === activeIndex);
+  });
+
+  // Manage GIF playback based on active step
+  updateGifPlayback(activeIndex);
+};
+
+/**
+ * Manage GIF playback to optimize performance.
+ * Only plays GIFs in the active step.
+ * Pauses others by replacing src.
+ * @param {number} activeIndex 
+ */
+const updateGifPlayback = (activeIndex) => {
+  const cards = document.querySelectorAll(".quest-step-card");
+
+  cards.forEach((card) => {
+    // @ts-ignore
+    const stepIndex = parseInt(card.dataset.stepIndex);
+    const isActive = stepIndex === activeIndex;
+
+    // Play ONLY if it's the active step
+    const shouldPlay = isActive;
+
+    const images = card.querySelectorAll("img");
+    images.forEach(img => {
+      const src = img.getAttribute("data-src") || img.src;
+      if (!src) return;
+
+      // Check if it's a GIF
+      // Note: Some URLs might not end with .gif if served dynamically, but usually they do.
+      // If we want to be sure, we could check header but that's expensive.
+      // Rely on extension or data attribute if we added one.
+      const isGif = src.toLowerCase().includes(".gif");
+
+      if (isGif) {
+        if (shouldPlay) {
+          // If it should play but doesn't have src or has placeholder
+          if (!img.src || img.src.indexOf("data:image") === 0) {
+            img.src = src;
+          }
+          // If it has src but it might be static, we ensure it's the GIF url
+          if (img.src !== src && !img.src.endsWith(src)) { // simple check
+            img.src = src;
+          }
+        } else {
+          // If it should stop
+          // Replace with a placeholder or empty to stop animation
+          // We use a 1x1 transparent gif or just remove src (if layout is preserved by CSS)
+          // CSS `quest-step-image` usually has width: 100% or similar. 
+          // If we remove src, `img` might collapse or show broken icon depending on browser.
+          // Better to use a placeholder transparent image.
+          if (img.src !== "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7") {
+            // Store original if not in data-src (safety)
+            if (!img.getAttribute("data-src")) img.setAttribute("data-src", img.src);
+
+            img.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+          }
+        }
+      }
+    });
   });
 };

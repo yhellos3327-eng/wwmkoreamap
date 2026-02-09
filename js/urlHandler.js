@@ -31,6 +31,10 @@ export const handleUrlParams = () => {
     document.body.classList.add("overlay-mode");
   }
 
+  if (urlParams.get("page") === "quest" || urlParams.get("mode") === "quest") {
+    document.body.classList.add("quest-page-mode");
+  }
+
   return urlParams;
 };
 
@@ -52,6 +56,18 @@ export const handleSharedLink = (urlParams) => {
       .catch((err) => {
         console.error("Failed to load shared route:", err);
       });
+    return;
+  }
+
+  const questParam = urlParams.get("quest");
+  const isQuestMode = urlParams.get("mode") === "quest" || urlParams.get("page") === "quest";
+
+  if (questParam || isQuestMode) {
+    setTimeout(() => {
+      import("./quest-guide/index.js").then(({ openQuestGuide }) => {
+        openQuestGuide(questParam);
+      });
+    }, 1000);
     return;
   }
 
