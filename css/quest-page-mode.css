@@ -1,0 +1,81 @@
+/* Quest Page Mode Styles */
+body.quest-page-mode {
+    overflow: hidden;
+    /* Prevent body scroll */
+}
+
+/* Hide standard UI elements */
+body.quest-page-mode .map-toolbar,
+body.quest-page-mode #sidebar,
+body.quest-page-mode #mobile-bottom-nav,
+body.quest-page-mode #mobile-header,
+body.quest-page-mode #floating-sidebar-toggle,
+body.quest-page-mode .mobile-region-selector {
+    display: none !important;
+}
+
+/* Maximize Quest Guide Panel */
+body.quest-page-mode .quest-guide-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 500px;
+    height: 100vh;
+    height: 100dvh;
+    margin: 0;
+    border-radius: 0;
+    border-right: 1px solid var(--glass-border);
+    background: var(--bg-panel);
+    z-index: 2000;
+    opacity: 1;
+    pointer-events: auto;
+    transform: none !important;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Adjust Map Container */
+body.quest-page-mode #map-container {
+    position: fixed;
+    top: 0;
+    left: 500px;
+    width: calc(100% - 500px);
+    height: 100vh;
+    height: 100dvh;
+    z-index: 1;
+}
+
+/* Restore close button visibility if needed, or hide it if it's the only view? 
+   If it's a separate page, maybe we don't need to close it? 
+   But the user might want to 'exit' quest mode. 
+   Let's keep the close button but change its behavior or icon.
+   For now, standard close closes the panel. If panel is closed in quest mode, what happens? 
+   Maybe we should hide the close button in quest mode. 
+*/
+body.quest-page-mode .quest-guide-close {
+    display: none;
+}
+
+/* Responsive Design for Quest Page Mode */
+@media (max-width: 768px) {
+    body.quest-page-mode .quest-guide-panel {
+        width: 100%;
+        height: 60vh;
+        /* Takes top 60% */
+        border-right: none;
+        border-bottom: 1px solid var(--glass-border);
+        top: 0;
+    }
+
+    body.quest-page-mode #map-container {
+        top: 60vh;
+        left: 0;
+        width: 100%;
+        height: 40vh;
+        /* Remaining 40% */
+    }
+
+    /* Optional: Add a drag handle or toggle to resize? 
+       For now, fixed split is simplest. 
+    */
+}

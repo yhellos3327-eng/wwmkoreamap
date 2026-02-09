@@ -146,6 +146,8 @@ export const closeQuestGuide = () => {
   currentQuestData = null;
   currentStepIndex = 0;
 
+  if (stepObserver) stepObserver.disconnect();
+
   setTimeout(() => {
     if (state.map) state.map.invalidateSize();
   }, 400);
@@ -224,6 +226,9 @@ const showQuestDetail = async (questLineId) => {
   );
   const container = document.getElementById("quest-guide-content");
   if (container) lazyLoader.observeAll(".lazy-load", container);
+
+  // Re-init scroll spy
+  initScrollSpy();
 };
 
 /**
@@ -328,6 +333,9 @@ const clearQuestLine = () => {
   questBadgeMarkers = [];
 };
 
+/** @type {boolean} */
+let isProgrammaticScroll = false;
+
 /**
  * Navigate to a specific step.
  * @param {number} index
@@ -350,12 +358,15 @@ export const navigateToStep = (index, fly = false, scroll = true) => {
   }
 
   if (scroll) {
+    isProgrammaticScroll = true;
     const stepEl = document.querySelector(
       `.quest-step-card[data-step-index="${index}"]`,
     );
     if (stepEl) {
       stepEl.scrollIntoView({ behavior: "smooth", block: "center" });
     }
+    // Release flag after scroll animation
+    setTimeout(() => { isProgrammaticScroll = false; }, 800);
   }
 };
 
@@ -704,6 +715,86 @@ export const initQuestGuideEvents = () => {
           }
         });
         break;
+
+      case "quest-share-link":
+        e.stopPropagation();
+        const shareUrl = target.dataset.url;
+        if (shareUrl) {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            alert("링크가 복사되었습니다!");
+          });
+        }
+        break;
+
+      case "quest-share-link-list":
+        e.stopPropagation();
+        const qId = target.dataset.questId;
+        if (qId) {
+          const url = `${window.location.origin}${window.location.pathname}?quest=${qId}`;
+          navigator.clipboard.writeText(url).then(() => {
+            alert("링크가 복사되었습니다!");
+          });
+        }
+        break;
     }
+  });
+
+  // Init scroll spy immediately if content exists
+  initScrollSpy();
+};
+
+/** @type {IntersectionObserver|null} */
+let stepObserver = null;
+
+/**
+ * Initialize Scroll Spy for quest steps.
+ */
+const initScrollSpy = () => {
+  if (stepObserver) stepObserver.disconnect();
+
+  const container = document.getElementById("quest-guide-content");
+  if (!container) return; // Not ready yet
+
+  // Use a map to track visibility ratio of each step
+  const visibilityMap = new Map();
+
+  stepObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        const target = /** @type {HTMLElement} */ (entry.target);
+        const index = parseInt(target.dataset.stepIndex);
+
+        if (!isNaN(index)) {
+          visibilityMap.set(index, entry.intersectionRatio);
+        }
+      });
+
+      // Find the step with the highest visibility ratio
+      let maxRatio = 0;
+      let maxIndex = -1;
+
+      for (const [index, ratio] of visibilityMap.entries()) {
+        if (ratio > maxRatio) {
+          maxRatio = ratio;
+          maxIndex = index;
+        }
+      }
+
+      // If a step is dominantly visible (e.g. > 30% or just the max one), activate it
+      // But we only want to trigger if it's different from current
+      if (!isProgrammaticScroll && maxIndex !== -1 && maxIndex !== currentStepIndex && maxRatio > 0.3) {
+        // Pass scroll=false to avoid jumping back
+        navigateToStep(maxIndex, true, false);
+      }
+    },
+    {
+      root: container,
+      threshold: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
+      rootMargin: "-10% 0px -10% 0px" // Slight buffer to focus on center
+    },
+  );
+
+  document.querySelectorAll(".quest-step-card").forEach((el) => {
+    stepObserver.observe(el);
   });
 };
