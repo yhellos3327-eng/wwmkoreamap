@@ -23,16 +23,17 @@ export function initAds() {
   /** @type {AdConfig[]} */
   const ads = [
     {
-      type: "google",
-      weight: 0,
+      type: "kakao",
+      weight: 100,
       render: (container) => {
         container.innerHTML = "";
-        const script = document.createElement("script");
-        script.async = true;
-        script.src =
-          "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6903444943515445";
-        script.crossOrigin = "anonymous";
-        container.appendChild(script);
+        const ins = document.createElement("ins");
+        ins.className = "kakao_ad_area";
+        ins.style.display = "none";
+        ins.setAttribute("data-ad-unit", "DAN-s2pO3hHAlyqBHTmC");
+        ins.setAttribute("data-ad-width", "320");
+        ins.setAttribute("data-ad-height", "100");
+        container.appendChild(ins);
       },
     },
     {
