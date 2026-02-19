@@ -20,6 +20,9 @@ export function initAds() {
   );
   if (!adContainer) return;
 
+  /** @type {string|null} */
+  let currentAdType = null;
+
   /** @type {AdConfig[]} */
   const ads = [
     {
@@ -29,16 +32,23 @@ export function initAds() {
         container.innerHTML = "";
         const ins = document.createElement("ins");
         ins.className = "kakao_ad_area";
-        ins.style.display = "none";
+        ins.style.display = "block"; // Changed from none to block for visibility during review
         ins.setAttribute("data-ad-unit", "DAN-s2pO3hHAlyqBHTmC");
         ins.setAttribute("data-ad-width", "320");
         ins.setAttribute("data-ad-height", "100");
         container.appendChild(ins);
+
+        // Dynamically load the AdFit script to ensure it finds the newly created <ins>
+        const script = document.createElement("script");
+        script.type = "text/javascript";
+        script.src = "//t1.daumcdn.net/kas/static/ba.min.js";
+        script.async = true;
+        container.appendChild(script);
       },
     },
     {
       type: "coffee",
-      weight: 80,
+      weight: 0,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -64,7 +74,7 @@ export function initAds() {
     },
     {
       type: "wwmtips",
-      weight: 50,
+      weight: 0,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -88,7 +98,7 @@ export function initAds() {
     },
     {
       type: "wwmkodiscord",
-      weight: 50,
+      weight: 0,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -158,6 +168,10 @@ export function initAds() {
       random -= ad.weight;
     }
 
+    // Skip re-rendering if the same ad type is selected to avoid flickering/reloading
+    if (selectedAd.type === currentAdType) return;
+
+    currentAdType = selectedAd.type;
     selectedAd.render(adContainer);
   }
 
