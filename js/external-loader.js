@@ -1,15 +1,15 @@
 // @ts-check
 /**
- * @fileoverview External content loader - loads and displays external content.
+ * 외부 콘텐츠 로더 - 외부 콘텐츠를 로드하고 표시합니다.
  * @module external-loader
  */
 
 import { openLightbox } from "./ui.js";
 
 /**
- * Loads external content from a URL and injects it into a container.
- * @param {string|undefined} url - The URL to load content from.
- * @param {HTMLElement|undefined} container - The container element to inject content into.
+ * URL에서 외부 콘텐츠를 로드하고 컨테이너에 삽입합니다.
+ * @param {string|undefined} url - 콘텐츠를 로드할 URL.
+ * @param {HTMLElement|undefined} container - 콘텐츠를 삽입할 컨테이너 요소.
  * @returns {Promise<void>}
  */
 export const loadExternalContent = async (url, container) => {
@@ -65,9 +65,9 @@ export const loadExternalContent = async (url, container) => {
 };
 
 /**
- * Loads JSON content from a URL.
- * @param {string} urlString - The JSON URL string (with json: prefix).
- * @param {HTMLElement} container - The container element.
+ * URL에서 JSON 콘텐츠를 로드합니다.
+ * @param {string} urlString - JSON URL 문자열 (json: 접두사 포함).
+ * @param {HTMLElement} container - 컨테이너 요소.
  * @returns {Promise<void>}
  */
 const loadJsonContent = async (urlString, container) => {
@@ -108,11 +108,11 @@ const loadJsonContent = async (urlString, container) => {
 };
 
 /**
- * Processes JSON data and renders it.
- * @param {any} data - The JSON data.
- * @param {string|null} id - The item ID to find.
- * @param {HTMLElement} container - The container element.
- * @param {string} origin - The origin URL.
+ * JSON 데이터를 처리하고 렌더링합니다.
+ * @param {any} data - JSON 데이터.
+ * @param {string|null} id - 찾을 항목 ID.
+ * @param {HTMLElement} container - 컨테이너 요소.
+ * @param {string} origin - 원본 URL.
  */
 const processJsonData = (data, id, container, origin) => {
   let item = null;
@@ -208,10 +208,10 @@ const processJsonData = (data, id, container, origin) => {
 };
 
 /**
- * Resolves a relative URL to absolute.
- * @param {string} path - The path to resolve.
- * @param {string} origin - The origin URL.
- * @returns {string} Resolved URL.
+ * 상대 URL을 절대 URL로 변환합니다.
+ * @param {string} path - 변환할 경로.
+ * @param {string} origin - 원본 URL.
+ * @returns {string} 변환된 URL.
  */
 const resolveUrl = (path, origin) => {
   if (!path) return "";
@@ -225,10 +225,10 @@ const resolveUrl = (path, origin) => {
 };
 
 /**
- * Formats a Chunji item as HTML.
- * @param {any} item - The item data.
- * @param {string} origin - The origin URL.
- * @returns {string} HTML string.
+ * Chunji 항목을 HTML로 형식화합니다.
+ * @param {any} item - 항목 데이터.
+ * @param {string} origin - 원본 URL.
+ * @returns {string} HTML 문자열.
  */
 const formatChunjiItem = (item, origin) => {
   const getImg1 = resolveUrl(item.getimg1, origin);
@@ -252,10 +252,10 @@ const formatChunjiItem = (item, origin) => {
 };
 
 /**
- * Parses HTML string and injects styled content.
- * @param {string} htmlString - The HTML string.
- * @param {HTMLElement} container - The container element.
- * @param {string} originalUrl - The original URL.
+ * HTML 문자열을 파싱하고 스타일이 적용된 콘텐츠를 삽입합니다.
+ * @param {string} htmlString - HTML 문자열.
+ * @param {HTMLElement} container - 컨테이너 요소.
+ * @param {string} originalUrl - 원본 URL.
  */
 const parseAndInject = (htmlString, container, originalUrl) => {
   const parser = new DOMParser();

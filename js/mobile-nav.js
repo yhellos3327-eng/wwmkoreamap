@@ -4,13 +4,13 @@ import { MAP_CONFIGS } from "./config.js";
 export const initMobileNav = () => {
     console.log("[MobileNav] Initializing...");
 
-    // 1. Bottom Nav Logic
+    // 1. 하단 내비게이션 로직
     const navItems = document.querySelectorAll('.nav-item');
     navItems.forEach(item => {
         item.addEventListener('click', (e) => {
             const target = item.dataset.target;
 
-            // UI Update
+            // UI 업데이트
             navItems.forEach(n => n.classList.remove('active'));
             item.classList.add('active');
 
@@ -18,7 +18,7 @@ export const initMobileNav = () => {
         });
     });
 
-    // 2. Region Selector Logic
+    // 2. 지역 선택기 로직
     const regionBtn = document.getElementById('mobile-region-btn');
     if (regionBtn) {
         regionBtn.addEventListener('click', () => {
@@ -26,7 +26,7 @@ export const initMobileNav = () => {
         });
     }
 
-    // Sync region text on load
+    // 로드 시 지역 텍스트 동기화
     updateMobileRegionText();
 
     // Listen for map changes to update text
@@ -64,10 +64,10 @@ const handleMobileNavClick = (target) => {
 };
 
 const openMobileRegionModal = () => {
-    // Check if open
+    // 열려 있는지 확인
     if (document.querySelector('.mobile-modal-overlay')) return;
 
-    // Create modal DOM
+    // 모달 DOM 생성
     const modal = document.createElement('div');
     modal.className = 'mobile-modal-overlay';
     modal.style.cssText = `
@@ -86,13 +86,13 @@ const openMobileRegionModal = () => {
         transform: scale(0.9); transition: transform 0.2s;
     `;
 
-    // Title
+    // 제목
     const title = document.createElement('div');
     title.innerText = "지도 선택";
     title.style.cssText = "padding: 16px; text-align: center; color: #daac71; font-weight: bold; border-bottom: 1px solid #333; font-family: 'Wanted Sans Variable', 'Wanted Sans', sans-serif;";
     content.appendChild(title);
 
-    // Options
+    // 옵션
     Object.keys(MAP_CONFIGS).forEach(key => {
         const config = MAP_CONFIGS[key];
         const btn = document.createElement('button');
@@ -112,14 +112,14 @@ const openMobileRegionModal = () => {
 
         btn.onclick = () => {
             if (state.currentMapKey !== key) {
-                // Simulate click on desktop option to trigger all logic
+                // 모든 로직을 트리거하기 위해 데스크톱 옵션 클릭 시뮬레이션
                 const desktopOption = document.querySelector(`.custom-option[data-value="${key}"]`);
                 if (desktopOption) {
                     desktopOption.click();
                 }
-                updateMobileRegionText(); // Update local text immediately
+                updateMobileRegionText(); // 즉시 로컬 텍스트 업데이트
 
-                // Also close modal
+                // 모달 닫기
                 closeModal(modal);
             } else {
                 closeModal(modal);
@@ -128,7 +128,7 @@ const openMobileRegionModal = () => {
         content.appendChild(btn);
     });
 
-    // Close button
+    // 닫기 버튼
     const closeBtn = document.createElement('button');
     closeBtn.innerText = "닫기";
     closeBtn.style.cssText = "width: 100%; padding: 16px; background: #1a1a1a; border: none; color: #aaa; font-family: 'Wanted Sans Variable', 'Wanted Sans', sans-serif;";
@@ -138,7 +138,7 @@ const openMobileRegionModal = () => {
     modal.appendChild(content);
     document.body.appendChild(modal);
 
-    // Animation
+    // 애니메이션
     requestAnimationFrame(() => {
         modal.style.opacity = "1";
         content.style.transform = "scale(1)";
@@ -159,7 +159,7 @@ export const updateMobileRegionText = () => {
     // Ideally subscribe, but polling or event-based is easier.
     // Since this function is exported, we can call it from elsewhere if needed.
 
-    // Wait for state to be ready if needed
+    // 필요한 경우 state가 준비될 때까지 대기
     if (el && state.currentMapKey && MAP_CONFIGS[state.currentMapKey]) {
         el.innerText = MAP_CONFIGS[state.currentMapKey].name;
     }

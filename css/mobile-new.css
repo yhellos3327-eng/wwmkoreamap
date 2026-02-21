@@ -82,7 +82,6 @@
         transform: rotate(180deg);
     }
 
-    /* Mobile Bottom Navigation */
     #mobile-bottom-nav {
         position: fixed;
         bottom: 0;

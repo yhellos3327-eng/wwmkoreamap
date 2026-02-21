@@ -19,9 +19,9 @@ const L = /** @type {any} */ (window).L;
  */
 
 /**
- * Renders region polygons on the map.
- * @param {any[]} filteredRegions - The filtered regions to render.
- * @returns {any[]} The rendered region polygons data.
+ * 지도에 지역 다각형을 렌더링합니다.
+ * @param {any[]} filteredRegions - 렌더링할 필터링된 지역 배열.
+ * @returns {any[]} 렌더링된 지역 다각형 데이터.
  */
 export const renderRegionPolygons = (filteredRegions) => {
   const regionPolygons = [];
@@ -90,15 +90,13 @@ export const renderRegionPolygons = (filteredRegions) => {
         this.setStyle({ weight: 1, fillOpacity: 0.1 });
       });
 
-      // @ts-ignore
-      // polygon.regionTitle = region.title; // Moved up and casted
 
       polygon.on("click", function (e) {
         if (state.isDevMode) {
           if (
             /** @type {any} */ (window).dev &&
             typeof (/** @type {any} */ (window).dev.isRegionMode) ===
-              "function" &&
+            "function" &&
             /** @type {any} */ (window).dev.isRegionMode()
           ) {
             /** @type {any} */ (window).dev.loadRegion(region);
@@ -194,10 +192,7 @@ export const renderRegionPolygons = (filteredRegions) => {
 };
 
 /**
- * Updates the region overlay information.
- */
-/**
- * Updates the region overlay information.
+ * 지역 오버레이 정보를 업데이트합니다.
  */
 export const updateRegionOverlay = () => {
   const map = state.map;

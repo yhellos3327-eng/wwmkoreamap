@@ -1,8 +1,8 @@
 // @ts-check
 /**
- * @fileoverview Debug and developer tools module.
- * - Developer helper functions available from the console
- * - Global variable exposure for debugging
+ * 디버그 및 개발자 도구 모음 모듈.
+ * - 콘솔에서 사용 가능한 개발자 도우미 함수
+ * - 디버깅을 위한 전역 변수 노출
  * @module debug
  */
 import { state, setState, subscribe, dispatch } from "./state.js";
@@ -31,34 +31,31 @@ export const initGlobalDebugHelpers = () => {
   };
 
   /**
-   * [DEBUG] Simulates a legacy localStorage user for migration testing.
-   * Clears Vault and sets dummy data in localStorage.
+   * [DEBUG] 마이그레이션 테스트를 위해 레거시 localStorage 사용자를 시뮬레이션합니다.
+   * Vault를 지우고 localStorage에 더미 데이터를 설정합니다.
    */
   /** @type {any} */ (window).resetToLocalStorageUser = async () => {
-    if (!confirm("⚠️ WARNING: This will WIPE all current data and reset to a dummy legacy state. Continue?")) return;
+    if (!confirm("⚠️ 경고: 현재 모든 데이터를 삭제하고 더미 레거시 상태로 초기화합니다. 계속하시겠습니까?")) return;
 
     try {
-      // 1. Clear Vault (IndexedDB)
       const { primaryDb, db } = await import("./storage/db.js");
       await primaryDb.clear();
-      // await db.clear(); // Optional: clear backups too if needed
 
-      // 2. Set localStorage data (Legacy format)
-      const dummyCompleted = ["101", "102", "103"]; // Example IDs
+      const dummyCompleted = ["101", "102", "103"];
       const dummyFavorites = ["201", "202"];
 
       localStorage.setItem("wwm_completed", JSON.stringify(dummyCompleted));
       localStorage.setItem("wwm_favorites", JSON.stringify(dummyFavorites));
       localStorage.setItem("wwm_show_comments", "true");
 
-      // 3. Reset migration version
+      // 3. 마이그레이션 버전 리셋
       localStorage.removeItem("wwm_migration_version");
 
-      console.log("%c[RESET] Environment reset to Legacy LocalStorage User.", "color: #00ff00; font-weight: bold");
-      console.log("Data set:", { completed: dummyCompleted, favorites: dummyFavorites });
-      console.log("Please RELOAD the page to trigger migration.");
+      console.log("%c[RESET] 환경이 레거시 LocalStorage 사용자 상태로 초기화되었습니다.", "color: #00ff00; font-weight: bold");
+      console.log("설정된 데이터:", { completed: dummyCompleted, favorites: dummyFavorites });
+      console.log("마이그레이션을 트리거하려면 페이지를 새로고침하세요.");
 
-      alert("Reset complete. Please reload the page.");
+      alert("초기화 완료. 페이지를 새로고침해주세요.");
       location.reload();
 
     } catch (e) {

@@ -3,8 +3,8 @@ import { state, setState } from "../state.js";
 import { fetchAndParseCSVChunks } from "../utils.js";
 
 /**
- * Loads translations from CSV files.
- * @param {string} mapKey - The map key.
+ * CSV 파일에서 번역 데이터를 로드합니다.
+ * @param {string} mapKey - 맵 키.
  * @returns {Promise<void>}
  */
 export const loadTranslations = async (mapKey) => {
@@ -13,9 +13,9 @@ export const loadTranslations = async (mapKey) => {
   state.parsedCSV = [];
 
   /**
-   * Processes a chunk of CSV data.
-   * @param {string[][]} chunkData - The chunk data.
-   * @param {string[]} rawHeaders - The CSV headers.
+   * CSV 데이터 청크를 처리합니다.
+   * @param {string[][]} chunkData - 청크 데이터.
+   * @param {string[]} rawHeaders - CSV 헤더.
    */
   const processCSVChunk = (chunkData, rawHeaders) => {
     if (!rawHeaders) return;
@@ -78,7 +78,6 @@ export const loadTranslations = async (mapKey) => {
   if (mapKey === "kaifeng") {
     try {
       await fetchAndParseCSVChunks("./translation2.csv", processCSVChunk);
-      console.log("Loaded translation2.csv for Kaifeng");
     } catch (e) {
       console.warn("translation2.csv not found or failed to load", e);
     }
@@ -86,16 +85,16 @@ export const loadTranslations = async (mapKey) => {
 };
 
 /**
- * Processes an override row from the CSV.
- * @param {string[]} row - The CSV row.
- * @param {number} catIdx - Category index.
- * @param {number} keyIdx - Key index.
- * @param {number} valIdx - Value index.
- * @param {number} descIdx - Description index.
- * @param {number} regIdx - Region index.
- * @param {number} imgIdx - Image index.
- * @param {number} videoIdx - Video index.
- * @param {number} posIdx - Custom position index.
+ * CSV의 Override 행을 처리합니다.
+ * @param {string[]} row - CSV 행.
+ * @param {number} catIdx - 카테고리 인덱스.
+ * @param {number} keyIdx - 키 인덱스.
+ * @param {number} valIdx - 값 인덱스.
+ * @param {number} descIdx - 설명 인덱스.
+ * @param {number} regIdx - 지역 인덱스.
+ * @param {number} imgIdx - 이미지 인덱스.
+ * @param {number} videoIdx - 비디오 인덱스.
+ * @param {number} posIdx - 커스텀 위치 인덱스.
  */
 const processOverrideRow = (
   row,
@@ -144,10 +143,10 @@ const processOverrideRow = (
 };
 
 /**
- * Parses the image field.
- * @param {string} imageRaw - The raw image string.
- * @param {string} key - The item key.
- * @returns {string|string[]|null} The parsed image path(s).
+ * 이미지 필드를 파싱합니다.
+ * @param {string} imageRaw - 원본 이미지 문자열.
+ * @param {string} key - 아이템 키.
+ * @returns {string|string[]|null} 파싱된 이미지 경로 또는 경로 배열.
  */
 const parseImageField = (imageRaw, key) => {
   if (!imageRaw) return null;
@@ -175,9 +174,9 @@ const parseImageField = (imageRaw, key) => {
 };
 
 /**
- * Parses the video field.
- * @param {string} videoUrl - The raw video URL.
- * @returns {string|string[]|null} The parsed video URL(s).
+ * 비디오 필드를 파싱합니다.
+ * @param {string} videoUrl - 원본 비디오 URL.
+ * @returns {string|string[]|null} 파싱된 비디오 URL 또는 URL 배열.
  */
 const parseVideoField = (videoUrl) => {
   if (!videoUrl) return null;
@@ -201,9 +200,9 @@ const parseVideoField = (videoUrl) => {
  */
 
 /**
- * Parses the custom position field.
- * @param {string} positionRaw - The raw position string.
- * @returns {CustomPosition|null} The parsed position.
+ * 커스텀 위치 필드를 파싱합니다.
+ * @param {string} positionRaw - 원본 위치 문자열.
+ * @returns {CustomPosition|null} 파싱된 위치 객체.
  */
 const parseCustomPosition = (positionRaw) => {
   if (!positionRaw) return null;

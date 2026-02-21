@@ -1,7 +1,7 @@
 // @ts-check
 /**
- * @fileoverview Domain migration module - handles migration from old domain to new domain.
- * Provides data backup/restore functionality during domain transition.
+ * 도메인 마이그레이션 모듈 - 이전 도메인에서 새 도메인으로의 마이그레이션을 처리합니다.
+ * 도메인 전환 중에 데이터 백업/복구 기능을 제공합니다.
  * @module migration
  */
 
@@ -11,16 +11,16 @@ const OLD_DOMAIN = "yhellos3327-eng.github.io";
 const NEW_DOMAIN = "wwmmap.kr";
 
 /**
- * Checks if the current domain is the old domain.
- * @returns {boolean} True if on old domain.
+ * 현재 도메인이 이전 도메인인지 확인합니다.
+ * @returns {boolean} 이전 도메인인 경우 true.
  */
 export function isOldDomain() {
   return window.location.hostname === OLD_DOMAIN;
 }
 
 /**
- * Checks if URL has migration parameter.
- * @returns {boolean} True if migrate=true in URL.
+ * URL에 마이그레이션 매개변수가 있는지 확인합니다.
+ * @returns {boolean} URL에 migrate=true가 있는 경우 true.
  */
 export function hasMigrationParam() {
   const params = new URLSearchParams(window.location.search);
@@ -28,8 +28,8 @@ export function hasMigrationParam() {
 }
 
 /**
- * Shows the domain migration modal to the user.
- * Only displays on old domain and if not already shown.
+ * 사용자에게 도메인 마이그레이션 모달을 표시합니다.
+ * 이전 도메인에서만 표시되며 아직 표시되지 않은 경우에만 나타납니다.
  */
 export function showMigrationModal() {
   if (!isOldDomain()) return;
@@ -62,26 +62,24 @@ export function showMigrationModal() {
                         </div>
                     </div>
                     
-                    ${
-                      hasData
-                        ? `
+                    ${hasData
+      ? `
                         <div class="migration-data-notice">
                             <strong>💾 저장된 데이터가 있습니다!</strong>
                             <p>브라우저 보안 정책으로 인해 데이터를 자동으로 이전할 수 없습니다.<br/>
                             아래 버튼을 클릭하면 데이터를 백업 파일로 저장한 후 새 도메인으로 이동합니다.</p>
                         </div>
                     `
-                        : `
+      : `
                         <div class="migration-no-data">
                             <p>저장된 데이터가 없습니다. 새 도메인으로 바로 이동합니다.</p>
                         </div>
                     `
-                    }
+    }
                 </div>
                 <div class="migration-footer">
-                    ${
-                      hasData
-                        ? `
+                    ${hasData
+      ? `
                         <button id="btn-migrate-with-backup" class="migration-btn primary">
                             📥 데이터 저장 후 새 도메인으로 이동
                         </button>
@@ -89,12 +87,12 @@ export function showMigrationModal() {
                             데이터 없이 바로 이동
                         </button>
                     `
-                        : `
+      : `
                         <button id="btn-migrate-direct" class="migration-btn primary">
                             새 도메인으로 이동
                         </button>
                     `
-                    }
+    }
                 </div>
             </div>
         </div>
@@ -199,8 +197,8 @@ function redirectToNewDomain(openSettings = false) {
 }
 
 /**
- * Handles post-migration actions on the new domain.
- * Opens settings and highlights the backup section for data import.
+ * 새 도메인에서 마이그레이션 후 작업을 처리합니다.
+ * 설정을 열고 데이터 가져오기를 위해 백업 섹션을 강조 표시합니다.
  */
 export function handleMigrationComplete() {
   if (!hasMigrationParam()) return;
@@ -565,8 +563,8 @@ function addMigrationStyles() {
 }
 
 /**
- * Initializes migration handling.
- * Shows migration modal on old domain, handles completion on new domain.
+ * 마이그레이션 처리를 초기화합니다.
+ * 이전 도메인에서는 마이그레이션 모달을 표시하고, 새 도메인에서는 완료 처리를 수행합니다.
  */
 export function initMigration() {
   if (isOldDomain()) {

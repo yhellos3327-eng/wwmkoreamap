@@ -25,22 +25,22 @@ const state = {
 };
 
 /**
- * Gets the current route state.
- * @returns {RouteState} The route state.
+ * 현재 경로 상태를 가져옵니다.
+ * @returns {RouteState} 경로 상태.
  */
 export const getRouteState = () => state;
 
 /**
- * Sets a route state property.
- * @param {keyof RouteState} key - The state key.
- * @param {any} value - The value to set.
+ * 경로 상태 속성을 설정합니다.
+ * @param {keyof RouteState} key - 상태 키.
+ * @param {any} value - 설정할 값.
  */
 export const setRouteState = (key, value) => {
-  state[key] = value;
+  /** @type {any} */ (state)[key] = value;
 };
 
 /**
- * Resets the route state to initial values.
+ * 경로 상태를 초기 값으로 리셋합니다.
  */
 export const resetRouteState = () => {
   state.active = false;
@@ -54,31 +54,31 @@ export const resetRouteState = () => {
 };
 
 /**
- * Checks if route mode is active.
- * @returns {boolean} Whether route mode is active.
+ * 경로 모드가 활성 상태인지 확인합니다.
+ * @returns {boolean} 경로 모드 활성 여부.
  */
 export const isRouteModeActive = () => state.active;
 
 /**
- * Checks if manual route mode is active.
- * @returns {boolean} Whether manual mode is active.
+ * 직접 구성 경로 모드가 활성 상태인지 확인합니다.
+ * @returns {boolean} 직접 구성 모드 활성 여부.
  */
 export const isManualRouteMode = () => state.manualMode;
 
 /**
- * Gets the current route.
- * @returns {any} The current route.
+ * 현재 경로를 가져옵니다.
+ * @returns {any} 현재 경로.
  */
 export const getCurrentRoute = () => state.currentRoute;
 
 /**
- * Gets the current step index.
- * @returns {number} The current step index.
+ * 현재 단계 인덱스를 가져옵니다.
+ * @returns {number} 현재 단계 인덱스.
  */
 export const getCurrentStepIndex = () => state.currentStepIndex;
 
 /**
- * Gets the manual route items.
- * @returns {any[]} The manual route items.
+ * 직접 구성 경로 항목들을 가져옵니다.
+ * @returns {any[]} 직접 구성 경로 항목 배열.
  */
 export const getManualRouteItems = () => state.manualItems;

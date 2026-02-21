@@ -31,9 +31,9 @@ const ICONS = {
 };
 
 /**
- * Formats a date string for display.
- * @param {string} dateStr - The date string to format.
- * @returns {string} The formatted date string.
+ * 표시할 날짜 문자열의 형식을 지정합니다.
+ * @param {string} dateStr - 형식을 지정할 날짜 문자열.
+ * @returns {string} 형식이 지정된 날짜 문자열.
  */
 const formatBackupDate = (dateStr) => {
   // Handle SQLite UTC date (e.g., "2024-01-01 12:00:00")
@@ -64,9 +64,9 @@ const formatBackupDate = (dateStr) => {
 };
 
 /**
- * Normalizes backup data by converting stringified booleans and arrays.
- * @param {any} data - The backup data.
- * @returns {any} The normalized data.
+ * 문자열화된 불리언 및 배열을 변환하여 백업 데이터를 정규화합니다.
+ * @param {any} data - 백업 데이터.
+ * @returns {any} 정규화된 데이터.
  */
 const normalizeData = (data) => {
   if (!data || !data.settings) return data;
@@ -108,8 +108,8 @@ const normalizeData = (data) => {
 };
 
 /**
- * Renders the list of backups.
- * @param {any[]} backups - The list of backups.
+ * 백업 목록을 렌더링합니다.
+ * @param {any[]} backups - 백업 목록.
  */
 const renderBackupList = (backups) => {
   const container = document.getElementById("cloud-backup-list");
@@ -236,8 +236,8 @@ const renderBackupItem = (backup, index, isPinned) => `
 `;
 
 /**
- * Handles the restore button click.
- * @param {Event} e - The click event.
+ * 복원 버튼 클릭을 처리합니다.
+ * @param {Event} e - 클릭 이벤트.
  */
 const handleRestore = async (e) => {
   const btn = /** @type {HTMLButtonElement} */ (e.target);
@@ -289,7 +289,7 @@ const handleRestore = async (e) => {
 };
 
 /**
- * Loads the list of cloud backups.
+ * 클라우드 백업 목록을 불러옵니다.
  */
 export const loadCloudBackups = async () => {
   const container = document.getElementById("cloud-backup-list");
@@ -314,7 +314,7 @@ const SAVE_BUTTON_HTML = `
 `;
 
 /**
- * Updates the visibility of the cloud backup section based on login status.
+ * 로그인 상태에 따라 클라우드 백업 섹션의 표시 여부를 업데이트합니다.
  */
 export const refreshCloudBackupVisibility = () => {
   const cloudBackupSection = document.getElementById("cloud-backup-section");
@@ -402,8 +402,8 @@ export const initCloudBackupSection = () => {
 import { getVaultHistory, restoreFromVault, saveToVault } from "../storage/vault.js";
 
 /**
- * Renders the list of Vault (local) backups.
- * @param {any[]} backups - The list of backups.
+ * Vault(로컬) 백업 목록을 렌더링합니다.
+ * @param {any[]} backups - 백업 목록.
  */
 const renderVaultList = (backups) => {
   const container = document.getElementById("vault-backup-list");
@@ -451,9 +451,9 @@ const renderVaultList = (backups) => {
 };
 
 /**
- * Syntax highlights JSON string.
- * @param {Object} json - The JSON object.
- * @returns {string} HTML string with syntax highlighting.
+ * JSON 문자열에 구문 강조를 적용합니다.
+ * @param {Object} json - JSON 객체.
+ * @returns {string} 구문 강조가 적용된 HTML 문자열.
  */
 const syntaxHighlight = (json) => {
   let str = JSON.stringify(json, undefined, 4);
@@ -484,9 +484,9 @@ let markerToCategoryCache = new Map();
 let markerNamesCacheLoaded = false;
 
 /**
- * Parses a CSV line handling quoted fields with commas.
- * @param {string} line - The CSV line to parse.
- * @returns {string[]} Array of field values.
+ * 쉼표가 포함된 따옴표로 묶인 필드를 처리하여 CSV 라인을 파싱합니다.
+ * @param {string} line - 파싱할 CSV 라인.
+ * @returns {string[]} 필드 값 배열.
  */
 const parseCSVLine = (line) => {
   const result = [];
@@ -518,7 +518,7 @@ const parseCSVLine = (line) => {
 };
 
 /**
- * Loads all marker names from all CSV files (data, translation).
+ * 모든 CSV 파일(데이터, 번역)에서 모든 마커 이름을 불러옵니다.
  * @returns {Promise<void>}
  */
 const loadAllMarkerNames = async () => {
@@ -643,9 +643,9 @@ const loadAllMarkerNames = async () => {
 };
 
 /**
- * Gets the localized name of a marker by its ID.
- * @param {string|number|any} id - The marker ID.
- * @returns {string} The localized name or the ID if not found.
+ * ID로 마커의 현지화된 이름을 가져옵니다.
+ * @param {string|number|any} id - 마커 ID.
+ * @returns {string} 현지화된 이름 또는 찾을 수 없는 경우 ID.
  */
 const getMarkerName = (id) => {
   const markerId = (id && typeof id === 'object') ? id.id : id;
@@ -699,9 +699,9 @@ const getMarkerName = (id) => {
 };
 
 /**
- * Formats the inspection data into a readable HTML structure.
- * @param {Object} data - The raw data object.
- * @returns {string} The formatted HTML.
+ * 검사 데이터를 읽기 쉬운 HTML 구조로 변환합니다.
+ * @param {Object} data - 원본 데이터 객체.
+ * @returns {string} 형식화된 HTML.
  */
 const formatInspectData = (data) => {
   // --- Summary View HTML ---

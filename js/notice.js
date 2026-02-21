@@ -13,6 +13,10 @@ import {
   initFreeBoardEvents,
 } from "./notice/freeboard.js";
 
+/**
+ * 알림 게시판 모듈을 초기화합니다.
+ * @returns {Promise<void>}
+ */
 const init = async () => {
   await firebaseInitialized;
 
@@ -57,6 +61,9 @@ const init = async () => {
   initFreeBoardEvents();
 };
 
+/**
+ * 로그인 관련 이벤트 리스너를 초기화합니다.
+ */
 const initLoginEvents = () => {
   const loginModal = document.getElementById("login-modal");
   const btnLogin = document.getElementById("btn-login");

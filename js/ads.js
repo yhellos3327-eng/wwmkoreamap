@@ -1,18 +1,18 @@
 // @ts-check
 /**
- * @fileoverview Ads module - handles ad display and rotation.
+ * @fileoverview 광고 모듈 - 광고 표시 및 로테이션을 처리합니다.
  * @module ads
  */
 
 /**
  * @typedef {Object} AdConfig
- * @property {string} type - Ad type identifier.
- * @property {number} weight - Selection weight (higher = more likely).
- * @property {(container: HTMLElement) => void} render - Render function.
+ * @property {string} type - 광고 유형 식별자.
+ * @property {number} weight - 선택 가중치 (높을수록 선택될 확률이 높음).
+ * @property {(container: HTMLElement) => void} render - 렌더링 함수.
  */
 
 /**
- * Initializes the ad system and displays rotating ads.
+ * 광고 시스템을 초기화하고 다중 광고 컨테이너에 순환 광고를 표시합니다.
  */
 export function initAds() {
   const adContainer = /** @type {HTMLElement|null} */ (
@@ -32,13 +32,12 @@ export function initAds() {
         container.innerHTML = "";
         const ins = document.createElement("ins");
         ins.className = "kakao_ad_area";
-        ins.style.display = "block"; // Changed from none to block for visibility during review
+        ins.style.display = "block";
         ins.setAttribute("data-ad-unit", "DAN-s2pO3hHAlyqBHTmC");
         ins.setAttribute("data-ad-width", "320");
         ins.setAttribute("data-ad-height", "100");
         container.appendChild(ins);
 
-        // Dynamically load the AdFit script to ensure it finds the newly created <ins>
         const script = document.createElement("script");
         script.type = "text/javascript";
         script.src = "//t1.daumcdn.net/kas/static/ba.min.js";
@@ -151,7 +150,7 @@ export function initAds() {
   ];
 
   /**
-   * Shows a random ad based on weights.
+   * 가중치를 기반으로 랜덤 광고를 표시합니다.
    */
   function showRandomAd() {
     const totalWeight = ads.reduce((sum, ad) => sum + ad.weight, 0);
@@ -168,7 +167,6 @@ export function initAds() {
       random -= ad.weight;
     }
 
-    // Skip re-rendering if the same ad type is selected to avoid flickering/reloading
     if (selectedAd.type === currentAdType) return;
 
     currentAdType = selectedAd.type;
@@ -180,12 +178,12 @@ export function initAds() {
 }
 
 /**
- * Creates an ad placeholder element.
- * @param {string} title - Ad title.
- * @param {string} badgeText - Badge text.
- * @param {string} bgStyle - Background color or gradient.
- * @param {string} textColor - Text color.
- * @returns {HTMLDivElement} The ad element.
+ * 광고 플레이스홀더 요소를 생성합니다.
+ * @param {string} title - 광고 제목.
+ * @param {string} badgeText - 배지 텍스트.
+ * @param {string} bgStyle - 배경색 또는 그라데이션.
+ * @param {string} textColor - 텍스트 색상.
+ * @returns {HTMLDivElement} 광고 요소.
  */
 function createAdElement(title, badgeText, bgStyle, textColor) {
   const div = document.createElement("div");

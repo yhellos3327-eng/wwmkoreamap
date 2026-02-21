@@ -1,7 +1,7 @@
 // @ts-check
 /**
- * @fileoverview Developer tools module.
- * Activate from console with dev().
+ * 개발자 도구 모듈.
+ * 콘솔에서 dev()를 실행하여 활성화하세요.
  * @module dev-tools
  */
 
@@ -130,7 +130,7 @@ const createAddMarkerModal = (lat, lng) => {
     modal.className = "dev-modal-overlay";
     document.body.appendChild(modal);
 
-    // Temporary pin logic
+    // 임시 핀 로직
     if (devState.tempMarker) {
       state.map.removeLayer(devState.tempMarker);
     }
@@ -146,7 +146,7 @@ const createAddMarkerModal = (lat, lng) => {
     });
     devState.tempMarker = /** @type {any} */ (L).marker([lat, lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(state.map);
   } else {
-    // If updating existing modal (e.g. just moving), update pin position
+    // 기존 모달을 업데이트하는 경우 (예: 이동 중), 핀 위치 업데이트
     if (devState.tempMarker) {
       devState.tempMarker.setLatLng([lat, lng]);
     }
@@ -315,7 +315,7 @@ const createAddMarkerModal = (lat, lng) => {
   const catInput = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-cat"));
   const catSearch = document.getElementById("dev-cat-search");
 
-  // Drag and Drop Logic
+  // 드래그 앤 드롭 로직
   const dropZone = document.getElementById("dev-drop-zone");
   const fileInput = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-screenshot"));
   const preview = document.getElementById("dev-drop-preview");
@@ -341,14 +341,14 @@ const createAddMarkerModal = (lat, lng) => {
       dropMessage.style.display = "none";
       removeBtn.style.display = "flex";
 
-      // Update file input safely
+      // 파일 입력을 안전하게 업데이트
       try {
         const dataTransfer = new DataTransfer();
         dataTransfer.items.add(file);
         fileInput.files = dataTransfer.files;
       } catch (dtError) {
         console.warn("DataTransfer not supported, manual file sync might fail on drop", dtError);
-        // Fallback: We'll store it in a temporary property on the input
+        // 폴백: 입력의 임시 속성에 저장
         /** @type {any} */ (fileInput)._droppedFile = file;
       }
     } catch (err) {
@@ -356,8 +356,8 @@ const createAddMarkerModal = (lat, lng) => {
     }
   };
 
-  // Input covers the zone, so click is handled automatically by the input.
-  // We just need to handle file selection.
+  // 입력이 영역을 덮으므로 클릭은 입력에 의해 자동으로 처리됩니다.
+  // 파일 선택만 처리하면 됩니다.
 
   removeBtn.addEventListener("click", (e) => {
     e.preventDefault(); // Prevent input click
@@ -468,11 +468,11 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     let newMarkerData;
 
     if (isDev) {
-      // Local registration
+      // 로컬 등록
       const newId = Date.now();
       let uploadedImageUrl = imageUrl || "";
 
-      // Upload image to backend for consistent URL generation (only if file exists and no external URL)
+      // 일관된 URL 생성을 위해 이미지를 백엔드에 업로드 (파일이 있고 외부 URL이 없는 경우에만)
       if (screenshotFile && !imageUrl) {
         try {
           const uploadFormData = new FormData();
@@ -507,20 +507,20 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         category_id: catId, // For CSV export
         latitude: parseFloat(lat),
         longitude: parseFloat(lng),
-        lat: parseFloat(lat), // Compatibility
-        lng: parseFloat(lng), // Compatibility
+        lat: parseFloat(lat),
+        lng: parseFloat(lng),
         region: region || "",
         regionId: 0,
         mapId: state.currentMapKey || 'qinghe',
         screenshot: screenshotFile ? URL.createObjectURL(screenshotFile) : (imageUrl || null),
-        uploadedImage: uploadedImageUrl, // Custom validation for CSV
+        uploadedImage: uploadedImageUrl,
         video: videoUrl || null,
         status: 'approved'
       };
 
       addLog(`로컬 등록됨: ${title} (${newId})`, "success");
     } else {
-      // Backend registration
+      // 백엔드 등록
       const formData = new FormData();
       formData.append("lat", String(parseFloat(lat)));
       formData.append("lng", String(parseFloat(lng)));
@@ -535,8 +535,8 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
 
       const response = await fetch(`${BACKEND_URL}/api/markers`, {
         method: "POST",
-        credentials: "include", // 쿠키 인증
-        body: formData, // FormData 전송
+        credentials: "include",
+        body: formData,
       });
 
       const data = await response.json();
@@ -547,7 +547,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
 
       newMarkerData = data.marker;
 
-      // Ensure properties needed for CSV export exist
+      // CSV 내보내기에 필요한 속성 확인
       if (!newMarkerData.latitude && newMarkerData.lat) newMarkerData.latitude = newMarkerData.lat;
       if (!newMarkerData.longitude && newMarkerData.lng) newMarkerData.longitude = newMarkerData.lng;
       if (!newMarkerData.category_id && newMarkerData.type) newMarkerData.category_id = newMarkerData.type;
@@ -575,7 +575,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
       {
         id: String(newId),
         name: title,
-        description: (desc || "").replace(/<[^>]*>/g, ""), // Sanitize: strip HTML
+        description: (desc || "").replace(/<[^>]*>/g, ""),
         category: catId,
         mapId: state.currentMapKey || 'qinghe',
         images: isDev ? [newMarkerData.uploadedImage || newMarkerData.screenshot].filter(Boolean) : (newMarkerData.images || [newMarkerData.screenshot]).filter(Boolean),
@@ -583,7 +583,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         isBackend: true,
         status: 'pending',
         votes: 0,
-        user_id: null // Pending locally
+        user_id: null
       },
       parseFloat(lat),
       parseFloat(lng),
@@ -601,13 +601,13 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     } else {
       console.log(`[DEV] Local marker added: ${title} (${newId})`);
 
-      // Auto-copy to clipboard in data3/4.csv format
+      // data3/4.csv 형식으로 클립보드에 자동 복사
       const csvTitle = title.includes(",") ? `"${title}"` : title;
       const csvDesc = desc ? `"${desc.replace(/"/g, '""')}"` : '""';
       const csvLat = parseFloat(lat).toFixed(6);
       const csvLng = parseFloat(lng).toFixed(6);
 
-      // Image: [URL] format if uploaded
+      // 이미지: 업로드된 경우 [URL] 형식
       const csvImage = newMarkerData.uploadedImage ? `[${newMarkerData.uploadedImage}]` : "";
       const csvVideo = videoUrl || "";
 

@@ -6,8 +6,8 @@ import { createLogger } from "../utils/logStyles.js";
 const log = createLogger("Vault");
 
 /**
- * Saves the current localStorage state to the Vault (IndexedDB).
- * @param {string} reason - The reason for this backup.
+ * 현재 localStorage 상태를 Vault(IndexedDB)에 저장합니다.
+ * @param {string} reason - 백업 이유.
  * @returns {Promise<{success: boolean, id?: number, error?: string}>}
  */
 export const saveToVault = async (reason = "auto") => {
@@ -19,12 +19,12 @@ export const saveToVault = async (reason = "auto") => {
         const hasData = Object.keys(data).length > 0;
 
         if (!hasData) {
-            return { success: false, error: "No data to save" };
+            return { success: false, error: "저장할 데이터가 없습니다." };
         }
 
         const id = await db.add(data, reason);
 
-        // Keep only last 50 backups to save space
+        // 공간 절약을 위해 최근 50개의 백업만 유지
         db.prune(50).catch(console.warn);
 
         log.success(`Saved backup #${id}`, reason);
@@ -41,22 +41,22 @@ export const saveToVault = async (reason = "auto") => {
 };
 
 /**
- * Restores state from a specific Vault backup ID.
- * @param {number} id - The backup ID to restore.
+ * 특정 Vault 백업 ID에서 상태를 복원합니다.
+ * @param {number} id - 복원할 백업 ID.
  * @returns {Promise<{success: boolean, error?: string}>}
  */
 export const restoreFromVault = async (id) => {
     try {
         const entry = await db.get(id);
         if (!entry || !entry.data) {
-            return { success: false, error: "Backup not found" };
+            return { success: false, error: "백업을 찾을 수 없습니다." };
         }
 
         const data = entry.data;
         const { primaryDb } = await import("./db.js");
         const importResult = await primaryDb.importAll(data, true);
         if (!importResult || !importResult.success) {
-            throw new Error("Import failed: " + (importResult?.error || "Unknown error"));
+            throw new Error("가져오기 실패: " + (importResult?.error || "알 수 없는 오류"));
         }
 
         // Update global state if possible
@@ -86,8 +86,7 @@ export const restoreFromVault = async (id) => {
 };
 
 /**
- * Automatically restores the latest backup if localStorage is empty/corrupt.
- * SAFETY FIX: Properly detects empty arrays and checks Vault first.
+ * localStorage가 비어 있거나 손상된 경우 자동으로 최신 백업을 복원합니다.
  * @returns {Promise<{success: boolean, restored?: boolean, reason?: string, error?: string, source?: string}>}
  */
 export const autoRestoreIfEmpty = async () => {
@@ -125,7 +124,7 @@ export const autoRestoreIfEmpty = async () => {
 };
 
 /**
- * Gets the history of backups.
+ * 백업 히스토리를 가져옵니다.
  * @returns {Promise<Array<{id: number, timestamp: number, reason: string, size: number}>>}
  */
 export const getVaultHistory = () => {

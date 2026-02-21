@@ -1,6 +1,11 @@
 // @ts-check
 let lastMode = null;
 
+/**
+ * 렌더링 모드 표시기를 화면에 보여줍니다.
+ * @param {string} mode - 렌더링 모드 ("GPU" 또는 "CPU").
+ * @param {boolean} [force=false] - 강제 갱신 여부.
+ */
 export const showRenderModeIndicator = (mode, force = false) => {
   if (!force && lastMode === mode) return;
   lastMode = mode;

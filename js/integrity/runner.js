@@ -38,11 +38,11 @@ const DEFAULT_OPTIONS = {
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
- * Runs a full integrity check on the provided data.
- * @param {any} data - The data to check.
- * @param {Function} onProceed - Callback when the user chooses to proceed.
- * @param {Object} [options] - Optional configuration.
- * @returns {Promise<any>} The integrity report.
+ * 제공된 데이터에 대해 전체 무결성 검사를 실행합니다.
+ * @param {any} data - 검사할 데이터.
+ * @param {Function} onProceed - 사용자가 진행을 선택했을 때의 콜백.
+ * @param {Object} [options] - 옵션 설정.
+ * @returns {Promise<any>} 무결성 보고서.
  */
 export const runIntegrityCheck = async (data, onProceed, options = {}) => {
   const opts = { ...DEFAULT_OPTIONS, ...options };
@@ -597,9 +597,9 @@ const runSettingsCheck = async (settings, context, opts, data) => {
 };
 
 /**
- * Checks if the report has any warnings.
- * @param {any} report - The integrity report.
- * @returns {boolean} True if there are warnings.
+ * 보고서에 경고가 있는지 확인합니다.
+ * @param {any} report - 무결성 보고서.
+ * @returns {boolean} 경고가 있으면 true.
  */
 const hasWarnings = (report) => {
   return Object.values(report.steps).some(
@@ -608,9 +608,9 @@ const hasWarnings = (report) => {
 };
 
 /**
- * Collects issues from the report.
- * @param {any} report - The integrity report.
- * @returns {string} The collected issues formatted as HTML.
+ * 보고서에서 이슈를 수집합니다.
+ * @param {any} report - 무결성 보고서.
+ * @returns {string} HTML로 포맷팅된 이슈 목록.
  */
 const collectIssues = (report) => {
   const issues = [];
@@ -624,7 +624,7 @@ const collectIssues = (report) => {
 };
 
 /**
- * Performs a quick validation of the data structure.
+ * 데이터 구조의 빠른 검증을 수행합니다.
  * @param {any} data
  * @returns {{valid: boolean, issues: string[]}}
  */

@@ -1,27 +1,22 @@
 // @ts-check
 /**
- * @fileoverview Backup module - handles data backup and restore functionality.
+ * @fileoverview 백업 모듈 - 데이터 백업 및 복구 기능을 처리합니다.
  * @module backup
  */
 
 import { runIntegrityCheck, showResultAlert } from "./integrity.js";
 
 /**
- * Saves current localStorage data as a JSON backup file.
- */
-/**
- * Saves current Vault data as a JSON backup file.
+ * 현재 Vault 데이터를 JSON 백업 파일로 저장합니다.
  */
 export const saveBackup = async () => {
   try {
     const { primaryDb } = await import("./storage/db.js");
 
-    // Export all data from Vault
     const completedList = (await primaryDb.get("completedList")) || [];
     const favorites = (await primaryDb.get("favorites")) || [];
     const settings = {};
 
-    // Collect all settings keys
     const allKeys = Object.keys(await primaryDb.getAll());
     for (const key of allKeys) {
       if (key !== "completedList" && key !== "favorites" && !key.startsWith("backup_")) {
@@ -30,7 +25,7 @@ export const saveBackup = async () => {
     }
 
     const data = {
-      version: 2, // Backup format version
+      version: 2,
       timestamp: Date.now(),
       completedList,
       favorites,
@@ -72,9 +67,9 @@ export const saveBackup = async () => {
 };
 
 /**
- * Loads backup from a local file with integrity checking.
- * Supports both legacy (localStorage) and new (Vault) backup formats.
- * @param {File|undefined} file - The backup file to load.
+ * 무결성 검사와 함께 로컬 파일에서 백업을 로드합니다.
+ * 레거시(localStorage) 및 신규(Vault) 백업 형식을 모두 지원합니다.
+ * @param {File|undefined} file - 로드할 백업 파일.
  */
 export const loadBackup = (file) => {
   if (!file) return;
@@ -90,7 +85,6 @@ export const loadBackup = (file) => {
         throw new Error("잘못된 JSON 형식");
       }
 
-      // Determine format version
       const isV2 = parsedData.version === 2 || (parsedData.completedList && Array.isArray(parsedData.completedList));
 
       let dataToRestore = {
@@ -104,7 +98,6 @@ export const loadBackup = (file) => {
         dataToRestore.favorites = parsedData.favorites || [];
         dataToRestore.settings = parsedData.settings || {};
       } else {
-        // Legacy format conversion
         const converted = convertLocalStorageToSyncFormat(parsedData);
         dataToRestore.completedList = converted.completedMarkers;
         dataToRestore.favorites = converted.favorites;
@@ -112,7 +105,6 @@ export const loadBackup = (file) => {
       }
 
       runIntegrityCheck({ completedMarkers: dataToRestore.completedList, favorites: dataToRestore.favorites, settings: dataToRestore.settings }, async () => {
-        // Create Vault backup before restore
         try {
           const { saveToVault } = await import("./storage/vault.js");
           const backupResult = await saveToVault("pre_file_restore");
@@ -126,9 +118,6 @@ export const loadBackup = (file) => {
         try {
           const { primaryDb } = await import("./storage/db.js");
 
-          // Clear current Vault data (except backups)
-          // We don't have a clearAllExceptBackups method, so we set keys individually
-          // Actually, we should probably clear everything to be safe, but let's just overwrite
 
           const completedResult = await primaryDb.set("completedList", dataToRestore.completedList);
           if (!completedResult || !completedResult.success) {
@@ -144,8 +133,6 @@ export const loadBackup = (file) => {
             const settingResult = await primaryDb.set(key, value);
             if (!settingResult || !settingResult.success) {
               console.warn(`Failed to restore setting: ${key}`, settingResult);
-              // We might not want to fail the whole restore for one setting, but let's log it.
-              // If strict mode is needed: throw new Error(`설정 저장 실패: ${key}`);
             }
           }
 
@@ -183,9 +170,9 @@ export const loadBackup = (file) => {
 };
 
 /**
- * Converts localStorage format backup data to sync format for integrity checking.
- * @param {Object<string, string>} localStorageData - localStorage format data.
- * @returns {{completedMarkers: any[], favorites: any[], settings: Object}} Sync format data.
+ * 무결성 검사를 위해 localStorage 형식의 백업 데이터를 동기화 형식으로 변환합니다.
+ * @param {Object<string, string>} localStorageData - localStorage 형식 데이터.
+ * @returns {{completedMarkers: any[], favorites: any[], settings: Object}} 동기화 형식 데이터.
  */
 const convertLocalStorageToSyncFormat = (localStorageData) => {
   const result = {
@@ -266,7 +253,7 @@ const convertLocalStorageToSyncFormat = (localStorageData) => {
 };
 
 /**
- * Initializes backup button event listeners.
+ * 백업 버튼 이벤트 리스너를 초기화합니다.
  */
 export const initBackupButtons = () => {
   const saveBtn = document.getElementById("btn-backup-save");

@@ -6,8 +6,8 @@ import { getRouteState, setRouteState } from "./routeState.js";
 import { updateRouteProgress } from "./routeUI.js";
 
 /**
- * Goes to a specific step in the route.
- * @param {number} stepIndex - The step index to go to.
+ * 경로의 특정 단계로 이동합니다.
+ * @param {number} stepIndex - 이동할 단계 인덱스.
  */
 export const goToStep = (stepIndex) => {
   const state = getRouteState();
@@ -53,7 +53,7 @@ export const goToStep = (stepIndex) => {
 };
 
 /**
- * Goes to the next step in the route.
+ * 경로의 다음 단계로 이동합니다.
  */
 export const nextStep = () => {
   const state = getRouteState();
@@ -66,7 +66,7 @@ export const nextStep = () => {
 };
 
 /**
- * Goes to the previous step in the route.
+ * 경로의 이전 단계로 이동합니다.
  */
 export const prevStep = () => {
   const state = getRouteState();
@@ -76,7 +76,7 @@ export const prevStep = () => {
 };
 
 /**
- * Completes the current step and moves to the next.
+ * 현재 단계를 완료하고 다음 단계로 이동합니다.
  */
 export const completeCurrentStep = () => {
   const state = getRouteState();

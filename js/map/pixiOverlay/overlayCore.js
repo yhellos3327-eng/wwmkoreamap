@@ -37,16 +37,16 @@ let prevZoom = null;
 let supercluster = null;
 let pixiUtils = null;
 
-/** @returns {any} The supercluster instance. */
+/** @returns {any} 슈퍼클러스터 인스턴스. */
 export const getSupercluster = () => supercluster;
-/** @returns {any} The PIXI utils. */
+/** @returns {any} PIXI 유틸리티. */
 export const getPixiUtils = () => pixiUtils;
-/** @returns {any} The PIXI container. */
+/** @returns {any} PIXI 컨테이너. */
 export const getPixiContainer = () => pixiContainer;
 
 /**
- * Checks if GPU rendering is available.
- * @returns {boolean} True if available.
+ * GPU 렌더링을 사용할 수 있는지 확인합니다.
+ * @returns {boolean} 사용 가능하면 true.
  */
 export const isGpuRenderingAvailable = () => {
   const hasPixi =
@@ -67,12 +67,12 @@ export const isGpuRenderingAvailable = () => {
   return available;
 };
 
-/** @returns {any} The PIXI overlay instance. */
+/** @returns {any} PIXI 오버레이 인스턴스. */
 export const getPixiOverlay = () => pixiOverlay;
 
 /**
- * Initializes the PIXI overlay.
- * @returns {Promise<any>} The PIXI overlay instance.
+ * PIXI 오버레이를 초기화합니다.
+ * @returns {Promise<any>} PIXI 오버레이 인스턴스.
  */
 export const initPixiOverlay = async () => {
   if (!isGpuRenderingAvailable()) {
@@ -128,11 +128,9 @@ export const initPixiOverlay = async () => {
         const spiderfiedClusterId = getSpiderfiedClusterId();
         const spiderfyContainerRef = getSpiderfyContainer();
 
-        // Safety check: if ID is set but container is missing, treat as not spiderfied
         const isSpiderfyActive =
           spiderfiedClusterId !== null && spiderfyContainerRef !== null;
 
-        // Build Set of completed IDs for O(1) lookups (performance optimization)
         const completedIdSet = new Set(
           state.completedList.map((c) => String(c.id))
         );
@@ -152,27 +150,23 @@ export const initPixiOverlay = async () => {
             // Get all items in cluster to check completion status
             const allLeaves = supercluster.getLeaves(clusterId, Infinity);
 
-            // Filter leaves by active categories and regions
             let visibleCount = 0;
             let allVisibleCompleted = true;
             let hasAnyVisibleItem = false;
-            let firstVisibleItem = null; // Track first item that passes filters
+            let firstVisibleItem = null;
 
             for (const leaf of allLeaves) {
               const item = leaf.properties?.item;
               if (!item) continue;
 
-              // Check category filter
               let catId = item.category;
               let isCatActive = state.activeCategoryIds.has(catId);
 
-              // Check region filter
               const effectiveRegion = item.forceRegion || item.region || "알 수 없음";
               const normalizedRegion =
                 state.reverseRegionMap[effectiveRegion] || effectiveRegion;
               let isRegActive = state.activeRegionNames.has(normalizedRegion);
 
-              // Community Mode Bypass
               if (state.showCommunityMarkers && item.isBackend) {
                 if (item.status === "rejected") continue;
                 isCatActive = true;
@@ -181,17 +175,14 @@ export const initPixiOverlay = async () => {
 
               if (!isCatActive || !isRegActive) continue;
 
-              // Item passes filters
               hasAnyVisibleItem = true;
 
-              // Track first visible item for cluster icon
               if (!firstVisibleItem) {
                 firstVisibleItem = item;
               }
 
               const isCompleted = completedIdSet.has(String(item.id));
 
-              // Skip completed items if hideCompleted is enabled
               if (state.hideCompleted && isCompleted) continue;
 
               visibleCount++;
@@ -200,21 +191,18 @@ export const initPixiOverlay = async () => {
               }
             }
 
-            // Skip cluster if no visible items after filtering
             if (!hasAnyVisibleItem || visibleCount === 0) {
               return;
             }
 
             const allCompleted = allVisibleCompleted && visibleCount > 0;
 
-            // Create container
             const clusterContainer = new PIXI.Container();
             clusterContainer.x = coords.x;
             clusterContainer.y = coords.y;
 
             const targetSize = ICON_SIZE / scale;
 
-            // Main marker icon - use first VISIBLE item's category
             let iconUrl = null;
             if (firstVisibleItem) {
               iconUrl = getIconUrl(firstVisibleItem.category);
@@ -227,7 +215,6 @@ export const initPixiOverlay = async () => {
               sprite.width = targetSize;
               sprite.height = targetSize;
 
-              // Apply grayscale filter if all completed (same as individual completed markers)
               if (allCompleted) {
                 sprite.alpha = 0.4;
                 const colorMatrix = new PIXI.ColorMatrixFilter();
@@ -237,7 +224,6 @@ export const initPixiOverlay = async () => {
 
               clusterContainer.addChild(sprite);
 
-              // Badge - larger and more visible (show filtered count)
               const badgeText = visibleCount > 99 ? "99+" : visibleCount.toString();
               const badgeRadius = Math.max(11, (badgeText.length > 2 ? 14 : 12)) / scale;
               const badgeX = targetSize / 2.2;
@@ -245,7 +231,6 @@ export const initPixiOverlay = async () => {
 
               const badge = new PIXI.Graphics();
 
-              // Outer glow/shadow for visibility
               badge.beginFill(0x000000, 0.4);
               badge.drawCircle(badgeX, badgeY, badgeRadius + 2 / scale);
               badge.endFill();
@@ -256,12 +241,10 @@ export const initPixiOverlay = async () => {
               badge.drawCircle(badgeX, badgeY, badgeRadius);
               badge.endFill();
 
-              // White border for contrast
               badge.lineStyle(2 / scale, 0xffffff, 1);
               badge.drawCircle(badgeX, badgeY, badgeRadius);
               clusterContainer.addChild(badge);
 
-              // Badge text - larger font
               const text = new PIXI.Text(badgeText, {
                 fontFamily: "Arial",
                 fontSize: badgeText.length > 2 ? 10 : 12,
@@ -379,8 +362,8 @@ export const initPixiOverlay = async () => {
 };
 
 /**
- * Renders markers using PixiJS.
- * @param {any[]} items - The items to render.
+ * PixiJS를 사용하여 마커를 렌더링합니다.
+ * @param {any[]} items - 렌더링할 아이템 배열.
  */
 export const renderMarkersWithPixi = async (items) => {
   if (!isGpuRenderingAvailable()) {
@@ -407,7 +390,7 @@ export const renderMarkersWithPixi = async (items) => {
     const maxZoom = config ? config.maxZoom : 18;
 
     supercluster = new Supercluster({
-      radius: 25, // Reduced: only cluster very close markers
+      radius: 25,
       maxZoom: maxZoom,
       minPoints: 2,
     });
@@ -474,10 +457,6 @@ export const renderMarkersWithPixi = async (items) => {
   if (state.map && !state.map.hasLayer(pixiOverlay)) {
     pixiOverlay.addTo(state.map);
 
-    if (state.map.options) {
-      state.map.options.closePopupOnClick = false;
-    }
-
     attachEventHandlers(state.map, pixiOverlay, pixiContainer);
   }
 
@@ -486,7 +465,7 @@ export const renderMarkersWithPixi = async (items) => {
 };
 
 /**
- * Updates PixiJS markers using the centralized rendering logic.
+ * 중앙 집중식 렌더링 로직을 사용하여 PixiJS 마커를 업데이트합니다.
  */
 export const updatePixiMarkers = async () => {
   if (!isGpuRenderingAvailable()) return;
@@ -498,8 +477,8 @@ export const updatePixiMarkers = async () => {
 };
 
 /**
- * Updates a single PixiJS marker's visual state.
- * @param {string|number} itemId - The item ID.
+ * 단일 PixiJS 마커의 시각적 상태를 업데이트합니다.
+ * @param {string|number} itemId - 아이템 ID.
  */
 export const updateSinglePixiMarker = (itemId) => {
   if (!pixiContainer) return;
@@ -541,7 +520,7 @@ export const updateSinglePixiMarker = (itemId) => {
 import { memoryManager } from "../../memory.js";
 
 /**
- * Clears the PixiJS overlay.
+ * PixiJS 오버레이를 지웁니다.
  */
 export const clearPixiOverlay = () => {
   if (pixiContainer) {
@@ -572,15 +551,15 @@ export const clearPixiOverlay = () => {
 };
 
 /**
- * Checks if the PixiJS overlay is active.
- * @returns {boolean} True if active.
+ * PixiJS 오버레이가 활성화되어 있는지 확인합니다.
+ * @returns {boolean} 활성화되어 있으면 true.
  */
 export const isPixiOverlayActive = () => {
   return pixiOverlay && state.map && state.map.hasLayer(pixiOverlay);
 };
 
 /**
- * Redraws the PixiJS overlay.
+ * PixiJS 오버레이를 다시 그립니다.
  */
 export const redrawPixiOverlay = () => {
   if (pixiOverlay && isPixiOverlayActive()) {
@@ -589,7 +568,7 @@ export const redrawPixiOverlay = () => {
 };
 
 /**
- * Disposes of the PixiJS overlay and resources.
+ * PixiJS 오버레이와 리소스를 해제합니다.
  */
 export const disposePixiOverlay = async () => {
   clearPixiOverlay();
@@ -622,7 +601,7 @@ export const disposePixiOverlay = async () => {
 };
 
 /**
- * Resets the PixiJS overlay without clearing textures.
+ * 텍스처를 지우지 않고 PixiJS 오버레이를 초기화합니다.
  */
 export const resetPixiOverlay = () => {
   clearPixiOverlay();
@@ -639,7 +618,6 @@ export const resetPixiOverlay = () => {
     pixiUtils = null;
   }
 
-  // Do NOT clear textures
   pixiOverlay = null;
   pixiContainer = null;
   supercluster = null;

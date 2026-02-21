@@ -5,13 +5,12 @@ import { state, setState } from "../state.js";
 const DEFAULT_CAT_ID = "17310010083";
 
 /**
- * Saves the current filter state to local storage.
+ * 현재 필터 상태를 로컬 스토리지에 저장합니다.
  */
 export const saveFilterState = () => {
   const activeCats = [...state.activeCategoryIds];
   const activeRegs = [...state.activeRegionNames];
 
-  // Save to Vault with proper error handling
   (async () => {
     try {
       const { primaryDb } = await import("../storage/db.js");
@@ -29,19 +28,19 @@ export const saveFilterState = () => {
 };
 
 /**
- * Loads favorites from local storage.
- * @param {string} mapKey - The map key.
- * @returns {any[]} The loaded favorites.
+ * 로컬 스토리지에서 즐겨찾기를 로드합니다.
+ * @param {string} mapKey - 맵 키.
+ * @returns {any[]} 로드된 즐겨찾기 배열.
  */
 export const loadFavorites = (mapKey) => {
-  // Favorites are already loaded into state from Vault during app initialization
-  // We just need to ensure we are using the state
+  // 즐겨찾기는 앱 초기화 시 Vault에서 이미 state로 로드됩니다.
+  // 여기서는 단순히 state를 사용하고 있는지 확인하면 됩니다.
   return state.favorites || [];
 };
 
 /**
- * Loads category filters from local storage.
- * @param {string} mapKey - The map key.
+ * 로컬 스토리지에서 카테고리 필터를 로드합니다.
+ * @param {string} mapKey - 맵 키.
  */
 export const loadCategoryFilters = async (mapKey) => {
   const validCategoryIds = new Set(state.mapData.categories.map((c) => c.id));
@@ -66,13 +65,13 @@ export const loadCategoryFilters = async (mapKey) => {
     }
   }
 
-  // Trigger update to listeners
+  // 리스너에게 업데이트 트리거
   setState("activeCategoryIds", new Set(state.activeCategoryIds));
 };
 
 /**
- * Loads region filters from local storage.
- * @param {string} mapKey - The map key.
+ * 로컬 스토리지에서 지역 필터를 로드합니다.
+ * @param {string} mapKey - 맵 키.
  */
 export const loadRegionFilters = async (mapKey) => {
   // Load from Vault
@@ -91,13 +90,13 @@ export const loadRegionFilters = async (mapKey) => {
     });
   }
 
-  // Trigger update
+  // 업데이트 트리거
   setState("activeRegionNames", new Set(state.activeRegionNames));
 };
 
 /**
- * Initializes filters from storage.
- * @param {string} mapKey - The map key.
+ * 스토리지에서 필터를 초기화합니다.
+ * @param {string} mapKey - 맵 키.
  */
 export const initializeFiltersFromStorage = async (mapKey) => {
   loadFavorites(mapKey);

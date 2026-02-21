@@ -131,36 +131,30 @@ const initialState = {
   activeRegionNames: new Set(),
   uniqueRegions: new Set(),
   itemsByCategory: {},
-  // DEXIE.JS MIGRATION: Initialize with empty arrays
-  // Data will be loaded asynchronously via initStateFromVault()
   completedList: [],
   favorites: [],
-  isStateInitialized: false,  // Flag to track if Vault data has been loaded
+  isStateInitialized: false,
   categoryItemTranslations: {},
   currentModalList: [],
   currentLightboxImages: [],
   currentLightboxIndex: 0,
   currentLightboxMedia: [],
-  // DEXIE.JS MIGRATION: Settings use default values
-  // Will be loaded from Vault via initStateFromVault()
   showComments: true,
   closeOnComplete: false,
   regionMetaInfo: {},
   reverseRegionMap: {},
 
-  // Community Mode
   showCommunityMarkers: false,
-  communityMarkers: new Map(), // Store backend markers: id -> marker data
-  lastRenderedItems: [], // Persist filtered/aggregated items for popup access
+  communityMarkers: new Map(),
+  lastRenderedItems: [],
 
-  // Quest Guide
+  // 퀘스트 가이드
   questGuideOpen: false,
   currentQuestLineId: null,
   activeQuestMarkerIds: new Set(),
   questProgress: {},
   questDisplayOptions: { showImages: true, showVideos: true, showMapCoords: true },
 
-  // API keys are initialized empty, loaded from Vault
   savedAIProvider: "gemini",
   savedApiKey: "",
   savedGeminiKey: "",
@@ -194,12 +188,10 @@ const initialState = {
         const { primaryDb } = await import("./storage/db.js");
         const result = await primaryDb.set("wwm_gpu_setting", saved);
         if (!result || !result.success) {
-          // Rollback on failure
           this.savedGpuSetting = previousValue;
           console.error("Failed to save GPU setting, rolled back:", result);
         }
       } catch (e) {
-        // Rollback on error
         this.savedGpuSetting = previousValue;
         console.error("Error saving GPU setting, rolled back:", e);
       }
@@ -220,7 +212,7 @@ const initialState = {
 
 const store = createStore(() => initialState);
 
-// Proxy to maintain backward compatibility with direct state access/mutation
+// 하위 호환성을 위해 직접적인 상태 수정이 가능한 Proxy 객체
 /** @type {AppState} */
 export const state = new Proxy(/** @type {any} */({}), {
   get: (target, prop) => {
@@ -238,8 +230,8 @@ export const state = new Proxy(/** @type {any} */({}), {
 let categoryMapCache = null;
 
 /**
- * Gets the category map from cache or creates it.
- * @returns {Map<string|number, any>|null} The category map.
+ * 캐시에서 카테고리 맵을 가져오거나 생성합니다.
+ * @returns {Map<string|number, any>|null} 카테고리 맵.
  */
 export const getCategoryMap = () => {
   const mapData = store.getState().mapData;
@@ -255,17 +247,17 @@ export const getCategoryMap = () => {
 };
 
 /**
- * Invalidates the category map cache.
+ * 카테고리 맵 캐시를 무효화합니다.
  */
 export const invalidateCategoryMapCache = () => {
   categoryMapCache = null;
 };
 
 /**
- * Subscribes to state changes for a specific key.
- * @param {string} key - The state key to subscribe to.
- * @param {Function} callback - The callback function.
- * @returns {Function} Unsubscribe function.
+ * 특정 키에 대한 상태 변경을 구독합니다.
+ * @param {string} key - 구독할 상태 키.
+ * @param {Function} callback - 콜백 함수.
+ * @returns {Function} 구독 해제 함수.
  */
 export const subscribe = (key, callback) => {
   return store.subscribe((state, prevState) => {
@@ -275,69 +267,55 @@ export const subscribe = (key, callback) => {
   });
 };
 
-// Removed subscribeWeak as it was unused
 
 /**
- * Unsubscribes all listeners for a key (Deprecated).
- * @param {string} key - The state key.
+ * 해당 키의 모든 리스너 구독을 해제합니다 (사용 중단됨).
+ * @param {string} key - 상태 키.
  */
 export const unsubscribeAll = (key) => {
-  // Zustand handles unsubscription via the returned function from subscribe.
-  // This function is kept for API compatibility but might be no-op or need refactoring if used.
-  // Since we don't track listeners manually anymore, we can't "unsubscribe all" for a key easily
-  // without wrapping subscribe.
-  // Assuming this is rarely used or can be ignored for now.
-  console.warn("unsubscribeAll is deprecated with Zustand implementation");
+  console.warn("unsubscribeAll은 Zustand 구현에서 더 이상 사용되지 않습니다.");
 };
 
 /**
- * Manually notifies listeners (Deprecated/Internal).
- * @param {string} key - The state key.
- * @param {any} value - The new value.
- * @param {any} oldValue - The old value.
+ * 수동으로 리스너에게 알림을 보냅니다 (사용 중단됨/내부용).
+ * @param {string} key - 상태 키.
+ * @param {any} value - 새로운 값.
+ * @param {any} oldValue - 이전 값.
  */
 export const notify = (key, value, oldValue) => {
-  // Manually trigger an update if needed (rarely used with Zustand)
-  // With Zustand, we usually just setState.
-  // If we need to force notify, we might need to hack it or just rely on setState.
   logger.stateChange(key, oldValue, value);
-  // We can't easily force notify specific listeners without changing state.
 };
 
 /**
- * Sets a state value.
- * @param {string} key - The state key.
- * @param {any} value - The new value.
+ * 상태 값을 설정합니다.
+ * @param {string} key - 상태 키.
+ * @param {any} value - 새로운 값.
  */
 export const setState = (key, value) => {
   state[key] = value; // Goes through Proxy
 };
 
 /**
- * Gets a state value.
- * @param {string} key - The state key.
- * @returns {any} The state value.
+ * 상태 값을 가져옵니다.
+ * @param {string} key - 상태 키.
+ * @returns {any} 상태 값.
  */
 export const getState = (key) => {
   return store.getState()[key];
 };
 
 /**
- * Updates multiple state values at once.
- * @param {Object} updates - The updates to apply.
+ * 여러 상태 값을 한 번에 업데이트합니다.
+ * @param {Object} updates - 적용할 업데이트 객체.
  */
 export const updateState = (updates) => {
   store.setState(updates);
-  Object.keys(updates).forEach((key) => {
-    // Logging is handled by the Proxy if we went through it, but here we bypass Proxy for batch update.
-    // So we might want to log here if needed.
-  });
 };
 
 /**
- * Sets a deep state value using a dot-notation path.
- * @param {string} path - The path to the value.
- * @param {any} value - The new value.
+ * 점(.) 표기법 경로를 사용하여 깊은 상태 값을 설정합니다.
+ * @param {string} path - 값에 대한 경로.
+ * @param {any} value - 새로운 값.
  */
 export const setDeep = (path, value) => {
   const keys = path.split(".");
@@ -366,17 +344,15 @@ export const setDeep = (path, value) => {
 
   const newRootValue = deepUpdate(rootValue, keys.slice(1), value);
 
-  // Trigger update for the root key
   store.setState({ [rootKey]: newRootValue });
 
-  // Also notify via logger
   logger.stateChange(rootKey, rootValue, newRootValue);
 };
 
 /**
- * Dispatches an action to update state.
- * @param {string} actionType - The action type.
- * @param {any} payload - The action payload.
+ * 상태를 업데이트하기 위해 액션을 처리합니다.
+ * @param {string} actionType - 액션 유형.
+ * @param {any} payload - 액션 페이로드.
  */
 export const dispatch = (actionType, payload) => {
   logger.log("State", `Dispatching Action: ${actionType}`, payload);
@@ -417,8 +393,8 @@ export const dispatch = (actionType, payload) => {
 export { store };
 
 /**
- * Initializes state from Dexie.js (IndexedDB Vault).
- * This must be called during app initialization before UI rendering.
+ * Dexie.js (IndexedDB Vault)에서 상태를 초기화합니다.
+ * 이 함수는 UI 렌더링 전 앱 초기화 중에 호출되어야 합니다.
  * @returns {Promise<{completedList: any[], favorites: any[], settings: Object}>}
  */
 export const initStateFromVault = async () => {
@@ -450,15 +426,14 @@ export const initStateFromVault = async () => {
       primaryDb.get("questProgress")
     ]);
 
-    // API Keys are now strictly managed via Vault.
-    // Legacy migration is handled by migration.js if needed.
+    // API 키는 이제 Vault를 통해 엄격하게 관리됩니다.
     const finalApiKey = apiKey || "";
     const finalGeminiKey = geminiKey || "";
     const finalOpenaiKey = openaiKey || "";
     const finalClaudeKey = claudeKey || "";
     const finalDeeplKey = deeplKey || "";
 
-    // Migrate old format (array of ids) to new format (array of objects)
+    // 레거시 형식(ID 배열)을 새 형식(객체 배열)으로 마이그레이션
     let finalCompletedList = completedList || [];
 
     // Check if any items need migration (primitive ids instead of objects)
@@ -468,11 +443,9 @@ export const initStateFromVault = async () => {
 
     if (needsMigration) {
       finalCompletedList = finalCompletedList.map((item) => {
-        // Already an object, keep as-is
         if (item !== null && typeof item === "object") {
           return item;
         }
-        // Primitive id, convert to object format
         return { id: item, completedAt: null };
       });
       // Save migrated format back to Vault

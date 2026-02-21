@@ -10,9 +10,9 @@ const tabId = Math.random().toString(36).substring(2, 15);
 let broadcastChannel = null;
 
 /**
- * Initializes the broadcast channel for cross-tab communication.
- * @param {Function} onDataReceived - Callback when data is received.
- * @returns {BroadcastChannel|null} The broadcast channel or null.
+ * 탭 간 통신을 위한 브로드캐스트 채널을 초기화합니다.
+ * @param {Function} onDataReceived - 데이터 수신 시 콜백.
+ * @returns {BroadcastChannel|null} 브로드캐스트 채널 또는 null.
  */
 export const initBroadcastChannel = (onDataReceived) => {
   if (typeof BroadcastChannel === "undefined") return null;
@@ -20,7 +20,7 @@ export const initBroadcastChannel = (onDataReceived) => {
   broadcastChannel = new BroadcastChannel(CHANNEL_NAME);
 
   broadcastChannel.onmessage = (event) => {
-    // Ignore messages from this same tab
+    // 현재 탭에서 보낸 메시지는 무시
     if (event.data?.senderId === tabId) return;
 
     if (event.data?.type === "SYNC_UPDATE") {
@@ -32,8 +32,8 @@ export const initBroadcastChannel = (onDataReceived) => {
 };
 
 /**
- * Broadcasts sync update to other tabs.
- * @param {any} data - The data to broadcast.
+ * 다른 탭으로 동기화 업데이트를 방송합니다.
+ * @param {any} data - 방송할 데이터.
  */
 export const broadcastSyncUpdate = (data) => {
   if (!broadcastChannel) return;
@@ -46,7 +46,7 @@ export const broadcastSyncUpdate = (data) => {
 };
 
 /**
- * Closes the broadcast channel.
+ * 브로드캐스트 채널을 닫습니다.
  */
 export const closeBroadcastChannel = () => {
   if (broadcastChannel) {

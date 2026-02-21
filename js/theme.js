@@ -4,7 +4,7 @@
 export const THEME_KEY = "wwm_theme";
 
 /**
- * Initializes the theme system.
+ * 테마 시스템을 초기화합니다.
  */
 export const initTheme = async () => {
   try {
@@ -12,7 +12,7 @@ export const initTheme = async () => {
     const savedTheme = (await primaryDb.get(THEME_KEY)) || "system";
     applyTheme(savedTheme);
 
-    // Use sync callback with .then/.catch to avoid unhandled async callback
+    // 시스템 테마 변경 시 테마 확인 (비동기 콜백 처리)
     window
       .matchMedia("(prefers-color-scheme: dark)")
       .addEventListener("change", (e) => {
@@ -28,14 +28,14 @@ export const initTheme = async () => {
       });
   } catch (e) {
     console.error("Failed to initialize theme:", e);
-    // Fallback to system theme
+    // 시스템 테마로 폴백
     applyTheme("system");
   }
 };
 
 /**
- * Applies a theme to the document.
- * @param {string} theme - The theme to apply ('light', 'dark', or 'system').
+ * 문서에 테마를 적용합니다.
+ * @param {string} theme - 적용할 테마 ('light', 'dark', 또는 'system').
  */
 export const applyTheme = (theme) => {
   let effectiveTheme = theme;
@@ -71,8 +71,8 @@ export const applyTheme = (theme) => {
 };
 
 /**
- * Gets the current theme setting.
- * @returns {Promise<string>} The current theme.
+ * 현재 테마 설정을 가져옵니다.
+ * @returns {Promise<string>} 현재 테마.
  */
 export const getTheme = async () => {
   const { primaryDb } = await import("./storage/db.js");

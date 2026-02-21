@@ -1,9 +1,9 @@
 // @ts-check
 
 /**
- * Gets marker ID from a marker object or value.
- * @param {any} marker - The marker.
- * @returns {any} The marker ID.
+ * 마커 객체 또는 값에서 마커 ID를 가져옵니다.
+ * @param {any} marker - 마커.
+ * @returns {any} 마커 ID.
  */
 export const getMarkerId = (marker) => {
   if (typeof marker === "object" && marker !== null) return marker.id;
@@ -11,12 +11,10 @@ export const getMarkerId = (marker) => {
 };
 
 /**
- * Normalizes markers to consistent object format.
- * @param {any[]} markers - The markers array.
+ * 마커를 일관된 객체 형식으로 정규화합니다.
+ * @param {any[]} markers - 마커 배열.
  * @returns {Array<{id: any, completedAt: any}>}
  */
-// Normalizes markers to ensure they have an ID and completedAt
-// Also deduplicates by ID to prevent "double-click" issues
 const normalizeMarkers = (markers) => {
   if (!Array.isArray(markers)) return [];
   const uniqueMap = new Map();
@@ -44,13 +42,13 @@ const normalizeMarkers = (markers) => {
 };
 
 /**
- * Merges two marker arrays with conflict resolution (3-Way Merge).
- * @param {any[]} localArr - Local markers.
- * @param {any[]} cloudArr - Cloud markers.
- * @param {any[]} [baseArr=[]] - Base markers (snapshot from last sync).
- * @param {boolean} [ignoreRemoteDeletions=false] - Whether to ignore remote deletions (for safety).
- * @param {boolean} [ignoreLocalDeletions=false] - Whether to ignore local deletions (for safety).
- * @returns {any[]} Merged markers.
+ * 충돌 해결을 포함하여 두 마커 배열을 병합합니다 (3-Way Merge).
+ * @param {any[]} localArr - 로컬 마커.
+ * @param {any[]} cloudArr - 클라우드 마커.
+ * @param {any[]} [baseArr=[]] - 베이스 마커 (마직막 동기화 스냅샷).
+ * @param {boolean} [ignoreRemoteDeletions=false] - 원격 삭제 무시 여부 (안전용).
+ * @param {boolean} [ignoreLocalDeletions=false] - 로컬 삭제 무시 여부 (안전용).
+ * @returns {any[]} 병합된 마커.
  */
 const mergeArrays = (localArr, cloudArr, baseArr = [], ignoreRemoteDeletions = false, ignoreLocalDeletions = false) => {
   const localNormalized = normalizeMarkers(localArr);
@@ -74,50 +72,50 @@ const mergeArrays = (localArr, cloudArr, baseArr = [], ignoreRemoteDeletions = f
     const cloud = cloudMap.get(id);
     const base = baseMap.get(id);
 
-    // 1. Present in both Local and Cloud -> Merge (Newest wins or Keep)
+    // 1. 로컬과 클라우드 모두에 존재 -> 병합 (최신 우선 또는 유지)
     if (local && cloud) {
-      // If conflict, check timestamps if available
+      // 충돌 발생 시 타임스탬프 확인
       if (local.completedAt && cloud.completedAt) {
         const localTime = new Date(local.completedAt).getTime();
         const cloudTime = new Date(cloud.completedAt).getTime();
         mergedMap.set(id, localTime >= cloudTime ? local : cloud);
       } else {
-        // Default to local if no timestamps (or arbitrary stability)
+        // 타임스탬프가 없으면 로컬 기본값 사용
         mergedMap.set(id, local);
       }
       return;
     }
 
-    // 2. Present in Local, Missing in Cloud
+    // 2. 로컬에만 존재, 클라우드에 없음
     if (local && !cloud) {
       if (base) {
-        // Was in Base, now missing in Cloud -> Deleted Remotely
+        // 베이스에 있었으나 클라우드에서 사라짐 -> 원격에서 삭제됨
         if (ignoreRemoteDeletions) {
-          // Treating as "Cloud lost it", so we restore it from local
+          // "클라우드가 유실한 것"으로 처리하여 로컬에서 복구
           mergedMap.set(id, local);
         } else {
           // Action: Delete (Do not add to mergedMap)
         }
       } else {
-        // Not in Base -> Added Locally
+        // 베이스에 없음 -> 로컬에서 추가됨
         // Action: Keep
         mergedMap.set(id, local);
       }
       return;
     }
 
-    // 3. Missing in Local, Present in Cloud
+    // 3. 로컬에는 없고 클라우드에 존재
     if (!local && cloud) {
       if (base) {
-        // Was in Base, now missing in Local -> Deleted Locally
+        // 베이스에 있었으나 로컬에서 사라짐 -> 로컬에서 삭제됨
         if (ignoreLocalDeletions) {
-          // Treating as "Local lost it", so we restore it from cloud
+          // "로컬이 유실한 것"으로 처리하여 클라우드에서 복구
           mergedMap.set(id, cloud);
         } else {
           // Action: Delete (Do not add to mergedMap)
         }
       } else {
-        // Not in Base -> Added Remotely
+        // 베이스에 없음 -> 원격에서 추가됨
         // Action: Keep
         mergedMap.set(id, cloud);
       }
@@ -131,10 +129,10 @@ const mergeArrays = (localArr, cloudArr, baseArr = [], ignoreRemoteDeletions = f
 };
 
 /**
- * Merges two settings objects with timestamp-based conflict resolution.
- * @param {any} localSettings - Local settings.
- * @param {any} cloudSettings - Cloud settings.
- * @returns {any} Merged settings.
+ * 타임스탬프 기반 충돌 해결을 통해 두 설정 객체를 병합합니다.
+ * @param {any} localSettings - 로컬 설정.
+ * @param {any} cloudSettings - 클라우드 설정.
+ * @returns {any} 병합된 설정.
  */
 const mergeSettings = (localSettings, cloudSettings) => {
   const merged = {};
@@ -177,7 +175,7 @@ const mergeSettings = (localSettings, cloudSettings) => {
 
   merged._updatedAt = mergedTimestamps;
 
-  // Safety Guard: If merged is suspiciously empty but inputs weren't
+  // 안전 가드: 입력값이 있었는데 병합 결과가 비어있는 경우
   if (Object.keys(merged).length <= 1 && (Object.keys(localSettings).length > 1 || Object.keys(cloudSettings).length > 1)) {
     console.error("[Merge] Safety Guard: mergeSettings returned empty object suspiciously. Falling back to local.");
     return localSettings;
@@ -187,11 +185,11 @@ const mergeSettings = (localSettings, cloudSettings) => {
 };
 
 /**
- * Merges full data objects (3-Way Merge).
- * @param {any} local - Local data.
- * @param {any} cloud - Cloud data.
- * @param {any} [base={}] - Base data (snapshot).
- * @returns {{completedMarkers: any[], favorites: any[], settings: any}} Merged data.
+ * 전체 데이터 객체를 병합합니다 (3-Way Merge).
+ * @param {any} local - 로컬 데이터.
+ * @param {any} cloud - 클라우드 데이터.
+ * @param {any} [base={}] - 베이스 데이터 (스냅샷).
+ * @returns {{completedMarkers: any[], favorites: any[], settings: any}} 병합된 데이터.
  */
 export const mergeData = (local, cloud, base = {}) => {
   // Cloud Wipe Protection:
@@ -232,7 +230,7 @@ export const mergeData = (local, cloud, base = {}) => {
     settings: mergeSettings(local?.settings || {}, cloud?.settings || {}),
   };
 
-  // Safety Guard: If merged data is empty but local had data, fallback to local
+  // 안전 가드: 병합된 데이터가 비어있는데 로컬에 데이터가 있었던 경우 로컬로 대체
   if (
     merged.completedMarkers.length === 0 &&
     local?.completedMarkers?.length > 0
@@ -250,9 +248,9 @@ export const mergeData = (local, cloud, base = {}) => {
 };
 
 /**
- * Generates a hash for data comparison.
- * @param {any} data - The data to hash.
- * @returns {string} The hash string.
+ * 데이터 비교를 위한 해시를 생성합니다.
+ * @param {any} data - 해시할 데이터.
+ * @returns {string} 해시 문자열.
  */
 export const generateDataHash = (data) => {
   // Filter and sort settings to ensure consistent string representation

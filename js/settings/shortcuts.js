@@ -108,6 +108,9 @@ let selectedKey = null;
 let pendingActionId = null;
 let keyboardModalVisible = false;
 
+/**
+ * 단축키 설정을 불러옵니다.
+ */
 export const loadShortcuts = async () => {
   try {
     const { primaryDb } = await import("../storage/db.js");
@@ -127,6 +130,9 @@ export const loadShortcuts = async () => {
   }
 };
 
+/**
+ * 단축키 설정을 저장합니다.
+ */
 export const saveShortcuts = async () => {
   try {
     const { primaryDb } = await import("../storage/db.js");
@@ -175,6 +181,9 @@ const assignActionToKey = async (actionId, key, ctrl, shift, alt) => {
   renderShortcutSettings();
 };
 
+/**
+ * 단축키를 기본값으로 초기화합니다.
+ */
 export const resetShortcuts = async () => {
   activeShortcuts = { ...DEFAULT_SHORTCUTS };
   await saveShortcuts();
@@ -182,6 +191,11 @@ export const resetShortcuts = async () => {
   renderShortcutSettings();
 };
 
+/**
+ * 단축키 표시 형식을 지정합니다 (예: Ctrl + C).
+ * @param {any} shortcut - 단축키 객체.
+ * @returns {string} 형식이 지정된 문자열.
+ */
 export const formatShortcut = (shortcut) => {
   const parts = [];
   if (shortcut.ctrl) parts.push("Ctrl");
@@ -591,6 +605,9 @@ const showActionSelector = (key) => {
   document.getElementById("keyboard-modal-content").appendChild(dropdown);
 };
 
+/**
+ * 단축키 설정 모달을 엽니다.
+ */
 export const openKeyboardModal = () => {
   const modal = document.getElementById("keyboard-shortcut-modal");
   if (modal) {
@@ -602,6 +619,9 @@ export const openKeyboardModal = () => {
   }
 };
 
+/**
+ * 단축키 설정 모달을 닫습니다.
+ */
 export const closeKeyboardModal = () => {
   const modal = document.getElementById("keyboard-shortcut-modal");
   if (modal) {
@@ -613,6 +633,9 @@ export const closeKeyboardModal = () => {
   }
 };
 
+/**
+ * 단축키 목록 설정을 렌더링합니다.
+ */
 export const renderShortcutSettings = () => {
   const container = document.getElementById("shortcuts-list");
   if (!container) return;
@@ -635,11 +658,18 @@ export const renderShortcutSettings = () => {
   }
 };
 
+/**
+ * 단축키 활성화 여부를 설정합니다.
+ * @param {boolean} enabled - 활성화 여부.
+ */
 export const setShortcutsEnabled = async (enabled) => {
   shortcutsEnabled = enabled;
   await saveShortcuts();
 };
 
+/**
+ * 단축키 시스템을 초기화합니다.
+ */
 export const initShortcuts = async () => {
   await loadShortcuts();
 

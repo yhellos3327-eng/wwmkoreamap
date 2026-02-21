@@ -92,7 +92,6 @@ export const getDefaultTexture = () => {
 export const clearTextureCache = async () => {
   const urls = Array.from(textureCache.keys());
 
-  // Use PIXI.Assets.unload if available to properly unload managed assets
   if (typeof PIXI !== "undefined" && PIXI.Assets) {
     try {
       await PIXI.Assets.unload(urls);
@@ -102,17 +101,15 @@ export const clearTextureCache = async () => {
         "Failed to unload assets via PIXI.Assets",
         e,
       );
-      // Fallback to manual destroy if unload fails
       textureCache.forEach((texture, url) => {
         try {
           if (texture && !texture.destroyed) {
             texture.destroy(true);
           }
-        } catch (e2) {}
+        } catch (e2) { }
       });
     }
   } else {
-    // Fallback for older PIXI versions or if Assets is missing
     textureCache.forEach((texture, url) => {
       try {
         if (texture && !texture.destroyed) {
@@ -129,7 +126,7 @@ export const clearTextureCache = async () => {
   if (typeof PIXI !== "undefined" && PIXI.Assets) {
     try {
       PIXI.Assets.reset();
-    } catch (e) {}
+    } catch (e) { }
   }
 
   logger.log("TextureManager", "Texture cache cleared");

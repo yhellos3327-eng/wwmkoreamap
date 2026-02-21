@@ -7,6 +7,10 @@ import {
   clearPixiOverlay,
 } from "./overlayCore.js";
 
+/**
+ * GPU 모드로 전환합니다.
+ * @returns {Promise<boolean>} 성공 시 true.
+ */
 export const switchToGpuMode = async () => {
   if (!isGpuRenderingAvailable()) {
     logger.warn("ModeSwitch", "GPU rendering not available");
@@ -35,6 +39,9 @@ export const switchToGpuMode = async () => {
   return true;
 };
 
+/**
+ * CPU 모드로 전환합니다.
+ */
 export const switchToCpuMode = () => {
   clearPixiOverlay();
   logger.success("ModeSwitch", "Switched to CPU mode");

@@ -26,8 +26,8 @@ const EXCLUDED_REGIONS = [
 ];
 
 /**
- * Toggles route mode on/off.
- * @returns {boolean} New active state.
+ * 경로 모드를 켜거나 끕니다.
+ * @returns {boolean} 새로운 활성 상태.
  */
 export const toggleRouteMode = () => {
   const state = getRouteState();
@@ -40,7 +40,7 @@ export const toggleRouteMode = () => {
 };
 
 /**
- * Enters route mode.
+ * 경로 모드에 진입합니다.
  */
 export const enterRouteMode = () => {
   setRouteState("active", true);
@@ -50,7 +50,7 @@ export const enterRouteMode = () => {
 };
 
 /**
- * Exits route mode.
+ * 경로 모드에서 나갑니다.
  */
 export const exitRouteMode = () => {
   clearRouteDisplay();
@@ -61,7 +61,7 @@ export const exitRouteMode = () => {
 };
 
 /**
- * Restores all regions to active state.
+ * 모든 지역을 활성 상태로 복원합니다.
  */
 const restoreAllRegions = () => {
   appState.activeRegionNames.clear();
@@ -85,8 +85,8 @@ const restoreAllRegions = () => {
 };
 
 /**
- * Sets only the specified region as active.
- * @param {string} region - The region name to activate.
+ * 지정된 지역만 활성 상태로 설정합니다.
+ * @param {string} region - 활성화할 지역명.
  */
 const setOnlyRegionActive = (region) => {
   appState.activeRegionNames.clear();
@@ -110,11 +110,11 @@ const setOnlyRegionActive = (region) => {
 };
 
 /**
- * Generates an optimized route for the given region and categories.
- * @param {string} region - The region name.
- * @param {string[]} [categories=[]] - Category IDs to include.
- * @param {boolean} [excludeCompleted=true] - Whether to exclude completed items.
- * @returns {any|null} The generated route or null.
+ * 주어진 지역과 카테고리에 대해 최적화된 경로를 생성합니다.
+ * @param {string} region - 지역명.
+ * @param {string[]} [categories=[]] - 포함할 카테고리 ID 목록.
+ * @param {boolean} [excludeCompleted=true] - 완료된 항목 제외 여부.
+ * @returns {any|null} 생성된 경로 또는 null.
  */
 export const generateRoute = (
   region,
@@ -171,7 +171,7 @@ export const generateRoute = (
 };
 
 /**
- * Displays the current route on the map.
+ * 현재 경로를 지도에 표시합니다.
  */
 export const displayRoute = () => {
   const state = getRouteState();
@@ -238,7 +238,7 @@ export const displayRoute = () => {
 };
 
 /**
- * Clears the route display from the map.
+ * 지도에서 경로 표시를 제거합니다.
  */
 export const clearRouteDisplay = () => {
   const state = getRouteState();
@@ -255,9 +255,9 @@ export const clearRouteDisplay = () => {
 };
 
 /**
- * Saves the current route to localStorage.
- * @param {string} [name] - Optional route name.
- * @returns {Promise<boolean>} Whether save was successful.
+ * 현재 경로를 저장합니다.
+ * @param {string} [name] - 경로 이름 (선택 사항).
+ * @returns {Promise<boolean>} 저장 성공 여부.
  */
 export const saveRoute = async (name) => {
   const state = getRouteState();
@@ -284,9 +284,9 @@ export const saveRoute = async (name) => {
 };
 
 /**
- * Loads a saved route by ID.
- * @param {string} routeId - The route ID to load.
- * @returns {Promise<any|null>} The loaded route or null.
+ * ID로 저장된 경로를 불러옵니다.
+ * @param {string} routeId - 불러올 경로 ID.
+ * @returns {Promise<any|null>} 불러온 경로 또는 null.
  */
 export const loadRoute = async (routeId) => {
   const { primaryDb } = await import("../storage/db.js");
@@ -337,8 +337,8 @@ export const loadRoute = async (routeId) => {
 };
 
 /**
- * Gets all saved routes.
- * @returns {Promise<any[]>} Array of saved routes.
+ * 모든 저장된 경로를 가져옵니다.
+ * @returns {Promise<any[]>} 저장된 경로 배열.
  */
 export const getSavedRoutes = async () => {
   const { primaryDb } = await import("../storage/db.js");
@@ -346,9 +346,9 @@ export const getSavedRoutes = async () => {
 };
 
 /**
- * Deletes a saved route by ID.
- * @param {string} routeId - The route ID to delete.
- * @returns {Promise<boolean>} Whether deletion was successful.
+ * ID로 저장된 경로를 삭제합니다.
+ * @param {string} routeId - 삭제할 경로 ID.
+ * @returns {Promise<boolean>} 삭제 성공 여부.
  */
 export const deleteRoute = async (routeId) => {
   const { primaryDb } = await import("../storage/db.js");
@@ -364,8 +364,8 @@ export const deleteRoute = async (routeId) => {
 };
 
 /**
- * Gets available regions for routing.
- * @returns {string[]} Array of region names.
+ * 경로 생성에 사용 가능한 지역 목록을 가져옵니다.
+ * @returns {string[]} 지역명 배열.
  */
 export const getAvailableRegions = () => {
   if (!appState.mapData || !appState.mapData.items) return [];
@@ -382,10 +382,10 @@ export const getAvailableRegions = () => {
 };
 
 /**
- * Gets statistics for the specified region and categories.
- * @param {string} region - The region name.
- * @param {string[]} [categories=[]] - Category IDs.
- * @returns {{total: number, completed: number, remaining: number}} Stats.
+ * 지정된 지역과 카테고리에 대한 통계를 가져옵니다.
+ * @param {string} region - 지역명.
+ * @param {string[]} [categories=[]] - 카테고리 ID 목록.
+ * @returns {{total: number, completed: number, remaining: number}} 통계.
  */
 export const getRouteStats = (region, categories = []) => {
   if (!appState.mapData || !appState.mapData.items)

@@ -12,15 +12,11 @@ import { createLogger } from "../utils/logStyles.js";
 const log = createLogger("Migration");
 
 const MIGRATION_VERSION_KEY = "wwm_migration_version";
-// Version 2: localStorage → Vault migration (localStorage kept as backup)
-// NOTE: v3 (localStorage cleanup) is deferred until state.js initialization is refactored
-// Currently state.js reads from localStorage synchronously at module load,
-// so deleting localStorage before that causes data loss on refresh.
+// 버전 3: localStorage 정리
 const CURRENT_MIGRATION_VERSION = 3;
 
 /**
- * List of localStorage keys to be deleted after successful migration.
- * These are the user data keys that are now stored in Vault (IndexedDB).
+ * 마이그레이션 성공 후 삭제할 이전 localStorage 키 목록.
  */
 const DEPRECATED_LOCALSTORAGE_KEYS = [
     "wwm_completed",
@@ -49,9 +45,8 @@ const DEPRECATED_LOCALSTORAGE_KEYS = [
  */
 
 /**
- * Cleans up deprecated localStorage keys after successful migration.
- * This removes the old user data keys that are now stored in Vault.
- * @returns {string[]} List of removed keys.
+ * 마이그레이션 성공 후 권장되지 않는 localStorage 키를 정리합니다.
+ * @returns {string[]} 삭제된 키 목록.
  */
 const cleanupDeprecatedLocalStorageKeys = () => {
     const removedKeys = [];
@@ -71,8 +66,8 @@ const cleanupDeprecatedLocalStorageKeys = () => {
 };
 
 /**
- * Gets the current migration version.
- * @returns {number} The current version.
+ * 현재 마이그레이션 버전을 가져옵니다.
+ * @returns {number} 현재 버전.
  */
 const getMigrationVersion = () => {
     try {
@@ -96,8 +91,8 @@ const setMigrationVersion = (version) => {
 };
 
 /**
- * Extracts data from localStorage in a safe way.
- * @returns {DataSnapshot} The extracted data.
+ * localStorage에서 데이터를 안전하게 추출합니다.
+ * @returns {DataSnapshot} 추출된 데이터.
  */
 const extractLocalStorageData = () => {
     const result = {
@@ -224,8 +219,8 @@ const extractLocalStorageData = () => {
 };
 
 /**
- * Creates a pre-migration backup in the vault.
- * @param {DataSnapshot} data - The data to backup.
+ * 저장소에 마이그레이션 전 백업을 생성합니다.
+ * @param {DataSnapshot} data - 백업할 데이터.
  * @returns {Promise<{success: boolean, id?: number}>}
  */
 const createPreMigrationBackup = async (data) => {
@@ -484,12 +479,7 @@ export const migrateToVault = async () => {
 };
 
 /**
- * @deprecated Since v3 - localStorage is no longer used for user data after migration.
- * Syncs current state back to localStorage for backward compatibility.
- * This should be called after saving to Vault.
- * Only used for non-migrated users.
- * @param {any[]} completedList - The completed list.
- * @param {any[]} favorites - The favorites list.
+ * @deprecated v3부터 사용 중단 - 마이그레이션 후 사용자 데이터에 localStorage를 더 이상 사용하지 않습니다.
  */
 export const syncToLocalStorage = (completedList, favorites) => {
     // Disabled: Vault is the single source of truth
@@ -610,23 +600,23 @@ export const loadDataWithFallback = async () => {
 };
 
 /**
- * Checks if migration is needed.
- * @returns {boolean} Whether migration is needed.
+ * 마이그레이션이 필요한지 확인합니다.
+ * @returns {boolean} 마이그레이션 필요 여부.
  */
 export const needsMigration = () => {
     return getMigrationVersion() < CURRENT_MIGRATION_VERSION;
 };
 
 /**
- * Checks if migration is already done.
- * @returns {boolean} Whether migration is done.
+ * 마이그레이션이 이미 완료되었는지 확인합니다.
+ * @returns {boolean} 마이그레이션 완료 여부.
  */
 export const isMigrated = () => {
     return getMigrationVersion() >= CURRENT_MIGRATION_VERSION;
 };
 
 /**
- * Gets migration status info.
+ * 마이그레이션 상태 정보를 가져옵니다.
  * @returns {Promise<{version: number, vaultHasData: boolean, localHasData: boolean}>}
  */
 export const getMigrationStatus = async () => {

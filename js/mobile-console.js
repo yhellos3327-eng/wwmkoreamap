@@ -1,6 +1,6 @@
 /**
- * @fileoverview Mobile console module - provides a visual console for debugging on mobile devices.
- * Activates when 'debug' URL parameter is present.
+ * 모바일 콘솔 모듈 - 모바일 기기에서의 디버깅을 위한 시각적 콘솔을 제공합니다.
+ * 'debug' URL 매개변수가 있을 때 활성화됩니다.
  * @module mobile-console
  */
 

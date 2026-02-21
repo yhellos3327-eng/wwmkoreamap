@@ -5,8 +5,8 @@ import { getRouteState, setRouteState } from "./routeState.js";
 import { enterRouteMode, displayRoute } from "./routeCore.js";
 
 /**
- * Generates a shareable URL for the current route.
- * @returns {string|null} The share URL or null.
+ * 현재 경로의 공유 가능한 URL을 생성합니다.
+ * @returns {string|null} 공유 URL 또는 null.
  */
 export const generateShareUrl = () => {
   const state = getRouteState();
@@ -26,8 +26,8 @@ export const generateShareUrl = () => {
 };
 
 /**
- * Loads a route from URL parameters.
- * @returns {boolean} Whether a route was loaded.
+ * URL 파라미터에서 경로를 불러옵니다.
+ * @returns {boolean} 경로 로드 여부.
  */
 export const loadRouteFromUrl = () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -41,7 +41,7 @@ export const loadRouteFromUrl = () => {
     if (!routeData.ids || !Array.isArray(routeData.ids)) return false;
 
     /**
-     * Checks if data is ready and loads the route.
+     * 데이터 준비 상태를 확인하고 경로를 불러옵니다.
      */
     const checkAndLoad = () => {
       if (!appState.mapData?.items) {
@@ -54,11 +54,11 @@ export const loadRouteFromUrl = () => {
           const item = appState.mapData.items.find((i) => i.id === id);
           return item
             ? {
-                ...item,
-                lat: parseFloat(item.x),
-                lng: parseFloat(item.y),
-                order: index + 1,
-              }
+              ...item,
+              lat: parseFloat(item.x),
+              lng: parseFloat(item.y),
+              order: index + 1,
+            }
             : null;
         })
         .filter(Boolean);
@@ -93,8 +93,8 @@ export const loadRouteFromUrl = () => {
 };
 
 /**
- * Copies the share URL to clipboard.
- * @returns {Promise<boolean>} Whether copying succeeded.
+ * 공유 URL을 클립보드에 복사합니다.
+ * @returns {Promise<boolean>} 복사 성공 여부.
  */
 export const copyShareUrl = async () => {
   const url = generateShareUrl();

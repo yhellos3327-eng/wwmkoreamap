@@ -1,9 +1,9 @@
 // @ts-check
 /**
- * @fileoverview Chrome built-in translation API (Translator API & Language Detector API).
- * Requires Chrome 138+ for built-in AI translation support.
+ * Chrome 내장 번역 API (Translator API & Language Detector API).
+ * 내장 AI 번역 지원을 위해 Chrome 138+가 필요합니다.
  *
- * Managed by GenAILocalFoundationalModelSettings policy.
+ * GenAILocalFoundationalModelSettings 정책에 의해 관리됩니다.
  * @see https://developer.mozilla.org/en-US/docs/Web/API/Translator
  * @see https://developer.mozilla.org/en-US/docs/Web/API/LanguageDetector
  * @module chromeTranslator

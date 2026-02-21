@@ -33,7 +33,7 @@ let currentQuestData = null;
 let currentFilter = "";
 
 /**
- * Load quest index from JSON.
+ * JSON에서 퀘스트 인덱스를 로드합니다.
  * @returns {Promise<any>}
  */
 const loadQuestIndex = async () => {
@@ -50,7 +50,7 @@ const loadQuestIndex = async () => {
 };
 
 /**
- * Find quest line info for a specific marker.
+ * 특정 마커에 대한 퀘스트 라인 정보를 찾습니다.
  * @param {string|number} markerId
  * @returns {Promise<{id: string, title: string}|null>}
  */
@@ -71,7 +71,7 @@ export const findQuestLineForMarker = async (markerId) => {
 };
 
 /**
- * Load a specific quest line.
+ * 특정 퀘스트 라인을 로드합니다.
  * @param {string} id
  * @returns {Promise<any|null>}
  */
@@ -90,8 +90,8 @@ const loadQuestLine = async (id) => {
 };
 
 /**
- * Open the quest guide panel.
- * @param {string} [questLineId] - If provided, open detail view directly.
+ * 퀘스트 가이드 패널을 엽니다.
+ * @param {string} [questLineId] - 제공된 경우 상세 뷰를 직접 엽니다.
  */
 export const openQuestGuide = async (questLineId) => {
   const panel = document.getElementById("quest-guide-panel");
@@ -120,7 +120,7 @@ export const openQuestGuide = async (questLineId) => {
 };
 
 /**
- * Close the quest guide panel.
+ * 퀘스트 가이드 패널을 닫습니다.
  */
 export const closeQuestGuide = () => {
   const panel = document.getElementById("quest-guide-panel");
@@ -154,7 +154,7 @@ export const closeQuestGuide = () => {
 };
 
 /**
- * Show the quest list view.
+ * 퀘스트 목록 뷰를 표시합니다.
  */
 const showQuestList = async () => {
   const index = await loadQuestIndex();
@@ -181,7 +181,7 @@ const showQuestList = async () => {
 };
 
 /**
- * Show quest detail view.
+ * 퀘스트 상세 뷰를 표시합니다.
  * @param {string} questLineId
  */
 const showQuestDetail = async (questLineId) => {
@@ -232,7 +232,7 @@ const showQuestDetail = async (questLineId) => {
 };
 
 /**
- * Update quest markers on map based on current filter.
+ * 현재 필터에 따라 지도상의 퀘스트 마커를 업데이트합니다.
  * @param {any} quest
  */
 const updateQuestMarkers = (quest) => {
@@ -249,7 +249,7 @@ const updateQuestMarkers = (quest) => {
 };
 
 /**
- * Display quest navigation line on map.
+ * 지도에 퀘스트 내비게이션 라인을 표시합니다.
  * @param {any} quest
  */
 const displayQuestLine = (quest) => {
@@ -319,7 +319,7 @@ const displayQuestLine = (quest) => {
 };
 
 /**
- * Clear quest line from map.
+ * 지도에서 퀘스트 라인을 제거합니다.
  */
 const clearQuestLine = () => {
   if (questPolyline && state.map) {
@@ -337,7 +337,7 @@ const clearQuestLine = () => {
 let isProgrammaticScroll = false;
 
 /**
- * Navigate to a specific step.
+ * 특정 단계로 이동합니다.
  * @param {number} index
  */
 export const navigateToStep = (index, fly = false, scroll = true) => {
@@ -371,7 +371,7 @@ export const navigateToStep = (index, fly = false, scroll = true) => {
 };
 
 /**
- * Fly to a step's map location.
+ * 단계의 지도 위치로 이동합니다.
  * @param {any} step
  */
 export const flyToStepLocation = (step) => {
@@ -395,7 +395,7 @@ export const flyToStepLocation = (step) => {
 };
 
 /**
- * Toggle step completion.
+ * 단계 완료 여부를 토글합니다.
  * @param {string} questId
  * @param {string} stepId
  */
@@ -455,7 +455,7 @@ export const toggleStepComplete = async (questId, stepId) => {
 };
 
 /**
- * Update display options.
+ * 표시 옵션을 업데이트합니다.
  * @param {"showImages"|"showVideos"|"showMapCoords"} option
  */
 export const updateDisplayOption = (option) => {
@@ -489,7 +489,7 @@ export const updateDisplayOption = (option) => {
 };
 
 /**
- * Update nav indicator text.
+ * 내비게이션 지표 텍스트를 업데이트합니다.
  */
 const updateNavIndicator = () => {
   const indicator = document.getElementById("quest-step-indicator");
@@ -529,7 +529,7 @@ const updateNavIndicator = () => {
 };
 
 /**
- * Trigger marker re-render to apply/remove glow.
+ * 마커 리렌더링을 트리거하여 글로우 효과 등을 적용/제거합니다.
  */
 const triggerMarkerRerender = () => {
   import("../map/markers.js")
@@ -542,7 +542,7 @@ const triggerMarkerRerender = () => {
 };
 
 /**
- * Initialize quest guide event handling.
+ * 퀘스트 가이드 이벤트 처리를 초기화합니다.
  */
 export const initQuestGuideEvents = () => {
   if (/** @type {any} */ (window)._questGuideEventsInitialized) return;
@@ -747,7 +747,7 @@ export const initQuestGuideEvents = () => {
 let stepObserver = null;
 
 /**
- * Initialize Scroll Spy for quest steps.
+ * 퀘스트 단계를 위한 Scroll Spy를 초기화합니다.
  */
 const initScrollSpy = () => {
   if (stepObserver) stepObserver.disconnect();

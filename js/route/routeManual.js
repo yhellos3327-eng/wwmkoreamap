@@ -5,8 +5,8 @@ import { getRouteState, setRouteState } from "./routeState.js";
 import { updateManualRouteUI } from "./routeUI.js";
 
 /**
- * Toggles manual route mode.
- * @param {boolean} enabled - Whether to enable manual mode.
+ * 직접 구성 경로 모드를 토글합니다.
+ * @param {boolean} enabled - 직접 구성 모드 활성화 여부.
  */
 export const toggleManualRouteMode = (enabled) => {
   setRouteState("manualMode", enabled);
@@ -17,9 +17,9 @@ export const toggleManualRouteMode = (enabled) => {
 };
 
 /**
- * Adds an item to the manual route.
- * @param {string|number} itemId - The item ID to add.
- * @returns {boolean} Whether the item was added.
+ * 직접 구성 경로에 항목을 추가합니다.
+ * @param {string|number} itemId - 추가할 항목 ID.
+ * @returns {boolean} 항목 추가 성공 여부.
  */
 export const addToManualRoute = (itemId) => {
   const state = getRouteState();
@@ -49,9 +49,9 @@ export const addToManualRoute = (itemId) => {
 };
 
 /**
- * Removes an item from the manual route.
- * @param {string|number} itemId - The item ID to remove.
- * @returns {boolean} Whether the item was removed.
+ * 직접 구성 경로에서 항목을 제거합니다.
+ * @param {string|number} itemId - 제거할 항목 ID.
+ * @returns {boolean} 항목 제거 성공 여부.
  */
 export const removeFromManualRoute = (itemId) => {
   const state = getRouteState();
@@ -72,10 +72,10 @@ export const removeFromManualRoute = (itemId) => {
 };
 
 /**
- * Reorders items in the manual route.
- * @param {number} fromIndex - Source index.
- * @param {number} toIndex - Target index.
- * @returns {boolean} Whether reordering succeeded.
+ * 직접 구성 경로의 항목 순서를 변경합니다.
+ * @param {number} fromIndex - 원래 인덱스.
+ * @param {number} toIndex - 대상 인덱스.
+ * @returns {boolean} 순서 변경 성공 여부.
  */
 export const reorderManualRoute = (fromIndex, toIndex) => {
   const state = getRouteState();
@@ -102,8 +102,8 @@ export const reorderManualRoute = (fromIndex, toIndex) => {
 };
 
 /**
- * Applies the manual route as the current route.
- * @returns {any|null} The created route or null.
+ * 직접 구성한 경로를 현재 경로로 적용합니다.
+ * @returns {any|null} 생성된 경로 또는 null.
  */
 export const applyManualRoute = () => {
   const state = getRouteState();

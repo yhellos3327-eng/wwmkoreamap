@@ -30,13 +30,13 @@ export const initVotes = async () => {
     }
     isVotesInitialized = true;
   } catch (e) {
-    console.warn("Failed to init votes from DB", e);
+    console.warn("DB에서 투표 정보를 초기화하지 못했습니다.", e);
   }
 };
 
 /**
- * Gets the API base URL based on environment.
- * @returns {string} The API base URL.
+ * 환경에 따른 API 베이스 URL을 가져옵니다.
+ * @returns {string} API 베이스 URL.
  */
 const getApiBaseUrl = () => {
   // For local testing with production API (no CORS issues since credentials are included)
@@ -53,9 +53,9 @@ const getApiBaseUrl = () => {
 const API_BASE_URL = getApiBaseUrl();
 
 /**
- * Gets cached or local vote counts for an item.
- * @param {string|number} itemId - The item ID.
- * @returns {{up: number, down: number}} The vote counts.
+ * 아이템의 캐시된 또는 로컬 투표 수를 가져옵니다.
+ * @param {string|number} itemId - 아이템 ID.
+ * @returns {{up: number, down: number}} 투표 수.
  */
 export const getVoteCounts = (itemId) => {
   if (votesCache.has(itemId)) {
@@ -65,7 +65,7 @@ export const getVoteCounts = (itemId) => {
 };
 
 /**
- * Manually sets vote cache (e.g. from loaded marker data).
+ * 투표 캐시를 수동으로 설정합니다 (예: 마커 데이터 로드 시).
  * @param {string|number} itemId 
  * @param {{up: number, down: number, userVote?: string}} counts 
  */
@@ -75,9 +75,9 @@ export const setVoteCache = (itemId, counts) => {
 };
 
 /**
- * Gets the user's vote for an item.
- * @param {string|number} itemId - The item ID.
- * @returns {string|null} The vote type ('up', 'down') or null.
+ * 아이템에 대한 사용자의 투표 상태를 가져옵니다.
+ * @param {string|number} itemId - 아이템 ID.
+ * @returns {string|null} 투표 타입 ('up', 'down') 또는 null.
  */
 export const getUserVote = (itemId) => {
   // Check cache first if available (populated by batch fetch)

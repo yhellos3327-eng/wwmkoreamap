@@ -31,17 +31,17 @@ const log = createLogger("Main");
  */
 const setupLoadingSubscription = () => {
   subscribe("loadingState", async (loadingState) => {
-    // Loading screen is hidden by default - we use skeleton loading instead
-    // When loading completes, show main notice and remove skeleton states
+    // 기본적으로 로딩 화면은 숨겨져 있으며 대신 스켈레톤 로딩을 사용합니다.
+    // 로딩이 완료되면 메인 공지사항을 표시하고 스켈레톤 상태를 제거합니다.
     if (!loadingState.isVisible) {
       initMainNotice()
         .then(() => {
-          // Remove any remaining skeleton states from the page
+          // 페이지에서 남아있는 스켈레톤 상태 제거
           document.querySelectorAll(".skeleton-loading").forEach((el) => {
             el.classList.remove("skeleton-loading");
           });
 
-          // Dispatch custom event for components to know loading is complete
+          // 컴포넌트가 로딩 완료를 알 수 있도록 커스텀 이벤트 발생
           window.dispatchEvent(new CustomEvent("app-loaded"));
         })
         .catch((err) => {
@@ -132,7 +132,7 @@ import { autoRestoreIfEmpty, saveToVault } from "./storage/vault.js";
 
 /**
  * Vault 마이그레이션 및 데이터 복구 초기화
- * DEXIE.JS MIGRATION: localStorage → Vault 마이그레이션 후 state 초기화
+ * DEXIE.JS 마이그레이션: localStorage → Vault 마이그레이션 후 state 초기화
  * @returns {Promise<void>}
  */
 const initVaultAndMigration = async () => {
@@ -141,7 +141,7 @@ const initVaultAndMigration = async () => {
   let stateInitialized = false;
 
   try {
-    // Step 1: localStorage -> Vault 마이그레이션 (기존 사용자)
+    // 1단계: localStorage -> Vault 마이그레이션 (기존 사용자)
     const { migrateToVault, getMigrationStatus } = await import("./storage/migration.js");
 
     // 마이그레이션 전 상태 출력
@@ -168,7 +168,7 @@ const initVaultAndMigration = async () => {
       log.vault("이미 Vault 사용 중 (마이그레이션 불필요)");
     }
 
-    // Step 2: [CRITICAL] Vault에서 state 초기화 (Dexie.js 기반)
+    // 2단계: [CRITICAL] Vault에서 state 초기화 (Dexie.js 기반)
     // 이제 state.js는 빈 배열로 시작하므로, 반드시 Vault에서 로드해야 함
     log.info("Vault에서 state 초기화 중...");
     const stateResult = await initStateFromVault();
@@ -192,7 +192,7 @@ const initVaultAndMigration = async () => {
     }
   }
 
-  // Step 3: 기존 autoRestoreIfEmpty (폴백 안전장치)
+  // 3단계: 기존 autoRestoreIfEmpty (폴백 안전장치)
   try {
     const result = await autoRestoreIfEmpty();
     if (result.restored) {
@@ -202,13 +202,13 @@ const initVaultAndMigration = async () => {
     log.error("Auto-restore 실패", e);
   }
 
-  // Step 4: 데이터 무결성 체크
+  // 4단계: 데이터 무결성 체크
   await verifyDataIntegrity();
 };
 
 /**
  * 데이터 무결성 검증 (Vault와 State 일치 확인)
- * DEXIE.JS MIGRATION: localStorage 검증 제거, Vault ↔ State만 확인
+ * DEXIE.JS 마이그레이션: localStorage 검증 제거, Vault ↔ State만 확인
  * @returns {Promise<void>}
  */
 const verifyDataIntegrity = async () => {

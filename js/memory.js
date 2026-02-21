@@ -1,7 +1,7 @@
 // @ts-check
 /**
- * Memory Management Utility
- * Provides tools for efficient memory management and leak detection.
+ * 메모리 관리 유틸리티
+ * 효율적인 메모리 관리 및 누수 탐지를 위한 도구를 제공합니다.
  */
 
 export class MemoryManager {
@@ -23,7 +23,7 @@ export class MemoryManager {
   }
 
   /**
-   * Enable or disable debug logging for memory events
+   * 메모리 이벤트에 대한 디버그 로깅 활성화 또는 비활성화
    * @param {boolean} enabled
    */
   setDebug(enabled) {
@@ -38,10 +38,10 @@ export class MemoryManager {
   }
 
   /**
-   * Track an object for garbage collection monitoring
-   * @param {Object} target - The object to track
-   * @param {string} label - A label to identify the object
-   * @param {Function} [cleanupCallback] - Optional callback to run when collected (Note: target is already gone)
+   * 가비지 컬렉션 모니터링을 위해 객체를 추적합니다.
+   * @param {Object} target - 추적할 객체.
+   * @param {string} label - 객체를 식별하기 위한 라벨.
+   * @param {Function} [cleanupCallback] - 수거될 때 실행할 선택적 콜백 (참고: target은 이미 사라진 상태임).
    */
   track(target, label, cleanupCallback = null) {
     if (!this.registry) return;
@@ -75,7 +75,7 @@ export class MemoryManager {
   }
 
   /**
-   * Associate metadata with an object using WeakMap
+   * WeakMap을 사용하여 객체와 메타데이터를 연결합니다.
    * @param {Object} target
    * @param {any} data
    */
@@ -84,7 +84,7 @@ export class MemoryManager {
   }
 
   /**
-   * Retrieve metadata associated with an object
+   * 객체와 연결된 메타데이터를 가져옵니다.
    * @param {Object} target
    * @returns {any}
    */
@@ -93,7 +93,7 @@ export class MemoryManager {
   }
 
   /**
-   * Internal cleanup handler
+   * 내부 클린업 핸들러
    * @param {Object} heldValue
    */
   _cleanup(heldValue) {

@@ -13,12 +13,8 @@ import { webWorkerManager } from "../web-worker-manager.js";
 
 let pixiModule = null;
 /**
- * Lazy loads the PixiOverlay module.
- * @returns {Promise<any>} The PixiOverlay module.
- */
-/**
- * Lazy loads the PixiOverlay module.
- * @returns {Promise<any>} The PixiOverlay module.
+ * PixiOverlay 모듈을 지연 로드(Lazy load)합니다.
+ * @returns {Promise<any>} PixiOverlay 모듈.
  */
 const getPixiModule = async () => {
   if (!pixiModule) {
@@ -33,11 +29,7 @@ export {
 } from "./completedTooltip.js";
 
 /**
- * Initializes lazy loading and spatial indexing.
- * @returns {Promise<void>}
- */
-/**
- * Initializes lazy loading and spatial indexing.
+ * 지연 로딩과 공간 인덱싱을 초기화합니다.
  * @returns {Promise<void>}
  */
 export const initLazyLoading = async () => {
@@ -68,11 +60,7 @@ export const initLazyLoading = async () => {
 };
 
 /**
- * Renders map data and markers.
- * @returns {Promise<void>}
- */
-/**
- * Renders map data and markers.
+ * 지도 데이터와 마커를 렌더링합니다.
  * @returns {Promise<void>}
  */
 export const renderMapDataAndMarkers = async () => {
@@ -109,58 +97,43 @@ export const renderMapDataAndMarkers = async () => {
 
     const items = state.mapData.items;
 
-    // Apply both category AND region filters
-    // Build completed ID set once for O(1) lookups
     const completedIdSet = new Set(
       state.completedList.map((c) => String(c.id))
     );
 
-    // Get Boundary Stone ID if needed
     let boundaryStoneId = null;
     if (state.showCommunityMarkers) {
-      // Dynamically import to avoid circular dependency issues if possible, or just use re-exported
-      // Assuming we import getBoundaryStoneId at top or use logic here
-      // For simplicity:
-      boundaryStoneId = "17310010083"; // Hardcoded for safety, or imported
+      boundaryStoneId = "17310010083";
     }
 
-    // Combine standard items and community markers if enabled
     let contentItems = items;
     if (state.showCommunityMarkers && state.communityMarkers.size > 0) {
       contentItems = [...items, ...state.communityMarkers.values()];
     }
 
     let filteredItems = contentItems.filter((item) => {
-      // 1. Quest Guide Filter (High Priority)
       if (state.questGuideOpen && state.currentQuestLineId) {
-        // If a quest is open, ONLY show markers related to that quest
-        // Bypass other filters (category, region, etc.) to ensure they are visible
         if (state.activeQuestMarkerIds.has(String(item.id))) {
           return true;
         }
         return false;
       }
 
-      // 2. Community Mode Filter
       if (state.showCommunityMarkers) {
-        // Show only Backend Markers OR Boundary Stones
         if (item.isBackend) {
           return item.status !== "rejected";
         }
-        if (String(item.category) === "17310010083") return true; // Boundary Stone
-        return false; // Hide everything else
+        if (String(item.category) === "17310010083") return true;
+        return false;
       } else {
-        // Standard Mode: Hide backend markers
         if (item.isBackend) return false;
       }
 
-      // Check category filter
       const catId = item.category;
       if (!state.activeCategoryIds.has(catId)) {
         return false;
       }
 
-      // Check region filter (only if regions are selected)
       if (state.activeRegionNames.size > 0) {
         const rawRegion = item.forceRegion || item.region || "알 수 없음";
         const normalizedRegion = state.reverseRegionMap[rawRegion] || rawRegion;
@@ -169,7 +142,6 @@ export const renderMapDataAndMarkers = async () => {
         }
       }
 
-      // Check hideCompleted filter
       if (state.hideCompleted && completedIdSet.has(String(item.id))) {
         return false;
       }
@@ -182,8 +154,6 @@ export const renderMapDataAndMarkers = async () => {
       const communityList = filteredItems.filter((item) => !!item.isBackend);
       const staticList = filteredItems.filter((item) => !item.isBackend);
 
-      // 1. Spatial Deduplication (Group by Category + Position)
-      // Uses a grid based approach to identify markers in the 'same or nearby' location
       const uniqueGrid = new Map();
       const PRECISION = 4; // ~11 meters at current scale, captures 'nearby' duplicates
 
@@ -211,14 +181,12 @@ export const renderMapDataAndMarkers = async () => {
             (currentVotes === existingVotes &&
               parseInt(item.id) > parseInt(existing.id))
           ) {
-            // New is better: promote current to master, move old to aggregated
             const oldMaster = { ...existing };
-            delete oldMaster.aggregated; // Prevent nesting
+            delete oldMaster.aggregated;
 
             const newMaster = { ...item, aggregated: [...(existing.aggregated || []), oldMaster] };
             uniqueGrid.set(key, newMaster);
           } else {
-            // Existing is better: add current to aggregated
             existing.aggregated = existing.aggregated || [];
             existing.aggregated.push(item);
           }
@@ -227,8 +195,6 @@ export const renderMapDataAndMarkers = async () => {
 
       const processedCommunity = Array.from(uniqueGrid.values());
 
-      // 2. Redundancy check against Static markers (Optional but good)
-      // If a community marker is exactly where a static one is, and same category, skip it.
       const staticKeys = new Set(
         staticList.map(
           (s) =>
@@ -240,13 +206,10 @@ export const renderMapDataAndMarkers = async () => {
         return !staticKeys.has(key);
       });
 
-      // 3. Random Sampling (if over limit)
       const LIMIT = 300;
       let finalCommunity = nonRedundantCommunity;
 
       if (finalCommunity.length > LIMIT) {
-        // Always keep essential items like "Boundary Stones" out of sampling if they were community-made (though they shouldn't be usually)
-        // Shuffling
         for (let i = finalCommunity.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [finalCommunity[i], finalCommunity[j]] = [
@@ -257,12 +220,7 @@ export const renderMapDataAndMarkers = async () => {
         finalCommunity = finalCommunity.slice(0, LIMIT);
       }
 
-      // Combine back
       filteredItems = [...staticList, ...finalCommunity];
-
-      if (nonRedundantCommunity.length > LIMIT) {
-        console.log(`[Markers] Sampled ${LIMIT} from ${nonRedundantCommunity.length} community markers.`);
-      }
     }
     // --- End Performance & Sampling Optimization ---
 

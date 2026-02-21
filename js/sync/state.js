@@ -27,66 +27,66 @@ export const SYNC_DELAY = 5000;
 export const POLLING_INTERVAL = 120000;
 
 /**
- * Gets the current sync state.
- * @returns {{isSyncing: boolean, lastSyncVersion: string|null, isInitialSyncComplete: boolean, serverDataVersion: number}} The sync state.
+ * 현재 동기화 상태를 가져옵니다.
+ * @returns {{isSyncing: boolean, lastSyncVersion: string|null, isInitialSyncComplete: boolean, serverDataVersion: number}} 동기화 상태.
  */
 export const getSyncState = () => ({ isSyncing, lastSyncVersion, isInitialSyncComplete, serverDataVersion });
 
 /**
- * Sets the syncing flag.
- * @param {boolean} val - The syncing state.
+ * 동기화 중 플래그를 설정합니다.
+ * @param {boolean} val - 동기화 상태.
  */
 export const setSyncing = (val) => {
   isSyncing = val;
 };
 
 /**
- * Sets the server data version.
- * @param {number} val - The version number.
+ * 서버 데이터 버전을 설정합니다.
+ * @param {number} val - 버전 번호.
  */
 export const setServerDataVersion = (val) => {
   serverDataVersion = val;
 };
 
 /**
- * Sets the initial sync completion status.
- * @param {boolean} val - The completion status.
+ * 초기 동기화 완료 상태를 설정합니다.
+ * @param {boolean} val - 완료 상태.
  */
 export const setInitialSyncComplete = (val) => {
   isInitialSyncComplete = val;
 };
 
 /**
- * Sets the last sync version hash.
- * @param {string|null} val - The version hash.
+ * 마지막 동기화 버전 해시를 설정합니다.
+ * @param {string|null} val - 버전 해시.
  */
 export const setLastSyncVersion = (val) => {
   lastSyncVersion = val;
 };
 
 /**
- * Gets the sync timeout.
- * @returns {number|null} The timeout ID.
+ * 동기화 타임아웃을 가져옵니다.
+ * @returns {number|null} 타임아웃 ID.
  */
 export const getSyncTimeout = () => syncTimeout;
 
 /**
- * Sets the sync timeout.
- * @param {number|null} val - The timeout ID.
+ * 동기화 타임아웃을 설정합니다.
+ * @param {number|null} val - 타임아웃 ID.
  */
 export const setSyncTimeout = (val) => {
   syncTimeout = val;
 };
 
 /**
- * Gets the polling interval.
- * @returns {number|null} The interval ID.
+ * 폴링 인터벌을 가져옵니다.
+ * @returns {number|null} 인터벌 ID.
  */
 export const getPollingInterval = () => pollingInterval;
 
 /**
- * Sets the polling interval.
- * @param {number|null} val - The interval ID.
+ * 폴링 인터벌을 설정합니다.
+ * @param {number|null} val - 인터벌 ID.
  */
 export const setPollingInterval = (val) => {
   pollingInterval = val;

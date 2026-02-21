@@ -5,7 +5,6 @@
         const result = await fp.get();
         window.visitorId = result.visitorId;
 
-        // Fetch patching disabled due to CORS issues with backend
         /*
         const originalFetch = window.fetch;
         window.fetch = async (url, options = {}) => {

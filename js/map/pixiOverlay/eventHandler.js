@@ -34,10 +34,10 @@ let registeredHandlers = {
 };
 
 /**
- * Calculates the hit radius for click detection based on latitude and zoom.
- * @param {number} lat - The latitude.
- * @param {number} zoom - The zoom level.
- * @returns {number} The hit radius in degrees.
+ * 위도와 줌 레벨을 기반으로 클릭 감지를 위한 히트 반경을 계산합니다.
+ * @param {number} lat - 위도.
+ * @param {number} zoom - 줌 레벨.
+ * @returns {number} 도 단위의 히트 반경.
  */
 export const calculateHitRadius = (lat, zoom) => {
   const map = state.map;
@@ -70,29 +70,27 @@ const isPointNearSprite = (clickLat, clickLng, sprite, hitRadiusDeg) => {
 };
 
 /**
- * Gets priority score for a sprite (higher = more important).
- * Priority: Clusters > Uncompleted markers > Completed markers
- * @param {any} sprite - The sprite to evaluate.
- * @returns {number} Priority score.
+ * 스프라이트의 우선순위 점수를 계산합니다 (높을수록 중요).
+ * 우선순위: 클러스터 > 미완료 마커 > 완료 마커
+ * @param {any} sprite - 평가할 스프라이트.
+ * @returns {number} 우선순위 점수.
  */
 const getSpritePriority = (sprite) => {
   if (!sprite.markerData) return 0;
 
-  // Clusters have highest priority
   if (sprite.markerData.isCluster) return 100;
 
-  // Uncompleted markers have higher priority than completed
   if (sprite.markerData.isCompleted) return 10;
 
-  return 50; // Uncompleted marker
+  return 50;
 };
 
 /**
- * Calculates distance from click point to sprite center.
- * @param {number} clickLat - Clicked latitude.
- * @param {number} clickLng - Clicked longitude.
- * @param {any} sprite - The sprite.
- * @returns {number} Distance in degrees.
+ * 클릭 지점에서 스프라이트 중심까지의 거리를 계산합니다.
+ * @param {number} clickLat - 클릭된 위도.
+ * @param {number} clickLng - 클릭된 경도.
+ * @param {any} sprite - 스프라이트.
+ * @returns {number} 도 단위의 거리.
  */
 const getDistanceToSprite = (clickLat, clickLng, sprite) => {
   const dLat = clickLat - sprite.markerData.lat;
@@ -101,14 +99,14 @@ const getDistanceToSprite = (clickLat, clickLng, sprite) => {
 };
 
 /**
- * Finds a sprite at the given position with priority handling.
- * When multiple markers overlap, prioritizes: Clusters > Uncompleted > Completed
- * Among same priority, chooses the closest to click point.
- * @param {any} container - The PIXI container.
- * @param {number} clickLat - The clicked latitude.
- * @param {number} clickLng - The clicked longitude.
- * @param {number} hitRadiusDeg - The hit radius in degrees.
- * @returns {any|null} The found sprite or null.
+ * 주어진 위치에서 우선순위 처리가 적용된 스프라이트를 찾습니다.
+ * 여러 마커가 겹칠 경우 우선순위: 클러스터 > 미완료 > 완료
+ * 동일 우선순위 내에서는 클릭 지점과 가장 가까운 것을 선택합니다.
+ * @param {any} container - PIXI 컨테이너.
+ * @param {number} clickLat - 클릭된 위도.
+ * @param {number} clickLng - 클릭된 경도.
+ * @param {number} hitRadiusDeg - 도 단위의 히트 반경.
+ * @returns {any|null} 찾은 스프라이트 또는 null.
  */
 export const findSpriteAtPosition = (
   container,
@@ -126,12 +124,10 @@ export const findSpriteAtPosition = (
     for (let i = parent.children.length - 1; i >= 0; i--) {
       const child = parent.children[i];
 
-      // Recursively search containers
       if (child instanceof PIXI.Container && child.children.length > 0 && !child.markerData) {
         collectCandidates(child);
       }
 
-      // Check if this sprite is near the click point
       if (
         child.markerData &&
         isPointNearSprite(clickLat, clickLng, child, hitRadiusDeg)
@@ -146,29 +142,27 @@ export const findSpriteAtPosition = (
   if (candidates.length === 0) return null;
   if (candidates.length === 1) return candidates[0];
 
-  // Sort by priority (desc), then by distance (asc)
   candidates.sort((a, b) => {
     const priorityA = getSpritePriority(a);
     const priorityB = getSpritePriority(b);
 
     if (priorityA !== priorityB) {
-      return priorityB - priorityA; // Higher priority first
+      return priorityB - priorityA;
     }
 
-    // Same priority - choose closest to click point
     const distA = getDistanceToSprite(clickLat, clickLng, a);
     const distB = getDistanceToSprite(clickLat, clickLng, b);
-    return distA - distB; // Closer first
+    return distA - distB;
   });
 
   return candidates[0];
 };
 
 /**
- * Attaches event handlers to the map.
- * @param {L.Map} map - The Leaflet map instance.
- * @param {any} overlay - The PixiOverlay instance.
- * @param {any} container - The PIXI container.
+ * 지도에 이벤트 핸들러를 연결합니다.
+ * @param {L.Map} map - Leaflet 지도 인스턴스.
+ * @param {any} overlay - PixiOverlay 인스턴스.
+ * @param {any} container - PIXI 컨테이너.
  */
 export const attachEventHandlers = (map, overlay, container) => {
   if (isEventHandlerAttached) {
@@ -194,7 +188,6 @@ export const attachEventHandlers = (map, overlay, container) => {
       );
 
       if (sprite) {
-        // Only return if the dev handler claims to have handled the click
         if (/** @type {any} */ (window).dev.handleGpuClick(sprite.markerData.item.id)) {
           if (e.originalEvent) {
             e.originalEvent.stopPropagation();
@@ -208,8 +201,6 @@ export const attachEventHandlers = (map, overlay, container) => {
     const clickLng = e.latlng.lng;
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
-
-    // First check spiderfied markers if spider is open
     const spiderfyContainer = getSpiderfyContainer();
     let sprite = null;
 
@@ -221,7 +212,6 @@ export const attachEventHandlers = (map, overlay, container) => {
         hitRadiusDeg,
       );
 
-      // If clicked outside spiderfied markers, close the spider
       if (!sprite) {
         clearSpiderfy();
         updatePixiMarkers();
@@ -230,7 +220,6 @@ export const attachEventHandlers = (map, overlay, container) => {
       }
     }
 
-    // If no spiderfy or sprite found, check main container
     if (!sprite && container && container.children.length > 0) {
       sprite = findSpriteAtPosition(
         container,
@@ -241,14 +230,12 @@ export const attachEventHandlers = (map, overlay, container) => {
     }
 
     if (sprite && sprite.markerData) {
-      // 1. Handle Supercluster Clusters
       if (sprite.markerData.isCluster) {
         const supercluster = getSupercluster();
         if (supercluster) {
           const clusterId = sprite.markerData.clusterId;
           const leaves = supercluster.getLeaves(clusterId, Infinity);
 
-          // Always use spiderfy effect for clusters (no zoom-in)
           const utils = getPixiUtils();
           const mainContainer = getPixiContainer();
 
@@ -296,7 +283,6 @@ export const attachEventHandlers = (map, overlay, container) => {
         showPopupForSprite(sprite);
       }
     } else {
-      // No sprite found - close popup
       map.closePopup();
     }
   };
@@ -307,7 +293,6 @@ export const attachEventHandlers = (map, overlay, container) => {
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-    // First, check spiderfied markers (they have higher priority)
     const spiderfyContainer = getSpiderfyContainer();
 
     let sprite = null;
@@ -321,7 +306,6 @@ export const attachEventHandlers = (map, overlay, container) => {
       );
     }
 
-    // If not found in spiderfy, check main container
     if (!sprite && container && container.children.length > 0) {
       sprite = findSpriteAtPosition(
         container,
@@ -339,9 +323,7 @@ export const attachEventHandlers = (map, overlay, container) => {
 
       toggleCompleted(sprite.markerData.item.id);
 
-      // Update visual state
       setTimeout(() => {
-        // If this was a spiderfied marker, close the spider and refresh
         if (sprite.markerData.isSpiderfied) {
           clearSpiderfy();
         }
@@ -430,13 +412,9 @@ export const attachEventHandlers = (map, overlay, container) => {
     }
   };
 
-  // DOM-level click handler to catch clicks on overlays (polygons, boundaries)
-  // that don't trigger Leaflet's map click event
   const handleDomClick = (e) => {
-    // Only process if spiderfy is open
     if (getSpiderfiedClusterId() === null) return;
 
-    // Check if click is on an overlay element (canvas, svg path, etc.)
     const target = /** @type {HTMLElement} */ (e.target);
     const isOverlayClick =
       target.tagName === "CANVAS" ||
@@ -447,14 +425,12 @@ export const attachEventHandlers = (map, overlay, container) => {
       target.closest(".leaflet-overlay-pane");
 
     if (isOverlayClick) {
-      // Convert screen coordinates to map coordinates
       const point = map.containerPointToLatLng([e.clientX - map.getContainer().getBoundingClientRect().left, e.clientY - map.getContainer().getBoundingClientRect().top]);
       const clickLat = point.lat;
       const clickLng = point.lng;
       const zoom = map.getZoom();
       const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
 
-      // Check if clicking on a spiderfied marker
       const spiderfyContainerRef = getSpiderfyContainer();
       if (spiderfyContainerRef) {
         const sprite = findSpriteAtPosition(
@@ -464,7 +440,6 @@ export const attachEventHandlers = (map, overlay, container) => {
           hitRadiusDeg,
         );
 
-        // If not clicking on a spiderfied marker, close the spider
         if (!sprite) {
           clearSpiderfy();
           updatePixiMarkers();
@@ -485,7 +460,6 @@ export const attachEventHandlers = (map, overlay, container) => {
   map.on("mousemove", handleMouseMove);
   map.on("mousedown", handleMouseDown);
 
-  // Add DOM-level click listener to catch overlay clicks
   map.getContainer().addEventListener("click", handleDomClick, true);
 
   isEventHandlerAttached = true;
@@ -493,8 +467,8 @@ export const attachEventHandlers = (map, overlay, container) => {
 };
 
 /**
- * Detaches event handlers from the map.
- * @param {L.Map} map - The Leaflet map instance.
+ * 지도에서 이벤트 핸들러를 제거합니다.
+ * @param {L.Map} map - Leaflet 지도 인스턴스.
  */
 export const detachEventHandlers = (map) => {
   if (!isEventHandlerAttached || !map) return;
@@ -528,13 +502,13 @@ export const detachEventHandlers = (map) => {
 };
 
 /**
- * Checks if event handlers are attached.
- * @returns {boolean} True if attached.
+ * 이벤트 핸들러가 연결되어 있는지 확인합니다.
+ * @returns {boolean} 연결되어 있으면 true.
  */
 export const isEventHandlersAttached = () => isEventHandlerAttached;
 
 /**
- * Resets the event handler state.
+ * 이벤트 핸들러 상태를 초기화합니다.
  */
 export const resetEventHandlers = () => {
   isEventHandlerAttached = false;
