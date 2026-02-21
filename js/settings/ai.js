@@ -27,6 +27,10 @@ export const AI_MODELS = {
   ],
 };
 
+/**
+ * 제공자별 모델 옵션을 업데이트합니다.
+ * @param {string} provider - AI 제공자.
+ */
 export const updateModelOptions = (provider) => {
   const apiModelSelect = document.getElementById("api-model-select");
   if (!apiModelSelect) return;
@@ -41,6 +45,10 @@ export const updateModelOptions = (provider) => {
   });
 };
 
+/**
+ * 제공자별 API 키 입력란을 업데이트합니다.
+ * @param {string} provider - AI 제공자.
+ */
 export const updateApiKeyInput = (provider) => {
   const apiKeyInput = /** @type {HTMLInputElement} */ (
     document.getElementById("api-key-input")
@@ -66,6 +74,9 @@ export const updateApiKeyInput = (provider) => {
   apiKeyInput.placeholder = placeholder;
 };
 
+/**
+ * AI 설정을 저장합니다.
+ */
 export const saveAISettings = async () => {
   const apiProviderSelect = /** @type {HTMLSelectElement} */ (
     document.getElementById("api-provider-select")
@@ -86,7 +97,7 @@ export const saveAISettings = async () => {
       await updateSettingWithTimestamp("aiProvider", provider);
     } catch (err) {
       console.error(
-        `Failed to update AI provider setting (${provider}):`,
+        `AI 제공자 설정 업데이트 실패 (${provider}):`,
         err,
       );
     }
@@ -111,7 +122,7 @@ export const saveAISettings = async () => {
           await primaryDb.set("wwm_deepl_key", newKey);
         }
       } catch (err) {
-        console.error(`Failed to save API key for provider (${provider}):`, err);
+        console.error(`제공자 (${provider})의 API 키 저장 실패:`, err);
       }
     }
   } else if (apiKeyInput) {
@@ -121,7 +132,7 @@ export const saveAISettings = async () => {
       const { primaryDb } = await import("../storage/db.js");
       await primaryDb.set("wwm_api_key", newKey);
     } catch (err) {
-      console.error("Failed to save API key:", err);
+      console.error("API 키 저장 실패:", err);
     }
   }
 
@@ -133,11 +144,15 @@ export const saveAISettings = async () => {
       const { updateSettingWithTimestamp } = await import("../sync.js");
       await updateSettingWithTimestamp("apiModel", newModel);
     } catch (err) {
-      console.error(`Failed to update API model setting (${newModel}):`, err);
+      console.error(`API 모델 설정 업데이트 실패 (${newModel}):`, err);
     }
   }
 };
 
+/**
+ * AI 설정을 초기화합니다.
+ * @returns {{loadValues: Function}}
+ */
 export const initAISettings = () => {
   const apiProviderSelect = /** @type {HTMLSelectElement} */ (
     document.getElementById("api-provider-select")

@@ -23,12 +23,12 @@ import { lazyLoader } from "../ui/lazy-loader.js";
  */
 
 /**
- * Creates the HTML content for a marker popup.
- * @param {MapItem} item - The map item.
- * @param {number} lat - Latitude.
- * @param {number} lng - Longitude.
- * @param {string} regionName - Region name.
- * @returns {string} The HTML string.
+ * 마커 팝업을 위한 HTML 콘텐츠를 생성합니다.
+ * @param {MapItem} item - 지도 아이템.
+ * @param {number} lat - 위도.
+ * @param {number} lng - 경도.
+ * @param {string} regionName - 지역 이름.
+ * @returns {string} HTML 문자열.
  */
 export const createPopupHtml = (item, lat, lng, regionName, activeReportId = null) => {
   let displayItem = item;
@@ -307,7 +307,6 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                     <div class="comment-input-wrapper" style="position: relative;">
                         <div id="sticker-modal-${item.id}" class="sticker-modal">
                             <div class="sticker-grid" id="sticker-grid-${item.id}">
-                                <!-- Stickers will be loaded here -->
                             </div>
                         </div>
                         <button type="button" class="btn-sticker" data-action="toggle-sticker" data-item-id="${item.id}" title="스티커">
@@ -389,7 +388,6 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
             </div>
         </div>
         <div class="popup-quest-info hidden" data-item-id="${item.id}">
-            <!-- Quest info loaded via JS -->
         </div>
         <div class="popup-body">
             ${mediaHtml}
@@ -443,7 +441,7 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
 };
 
 /**
- * Initializes popup event delegation.
+ * 팝업 이벤트 위임을 초기화합니다.
  */
 export const initPopupEventDelegation = () => {
   if (state.map) {
@@ -452,14 +450,12 @@ export const initPopupEventDelegation = () => {
       if (popupNode) {
         lazyLoader.observeAll(".lazy-load", popupNode);
 
-        // Fetch votes for community markers to ensure fresh data
         const voteContainer = popupNode.querySelector(".vote-container");
         if (voteContainer && voteContainer.dataset.isBackend === "true") {
           const itemId = voteContainer.dataset.itemId;
           if (itemId) fetchVoteCounts(itemId, true);
         }
 
-        // Check for quest info
         const questInfoEl = popupNode.querySelector(".popup-quest-info");
         if (questInfoEl && questInfoEl.dataset.itemId) {
           const itemId = questInfoEl.dataset.itemId;
@@ -479,7 +475,6 @@ export const initPopupEventDelegation = () => {
                   </div>
                 `;
                 questInfoEl.classList.remove("hidden");
-                // Allow clicking the banner to open the quest
                 const banner = questInfoEl.querySelector(".quest-link-banner");
                 if (banner) {
                   banner.addEventListener("click", (e) => {

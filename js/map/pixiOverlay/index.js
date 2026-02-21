@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * PixiOverlay module - exports all PixiJS overlay functionality.
+ * PixiOverlay 모듈 - 모든 PixiJS 오버레이 기능을 내보냅니다.
  */
 export { showRenderModeIndicator } from "./renderModeIndicator.js";
 

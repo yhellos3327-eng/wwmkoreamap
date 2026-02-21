@@ -1,12 +1,12 @@
 // @ts-check
 
 /**
- * Calculates haversine distance between two points (in km).
- * @param {number} lat1 - First point latitude.
- * @param {number} lng1 - First point longitude.
- * @param {number} lat2 - Second point latitude.
- * @param {number} lng2 - Second point longitude.
- * @returns {number} Distance in kilometers.
+ * 두 지점 사이의 하버사인 거리(km)를 계산합니다.
+ * @param {number} lat1 - 첫 번째 지점 위도.
+ * @param {number} lng1 - 첫 번째 지점 경도.
+ * @param {number} lat2 - 두 번째 지점 위도.
+ * @param {number} lng2 - 두 번째 지점 경도.
+ * @returns {number} 킬로미터 단위 거리.
  */
 export const calculateDistance = (lat1, lng1, lat2, lng2) => {
   const R = 6371;
@@ -15,20 +15,20 @@ export const calculateDistance = (lat1, lng1, lat2, lng2) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos((lat1 * Math.PI) / 180) *
-      Math.cos((lat2 * Math.PI) / 180) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos((lat2 * Math.PI) / 180) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return R * c;
 };
 
 /**
- * Calculates simple Euclidean distance.
- * @param {number} lat1 - First point latitude.
- * @param {number} lng1 - First point longitude.
- * @param {number} lat2 - Second point latitude.
- * @param {number} lng2 - Second point longitude.
- * @returns {number} Distance.
+ * 단순 유클리드 거리를 계산합니다.
+ * @param {number} lat1 - 첫 번째 지점 위도.
+ * @param {number} lng1 - 첫 번째 지점 경도.
+ * @param {number} lat2 - 두 번째 지점 위도.
+ * @param {number} lng2 - 두 번째 지점 경도.
+ * @returns {number} 거리.
  */
 export const calculateSimpleDistance = (lat1, lng1, lat2, lng2) => {
   const dx = lat2 - lat1;
@@ -37,9 +37,9 @@ export const calculateSimpleDistance = (lat1, lng1, lat2, lng2) => {
 };
 
 /**
- * Builds a distance matrix for points.
- * @param {Array<{lat: number, lng: number}>} points - Array of points.
- * @returns {number[][]} Distance matrix.
+ * 지점들 사이의 거리 행렬을 생성합니다.
+ * @param {Array<{lat: number, lng: number}>} points - 지점 배열.
+ * @returns {number[][]} 거리 행렬.
  */
 const buildDistanceMatrix = (points) => {
   const n = points.length;
@@ -64,10 +64,10 @@ const buildDistanceMatrix = (points) => {
 };
 
 /**
- * Nearest neighbor algorithm for route optimization.
- * @param {Array<{lat: number, lng: number}>} points - Array of points.
- * @param {number} [startIndex=0] - Starting index.
- * @returns {{route: number[], totalDistance: number, distMatrix?: number[][]}} Result.
+ * 경로 최적화를 위한 최근접 이웃(Nearest Neighbor) 알고리즘.
+ * @param {Array<{lat: number, lng: number}>} points - 지점 배열.
+ * @param {number} [startIndex=0] - 시작 인덱스.
+ * @returns {{route: number[], totalDistance: number, distMatrix?: number[][]}} 결과.
  */
 export const nearestNeighbor = (points, startIndex = 0) => {
   if (points.length === 0) return { route: [], totalDistance: 0 };
@@ -105,11 +105,11 @@ export const nearestNeighbor = (points, startIndex = 0) => {
 };
 
 /**
- * 2-opt improvement algorithm for route optimization.
- * @param {number[]} route - Initial route.
- * @param {number[][]} distMatrix - Distance matrix.
- * @param {number} [maxIterations=1000] - Maximum iterations.
- * @returns {{route: number[], totalDistance: number}} Improved route.
+ * 경로 최적화를 위한 2-opt 개선 알고리즘.
+ * @param {number[]} route - 초기 경로.
+ * @param {number[][]} distMatrix - 거리 행렬.
+ * @param {number} [maxIterations=1000] - 최대 반복 횟수.
+ * @returns {{route: number[], totalDistance: number}} 개선된 경로.
  */
 export const twoOptImprove = (route, distMatrix, maxIterations = 1000) => {
   let improved = true;
@@ -153,11 +153,11 @@ export const twoOptImprove = (route, distMatrix, maxIterations = 1000) => {
 };
 
 /**
- * Calculates the optimal route for given items.
- * @param {any[]} items - Items to route.
- * @param {{lat: number, lng: number}|null} [startPoint=null] - Starting point.
- * @param {{useOptimization?: boolean}} [options] - Options.
- * @returns {{route: any[], totalDistance: number, pointCount?: number}} Result.
+ * 주어진 항목들에 대해 최적의 경로를 계산합니다.
+ * @param {any[]} items - 경로를 계산할 항목들.
+ * @param {{lat: number, lng: number}|null} [startPoint=null] - 시작 지점.
+ * @param {{useOptimization?: boolean}} [options] - 옵션.
+ * @returns {{route: any[], totalDistance: number, pointCount?: number}} 결과.
  */
 export const calculateOptimalRoute = (
   items,
@@ -217,12 +217,12 @@ export const calculateOptimalRoute = (
 };
 
 /**
- * Gets items for a route based on filters.
- * @param {any} mapData - Map data object.
- * @param {string} region - Region name.
- * @param {string[]} categories - Category IDs.
- * @param {Set<any>} [completedIds=new Set()] - Completed IDs to exclude.
- * @returns {any[]} Filtered items.
+ * 필터에 따라 경로용 항목들을 가져옵니다.
+ * @param {any} mapData - 지도 데이터 객체.
+ * @param {string} region - 지역명.
+ * @param {string[]} categories - 카테고리 ID 목록.
+ * @param {Set<any>} [completedIds=new Set()] - 제외할 완료된 ID 목록.
+ * @returns {any[]} 필터링된 항목들.
  */
 export const getItemsForRoute = (
   mapData,
@@ -244,10 +244,10 @@ export const getItemsForRoute = (
 };
 
 /**
- * Finds a boundary stone in a region.
- * @param {any} mapData - Map data object.
- * @param {string} region - Region name.
- * @returns {{lat: number, lng: number, item: any}|null} Boundary stone or null.
+ * 지역 내의 비석(축지석 등)을 찾습니다.
+ * @param {any} mapData - 지도 데이터 객체.
+ * @param {string} region - 지역명.
+ * @returns {{lat: number, lng: number, item: any}|null} 비석 위치 또는 null.
  */
 export const findBoundaryStone = (mapData, region) => {
   if (!mapData || !mapData.items) return null;

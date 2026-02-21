@@ -7,8 +7,8 @@ import { toggleSidebar } from "../ui.js";
 import { updateMapVisibility } from "./visibility.js";
 
 /**
- * Initializes the map for a given map key.
- * @param {string} mapKey - The map key.
+ * 주어진 맵 키에 대해 지도를 초기화합니다.
+ * @param {string} mapKey - 맵 키.
  * @returns {Promise<void>}
  */
 export const initMap = async (mapKey) => {
@@ -80,19 +80,14 @@ export const initMap = async (mapKey) => {
       if (window.innerWidth <= 768) toggleSidebar("close");
     });
 
-    // Middle click (auxclick) handler for adding markers
     const mapContainer = map.getContainer();
     mapContainer.addEventListener("auxclick", (e) => {
-      // Button 1 is middle mouse button (wheel click)
-      // Only allow if Community Mode is active
       if (!state.showCommunityMarkers) return;
 
       console.log("Auxclick detected:", e.button);
       if (e.button === 1) {
         e.preventDefault();
-        console.log("Middle click confirmed. Importing dev-tools...");
         import("../dev-tools.js").then(({ openAddMarkerModal }) => {
-          console.log("dev-tools imported. Opening modal...");
           const latlng = map.mouseEventToLatLng(e);
           openAddMarkerModal(latlng.lat, latlng.lng);
         }).catch(err => console.error("Failed to import dev-tools:", err));
@@ -124,7 +119,6 @@ export const initMap = async (mapKey) => {
 
   setState("currentTileLayer", tileLayer);
 
-  // Remove skeleton loading state from map
   const mapEl = document.getElementById("map");
   if (mapEl) mapEl.classList.remove("skeleton-loading");
 

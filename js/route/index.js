@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * Route module - exports all route functionality.
+ * 경로 모듈 - 모든 경로 기능을 내보냅니다.
  */
 export {
   toggleRouteMode,

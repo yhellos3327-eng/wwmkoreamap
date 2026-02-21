@@ -18,7 +18,7 @@ const STATUS = Object.freeze({
 });
 
 /**
- * Creates a new integrity check result object.
+ * 새로운 무결성 검사 결과 객체를 생성합니다.
  * @returns {any}
  */
 export const createResult = () => ({
@@ -315,9 +315,9 @@ export const validateSettings = (settings, context = {}, options = {}) => {
 };
 
 /**
- * Converts a setting key to a storage key.
- * @param {string} key - The setting key.
- * @returns {string} The storage key.
+ * 설정 키를 저장소 키로 변환합니다.
+ * @param {string} key - 설정 키.
+ * @returns {string} 저장소 키.
  */
 const settingKeyToStorageKey = (key) => {
   if (key.startsWith("activeCats")) {
@@ -341,11 +341,11 @@ const settingKeyToStorageKey = (key) => {
 };
 
 /**
- * Validates a setting value.
- * @param {string} key - The storage key.
- * @param {any} value - The value to validate.
- * @param {any} [context] - The validation context.
- * @returns {any} The validation result.
+ * 설정 값을 검증합니다.
+ * @param {string} key - 저장소 키.
+ * @param {any} value - 검증할 값.
+ * @param {any} [context] - 검증 컨텍스트.
+ * @returns {any} 검증 결과.
  */
 const validateValue = (key, value, context = {}) => {
   if (key.startsWith("wwm_active_cats_")) {

@@ -17,23 +17,23 @@ import { fetchVoteCounts } from "../votes.js";
 let regionPolygonsCache = [];
 
 /**
- * Sets the region polygons cache.
- * @param {any[]} cache - The cache to set.
+ * 지역 다각형 캐시를 설정합니다.
+ * @param {any[]} cache - 설정할 캐시 데이터.
  */
 export const setRegionPolygonsCache = (cache) => {
   regionPolygonsCache = cache;
 };
 
 /**
- * Gets the region polygons cache.
- * @returns {any[]} The region polygons cache.
+ * 지역 다각형 캐시를 가져옵니다.
+ * @returns {any[]} 지역 다각형 캐시.
  */
 export const getRegionPolygonsCache = () => regionPolygonsCache;
 
 /**
- * Creates a marker for a map item.
- * @param {any} item - The map item.
- * @returns {{marker: any, markerInfo: any}|null} The created marker and its info, or null if creation failed.
+ * 지도 아이템을 위한 마커를 생성합니다.
+ * @param {any} item - 지도 아이템.
+ * @returns {{marker: any, markerInfo: any}|null} 생성된 마커와 정보, 생성 실패 시 null.
  */
 export const createMarkerForItem = (item) => {
   let catId = item.category;

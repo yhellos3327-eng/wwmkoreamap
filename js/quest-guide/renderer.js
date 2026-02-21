@@ -2,7 +2,7 @@
 import { parseQuestMarkdown } from "../utils.js";
 
 /**
- * Render the quest list view.
+ * 퀘스트 목록 뷰를 렌더링합니다.
  * @param {any[]} questLines
  * @param {any[]} categories
  * @param {Object} progress
@@ -68,7 +68,7 @@ export const renderQuestList = (questLines, categories, progress) => {
 };
 
 /**
- * Render quest detail (blog-style).
+ * 퀘스트 상세 정보(블로그 스타일)를 렌더링합니다.
  * @param {any} quest
  * @param {string[]} completedSteps
  * @param {Object} displayOptions
@@ -173,7 +173,7 @@ export const renderQuestDetail = (
 };
 
 /**
- * Render filter bar for sub-groups.
+ * 하위 그룹을 위한 필터 바를 렌더링합니다.
  * @param {any} quest
  * @param {string} currentFilter
  * @returns {string}
@@ -203,7 +203,7 @@ const renderFilter = (quest, currentFilter) => {
 };
 
 /**
- * Render a single step card.
+ * 단일 단계 카드를 렌더링합니다.
  * @param {any} step
  * @param {number} index
  * @param {string} questId
@@ -342,7 +342,7 @@ const renderStep = (
 };
 
 /**
- * Render linked quests section.
+ * 연계 퀘스트 섹션을 렌더링합니다.
  * @param {string[]|undefined} linkedIds
  * @returns {string}
  */
@@ -373,7 +373,7 @@ const renderLinkedQuests = (linkedIds) => {
 };
 
 /**
- * Update step highlight (active state).
+ * 단계 하이라이트(활성 상태)를 업데이트합니다.
  * @param {number} activeIndex
  */
 export const updateStepHighlight = (activeIndex) => {
@@ -391,9 +391,8 @@ export const updateStepHighlight = (activeIndex) => {
 };
 
 /**
- * Manage GIF playback to optimize performance.
- * Only plays GIFs in the active step.
- * Pauses others by replacing src.
+ * 성능 최적화를 위해 GIF 재생을 관리합니다.
+ * 활성 단계의 GIF만 재생하고 나머지는 일시정지합니다.
  * @param {number} activeIndex 
  */
 const updateGifPlayback = (activeIndex) => {

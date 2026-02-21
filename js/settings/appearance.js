@@ -4,8 +4,8 @@ import { state, setState } from "../state.js";
 import { applyTheme, getTheme } from "../theme.js";
 
 /**
- * Applies the menu position class to the body.
- * @param {string} position - The menu position ('left', 'center', 'right').
+ * 메뉴 위치 클래스를 body에 적용합니다.
+ * @param {string} position - 메뉴 위치 ('left', 'center', 'right').
  */
 export const applyMenuPosition = (position) => {
   document.body.classList.remove(
@@ -17,7 +17,7 @@ export const applyMenuPosition = (position) => {
 };
 
 /**
- * Initializes appearance settings events and returns an object with a loadValues function.
+ * 외형 설정 이벤트를 초기화하고 loadValues 함수가 포함된 객체를 반환합니다.
  * @returns {{loadValues: Function}}
  */
 export const initAppearanceSettings = () => {
@@ -92,7 +92,7 @@ export const initAppearanceSettings = () => {
 };
 
 /**
- * Saves the current appearance settings to state and local storage.
+ * 현재 외형 설정을 상태 및 로컬 스토리지에 저장합니다.
  */
 export const saveAppearanceSettings = async () => {
   const regionColorInput = document.getElementById("region-line-color");

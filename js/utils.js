@@ -9,9 +9,9 @@ import axios from "https://esm.run/axios@1.12.0";
 import { marked } from "https://esm.run/marked@12.0.0";
 
 /**
- * Translates a key using the Korean dictionary in the state.
- * @param {string|number} key - The key to translate.
- * @returns {string|number} The translated string or the original key.
+ * 상태 내의 한국어 사전을 사용하여 키를 번역합니다.
+ * @param {string|number} key - 번역할 키.
+ * @returns {string|number} 번역된 문자열 또는 원래 키.
  */
 export const t = (key) => {
   if (!key) return "";
@@ -20,33 +20,31 @@ export const t = (key) => {
 };
 
 /**
- * Gets the correct Korean particle (josa) for a word.
- * @param {string} word - The word to attach the particle to.
- * @param {string} type - The type of particle (e.g., '이/가', '을/를').
- * @returns {string} The particle.
+ * 단어에 맞는 올바른 한국어 조사를 가져옵니다.
+ * @param {string} word - 조사를 붙일 단어.
+ * @param {string} type - 조사의 종류 (예: '이/가', '을/를').
+ * @returns {string} 조사.
  */
 export const getJosa = (word, type) => {
   if (!word || typeof word !== "string") return type.split("/")[0];
-  // es-hangul returns "word+particle", so we slice off the word to get just the particle
-  // to maintain backward compatibility with the existing getJosa signature
   const full = josa(word, type);
   return full.slice(word.length);
 };
 
 /**
- * Checks if a point is inside a polygon.
- * @param {number[]} point - The point coordinates [x, y].
- * @param {number[][]} vs - The polygon vertices [[x, y], ...].
- * @returns {boolean} True if the point is inside the polygon.
+ * 점이 다각형 내부에 있는지 확인합니다.
+ * @param {number[]} point - 점의 좌표 [x, y].
+ * @param {number[][]} vs - 다각형의 정점 리스트 [[x, y], ...].
+ * @returns {boolean} 점이 다각형 내부에 있으면 true.
  */
 export const isPointInPolygon = (point, vs) => {
   return pointInPolygon(point, vs);
 };
 
 /**
- * Parses a CSV string into an array of arrays.
- * @param {string} str - The CSV string.
- * @returns {string[][]} The parsed data.
+ * CSV 문자열을 배열의 배열로 파싱합니다.
+ * @param {string} str - CSV 문자열.
+ * @returns {string[][]} 파싱된 데이터.
  */
 export const parseCSV = (str) => {
   const results = Papa.parse(str, {
@@ -57,10 +55,10 @@ export const parseCSV = (str) => {
 };
 
 /**
- * Fetches a URL with progress tracking.
- * @param {string} url - The URL to fetch.
- * @param {function(number, number): void} [onProgress] - Callback for progress updates (loaded, total).
- * @returns {Promise<Blob>} The response data as a Blob.
+ * 진행률 추적과 함께 URL을 호출하여 데이터를 가져옵니다.
+ * @param {string} url - 호출할 URL.
+ * @param {function(number, number): void} [onProgress] - 진행률 업데이트를 위한 콜백 (loaded, total).
+ * @returns {Promise<Blob>} Blob 형태의 응답 데이터.
  */
 export const fetchWithProgress = async (url, onProgress) => {
   try {
@@ -79,11 +77,11 @@ export const fetchWithProgress = async (url, onProgress) => {
 };
 
 /**
- * Fetches and parses a CSV file in chunks.
- * @param {string} url - The URL of the CSV file.
- * @param {function(string[][], string[]|null): void} onChunk - Callback for each chunk of data.
- * @param {function(): void} [onComplete] - Callback when parsing is complete.
- * @param {function(number, number): void} [onProgress] - Callback for download progress.
+ * CSV 파일을 청크 단위로 가져오고 파싱합니다.
+ * @param {string} url - CSV 파일의 URL.
+ * @param {function(string[][], string[]|null): void} onChunk - 각 데이터 청크에 대한 콜백.
+ * @param {function(): void} [onComplete] - 파싱이 완료되었을 때의 콜백.
+ * @param {function(number, number): void} [onProgress] - 다운로드 진행률에 대한 콜백.
  * @returns {Promise<void>}
  */
 export const fetchAndParseCSVChunks = async (
@@ -137,9 +135,9 @@ let cachedIp = null;
 let cachedMaskedIp = null;
 
 /**
- * Fetches the user's IP address.
- * @param {boolean} [masked=true] - Whether to return a masked IP.
- * @returns {Promise<string>} The user's IP address.
+ * 사용자의 IP 주소를 가져옵니다.
+ * @param {boolean} [masked=true] - 마스킹된 IP를 반환할지 여부.
+ * @returns {Promise<string>} 사용자의 IP 주소.
  */
 export const fetchUserIp = async (masked = true) => {
   if (masked && cachedMaskedIp) return cachedMaskedIp;
@@ -149,7 +147,7 @@ export const fetchUserIp = async (masked = true) => {
     if (ip.includes(":")) {
       // Handle IPv6
       let fullIp = ip;
-      // Remove zone identifier if present
+      // Zone identifier가 있는 경우 제거
       const zoneIndex = fullIp.indexOf("%");
       if (zoneIndex !== -1) {
         fullIp = fullIp.substring(0, zoneIndex);
@@ -168,14 +166,14 @@ export const fetchUserIp = async (masked = true) => {
         segments = fullIp.split(":");
       }
 
-      // Just to be safe, ensure we have at least 3 segments
+      // 안전을 위해 최소 3개의 세그먼트가 있는지 확인
       if (segments.length < 3) {
         return segments.join(":");
       }
 
       return segments.slice(0, 3).join(":");
     }
-    // IPv4: mask to first 2 octets
+    // IPv4: 첫 2개 옥텟만 마스킹
     return ip.split(".").slice(0, 2).join(".");
   };
 
@@ -186,7 +184,7 @@ export const fetchUserIp = async (masked = true) => {
     cachedMaskedIp = getMasked(data.ip);
     return masked ? cachedMaskedIp : cachedIp;
   } catch (e) {
-    console.warn("Primary IP fetch failed, trying backup...", e);
+    console.warn("기본 IP 조치 실패, 백업 시도 중...", e);
     try {
       const response = await axios.get("https://api.db-ip.com/v2/free/self");
       const data = response.data;
@@ -195,19 +193,18 @@ export const fetchUserIp = async (masked = true) => {
       cachedMaskedIp = getMasked(ip);
       return masked ? cachedMaskedIp : cachedIp;
     } catch (e2) {
-      console.warn("All IP fetch attempts failed", e2);
+      console.warn("모든 IP 조회 시도 실패", e2);
       return "unknown";
     }
   }
 };
 
 /**
- * Gets the cached masked IP address.
- * @returns {string|null} The cached masked IP.
+ * 캐시된 마스킹 IP 주소를 가져옵니다.
+ * @returns {string|null} 캐시된 마스킹 IP.
  */
 export const getCachedMaskedIp = () => cachedMaskedIp;
 
-// --- Marked Parser (Quest Guide Usage) ---
 const renderer = new marked.Renderer();
 
 const sanitizeUrlMarked = (url) => {
@@ -250,18 +247,18 @@ renderer.image = (hrefOrObj, titleArg, textArg) => {
 marked.use({ renderer, breaks: true, gfm: true });
 
 /**
- * Parse text using marked library (Dedicated for Quest Guide)
- * @param {string} text - The markdown text.
- * @returns {string} The converted HTML.
+ * marked 라이브러리를 사용하여 텍스트를 파싱합니다 (퀘스트 가이드 전용).
+ * @param {string} text - 마크다운 텍스트.
+ * @returns {string} 변환된 HTML.
  */
 export const parseQuestMarkdown = (text) => {
   if (!text) return "";
 
   try {
-    // Use marked to parse
+    // marked를 사용하여 파싱
     let html = marked.parse(text);
 
-    // Post-process custom spoiler tags
+    // 커스텀 스포일러 태그 후처리
     html = html.replace(
       /{spoiler}([\s\S]*?){\/spoiler}/g,
       '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
@@ -270,22 +267,22 @@ export const parseQuestMarkdown = (text) => {
     return html;
   } catch (e) {
     console.error("Marked parsing error:", e);
-    // Fallback? Or just return text
+    // 폴백: 줄바꿈만 변환하여 반환
     return text.toString().replace(/\n/g, '<br>');
   }
 };
 
 /**
- * Simple Regex Markdown Parser (Legacy/Global Usage)
- * Restored for compatibility with other components
- * @param {string} text - The markdown text.
- * @returns {string} The converted HTML.
+ * 단순 정규식 마크다운 파서 (레거시/전역용).
+ * 다른 컴포넌트와의 호환성을 위해 유지됩니다.
+ * @param {string} text - 마크다운 텍스트.
+ * @returns {string} 변환된 HTML.
  */
 export const parseMarkdown = (text) => {
   if (!text) return "";
   let html = text;
 
-  // 1. Lists - Process block-level lists first to avoid conflict with emphasis (*)
+  // 1. 목록 - 강조(*)와의 충돌을 피하기 위해 블록 수준 목록을 먼저 처리
   html = html.replace(
     /(^|\r?\n)((?:[-*] .+(?:\r?\n|$))+)/g,
     (match, prefix, list) => {
@@ -361,7 +358,7 @@ export const parseMarkdown = (text) => {
   html = html.replace(/__(.*?)__/g, "<strong>$1</strong>");
 
   html = html.replace(/\*(.*?)\*/g, "<em>$1</em>");
-  // Change underscore italic to require boundaries to avoid breaking URLs with underscores
+  // URL의 언더스코어가 깨지지 않도록 경계 조건 추가
   html = html.replace(/(^|[^\w])_(.*?)_([^\w]|$)/g, "$1<em>$2</em>$3");
 
   html = html.replace(/~~(.*?)~~/g, "<del>$1</del>");
@@ -376,8 +373,8 @@ export const parseMarkdown = (text) => {
 };
 
 /**
- * Resets a GIF animation by reloading its source.
- * @param {Element|null} img - The image element.
+ * 소스를 다시 로드하여 GIF 애니메이션을 초기화합니다.
+ * @param {Element|null} img - 이미지 요소.
  */
 export const resetGif = (img) => {
   if (!(img instanceof HTMLImageElement) || !img.src) return;

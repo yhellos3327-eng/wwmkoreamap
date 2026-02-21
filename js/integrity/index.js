@@ -45,19 +45,19 @@ export { SEVERITY, CHECK_STATUS };
 export { clearDataCache };
 
 /**
- * Initializes the integrity modal.
+ * 무결성 모달을 초기화합니다.
  */
 export const initIntegrityModal = initIntegrityUI;
 
 /**
- * Closes the integrity modal.
+ * 무결성 모달을 닫습니다.
  */
 export const closeIntegrityModal = hideModal;
 
 /**
  * Placeholder for result alert modal initialization.
  */
-export const initResultAlertModal = () => {};
+export const initResultAlertModal = () => { };
 
 /** @type {number} */
 export const CURRENT_DATA_VERSION = 1;

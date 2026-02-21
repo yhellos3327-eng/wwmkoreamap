@@ -25,6 +25,10 @@ import {
 import { initCloudBackupSection, loadCloudBackups } from "./backup.js";
 import { initShortcuts } from "./shortcuts.js";
 
+/**
+ * 설정을 저장합니다.
+ * @param {HTMLElement} settingsModal - 설정 모달 엘리먼트.
+ */
 export const saveSettings = async (settingsModal) => {
   try {
     await saveAISettings();
@@ -42,6 +46,9 @@ export const saveSettings = async (settingsModal) => {
   }
 };
 
+/**
+ * 설정 모달을 초기화합니다.
+ */
 export const initSettingsModal = async () => {
   initAuth();
 

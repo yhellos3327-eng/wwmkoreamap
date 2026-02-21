@@ -20,8 +20,8 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 3000;
 
 /**
- * Gets the WebSocket URL from the backend URL.
- * @returns {string} The WebSocket URL.
+ * 백엔드 URL에서 WebSocket URL을 가져옵니다.
+ * @returns {string} WebSocket URL.
  */
 const getWsUrl = () => {
   const url = new URL(BACKEND_URL);
@@ -30,10 +30,10 @@ const getWsUrl = () => {
 };
 
 /**
- * Connects to the WebSocket server.
- * @param {string} userId - The user ID.
- * @param {Function} onMessage - Message handler callback.
- * @returns {WebSocket|null} The WebSocket or null.
+ * WebSocket 서버에 연결합니다.
+ * @param {string} userId - 사용자 ID.
+ * @param {Function} onMessage - 메시지 핸들러 콜백.
+ * @returns {WebSocket|null} WebSocket 또는 null.
  */
 export const connectWebSocket = (userId, onMessage) => {
   if (socket?.readyState === WebSocket.OPEN) return socket;
@@ -78,8 +78,8 @@ export const connectWebSocket = (userId, onMessage) => {
 };
 
 /**
- * Attempts to reconnect to the WebSocket server.
- * @param {string} userId - The user ID.
+ * WebSocket 서버에 재연결을 시도합니다.
+ * @param {string} userId - 사용자 ID.
  */
 const attemptReconnect = (userId) => {
   if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
@@ -98,9 +98,9 @@ const attemptReconnect = (userId) => {
 };
 
 /**
- * Sends a sync update through the WebSocket.
- * @param {any} data - The data to send.
- * @returns {boolean} Whether the message was sent.
+ * WebSocket을 통해 동기화 업데이트를 전송합니다.
+ * @param {any} data - 전송할 데이터.
+ * @returns {boolean} 메시지 전송 여부.
  */
 export const sendSyncUpdate = (data) => {
   if (socket?.readyState !== WebSocket.OPEN) return false;
@@ -116,7 +116,7 @@ export const sendSyncUpdate = (data) => {
 };
 
 /**
- * Disconnects from the WebSocket server.
+ * WebSocket 서버와의 연결을 끊습니다.
  */
 export const disconnectWebSocket = () => {
   if (reconnectTimer) {
@@ -134,7 +134,7 @@ export const disconnectWebSocket = () => {
 };
 
 /**
- * Checks if the WebSocket is connected.
- * @returns {boolean} Whether the WebSocket is connected.
+ * WebSocket이 연결되어 있는지 확인합니다.
+ * @returns {boolean} WebSocket 연결 여부.
  */
 export const isWebSocketConnected = () => socket?.readyState === WebSocket.OPEN;

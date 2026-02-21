@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @fileoverview Firebase configuration module - initializes Firebase services.
+ * Firebase 설정 모듈 - Firebase 서비스를 초기화합니다.
  * @module firebase-config
  */
 
@@ -22,15 +22,15 @@ let storage;
 let auth;
 
 /**
- * Creates a styled log function.
- * @param {string} color - The color for the log.
- * @returns {string} CSS style string.
+ * 스타일이 적용된 로그 함수를 생성합니다.
+ * @param {string} color - 로그 색상.
+ * @returns {string} CSS 스타일 문자열.
  */
 const logStyle = (color) =>
   `font-size: 12px; font-weight: bold; color: ${color}; background: #222; padding: 3px 6px; border-radius: 3px;`;
 
 /**
- * Firebase logger with styled console output.
+ * 스타일이 적용된 콘솔 출력을 제공하는 Firebase 로거.
  */
 const firebaseLog = {
   /**
@@ -66,8 +66,8 @@ const firebaseLog = {
 };
 
 /**
- * Firebase initialization promise.
- * Resolves when Firebase is fully initialized.
+ * Firebase 초기화 프로미스.
+ * Firebase가 완전히 초기화되면 완성됩니다.
  * @type {Promise<void>}
  */
 export const firebaseInitialized = (async () => {

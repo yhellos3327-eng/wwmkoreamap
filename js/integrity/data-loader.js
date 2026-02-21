@@ -16,9 +16,9 @@
 let cachedData = null;
 
 /**
- * Parses a CSV line handling quoted values.
- * @param {string} line - The CSV line.
- * @returns {string[]} The parsed parts.
+ * 따옴표가 포함된 값을 처리하여 CSV 라인을 파싱합니다.
+ * @param {string} line - CSV 라인.
+ * @returns {string[]} 파싱된 데이터 배열.
  */
 const parseCSVLine = (line) => {
   const parts = [];
@@ -42,9 +42,9 @@ const parseCSVLine = (line) => {
 };
 
 /**
- * Loads all data from JSON and CSV files.
- * @param {DataLoadOptions} [options] - Load options.
- * @returns {Promise<LoadedData>} The loaded data.
+ * JSON 및 CSV 파일에서 모든 데이터를 로드합니다.
+ * @param {DataLoadOptions} [options] - 로드 옵션.
+ * @returns {Promise<LoadedData>} 로드된 데이터.
  */
 export const loadAllData = async (options = {}) => {
   if (cachedData && !options.force) {
@@ -54,7 +54,7 @@ export const loadAllData = async (options = {}) => {
   const allMarkerIds = new Set();
   const allRegionNames = new Set();
 
-  const log = options.onLog || (() => {});
+  const log = options.onLog || (() => { });
 
   log("> 전체 데이터 파일 로드 중...", "info");
 
@@ -80,9 +80,9 @@ export const loadAllData = async (options = {}) => {
 };
 
 /**
- * Loads markers from JSON files.
- * @param {Set<string>} markerIds - Set to add marker IDs to.
- * @param {Function} log - Logging function.
+ * JSON 파일에서 마커를 로드합니다.
+ * @param {Set<string>} markerIds - 마커 ID를 추가할 Set.
+ * @param {Function} log - 로그 출력 함수.
  */
 const loadJSONMarkers = async (markerIds, log) => {
   const files = ["./data.json", "./data2.json"];
@@ -112,10 +112,10 @@ const loadJSONMarkers = async (markerIds, log) => {
 };
 
 /**
- * Loads markers from CSV files.
- * @param {Set<string>} markerIds - Set to add marker IDs to.
- * @param {Set<string>} regionNames - Set to add region names to.
- * @param {Function} log - Logging function.
+ * CSV 파일에서 마커를 로드합니다.
+ * @param {Set<string>} markerIds - 마커 ID를 추가할 Set.
+ * @param {Set<string>} regionNames - 지역명을 추가할 Set.
+ * @param {Function} log - 로그 출력 함수.
  */
 const loadCSVMarkers = async (markerIds, regionNames, log) => {
   const files = ["./data3.csv", "./data4.csv"];
@@ -168,9 +168,9 @@ const loadCSVMarkers = async (markerIds, regionNames, log) => {
 };
 
 /**
- * Loads region data from JSON files.
- * @param {Set<string>} regionNames - Set to add region names to.
- * @param {Function} log - Logging function.
+ * JSON 파일에서 지역 데이터를 로드합니다.
+ * @param {Set<string>} regionNames - 지역명을 추가할 Set.
+ * @param {Function} log - 로그 출력 함수.
  */
 const loadRegionJSON = async (regionNames, log) => {
   const files = ["./regions.json", "./regions2.json"];
@@ -200,9 +200,9 @@ const loadRegionJSON = async (regionNames, log) => {
 };
 
 /**
- * Loads region names from translation CSV files.
- * @param {Set<string>} regionNames - Set to add region names to.
- * @param {Function} log - Logging function.
+ * 번역 CSV 파일에서 지역명을 로드합니다.
+ * @param {Set<string>} regionNames - 지역명을 추가할 Set.
+ * @param {Function} log - 로그 출력 함수.
  */
 const loadTranslationCSV = async (regionNames, log) => {
   const files = ["./translation.csv", "./translation2.csv"];
@@ -262,14 +262,14 @@ const loadTranslationCSV = async (regionNames, log) => {
 };
 
 /**
- * Clears the cached data.
+ * 캐시된 데이터를 삭제합니다.
  */
 export const clearDataCache = () => {
   cachedData = null;
 };
 
 /**
- * Gets the cached data.
- * @returns {LoadedData|null} The cached data or null.
+ * 캐시된 데이터를 가져옵니다.
+ * @returns {LoadedData|null} 캐시된 데이터 또는 null.
  */
 export const getCachedData = () => cachedData;

@@ -46,7 +46,7 @@ const applyCloudSettings = (settings) => {
     if (["on", "off", "auto"].includes(gpuSetting)) {
       state.savedGpuSetting = gpuSetting;
       primaryDb.set("wwm_gpu_setting", gpuSetting).then(res => {
-        if (!res || !res.success) console.warn("Failed to save GPU setting", res);
+        if (!res || !res.success) console.warn("GPU 설정 저장 실패", res);
       }).catch(console.warn);
     }
   }
@@ -72,8 +72,6 @@ export const applySyncData = (cloudData) => {
     }
     setState("completedList", markers);
 
-    // Save to Vault (primary database) - ALWAYS for all users
-    // Save to Vault (primary database) - ALWAYS for all users
     primaryDb.set("completedList", markers).then((res) => {
       if (res && res.success) {
         log.vault(`completedList 저장`, markers.length);
@@ -88,8 +86,6 @@ export const applySyncData = (cloudData) => {
   if (cloudData.favorites) {
     setState("favorites", cloudData.favorites);
 
-    // Save to Vault (primary database) - ALWAYS for all users
-    // Save to Vault (primary database) - ALWAYS for all users
     primaryDb.set("favorites", cloudData.favorites)
       .then((res) => {
         if (res && res.success) {

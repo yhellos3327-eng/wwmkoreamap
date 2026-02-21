@@ -63,10 +63,10 @@ export const USE_WORKERS = true;
  */
 
 /**
- * Processes region data synchronously.
- * Uses shared core function but adds t() translation support.
- * @param {Object} regionJson - The raw region JSON object.
- * @returns {RegionResult} The processed region data.
+ * 지역 데이터를 동기적으로 처리합니다.
+ * 공유된 핵심 기능을 사용하지만 t() 번역 지원을 추가합니다.
+ * @param {Object} regionJson - 원본 지역 JSON 객체.
+ * @returns {RegionResult} 처리된 지역 데이터.
  */
 export const processRegionDataSync = (regionJson) => {
   // Use core function with koDict from state
@@ -85,9 +85,9 @@ export const processRegionDataSync = (regionJson) => {
 };
 
 /**
- * Processes region data, optionally using a web worker.
- * @param {Object} regionJson - The raw region JSON object.
- * @returns {Promise<RegionResult>} The processed region data.
+ * 지역 데이터를 처리하며, 선택적으로 웹 워커를 사용합니다.
+ * @param {Object} regionJson - 원본 지역 JSON 객체.
+ * @returns {Promise<RegionResult>} 처리된 지역 데이터.
  */
 export const processRegionData = async (regionJson) => {
   if (USE_WORKERS && webWorkerManager.isSupported) {
@@ -97,9 +97,9 @@ export const processRegionData = async (regionJson) => {
 };
 
 /**
- * Applies translations to an item (with t() support for main thread).
- * @param {MapItem} item - The map item.
- * @param {Object.<string, string>} reverseRegionMap - Reverse region map.
+ * 아이템에 번역을 적용합니다 (메인 스레드용 t() 지원 포함).
+ * @param {MapItem} item - 지도 아이템.
+ * @param {Object.<string, string>} reverseRegionMap - 역방향 지역 맵.
  */
 const applyTranslationsWithT = (item, reverseRegionMap) => {
   // Use shared function
@@ -120,12 +120,12 @@ const applyTranslationsWithT = (item, reverseRegionMap) => {
 };
 
 /**
- * Processes map data synchronously.
- * @param {any[]} rawItems - Raw map items.
- * @param {Object.<number, string>} regionIdMap - Map of region IDs to names.
- * @param {Set<string>} missingItems - Set of missing item IDs.
- * @param {Object.<string, string>} reverseRegionMap - Map for reverse region lookups.
- * @returns {{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}} Processed map data.
+ * 지도 데이터를 동기적으로 처리합니다.
+ * @param {any[]} rawItems - 원본 지도 아이템 배열.
+ * @param {Object.<number, string>} regionIdMap - 지역 ID와 이름의 매핑 객체.
+ * @param {Set<string>} missingItems - 누락된 아이템 ID 세트.
+ * @param {Object.<string, string>} reverseRegionMap - 역방향 지역 조회를 위한 맵.
+ * @returns {{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}} 처리된 지도 데이터.
  */
 export const processMapDataSync = (
   rawItems,
@@ -160,12 +160,12 @@ export const processMapDataSync = (
 };
 
 /**
- * Processes map data, optionally using a web worker.
- * @param {any[]} rawItems - Raw map items.
- * @param {Object.<number, string>} regionIdMap - Map of region IDs to names.
- * @param {Set<string>} missingItems - Set of missing item IDs.
- * @param {Object.<string, string>} reverseRegionMap - Map for reverse region lookups.
- * @returns {Promise<{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}>} Processed map data.
+ * 지도 데이터를 처리하며, 선택적으로 웹 워커를 사용합니다.
+ * @param {any[]} rawItems - 원본 지도 아이템 배열.
+ * @param {Object.<number, string>} regionIdMap - 지역 ID와 이름의 매핑 객체.
+ * @param {Set<string>} missingItems - 누락된 아이템 ID 세트.
+ * @param {Object.<string, string>} reverseRegionMap - 역방향 지역 조회를 위한 맵.
+ * @returns {Promise<{mapData: {categories: any[], items: any[]}, itemsByCategory: Object.<string, any[]>}>} 처리된 지도 데이터.
  */
 export const processMapData = async (
   rawItems,
@@ -191,9 +191,9 @@ export const processMapData = async (
 };
 
 /**
- * Parses missing items from a response.
- * @param {Response|{ok: boolean}} missingRes - The response object.
- * @returns {Promise<Set<string>>} A set of missing item IDs.
+ * 응답에서 누락된 아이템을 파싱합니다.
+ * @param {Response|{ok: boolean}} missingRes - 응답 객체.
+ * @returns {Promise<Set<string>>} 누락된 아이템 ID 세트.
  */
 export const parseMissingItems = async (missingRes) => {
   const missingItems = new Set();
@@ -217,10 +217,10 @@ export const parseMissingItems = async (missingRes) => {
 };
 
 /**
- * Parses JSON data from blobs, optionally using a web worker.
- * @param {Blob} dataBlob - The data blob.
- * @param {Blob} regionBlob - The region blob.
- * @returns {Promise<{dataJson: any, regionJson: any}>} The parsed JSON objects.
+ * Blob에서 JSON 데이터를 파싱하며, 선택적으로 웹 워커를 사용합니다.
+ * @param {Blob} dataBlob - 데이터 Blob.
+ * @param {Blob} regionBlob - 지역 Blob.
+ * @returns {Promise<{dataJson: any, regionJson: any}>} 파싱된 JSON 객체.
  */
 export const parseJSONData = async (dataBlob, regionBlob) => {
   if (USE_WORKERS && webWorkerManager.isSupported) {
@@ -242,8 +242,8 @@ export const parseJSONData = async (dataBlob, regionBlob) => {
 };
 
 /**
- * Sorts items by category name.
- * @param {Object.<string, any[]>} itemsByCategory - Items grouped by category.
+ * 아이템을 카테고리 이름별로 정렬합니다.
+ * @param {Object.<string, any[]>} itemsByCategory - 카테고리별로 그룹화된 아이템.
  */
 export const sortItemsByCategory = (itemsByCategory) => {
   for (const key in itemsByCategory) {
@@ -254,11 +254,11 @@ export const sortItemsByCategory = (itemsByCategory) => {
 };
 
 /**
- * Collects unique regions from map data.
- * @param {RegionItem[]} regionData - Region data.
- * @param {any[]} mapDataItems - Map items.
- * @param {Object.<string, string>} [reverseRegionMap={}] - Reverse region map.
- * @returns {Set<string>} A set of unique region names.
+ * 지도 데이터에서 고유한 지역을 수집합니다.
+ * @param {RegionItem[]} regionData - 지역 데이터.
+ * @param {any[]} mapDataItems - 지도 아이템 배열.
+ * @param {Object.<string, string>} [reverseRegionMap={}] - 역방향 지역 맵.
+ * @returns {Set<string>} 고유한 지역 이름 세트.
  */
 export const collectUniqueRegions = (
   regionData,
@@ -281,9 +281,9 @@ export const collectUniqueRegions = (
 };
 
 /**
- * Parses CSV data into map items.
- * @param {Response|{ok: boolean}} csvRes - The CSV response.
- * @returns {Promise<any[]>} The parsed items.
+ * CSV 데이터를 지도 아이템으로 파싱합니다.
+ * @param {Response|{ok: boolean}} csvRes - CSV 응답 객체.
+ * @returns {Promise<any[]>} 파싱된 아이템 배열.
  */
 export const parseCSVData = async (csvRes) => {
   if (!csvRes || !csvRes.ok || !("text" in csvRes)) return [];

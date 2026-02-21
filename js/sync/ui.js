@@ -5,8 +5,8 @@ let lastTooltipTime = 0;
 const TOOLTIP_THROTTLE_MS = 5000;
 
 /**
- * Creates the sync tooltip element if it doesn't exist.
- * @returns {HTMLElement} The tooltip element.
+ * 동기화 툴팁 요소가 없으면 생성합니다.
+ * @returns {HTMLElement} 툴팁 요소.
  */
 const createSyncTooltip = () => {
   let tooltip = document.getElementById("sync-tooltip");
@@ -77,9 +77,9 @@ const createSyncTooltip = () => {
 };
 
 /**
- * Shows the sync tooltip with a message.
- * @param {string} [message="동기화중..."] - The message to display.
- * @param {string} [type="syncing"] - The tooltip type ('syncing', 'success', 'error', 'update').
+ * 메시지와 함께 동기화 툴팁을 표시합니다.
+ * @param {string} [message="동기화중..."] - 표시할 메시지.
+ * @param {string} [type="syncing"] - 툴팁 유형 ('syncing', 'success', 'error', 'update').
  */
 export const showSyncTooltip = (message = "동기화중...", type = "syncing") => {
   const tooltip = createSyncTooltip();
@@ -88,11 +88,11 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   );
   const text = /** @type {HTMLElement} */ (tooltip.querySelector(".sync-text"));
 
-  // Throttle success messages
+  // 성공 메시지 조절 (스로틀링)
   if (type === "success") {
     const now = Date.now();
     if (now - lastTooltipTime < TOOLTIP_THROTTLE_MS) {
-      return; // Skip too frequent updates
+      return; // 너무 빈번한 업데이트 건너뜀
     }
     lastTooltipTime = now;
   }
@@ -124,11 +124,11 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
   text.textContent = message;
   tooltip.style.display = "flex";
 
-  // Force reflow
+  // 리플로우 강제 실행
   tooltip.offsetHeight;
   tooltip.classList.remove("hidden");
 
-  // Reset existing timeout if any
+  // 기존 타임아웃이 있으면 초기화
   if (tooltipTimeout) {
     clearTimeout(tooltipTimeout);
     tooltipTimeout = null;
@@ -136,8 +136,8 @@ export const showSyncTooltip = (message = "동기화중...", type = "syncing") =
 };
 
 /**
- * Hides the sync tooltip after a delay.
- * @param {number} [delay=0] - Delay in milliseconds.
+ * 일정 시간 후 동기화 툴팁을 숨깁니다.
+ * @param {number} [delay=0] - 지연 시간 (밀리초).
  */
 export const hideSyncTooltip = (delay = 0) => {
   tooltipTimeout = setTimeout(() => {
@@ -154,9 +154,9 @@ export const hideSyncTooltip = (delay = 0) => {
 };
 
 /**
- * Shows a sync toast notification.
- * @param {string} message - The message to display.
- * @param {string} [type="info"] - The toast type ('info', 'success', 'update').
+ * 동기화 토스트 알림을 표시합니다.
+ * @param {string} message - 표시할 메시지.
+ * @param {string} [type="info"] - 토스트 유형 ('info', 'success', 'update').
  */
 export const showSyncToast = (message, type = "info") => {
   let toast = document.getElementById("sync-toast");
@@ -204,14 +204,14 @@ export const showSyncToast = (message, type = "info") => {
 };
 
 /**
- * Shows a data loss warning modal and returns the user's choice.
- * @param {number} localCount - Local item count.
- * @param {number} cloudCount - Cloud item count.
- * @returns {Promise<'restore'|'overwrite'|'cancel'>} The user's choice.
+ * 데이터 유실 경고 모달을 표시하고 사용자의 선택을 반환합니다.
+ * @param {number} localCount - 로컬 항목 수.
+ * @param {number} cloudCount - 클라우드 항목 수.
+ * @returns {Promise<'restore'|'overwrite'|'cancel'>} 사용자의 선택.
  */
 export const showDataLossWarning = (localCount, cloudCount) => {
   return new Promise((resolve) => {
-    // Remove existing if any
+    // 이미 있으면 제거
     const existing = document.getElementById("sync-warning-modal");
     if (existing) existing.remove();
 

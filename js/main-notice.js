@@ -10,7 +10,6 @@ export async function initMainNotice() {
         }
     } catch (error) {
         console.error("Failed to check notice preference:", error);
-        // Show notice anyway on error
     }
 
     createNoticeModal();

@@ -38,10 +38,10 @@ import {
 import { copyShareUrl } from "./routeShare.js";
 
 /**
- * Opens an item popup on the map.
- * @param {string|number} itemId - The item ID.
- * @param {number} lat - Latitude.
- * @param {number} lng - Longitude.
+ * 지도에서 항목 팝업을 엽니다.
+ * @param {string|number} itemId - 항목 ID.
+ * @param {number} lat - 위도.
+ * @param {number} lng - 경도.
  */
 const openItemPopup = (itemId, lat, lng) => {
   if (!state.map) return;
@@ -85,7 +85,7 @@ const openItemPopup = (itemId, lat, lng) => {
 let routePanel = null;
 
 /**
- * Renders the route UI panel.
+ * 경로 UI 패널을 렌더링합니다.
  */
 export const renderRouteUI = () => {
   hideRouteUI();
@@ -113,7 +113,7 @@ export const renderRouteUI = () => {
 };
 
 /**
- * Hides the route UI panel.
+ * 경로 UI 패널을 숨깁니다.
  */
 export const hideRouteUI = () => {
   if (routePanel) {
@@ -296,10 +296,10 @@ const updateRegionSelector = () => {
 
   if (!selectedRegion && regions.length > 0) {
     selectedRegion = regions[0];
-    const hiddenInput = document.getElementById("route-region-select");
+    const hiddenInput = /** @type {HTMLInputElement|null} */ (document.getElementById("route-region-select"));
     const textEl = document.getElementById("route-region-text");
     if (hiddenInput) hiddenInput.value = selectedRegion;
-    if (textEl) textEl.textContent = t(selectedRegion) || selectedRegion;
+    if (textEl) textEl.textContent = String(t(selectedRegion) || selectedRegion);
   }
 
   updateRouteStatsDisplay();
@@ -346,13 +346,14 @@ const openRegionModal = () => {
 
   modal.querySelectorAll(".route-region-option").forEach((opt) => {
     opt.addEventListener("click", () => {
-      const region = opt.dataset.region;
+      const region = /** @type {HTMLElement} */ (opt).dataset.region;
+      if (!region) return;
       selectedRegion = region;
 
-      const hiddenInput = document.getElementById("route-region-select");
+      const hiddenInput = /** @type {HTMLInputElement|null} */ (document.getElementById("route-region-select"));
       const textEl = document.getElementById("route-region-text");
       if (hiddenInput) hiddenInput.value = region;
-      if (textEl) textEl.textContent = t(region) || region;
+      if (textEl) textEl.textContent = String(t(region) || region);
 
       updateRouteStatsDisplay();
       closeRegionModal();
@@ -392,12 +393,14 @@ const updateCategorySelector = () => {
     .join("");
 
   container.querySelectorAll(".route-category-item").forEach((item) => {
-    const checkbox = item.querySelector(".route-category-checkbox");
+    const checkbox = /** @type {HTMLInputElement|null} */ (item.querySelector(".route-category-checkbox"));
     item.addEventListener("click", () => {
-      checkbox.checked = !checkbox.checked;
-      item.classList.toggle("checked", checkbox.checked);
-      updateRouteStatsDisplay();
-      updateCategoryToggleBtn();
+      if (checkbox) {
+        checkbox.checked = !checkbox.checked;
+        item.classList.toggle("checked", checkbox.checked);
+        updateRouteStatsDisplay();
+        updateCategoryToggleBtn();
+      }
     });
   });
 
@@ -414,8 +417,8 @@ const updateCategoryToggleBtn = () => {
   );
   const allChecked = items.length > 0 && items.length === checkedItems.length;
 
-  const iconAll = btn.querySelector(".icon-all");
-  const iconNone = btn.querySelector(".icon-none");
+  const iconAll = /** @type {HTMLElement|null} */ (btn.querySelector(".icon-all"));
+  const iconNone = /** @type {HTMLElement|null} */ (btn.querySelector(".icon-none"));
   const text = btn.querySelector(".btn-text");
 
   if (allChecked) {
@@ -435,12 +438,12 @@ const getSelectedCategories = () => {
   const checkboxes = document.querySelectorAll(
     ".route-category-checkbox:checked",
   );
-  return Array.from(checkboxes).map((cb) => cb.value);
+  return Array.from(checkboxes).map((cb) => /** @type {HTMLInputElement} */(cb).value);
 };
 
 const updateRouteStatsDisplay = () => {
   const statsContainer = document.getElementById("route-stats");
-  const regionSelect = document.getElementById("route-region-select");
+  const regionSelect = /** @type {HTMLInputElement|null} */ (document.getElementById("route-region-select"));
 
   if (!statsContainer || !regionSelect) return;
 
@@ -465,12 +468,12 @@ const updateRouteStatsDisplay = () => {
 };
 
 /**
- * Updates the manual route UI with items.
- * @param {any[]} items - The manual route items.
+ * 항목들로 직접 구성 경로 UI를 업데이트합니다.
+ * @param {any[]} items - 직접 구성 경로 항목들.
  */
 export const updateManualRouteUI = (items) => {
   const container = document.getElementById("route-manual-list");
-  const applyBtn = document.getElementById("route-apply-manual-btn");
+  const applyBtn = /** @type {HTMLButtonElement|null} */ (document.getElementById("route-apply-manual-btn"));
 
   if (!container) return;
 
@@ -498,15 +501,16 @@ export const updateManualRouteUI = (items) => {
   container.querySelectorAll(".manual-item-remove").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
-      removeFromManualRoute(btn.dataset.id);
+      const id = /** @type {HTMLElement} */ (btn).dataset.id;
+      if (id) removeFromManualRoute(id);
     });
   });
 };
 
 /**
- * Updates the route progress display.
- * @param {any} route - The route object.
- * @param {number} currentIndex - Current step index.
+ * 경로 진행률 표시를 업데이트합니다.
+ * @param {any} route - 경로 객체.
+ * @param {number} currentIndex - 현재 단계 인덱스.
  */
 export const updateRouteProgress = (route, currentIndex) => {
   if (!route) return;
@@ -584,8 +588,8 @@ export const updateRouteProgress = (route, currentIndex) => {
 
     routeList.querySelectorAll(".route-list-item").forEach((item) => {
       item.addEventListener("click", (e) => {
-        if (e.target.closest(".route-item-detail-btn")) return;
-        const index = parseInt(item.dataset.index);
+        if (/** @type {Element} */ (e.target).closest(".route-item-detail-btn")) return;
+        const index = parseInt(/** @type {HTMLElement} */(item).dataset.index || "0");
         goToStep(index);
       });
     });
@@ -593,8 +597,8 @@ export const updateRouteProgress = (route, currentIndex) => {
     routeList.querySelectorAll(".route-item-detail-btn").forEach((btn) => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const { id, lat, lng } = btn.dataset;
-        openItemPopup(id, parseFloat(lat), parseFloat(lng));
+        const { id, lat, lng } = /** @type {HTMLElement} */ (btn).dataset;
+        if (id && lat && lng) openItemPopup(id, parseFloat(lat), parseFloat(lng));
       });
     });
 
@@ -639,7 +643,8 @@ const updateSavedRoutesList = async () => {
   container.querySelectorAll(".saved-route-load-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
-      const routeId = btn.dataset.id;
+      const routeId = /** @type {HTMLElement} */ (btn).dataset.id;
+      if (!routeId) return;
       const loaded = await loadRoute(routeId);
       if (loaded) {
         displayRoute();
@@ -650,8 +655,10 @@ const updateSavedRoutesList = async () => {
   container.querySelectorAll(".saved-route-delete-btn").forEach((btn) => {
     btn.addEventListener("click", async (e) => {
       e.stopPropagation();
+      const routeId = /** @type {HTMLElement} */ (btn).dataset.id;
+      if (!routeId) return;
       if (confirm("이 경로를 삭제하시겠습니까?")) {
-        await deleteRoute(btn.dataset.id);
+        await deleteRoute(routeId);
         updateSavedRoutesList();
       }
     });
@@ -701,7 +708,7 @@ const attachRouteEventListeners = () => {
     const allChecked = items.length > 0 && items.length === checkedItems.length;
 
     items.forEach((item) => {
-      const checkbox = item.querySelector(".route-category-checkbox");
+      const checkbox = /** @type {HTMLInputElement|null} */ (item.querySelector(".route-category-checkbox"));
       if (checkbox) {
         checkbox.checked = !allChecked;
         item.classList.toggle("checked", !allChecked);
@@ -711,8 +718,8 @@ const attachRouteEventListeners = () => {
     updateCategoryToggleBtn();
   });
 
-  const excludeLabel = document.getElementById("route-exclude-completed-label");
-  const excludeCheckbox = document.getElementById("route-exclude-completed");
+  const excludeLabel = /** @type {HTMLElement|null} */ (document.getElementById("route-exclude-completed-label"));
+  const excludeCheckbox = /** @type {HTMLInputElement|null} */ (document.getElementById("route-exclude-completed"));
   excludeLabel?.addEventListener("click", () => {
     if (excludeCheckbox) {
       excludeCheckbox.checked = !excludeCheckbox.checked;
@@ -724,14 +731,14 @@ const attachRouteEventListeners = () => {
   document
     .getElementById("route-generate-btn")
     ?.addEventListener("click", () => {
-      const region = document.getElementById("route-region-select")?.value;
+      const region = /** @type {HTMLInputElement|null} */ (document.getElementById("route-region-select"))?.value;
       if (!region) {
         alert("지역을 선택해주세요.");
         return;
       }
       const categories = getSelectedCategories();
       const excludeCompleted =
-        document.getElementById("route-exclude-completed")?.checked ?? true;
+        /** @type {HTMLInputElement|null} */ (document.getElementById("route-exclude-completed"))?.checked ?? true;
 
       const route = generateRoute(region, categories, excludeCompleted);
       if (route) {
@@ -790,8 +797,8 @@ const attachRouteEventListeners = () => {
 };
 
 /**
- * Creates a route toggle button element.
- * @returns {HTMLButtonElement} The button element.
+ * 경로 토글 버튼 엘리먼트를 생성합니다.
+ * @returns {HTMLButtonElement} 버튼 엘리먼트.
  */
 export const createRouteToggleButton = () => {
   const button = document.createElement("button");

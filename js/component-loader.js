@@ -1,9 +1,9 @@
 // @ts-check
 
 /**
- * Loads a component from a URL and inserts it into the DOM.
- * @param {string} url - The URL of the component.
- * @param {string} [containerId] - The ID of the container element.
+ * URL에서 컴포넌트를 로드하고 DOM에 삽입합니다.
+ * @param {string} url - 컴포넌트의 URL.
+ * @param {string} [containerId] - 컨테이너 요소의 ID.
  * @returns {Promise<void>}
  */
 export const loadComponent = async (url, containerId) => {
@@ -32,7 +32,7 @@ export const loadComponent = async (url, containerId) => {
 };
 
 /**
- * Loads all UI components.
+ * 모든 UI 컴포넌트를 로드합니다.
  * @returns {Promise<void>}
  */
 export const loadAllComponents = async () => {

@@ -1,7 +1,7 @@
 // @ts-check
 
 /**
- * Action types for the application state.
+ * 애플리케이션 상태를 위한 액션 유형.
  * @enum {string}
  */
 export const ACTIONS = {

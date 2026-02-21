@@ -13,9 +13,9 @@ const DEFAULT_ICON_URL = "icons/17310010088.png";
 let renderedMarkers = new Map();
 
 /**
- * Preloads an icon image.
- * @param {string} iconUrl - The URL of the icon.
- * @returns {Promise<boolean>} Whether the icon loaded successfully.
+ * 아이콘 이미지를 미리 로드합니다.
+ * @param {string} iconUrl - 아이콘의 URL.
+ * @returns {Promise<boolean>} 아이콘 로드 성공 여부.
  */
 const preloadIcon = (iconUrl) => {
   return new Promise((resolve) => {
@@ -92,8 +92,8 @@ const getIconForCategory = (categoryId) => {
 };
 
 /**
- * Initializes the canvas layer for marker rendering.
- * @returns {any|null} The canvas layer or null.
+ * 마커 렌더링을 위한 캔버스 레이어를 초기화합니다.
+ * @returns {any|null} 캔버스 레이어 또는 null.
  */
 export const initCanvasLayer = () => {
   if (typeof L.canvasIconLayer === "undefined") {
@@ -135,8 +135,8 @@ export const initCanvasLayer = () => {
 };
 
 /**
- * Renders markers on the canvas layer.
- * @param {any[]} items - The items to render.
+ * 캔버스 레이어에 마커를 렌더링합니다.
+ * @param {any[]} items - 렌더링할 아이템 배열.
  * @returns {Promise<void>}
  */
 export const renderMarkersOnCanvas = async (items) => {
@@ -210,9 +210,9 @@ export const renderMarkersOnCanvas = async (items) => {
 };
 
 /**
- * Shows a popup for a canvas marker.
- * @param {any} marker - The marker.
- * @param {any} item - The item data.
+ * 캔버스 마커에 대한 팝업을 표시합니다.
+ * @param {any} marker - 마커 객체.
+ * @param {any} item - 아이템 데이터.
  */
 const showCanvasMarkerPopup = (marker, item) => {
   import("./popup.js").then(({ createPopupHtml }) => {
@@ -225,7 +225,7 @@ const showCanvasMarkerPopup = (marker, item) => {
 };
 
 /**
- * Clears all markers from the canvas layer.
+ * 캔버스 레이어의 모든 마커를 지웁니다.
  */
 export const clearCanvasLayer = () => {
   if (canvasLayer) {
@@ -247,15 +247,15 @@ export const clearCanvasLayer = () => {
 };
 
 /**
- * Checks if the canvas layer is active.
- * @returns {boolean} True if active.
+ * 캔버스 레이어가 활성화되어 있는지 확인합니다.
+ * @returns {boolean} 활성화되어 있으면 true.
  */
 export const isCanvasLayerActive = () => {
   return canvasLayer && state.map.hasLayer(canvasLayer);
 };
 
 /**
- * Switches to canvas rendering mode.
+ * 렌더링 모드를 캔버스로 전환합니다.
  */
 export const switchToCanvasMode = () => {
   if (
@@ -278,21 +278,20 @@ export const switchToCanvasMode = () => {
 };
 
 /**
- * Switches back to normal rendering mode.
+ * 일반 렌더링 모드로 다시 전환합니다.
  */
 export const switchToNormalMode = () => {
   clearCanvasLayer();
 };
 
 /**
- * Renders markers from worker results.
- * @param {any[]} toAdd - Items to add.
- * @param {any[]} toRemove - Item IDs to remove.
+ * 워커의 결과로부터 마커를 렌더링합니다.
+ * @param {any[]} toAdd - 추가할 아이템 배열.
+ * @param {any[]} toRemove - 제거할 아이템 ID 배열.
  */
 export const renderFromWorker = (toAdd, toRemove) => {
   if (!canvasLayer) return;
 
-  // Handle removals
   if (toRemove && toRemove.length > 0) {
     const markersToRemove = [];
     toRemove.forEach((id) => {
@@ -310,7 +309,6 @@ export const renderFromWorker = (toAdd, toRemove) => {
     }
   }
 
-  // Handle additions
   if (toAdd && toAdd.length > 0) {
     const markersToAdd = [];
     const completedIds = new Set(state.completedList.map((c) => c.id));

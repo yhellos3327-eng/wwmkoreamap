@@ -25,7 +25,7 @@ let currentCheckData = null;
 let onProceedCallback = null;
 
 /**
- * Shows the integrity check modal.
+ * 무결성 검사 모달을 표시합니다.
  */
 export const showModal = () => {
   const modal = document.getElementById("integrity-check-modal");
@@ -35,7 +35,7 @@ export const showModal = () => {
 };
 
 /**
- * Hides the integrity check modal.
+ * 무결성 검사 모달을 숨깁니다.
  */
 export const hideModal = () => {
   const modal = document.getElementById("integrity-check-modal");
@@ -46,7 +46,7 @@ export const hideModal = () => {
 };
 
 /**
- * Resets the integrity check modal to its initial state.
+ * 무결성 검사 모달을 초기 상태로 리셋합니다.
  */
 export const resetModal = () => {
   const steps = document.querySelectorAll("#integrity-steps .step");
@@ -58,9 +58,9 @@ export const resetModal = () => {
       const maskEl = icon.querySelector(".icon-mask");
       if (maskEl) {
         /** @type {HTMLElement} */ (maskEl).style.setProperty(
-          "--mask-url",
-          `url("${ICONS.pending}")`,
-        );
+        "--mask-url",
+        `url("${ICONS.pending}")`,
+      );
       }
     }
     const status = step.querySelector(".step-status");
@@ -87,7 +87,7 @@ export const resetModal = () => {
 };
 
 /**
- * Updates the status of a specific step in the integrity check.
+ * 무결성 검사의 특정 단계 상태를 업데이트합니다.
  * @param {string} stepName
  * @param {string} status
  * @param {string} [statusText]
@@ -106,9 +106,9 @@ export const updateStep = (stepName, status, statusText = "") => {
     const maskEl = icon.querySelector(".icon-mask");
     if (maskEl) {
       /** @type {HTMLElement} */ (maskEl).style.setProperty(
-        "--mask-url",
-        `url("${ICONS[status] || ICONS.pending}")`,
-      );
+      "--mask-url",
+      `url("${ICONS[status] || ICONS.pending}")`,
+    );
     }
   }
 
@@ -117,7 +117,7 @@ export const updateStep = (stepName, status, statusText = "") => {
 };
 
 /**
- * Updates the overall status message of the integrity check.
+ * 무결성 검사의 전체 상태 메시지를 업데이트합니다.
  * @param {string} text
  * @param {boolean} [complete]
  */
@@ -130,7 +130,7 @@ export const updateStatus = (text, complete = false) => {
 };
 
 /**
- * Shows the final result of the integrity check.
+ * 무결성 검사의 최종 결과를 표시합니다.
  * @param {string} type
  * @param {string} title
  * @param {string} desc
@@ -148,9 +148,9 @@ export const showResult = (type, title, desc, details = "") => {
     const maskEl = iconEl.querySelector(".icon-mask");
     if (maskEl) {
       /** @type {HTMLElement} */ (maskEl).style.setProperty(
-        "--mask-url",
-        `url("${ICONS[type]}")`,
-      );
+      "--mask-url",
+      `url("${ICONS[type]}")`,
+    );
     }
   }
 
@@ -165,7 +165,7 @@ export const showResult = (type, title, desc, details = "") => {
 };
 
 /**
- * Logs a message to the integrity check console.
+ * 무결성 검사 콘솔에 메시지를 기록합니다.
  * @param {string} message
  * @param {string} [type]
  */
@@ -200,7 +200,7 @@ export const setOnProceed = (callback) => {
 };
 
 /**
- * Triggers the proceed callback with the current check data.
+ * 현재 검사 데이터로 진행 콜백을 트리거합니다.
  */
 export const triggerProceed = () => {
   if (onProceedCallback && currentCheckData) {
@@ -210,7 +210,7 @@ export const triggerProceed = () => {
 };
 
 /**
- * Enables the proceed button in the integrity check modal.
+ * 무결성 검사 모달의 진행 버튼을 활성화합니다.
  */
 export const enableProceedButton = () => {
   const proceedBtn = document.getElementById("integrity-proceed-btn");
@@ -228,7 +228,7 @@ const ALERT_ICONS = {
 let alertResolve = null;
 
 /**
- * Shows a result alert modal.
+ * 결과 알림 모달을 표시합니다.
  * @param {string} type
  * @param {string} title
  * @param {string} message
@@ -276,7 +276,7 @@ export const showResultAlert = (type, title, message, autoReload = false) => {
 };
 
 /**
- * Initializes the integrity check UI event listeners.
+ * 무결성 검사 UI 이벤트 리스너를 초기화합니다.
  */
 export const initIntegrityUI = () => {
   const cancelBtn = document.getElementById("integrity-cancel-btn");

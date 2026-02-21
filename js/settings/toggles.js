@@ -4,6 +4,9 @@ import { state, setState } from "../state.js";
 import { triggerSync, updateSettingWithTimestamp } from "../sync.js";
 import { renderMapDataAndMarkers } from "../map.js";
 
+/**
+ * 광고 토글을 초기화합니다.
+ */
 export const initAdToggle = async () => {
   const adContainer = /** @type {HTMLElement} */ (
     document.querySelector(".ad-container")
@@ -17,8 +20,8 @@ export const initAdToggle = async () => {
   const { primaryDb } = await import("../storage/db.js");
   const storedAd = await primaryDb.get("wwm_show_ad");
 
-  // Handle both boolean and string stored values
-  let showAd = true; // default
+  // 불리언 및 문자열 저장 값 모두 처리
+  let showAd = true; // 기본값
   if (storedAd !== null) {
     if (typeof storedAd === "boolean") {
       showAd = storedAd;
@@ -38,21 +41,28 @@ export const initAdToggle = async () => {
         adContainer.style.display = isChecked ? "block" : "none";
         triggerSync();
       } else {
-        // Revert if save failed
+        // 저장 실패 시 복구
         toggleAd.checked = !isChecked;
-        console.warn("Failed to save ad toggle:", result?.error);
+        console.warn("광고 토글 저장 실패:", result?.error);
       }
     } catch (err) {
       toggleAd.checked = !isChecked;
-      console.warn("Failed to save ad toggle:", err);
+      console.warn("광고 토글 저장 실패:", err);
     }
   });
 };
 
+/**
+ * 저사양 모드를 적용합니다.
+ * @param {boolean} isLowSpec - 저사양 모드 활성화 여부.
+ */
 export const applyLowSpecMode = (isLowSpec) => {
   document.body.classList.remove("low-spec-mode");
 };
 
+/**
+ * 클러스터링 토글 상태를 업데이트합니다.
+ */
 export const updateClusteringToggleState = () => {
   const clusterToggleInput = document.getElementById("toggle-cluster");
   if (!clusterToggleInput) return;
@@ -76,6 +86,10 @@ export const updateClusteringToggleState = () => {
   }
 };
 
+/**
+ * 각종 설정 토글을 초기화합니다.
+ * @returns {{loadValues: Function, getInitialState: Function}}
+ */
 export const initToggles = () => {
   const clusterToggleInput = document.getElementById("toggle-cluster");
   const hideCompletedInput = document.getElementById("toggle-hide-completed");
@@ -172,6 +186,7 @@ export const initToggles = () => {
       }
     };
 
+    // Chrome 번역 상태 확인 지연 실행
     setTimeout(async () => {
       try {
         const { checkStatus } = await import("../chromeTranslator.js");
@@ -199,7 +214,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "enableWebLLM",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update enableWebLLM setting:", err));
+      ).catch((err) => console.warn("웹 LLM 설정 업데이트 실패:", err));
     });
   }
 
@@ -214,12 +229,14 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "enableClustering",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update enableClustering setting:", err));
+      ).catch((err) => console.warn("클러스터링 설정 업데이트 실패:", err));
       renderMapDataAndMarkers();
     });
   }
 
   if (hideCompletedInput) {
+    /** @type {HTMLInputElement} */ (hideCompletedInput).checked =
+      state.hideCompleted;
     hideCompletedInput.addEventListener("change", (e) => {
       setState(
         "hideCompleted",
@@ -228,7 +245,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "hideCompleted",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update hideCompleted setting:", err));
+      ).catch((err) => console.warn("완료 숨기기 설정 업데이트 실패:", err));
       renderMapDataAndMarkers();
     });
   }
@@ -244,7 +261,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "showComments",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update showComments setting:", err));
+      ).catch((err) => console.warn("댓글 표시 설정 업데이트 실패:", err));
     });
   }
 
@@ -259,7 +276,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "closeOnComplete",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update closeOnComplete setting:", err));
+      ).catch((err) => console.warn("완료 시 닫기 설정 업데이트 실패:", err));
     });
   }
 
@@ -274,7 +291,7 @@ export const initToggles = () => {
       updateSettingWithTimestamp(
         "disableRegionClickPan",
         /** @type {HTMLInputElement} */(e.target).checked,
-      ).catch((err) => console.warn("Failed to update disableRegionClickPan setting:", err));
+      ).catch((err) => console.warn("지역 클릭 이동 비활성화 설정 업데이트 실패:", err));
     });
   }
 
@@ -284,8 +301,7 @@ export const initToggles = () => {
         const { primaryDb } = await import("../storage/db.js");
         const storedAd = await primaryDb.get("wwm_show_ad");
 
-        // Handle both boolean and string stored values
-        let showAd = true; // default
+        let showAd = true;
         if (storedAd !== null) {
           if (typeof storedAd === "boolean") {
             showAd = storedAd;
@@ -294,6 +310,11 @@ export const initToggles = () => {
           }
         }
         /** @type {HTMLInputElement} */ (adToggleInput).checked = showAd;
+
+        const adContainer = document.querySelector(".ad-container");
+        if (adContainer) {
+          /** @type {HTMLElement} */(adContainer).style.display = showAd ? "block" : "none";
+        }
       }
       if (clusterToggleInput)
         /** @type {HTMLInputElement} */ (clusterToggleInput).checked =
@@ -318,6 +339,9 @@ export const initToggles = () => {
   };
 };
 
+/**
+ * 토글 설정을 저장합니다.
+ */
 export const saveToggleSettings = async () => {
   const adToggleInput = document.getElementById("toggle-ad");
 
@@ -327,12 +351,12 @@ export const saveToggleSettings = async () => {
       const isChecked = /** @type {HTMLInputElement} */(adToggleInput).checked;
       const result = await primaryDb.set("wwm_show_ad", String(isChecked));
       if (result && result.success) {
-        console.log("Ad toggle setting saved successfully");
+        console.log("광고 토글 설정 저장 성공");
       } else {
-        console.warn("Failed to save ad toggle setting:", result?.error);
+        console.warn("광고 토글 설정 저장 실패:", result?.error);
       }
     } catch (err) {
-      console.warn("Error saving ad toggle setting:", err);
+      console.warn("광고 토글 설정 저장 중 에러:", err);
     }
   }
 };

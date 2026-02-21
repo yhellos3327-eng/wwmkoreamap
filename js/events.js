@@ -12,7 +12,7 @@ import {
 import { toggleCommunityMode } from "./map/community.js";
 
 /**
- * Initializes tab event listeners.
+ * 탭 이벤트 리스너를 초기화합니다.
  */
 export const initTabs = () => {
   const tabs = document.querySelectorAll(".tab-btn");
@@ -37,7 +37,7 @@ export const initTabs = () => {
 };
 
 /**
- * Initializes toggle buttons for categories and regions.
+ * 카테고리 및 지역 토글 버튼을 초기화합니다.
  */
 export const initToggleButtons = () => {
   const btnToggleCat = document.getElementById("btn-toggle-cat");
@@ -59,7 +59,6 @@ export const initToggleButtons = () => {
     });
   }
 
-  // New global action buttons
   const btnCompleteCat = document.getElementById("btn-complete-cat");
   const btnResetCat = document.getElementById("btn-reset-cat");
   const btnCompleteReg = document.getElementById("btn-complete-reg");
@@ -94,7 +93,7 @@ export const initToggleButtons = () => {
 };
 
 /**
- * Initializes sidebar toggle events.
+ * 사이드바 토글 이벤트를 초기화합니다.
  */
 export const initSidebarToggle = () => {
   const openBtn = document.getElementById("open-sidebar");
@@ -125,7 +124,7 @@ export const initSidebarToggle = () => {
 };
 
 /**
- * Initializes the related items modal.
+ * 관련 항목 모달을 초기화합니다.
  */
 export const initRelatedModal = () => {
   const relatedModal = document.getElementById("related-modal");
@@ -138,7 +137,7 @@ export const initRelatedModal = () => {
 };
 
 /**
- * Initializes the WebLLM modal events.
+ * WebLLM 모달 이벤트를 초기화합니다.
  */
 export const initWebLLMModal = () => {
   const webLLMModal = document.getElementById("web-llm-modal");
@@ -159,7 +158,7 @@ export const initWebLLMModal = () => {
 };
 
 /**
- * Initializes keyboard shortcuts.
+ * 키보드 단축키를 초기화합니다.
  */
 export const initKeyboardEvents = () => {
   document.addEventListener("keydown", (e) => {
@@ -177,7 +176,7 @@ export const initKeyboardEvents = () => {
 };
 
 /**
- * Initializes global event delegation for clicks.
+ * 클릭에 대한 전역 이벤트 위임을 초기화합니다.
  */
 export const initGlobalEventDelegation = () => {
   document.addEventListener("click", (e) => {
@@ -218,7 +217,7 @@ export const initGlobalEventDelegation = () => {
 };
 
 /**
- * Initializes route mode events.
+ * 경로 모드 이벤트를 초기화합니다.
  */
 export const initRouteMode = () => {
   const routeToggleBtn = document.getElementById("route-mode-toggle");
@@ -241,7 +240,7 @@ export const initRouteMode = () => {
 };
 
 /**
- * Initializes Arca channel panel events.
+ * 아카 채널 패널 이벤트를 초기화합니다.
  */
 export const initArcaChannel = () => {
   const openBtn = document.getElementById("open-arca-channel");
@@ -263,7 +262,7 @@ export const initArcaChannel = () => {
 };
 
 /**
- * Initializes Community Mode toggle.
+ * 커뮤니티 모드 토글을 초기화합니다.
  */
 export const initCommunityMode = () => {
   const btn = document.getElementById("community-mode-toggle");
@@ -274,7 +273,7 @@ export const initCommunityMode = () => {
 };
 
 /**
- * Initializes Quest Guide panel events.
+ * 퀘스트 가이드 패널 이벤트를 초기화합니다.
  */
 export const initQuestGuide = () => {
   const openBtn = document.getElementById("open-quest-guide");
@@ -285,14 +284,13 @@ export const initQuestGuide = () => {
     });
   }
 
-  // Initialize quest guide event delegation
   import("./quest-guide/index.js").then((m) => {
     if (m.initQuestGuideEvents) m.initQuestGuideEvents();
   });
 };
 
 /**
- * Initializes all event handlers.
+ * 모든 이벤트 핸들러를 초기화합니다.
  */
 export const initAllEventHandlers = () => {
   initTabs();

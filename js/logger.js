@@ -24,9 +24,9 @@ const LOG_STYLES = {
 };
 
 /**
- * Creates a log style object for console output.
- * @param {string} category - The log category.
- * @returns {{style: string, icon: string}} The style object.
+ * 콘솔 출력을 위한 로그 스타일 객체를 생성합니다.
+ * @param {string} category - 로그 카테고리.
+ * @returns {{style: string, icon: string}} 스타일 객체.
  */
 const createLogStyle = (category) => {
   const config = LOG_STYLES[category] || { color: "#9E9E9E", icon: "📝" };
@@ -38,10 +38,10 @@ const createLogStyle = (category) => {
 
 export const logger = {
   /**
-   * Logs a message with a category style.
-   * @param {string} category - The log category.
-   * @param {string} message - The message to log.
-   * @param {...any} args - Additional arguments.
+   * 카테고리 스타일이 적용된 메시지를 출력합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} message - 출력할 메시지.
+   * @param {...any} args - 추가 인수.
    */
   log: (category, message, ...args) => {
     const { style, icon } = createLogStyle(category);
@@ -49,10 +49,10 @@ export const logger = {
   },
 
   /**
-   * Starts a console group.
-   * @param {string} category - The log category.
-   * @param {string} message - The group title.
-   * @param {boolean} [collapsed=true] - Whether the group is collapsed.
+   * 콘솔 그룹을 시작합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} message - 그룹 제목.
+   * @param {boolean} [collapsed=true] - 그룹 접힘 여부.
    */
   group: (category, message, collapsed = true) => {
     const { style, icon } = createLogStyle(category);
@@ -64,17 +64,17 @@ export const logger = {
   },
 
   /**
-   * Ends the current console group.
+   * 현재 콘솔 그룹을 종료합니다.
    */
   groupEnd: () => {
     console.groupEnd();
   },
 
   /**
-   * Starts a timer.
-   * @param {string} category - The log category.
-   * @param {string} label - The timer label.
-   * @returns {string} The full timer label.
+   * 타이머를 시작합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} label - 타이머 라벨.
+   * @returns {string} 전체 타이머 라벨.
    */
   time: (category, label) => {
     const timerLabel = `[${category}] ${label}`;
@@ -83,18 +83,18 @@ export const logger = {
   },
 
   /**
-   * Ends a timer.
-   * @param {string} timerLabel - The timer label returned by time().
+   * 타이머를 종료합니다.
+   * @param {string} timerLabel - time()에서 반환된 타이머 라벨.
    */
   timeEnd: (timerLabel) => {
     console.timeEnd(timerLabel);
   },
 
   /**
-   * Logs a success message.
-   * @param {string} category - The log category.
-   * @param {string} message - The message to log.
-   * @param {...any} args - Additional arguments.
+   * 성공 메시지를 출력합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} message - 출력할 메시지.
+   * @param {...any} args - 추가 인수.
    */
   success: (category, message, ...args) => {
     const { style, icon } = createLogStyle(category);
@@ -102,10 +102,10 @@ export const logger = {
   },
 
   /**
-   * Logs a warning message.
-   * @param {string} category - The log category.
-   * @param {string} message - The message to log.
-   * @param {...any} args - Additional arguments.
+   * 경고 메시지를 출력합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} message - 출력할 메시지.
+   * @param {...any} args - 추가 인수.
    */
   warn: (category, message, ...args) => {
     const { style, icon } = createLogStyle(category);
@@ -113,10 +113,10 @@ export const logger = {
   },
 
   /**
-   * Logs an error message.
-   * @param {string} category - The log category.
-   * @param {string} message - The message to log.
-   * @param {...any} args - Additional arguments.
+   * 오류 메시지를 출력합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} message - 출력할 메시지.
+   * @param {...any} args - 추가 인수.
    */
   error: (category, message, ...args) => {
     const { style, icon } = createLogStyle(category);
@@ -124,18 +124,18 @@ export const logger = {
   },
 
   /**
-   * Logs data as a table.
-   * @param {any} data - The data to display in a table.
+   * 데이터를 테이블로 출력합니다.
+   * @param {any} data - 테이블에 표시할 데이터.
    */
   table: (data) => {
     console.table(data);
   },
 
   /**
-   * Logs a state change event.
-   * @param {string} key - The state key.
-   * @param {any} oldValue - The old value.
-   * @param {any} newValue - The new value.
+   * 상태 변경 이벤트를 로그에 기록합니다.
+   * @param {string} key - 상태 키.
+   * @param {any} oldValue - 이전 값.
+   * @param {any} newValue - 새로운 값.
    */
   stateChange: (key, oldValue, newValue) => {
     const { style, icon } = createLogStyle("Pub/Sub");
@@ -151,10 +151,10 @@ export const perfTimer = {
   timers: {},
 
   /**
-   * Starts a performance timer.
-   * @param {string} category - The log category.
-   * @param {string} label - The timer label.
-   * @returns {string} The timer key.
+   * 성능 타이머를 시작합니다.
+   * @param {string} category - 로그 카테고리.
+   * @param {string} label - 타이머 라벨.
+   * @returns {string} 타이머 키.
    */
   start: (category, label) => {
     const key = `${category}:${label}`;
@@ -163,9 +163,9 @@ export const perfTimer = {
   },
 
   /**
-   * Ends a performance timer and logs the duration.
-   * @param {string} key - The timer key returned by start().
-   * @returns {number} The duration in milliseconds.
+   * 성능 타이머를 종료하고 소요 시간을 출력합니다.
+   * @param {string} key - start()에서 반환된 타이머 키.
+   * @returns {number} 밀리초 단위의 소요 시간.
    */
   end: (key) => {
     const endTime = performance.now();

@@ -19,17 +19,17 @@ import { fetchVoteCounts } from "../../votes.js";
 const spriteDataMap = new Map();
 const itemIdToSpriteMap = new Map();
 
-/** @returns {Map} The sprite data map. */
+/** @returns {Map} 스프라이트 데이터 맵. */
 export const getSpriteDataMap = () => spriteDataMap;
 /**
- * Gets a sprite by item ID.
- * @param {string|number} id - The item ID.
- * @returns {any|undefined} The sprite.
+ * 아이템 ID로 스프라이트를 가져옵니다.
+ * @param {string|number} id - 아이템 ID.
+ * @returns {any|undefined} 스프라이트.
  */
 export const getSpriteById = (id) => itemIdToSpriteMap.get(String(id));
 
 /**
- * Clears the sprite data map.
+ * 스프라이트 데이터 맵을 지웁니다.
  */
 export const clearSpriteDataMap = () => {
   spriteDataMap.clear();
@@ -37,9 +37,9 @@ export const clearSpriteDataMap = () => {
 };
 
 /**
- * Shows a popup for a sprite.
- * @param {any} sprite - The sprite.
- * @returns {any|null} The popup.
+ * 스프라이트에 대한 팝업을 표시합니다.
+ * @param {any} sprite - 스프라이트.
+ * @returns {any|null} 팝업.
  */
 export const showPopupForSprite = (sprite) => {
   if (!sprite.markerData) return null;
@@ -68,9 +68,9 @@ export const showPopupForSprite = (sprite) => {
 import { memoryManager } from "../../memory.js";
 
 /**
- * Creates a PIXI sprite for a map item.
- * @param {any} item - The map item.
- * @returns {any|null} The sprite or null if creation failed.
+ * 지도 아이템에 대한 PIXI 스프라이트를 생성합니다.
+ * @param {any} item - 지도 아이템.
+ * @returns {any|null} 스프라이트 또는 생성 실패 시 null.
  */
 export const createSpriteForItem = (item) => {
   let catId = item.category;
@@ -164,9 +164,9 @@ export const createSpriteForItem = (item) => {
 };
 
 /**
- * Adds a sprite to the data map.
- * @param {any} sprite - The sprite.
- * @param {any} item - The item.
+ * 데이터 맵에 스프라이트를 추가합니다.
+ * @param {any} sprite - 스프라이트.
+ * @param {any} item - 아이템.
  */
 export const addSpriteToDataMap = (sprite, item) => {
   spriteDataMap.set(sprite, item);

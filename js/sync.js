@@ -1,7 +1,6 @@
 // @ts-check
 /**
- * @fileoverview Sync module - re-exports synchronization functionality.
- * @module sync
+ * 동기화 모듈 - 동기화 기능을 다시 내보냅니다.
  */
 
 export {

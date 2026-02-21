@@ -2,22 +2,22 @@
 
 /**
  * @typedef {Object} MapConfig
- * @property {number} id - Map ID
- * @property {string} name - Map name
- * @property {string} [tileUrl] - Tile server URL
- * @property {string} [type] - Map type (e.g., 'image')
- * @property {string} [imageUrl] - Image URL for image maps
- * @property {string | null} dataFile - Legacy JSON data file path
- * @property {string} newDataFile - CSV data file path
- * @property {string | null} regionFile - Region JSON file path
- * @property {string} [crs] - CRS type (e.g., 'Simple')
- * @property {number} minZoom - Minimum zoom level
- * @property {number} maxZoom - Maximum zoom level
- * @property {number} [maxNativeZoom] - Max native zoom level
- * @property {number[]} center - Center coordinates [lat, lng]
- * @property {number} zoom - Default zoom level
- * @property {number} [tilePadding] - Tile padding
- * @property {number[][]} [bounds] - Map bounds [[lat, lng], [lat, lng]]
+ * @property {number} id - 지도 ID
+ * @property {string} name - 지도 이름
+ * @property {string} [tileUrl] - 타일 서버 URL
+ * @property {string} [type] - 지도 유형 (예: 'image')
+ * @property {string} [imageUrl] - 이미지 지도의 이미지 URL
+ * @property {string | null} dataFile - 레거시 JSON 데이터 파일 경로
+ * @property {string} newDataFile - CSV 데이터 파일 경로
+ * @property {string | null} regionFile - 지역 JSON 파일 경로
+ * @property {string} [crs] - CRS 유형 (예: 'Simple')
+ * @property {number} minZoom - 최소 줌 레벨
+ * @property {number} maxZoom - 최대 줌 레벨
+ * @property {number} [maxNativeZoom] - 최대 네이티브 줌 레벨
+ * @property {number[]} center - 중심 좌표 [lat, lng]
+ * @property {number} zoom - 기본 줌 레벨
+ * @property {number} [tilePadding] - 타일 패딩
+ * @property {number[][]} [bounds] - 지도 경계 [[lat, lng], [lat, lng]]
  */
 
 /** @type {Object.<string, MapConfig>} */

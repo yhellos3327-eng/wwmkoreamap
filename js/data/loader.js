@@ -26,10 +26,10 @@ import { resetPixiOverlay } from "../map/pixiOverlay.js";
 import { closeModal } from "../ui/modal.js";
 
 /**
- * Loads map data for a specific map key.
- * @param {string} mapKey - The map key (e.g., 'qinghe').
- * @param {function(number, number): void} [onProgress] - Callback for progress updates.
- * @returns {Promise<boolean>} True if successful, false otherwise.
+ * 특정 맵 키에 해당하는 지도 데이터를 로드합니다.
+ * @param {string} mapKey - 맵 키 (예: 'qinghe').
+ * @param {function(number, number): void} [onProgress] - 진행률 업데이트를 위한 콜백.
+ * @returns {Promise<boolean>} 성공 시 true, 실패 시 false.
  */
 export const loadMapData = async (mapKey, onProgress) => {
   const config = MAP_CONFIGS[mapKey];
@@ -45,10 +45,10 @@ export const loadMapData = async (mapKey, onProgress) => {
     }
     closeModal();
 
-    // Reset Community Markers for new map
+    // 새로운 맵을 위해 커뮤니티 마커 초기화
     setState("communityMarkers", new Map());
 
-    // Reset PixiOverlay to ensure fresh state for new map, preventing flickering/artifacts
+    // 깜빡임/잔상 방지를 위해 PixiOverlay 초기화
     resetPixiOverlay();
 
     await initMap(mapKey);
@@ -94,7 +94,7 @@ export const loadMapData = async (mapKey, onProgress) => {
     setState("mapData", mapData);
     setState("itemsByCategory", itemsByCategory);
 
-    // Cache all marker names globally for backup/vault inspection
+    // 백업/Vault 검사를 위해 모든 마커 이름을 전역적으로 캐시
     if (mapData.items) {
       mapData.items.forEach((item) => {
         const name = item.name || item.title;

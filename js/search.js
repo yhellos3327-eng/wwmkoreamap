@@ -39,10 +39,9 @@ const SVG_ICONS = {
     </svg>`,
 };
 
-// Custom debounce removed in favor of lodash debounce imported above
 
 /**
- * Gets category item counts by region.
+ * 지역별 카테고리 항목 개수를 가져옵니다.
  * @param {number|string} categoryId
  * @returns {Object.<string, number>}
  */
@@ -64,10 +63,10 @@ const getCategoryItemsByRegion = (categoryId) => {
 let expandedCategories = new Set();
 
 /**
- * Renders search results.
- * @param {string} term - The search term.
- * @param {HTMLElement} searchInput - The search input element.
- * @param {HTMLElement} searchResults - The search results container.
+ * 검색 결과를 렌더링합니다.
+ * @param {string} term - 검색어.
+ * @param {HTMLElement} searchInput - 검색 입력 요소.
+ * @param {HTMLElement} searchResults - 검색 결과 컨테이너.
  */
 const renderSearchResults = (term, searchInput, searchResults) => {
   if (!term || term.length < 1) {
@@ -77,15 +76,11 @@ const renderSearchResults = (term, searchInput, searchResults) => {
     expandedCategories.clear();
     return;
   }
-
-  // Fuse.js options for fuzzy search
   const fuseOptions = {
     includeScore: true,
     threshold: 0.3,
     keys: ["name", "id", "translatedName"],
   };
-
-  // Prepare data for Fuse
   const regionData = Array.from(state.uniqueRegions).map((r) => ({
     id: r,
     name: r,
@@ -276,8 +271,8 @@ const renderSearchResults = (term, searchInput, searchResults) => {
 };
 
 /**
- * Shows the search results container.
- * @param {HTMLElement} searchResults - The search results container.
+ * 검색 결과 컨테이너를 표시합니다.
+ * @param {HTMLElement} searchResults - 검색 결과 컨테이너.
  */
 const showSearchResults = (searchResults) => {
   searchResults.classList.remove("hidden");
@@ -288,8 +283,8 @@ const showSearchResults = (searchResults) => {
 };
 
 /**
- * Hides the search results container.
- * @param {HTMLElement} searchResults - The search results container.
+ * 검색 결과 컨테이너를 숨깁니다.
+ * @param {HTMLElement} searchResults - 검색 결과 컨테이너.
  */
 const hideSearchResults = (searchResults) => {
   searchResults.classList.add("hidden");
@@ -300,7 +295,7 @@ const hideSearchResults = (searchResults) => {
 };
 
 /**
- * Restores all filters to their default active state.
+ * 모든 필터를 기본 활성 상태로 복원합니다.
  */
 const restoreAllFilters = () => {
   state.activeCategoryIds.clear();
@@ -325,7 +320,7 @@ const restoreAllFilters = () => {
 };
 
 /**
- * Resets marker opacity to full visibility.
+ * 마커 투명도를 완전 불투명으로 초기화합니다.
  */
 const resetMarkerOpacity = () => {
   state.allMarkers.forEach((m) => {
@@ -337,8 +332,8 @@ const resetMarkerOpacity = () => {
 };
 
 /**
- * Highlights markers matching the search term.
- * @param {string} term - The search term.
+ * 검색어와 일치하는 마커를 강조 표시합니다.
+ * @param {string} term - 검색어.
  */
 const highlightMatchingMarkers = (term) => {
   if (!term) {
@@ -369,10 +364,10 @@ const highlightMatchingMarkers = (term) => {
 };
 
 /**
- * Handles a region click in search results.
- * @param {string} region - The region name.
- * @param {HTMLElement} searchInput - The search input element.
- * @param {HTMLElement} searchResults - The search results container.
+ * 검색 결과에서 지역 클릭을 처리합니다.
+ * @param {string} region - 지역 이름.
+ * @param {HTMLElement} searchInput - 검색 입력 요소.
+ * @param {HTMLElement} searchResults - 검색 결과 컨테이너.
  */
 const handleRegionClick = (region, searchInput, searchResults) => {
   /** @type {HTMLInputElement} */ (searchInput).value = String(t(region));
@@ -406,11 +401,11 @@ const handleRegionClick = (region, searchInput, searchResults) => {
 };
 
 /**
- * Handles a category-region click in search results.
- * @param {string|number} categoryId - The category ID.
- * @param {string} region - The region name.
- * @param {HTMLElement} searchInput - The search input element.
- * @param {HTMLElement} searchResults - The search results container.
+ * 검색 결과에서 카테고리-지역 클릭을 처리합니다.
+ * @param {string|number} categoryId - 카테고리 ID.
+ * @param {string} region - 지역 이름.
+ * @param {HTMLElement} searchInput - 검색 입력 요소.
+ * @param {HTMLElement} searchResults - 검색 결과 컨테이너.
  */
 const handleCategoryRegionClick = (
   categoryId,
@@ -463,7 +458,7 @@ const handleCategoryRegionClick = (
 };
 
 /**
- * Initializes the main search functionality.
+ * 메인 검색 기능을 초기화합니다.
  */
 export const initSearch = () => {
   const searchInput = document.getElementById("search-input");
@@ -533,8 +528,8 @@ export const initSearch = () => {
 };
 
 /**
- * Initializes modal search functionality.
- * @param {Function} renderModalList - The function to render the modal list.
+ * 모달 검색 기능을 초기화합니다.
+ * @param {Function} renderModalList - 모달 리스트를 렌더링하는 함수.
  */
 export const initModalSearch = (renderModalList) => {
   const modalSearchInput = document.getElementById("modal-search-input");

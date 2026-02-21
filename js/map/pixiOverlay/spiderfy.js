@@ -12,13 +12,13 @@ let animationFrameId = null;
 let spiderElements = [];
 let currentCenterLatLng = null;
 
-/** @returns {string|number|null} The spiderfied cluster ID. */
+/** @returns {string|number|null} 스파이더파이 된 클러스터 ID. */
 export const getSpiderfiedClusterId = () => spiderfiedClusterId;
-/** @returns {any|null} The spiderfy container. */
+/** @returns {any|null} 스파이더파이 컨테이너. */
 export const getSpiderfyContainer = () => spiderfyContainer;
 
 /**
- * Clears the spiderfy effect.
+ * 스파이더파이 효과를 지웁니다.
  */
 export const clearSpiderfy = () => {
   if (animationFrameId) {
@@ -38,8 +38,8 @@ export const clearSpiderfy = () => {
 };
 
 /**
- * Updates the spiderfy positions based on zoom/pan.
- * @param {any} utils - The PixiOverlay utils.
+ * 줌/팬에 따라 스파이더파이 위치를 업데이트합니다.
+ * @param {any} utils - PixiOverlay 유틸리티.
  */
 export const updateSpiderfyPositions = (utils) => {
   if (!spiderfyContainer || !currentCenterLatLng || animationFrameId) return;
@@ -52,7 +52,7 @@ export const updateSpiderfyPositions = (utils) => {
   const pixelLegLength = 40 + Math.min(count * 2, 100);
   const legLength = pixelLegLength / scale;
 
-  // Find hitArea (first graphics) and legs (second graphics)
+  // hitArea (첫 번째 graphics)와 legs (두 번째 graphics) 찾기
   const graphicsChildren = spiderfyContainer.children.filter(
     (c) => c instanceof PIXI.Graphics,
   );
@@ -94,12 +94,12 @@ export const updateSpiderfyPositions = (utils) => {
 };
 
 /**
- * Spiderfies a cluster.
- * @param {string|number} clusterId - The cluster ID.
- * @param {number[]} centerLatLng - The center coordinates [lat, lng].
- * @param {any[]} markers - The markers in the cluster.
- * @param {any} pixiContainer - The PIXI container.
- * @param {any} utils - The PixiOverlay utils.
+ * 클러스터를 스파이더파이합니다.
+ * @param {string|number} clusterId - 클러스터 ID.
+ * @param {number[]} centerLatLng - 중심 좌표 [lat, lng].
+ * @param {any[]} markers - 클러스터 내의 마커들.
+ * @param {any} pixiContainer - PIXI 컨테이너.
+ * @param {any} utils - PixiOverlay 유틸리티.
  */
 export const spiderfyCluster = (
   clusterId,
@@ -132,7 +132,7 @@ export const spiderfyCluster = (
   const legLength = pixelLegLength / scale;
   const angleStep = (Math.PI * 2) / count;
 
-  // Background hit area for closing spiderfy when clicking on legs/lines
+  // 다리/선을 클릭할 때 스파이더파이를 닫기 위한 배경 히트 영역
   const hitAreaGraphics = new PIXI.Graphics();
   hitAreaGraphics.interactive = true;
   hitAreaGraphics.cursor = "pointer";
@@ -193,9 +193,9 @@ export const spiderfyCluster = (
     const currentCenter = currentProject(currentCenterLatLng);
     const currentLegLength = (pixelLegLength / currentScale) * ease;
 
-    // Draw invisible hit area (circle covering the spider legs)
+    // 거미 다리를 덮는 투명한 히트 영역(원) 그리기
     hitAreaGraphics.clear();
-    hitAreaGraphics.beginFill(0x000000, 0.001); // Nearly invisible but clickable
+    hitAreaGraphics.beginFill(0x000000, 0.001); // 거의 보이지 않지만 클릭 가능
     hitAreaGraphics.drawCircle(currentCenter.x, currentCenter.y, currentLegLength * 1.1);
     hitAreaGraphics.endFill();
 

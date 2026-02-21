@@ -1,11 +1,25 @@
-// @ts-check
+/**
+ * 워커 태스크 처리를 위한 기본 전략 클래스.
+ */
 class TaskStrategy {
+  /**
+   * 태스크를 실행합니다.
+   * @param {any} payload - 태스크 데이터.
+   */
   execute(payload) {
     throw new Error("Method 'execute' must be implemented.");
   }
 }
 
+/**
+ * 데이터 파싱 태스크를 처리하는 전략 클래스.
+ */
 export class DataParsingStrategy extends TaskStrategy {
+  /**
+   * 데이터 파싱 태스크를 실행합니다.
+   * @param {string} type - 태스크 타입.
+   * @param {any} payload - 태스크 데이터.
+   */
   execute(type, payload) {
     switch (type) {
       case "PARSE_JSON":

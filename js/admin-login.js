@@ -1,11 +1,10 @@
 // @ts-nocheck
 /**
- * @fileoverview Admin login module - handles administrator authentication.
+ * 관리자 로그인 모듈 - 관리자 인증을 처리합니다.
  * @module admin-login
  */
 
 import { auth, firebaseInitialized } from "./firebase-config.js";
-// @ts-ignore - Firebase CDN modules don't have TypeScript definitions
 import {
   signInWithEmailAndPassword,
   onAuthStateChanged,
@@ -13,7 +12,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
 /**
- * Initializes the admin login page.
+ * 관리자 로그인 페이지를 초기화합니다.
  * @returns {Promise<void>}
  */
 const init = async () => {
@@ -63,7 +62,6 @@ const init = async () => {
 
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // alert("관리자로 로그인되었습니다.");
       window.location.href = "/admin-dashboard.html";
     } catch (error) {
       console.error("Login failed:", error);
@@ -92,8 +90,8 @@ const init = async () => {
   });
 
   /**
-   * Handles Enter key press for login.
-   * @param {KeyboardEvent} e - The keyboard event.
+   * 로그인을 위한 엔터 키 누름을 처리합니다.
+   * @param {KeyboardEvent} e - 키보드 이벤트.
    */
   const handleEnter = (e) => {
     if (e.key === "Enter") {

@@ -8,6 +8,10 @@ declare module "https://esm.run/fuse.js@7.1.0" {
   export default Fuse;
 }
 
+declare module "https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js" {
+  export const initializeApp: (config: any) => any;
+}
+
 declare module "https://esm.run/lodash-es@4.17.22" {
   export const debounce: any;
 }
@@ -76,6 +80,7 @@ declare const PIXI: any;
 declare const Supercluster: any;
 
 declare module "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js" {
+  export const getFirestore: (app: any) => any;
   export const collection: any;
   export const query: any;
   export const where: any;
@@ -90,7 +95,12 @@ declare module "https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js"
   export const Timestamp: any;
 }
 
+declare module "https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js" {
+  export const getStorage: (app: any) => any;
+}
+
 declare module "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js" {
+  export const getAuth: (app: any) => any;
   export const onAuthStateChanged: any;
   export const signInWithEmailAndPassword: any;
   export const signOut: any;

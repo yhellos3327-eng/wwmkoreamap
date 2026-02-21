@@ -7,10 +7,10 @@ import { t, parseMarkdown } from "./utils.js";
  * Chrome 내장 번역 사용하여 아이템 번역
  */
 /**
- * Translates a game item using Chrome's built-in translation API.
- * @param {any} item - The item to translate.
- * @param {HTMLElement} [btn] - The button element that triggered the translation.
- * @returns {Promise<any>} The translated item data.
+ * Chrome 내장 번역 API를 사용하여 게임 아이템을 번역합니다.
+ * @param {any} item - 번역할 아이템.
+ * @param {HTMLElement} [btn] - 번역을 트리거한 버튼 요소.
+ * @returns {Promise<any>} 번역된 아이템 데이터.
  */
 const translateWithChromeBuiltin = async (item, btn) => {
   try {
@@ -42,10 +42,10 @@ const translateWithChromeBuiltin = async (item, btn) => {
  * 외부 AI API를 사용하여 아이템 번역
  */
 /**
- * Translates a game item using an external AI API (Gemini, OpenAI, Claude).
- * @param {any} item - The item to translate.
- * @param {HTMLElement} [btn] - The button element that triggered the translation.
- * @returns {Promise<any>} The translated item data.
+ * 외부 AI API(Gemini, OpenAI, Claude)를 사용하여 게임 아이템을 번역합니다.
+ * @param {any} item - 번역할 아이템.
+ * @param {HTMLElement} [btn] - 번역을 트리거한 버튼 요소.
+ * @returns {Promise<any>} 번역된 아이템 데이터.
  */
 const translateWithExternalAI = async (item, btn) => {
   const provider = state.savedAIProvider ?? "gemini";
@@ -152,12 +152,10 @@ const translateWithExternalAI = async (item, btn) => {
     const jsonStr = jsonMatch ? jsonMatch[0] : text;
     result = JSON.parse(jsonStr);
   } else if (provider === "deepl") {
-    // DeepL은 CORS를 지원하지 않으므로 백엔드 프록시를 통해 호출
     const { BACKEND_URL } = await import("./config.js");
     const { DeepLGlossary, loadGlossaryFromCSVs } = await import("./deepl/glossary.js");
     const proxyUrl = `${BACKEND_URL}/api/deepl/translate`;
 
-    // API 키 암호화 (Hex + 타임스탬프 XOR 난독화)
     const timestamp = Date.now();
     const encryptKey = (apiKey, ts) => {
       const tsStr = String(ts);
@@ -172,9 +170,6 @@ const translateWithExternalAI = async (item, btn) => {
     const encryptedKey = encryptKey(key, timestamp);
     const glossary = new DeepLGlossary(BACKEND_URL);
 
-    // 용어집 설정 (필요 시 생성)
-    // 전역 상태나 캐시를 통해 중복 생성을 방지할 수 있지만, 
-    // 여기서는 간단히 목록을 조회하여 확인하거나 새로 생성하는 로직을 고려
     let glossaryId = state?.deeplGlossaryId;
 
     if (!glossaryId) {
@@ -201,7 +196,6 @@ const translateWithExternalAI = async (item, btn) => {
       }
     }
 
-    // 이름과 설명을 한번에 번역 (API 호출 최소화)
     const response = await fetch(proxyUrl, {
       method: "POST",
       headers: {
@@ -217,9 +211,9 @@ const translateWithExternalAI = async (item, btn) => {
         glossaryId: glossaryId || undefined,
       }),
     });
-    
+
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || data.error || "DeepL 번역 실패");
     }
@@ -239,9 +233,9 @@ const translateWithExternalAI = async (item, btn) => {
  * @param {string} translateType - 번역 타입: 'chrome' 또는 'ai'
  */
 /**
- * Translates an item using the specified translation method.
- * @param {number|string} itemId - The item ID.
- * @param {string} [translateType='ai'] - The translation type: 'chrome' or 'ai'.
+ * 지정된 번역 방식을 사용하여 아이템을 번역합니다.
+ * @param {number|string} itemId - 아이템 ID.
+ * @param {string} [translateType='ai'] - 번역 타입: 'chrome' 또는 'ai'.
  * @returns {Promise<void>}
  */
 export const translateItem = async (itemId, translateType = "ai") => {
@@ -281,7 +275,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
     if (translateType === "chrome") {
       result = await translateWithChromeBuiltin(
         item,
-        /** @type {HTMLElement} */ (btn),
+        /** @type {HTMLElement} */(btn),
       );
     } else {
       const provider = state.savedAIProvider ?? "gemini";
@@ -310,7 +304,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
 
       result = await translateWithExternalAI(
         item,
-        /** @type {HTMLElement} */ (btn),
+        /** @type {HTMLElement} */(btn),
       );
     }
 
@@ -371,7 +365,7 @@ export const translateItem = async (itemId, translateType = "ai") => {
 };
 
 /**
- * Calculates and displays translation progress.
+ * 번역 진행률을 계산하고 표시합니다.
  */
 export const calculateTranslationProgress = () => {
   const totalItems = state.mapData.items.length;

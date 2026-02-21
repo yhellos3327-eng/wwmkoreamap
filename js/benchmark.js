@@ -1,6 +1,6 @@
 // @ts-check
 /**
- * @fileoverview Benchmark module - performance testing for map rendering.
+ * @fileoverview 벤치마크 모듈 - 지도 렌더링 성능 테스트.
  * @module benchmark
  */
 
@@ -15,8 +15,8 @@ const avgEl = document.getElementById("stat-avg");
 const lowEl = document.getElementById("stat-low");
 const timeEl = document.getElementById("stat-time");
 const markerEl = document.getElementById("stat-markers");
-const canvas = document.getElementById("fps-canvas");
-const ctx = canvas.getContext("2d");
+const canvas = /** @type {HTMLCanvasElement} */ (document.getElementById("fps-canvas"));
+const ctx = /** @type {CanvasRenderingContext2D} */ (canvas.getContext("2d"));
 const startBtn = document.getElementById("start-bench");
 const cpuBtn = document.getElementById("mode-cpu");
 const gpuBtn = document.getElementById("mode-gpu");
@@ -80,14 +80,14 @@ const updateStats = () => {
   const avg = Math.round(
     fpsHistory.reduce((a, b) => a + b, 0) / fpsHistory.length,
   );
-  avgEl.textContent = avg;
+  avgEl.textContent = avg.toString();
 
   const sorted = [...fpsHistory].sort((a, b) => a - b);
   const lowIndex = Math.max(0, Math.floor(fpsHistory.length * 0.01));
-  lowEl.textContent = sorted[lowIndex];
+  lowEl.textContent = sorted[lowIndex].toString();
 
   if (state.mapData && state.mapData.items) {
-    markerEl.textContent = state.mapData.items.length;
+    markerEl.textContent = state.mapData.items.length.toString();
   }
 };
 
@@ -146,7 +146,7 @@ const runStressTest = async (autoCompare = false) => {
   const allItems = state.mapData.items.filter((item) => item.x && item.y);
   if (allItems.length === 0) {
     log(
-      "Error: No marker data found for testing (Check x/y coordinates)",
+      "오류: 테스트할 마커 데이터를 찾을 수 없습니다 (x/y 좌표 확인)",
       "error",
     );
     isBenchmarking = false;
@@ -220,7 +220,7 @@ const runStressTest = async (autoCompare = false) => {
     log(`--- PERFORMANCE COMPARISON ---`, "success");
     log(`GPU Gain: ${diff > 0 ? "+" : ""}${diff}%`);
     alert(
-      `BENCHMARK COMPLETE\n\nCPU: ${cpu.avg} FPS\nGPU: ${gpu.avg} FPS\nGAIN: ${diff}%`,
+      `벤치마크 완료\n\nCPU: ${cpu.avg} FPS\nGPU: ${gpu.avg} FPS\n증가율: ${diff}%`,
     );
   }
 

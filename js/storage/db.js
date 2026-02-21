@@ -93,9 +93,9 @@ export const db = {
     },
 
     /**
-     * Gets a specific backup by ID.
-     * @param {number} id - The backup ID.
-     * @returns {Promise<Object|null>} The backup entry.
+     * ID로 특정 백업을 가져옵니다.
+     * @param {number} id - 백업 ID.
+     * @returns {Promise<Object|null>} 백업 엔트리.
      */
     get: async (id) => {
         try {
@@ -109,8 +109,8 @@ export const db = {
     },
 
     /**
-     * Deletes old backups, keeping only the latest N.
-     * @param {number} [keep=50] - Number of backups to keep.
+     * 오래된 백업을 삭제하고 최근 N개만 유지합니다.
+     * @param {number} [keep=50] - 유지할 백업 수.
      */
     prune: async (keep = 50) => {
         try {
@@ -372,9 +372,9 @@ export const primaryDb = {
     },
 
     /**
-     * Imports data from a backup (with safety checks).
-     * @param {Object<string, {value: any, updatedAt?: number, version?: number}>} data - Data to import.
-     * @param {boolean} [overwrite=false] - Whether to overwrite existing data.
+     * 백업에서 데이터를 가져옵니다 (안전 검사 포함).
+     * @param {Object<string, {value: any, updatedAt?: number, version?: number}>} data - 가져올 데이터.
+     * @param {boolean} [overwrite=false] - 기존 데이터 덮어쓰기 여부.
      * @returns {Promise<{success: boolean, imported: number, skipped: number, error?: string}>}
      */
     importAll: async (data, overwrite = false) => {

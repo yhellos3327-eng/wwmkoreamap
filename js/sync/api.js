@@ -2,16 +2,14 @@
 import { BACKEND_URL } from "../config.js";
 
 /**
- * Fetches user data from the cloud.
- * @returns {Promise<{data: any|null, version: number}>} The cloud data and version.
+ * 클라우드에서 사용자 데이터를 가져옵니다.
+ * @returns {Promise<{data: any|null, version: number}>} 클라우드 데이터 및 버전.
  */
 export const fetchCloudData = async () => {
   const response = await fetch(`${BACKEND_URL}/api/sync/load`, {
     credentials: "include",
   });
-  if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
   const result = await response.json();
-  // Backend returns: { success, data: {...}, version: N }
   return {
     data: result.success ? result.data : null,
     version: result.version || 0
@@ -19,10 +17,10 @@ export const fetchCloudData = async () => {
 };
 
 /**
- * Saves user data to the cloud.
- * @param {any} data - The data to save.
- * @param {number|undefined} expectedVersion - The expected server version for optimistic locking.
- * @returns {Promise<any>} The save response.
+ * 사용자 데이터를 클라우드에 저장합니다.
+ * @param {any} data - 저장할 데이터.
+ * @param {number|undefined} expectedVersion - 낙관적 잠금을 위한 예상 서버 버전.
+ * @returns {Promise<any>} 저장 응답.
  */
 export const saveCloudData = async (data, expectedVersion = undefined) => {
   const payload = { ...data };
@@ -37,10 +35,10 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
     body: JSON.stringify(payload),
   });
 
-  // Handle Conflict (409) specifically
+  // 충돌(409) 처리
   if (response.status === 409) {
     const errorData = await response.json();
-    const error = new Error(`Conflict detected: ${errorData.message}`);
+    const error = /** @type {any} */ (new Error(`Conflict detected: ${errorData.message}`));
     error.name = "VersionConflictError";
     error.serverVersion = errorData.currentVersion;
     throw error;
@@ -51,8 +49,8 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
 };
 
 /**
- * Fetches the list of backups from the cloud.
- * @returns {Promise<any[]>} Array of backups.
+ * 클라우드에서 백업 목록을 가져옵니다.
+ * @returns {Promise<any[]>} 백업 목록 배열.
  */
 export const fetchBackupList = async () => {
   const response = await fetch(`${BACKEND_URL}/api/backup/list`, {
@@ -64,10 +62,10 @@ export const fetchBackupList = async () => {
 };
 
 /**
- * Creates a cloud backup.
- * @param {string|null} [label=null] - Optional backup label.
- * @param {any|null} [data=null] - Optional data to backup directly (overrides server state).
- * @returns {Promise<any>} The save response.
+ * 클라우드 백업을 생성합니다.
+ * @param {string|null} [label=null] - 선택적 백업 레이블.
+ * @param {any|null} [data=null] - 직접 백업할 선택적 데이터 (서버 상태를 덮어씀).
+ * @returns {Promise<any>} 저장 응답.
  */
 export const saveCloudBackup = async (label = null, data = null) => {
   const payload = { label };
@@ -86,9 +84,9 @@ export const saveCloudBackup = async (label = null, data = null) => {
 };
 
 /**
- * Restores data from a backup.
- * @param {string} backupId - The backup ID to restore.
- * @returns {Promise<any>} The restore response.
+ * 백업에서 데이터를 복원합니다.
+ * @param {string} backupId - 복원할 백업 ID.
+ * @returns {Promise<any>} 복원 응답.
  */
 export const restoreFromBackup = async (backupId) => {
   const response = await fetch(
