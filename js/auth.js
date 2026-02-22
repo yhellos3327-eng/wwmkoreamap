@@ -192,6 +192,15 @@ export const logout = async () => {
     if (!result || !result.success) {
       console.error("Failed to delete test user", result);
     }
+
+    if (currentUser && currentUser.provider !== "test") {
+      try {
+        await fetch(`${BACKEND_URL}/auth/logout`, { credentials: "include" });
+      } catch (e) {
+        console.warn("Backend logout request failed", e);
+      }
+    }
+
     currentUser = null;
     updateAuthUI();
     return;
