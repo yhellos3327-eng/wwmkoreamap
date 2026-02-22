@@ -192,6 +192,15 @@ export const logout = async () => {
     if (!result || !result.success) {
       console.error("Failed to delete test user", result);
     }
+
+    if (currentUser && currentUser.provider !== "test") {
+      try {
+        await fetch(`${BACKEND_URL}/auth/logout`, { credentials: "include" });
+      } catch (e) {
+        console.warn("Backend logout request failed", e);
+      }
+    }
+
     currentUser = null;
     updateAuthUI();
     return;
@@ -261,6 +270,35 @@ export const updateAuthUI = () => {
 export async function initAuth() {
   await checkAuthStatus();
 
+  const kakaoBtn = document.getElementById("btn-kakao-login");
+  const googleBtn = document.getElementById("btn-google-login");
+  const testBtn = document.getElementById("btn-test-login");
+  const logoutBtn = document.getElementById("btn-logout");
+
+  if (kakaoBtn) {
+    kakaoBtn.addEventListener("click", () => loginWithProvider("kakao"));
+  }
+
+  if (googleBtn) {
+    googleBtn.addEventListener("click", () => loginWithProvider("google"));
+  }
+
+  if (testBtn) {
+    testBtn.addEventListener("click", testLogin);
+  }
+
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", logout);
+  }
+
+  updateAuthUI();
+
+  console.log("[Auth] Initialized", {
+    isLocalDev: isLocalDev(),
+    isLoggedIn: isLoggedIn(),
+    user: getCurrentUser(),
+  });
+
   if (isLoggedIn()) {
     await initSync();
     import("./map/community.js").then(({ fetchUserCompletions }) => {
@@ -268,32 +306,3 @@ export async function initAuth() {
     }).catch(() => { });
   }
 }
-
-const kakaoBtn = document.getElementById("btn-kakao-login");
-const googleBtn = document.getElementById("btn-google-login");
-const testBtn = document.getElementById("btn-test-login");
-const logoutBtn = document.getElementById("btn-logout");
-
-if (kakaoBtn) {
-  kakaoBtn.addEventListener("click", () => loginWithProvider("kakao"));
-}
-
-if (googleBtn) {
-  googleBtn.addEventListener("click", () => loginWithProvider("google"));
-}
-
-if (testBtn) {
-  testBtn.addEventListener("click", testLogin);
-}
-
-if (logoutBtn) {
-  logoutBtn.addEventListener("click", logout);
-}
-
-updateAuthUI();
-
-console.log("[Auth] Initialized", {
-  isLocalDev: isLocalDev(),
-  isLoggedIn: isLoggedIn(),
-  user: getCurrentUser(),
-});
