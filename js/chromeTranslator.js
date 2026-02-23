@@ -173,7 +173,7 @@ export const getLanguageDetector = async (onProgress = null) => {
  */
 export const detectLanguage = async (text) => {
   if (!text || text.trim().length < 3) {
-    return [{ detectedLanguage: "unknown", confidence: 0 }];
+    return [{ language: "unknown", confidence: 0 }];
   }
 
   try {
@@ -182,7 +182,7 @@ export const detectLanguage = async (text) => {
     return results;
   } catch (error) {
     console.error("Language detection failed:", error);
-    return [{ detectedLanguage: "unknown", confidence: 0 }];
+    return [{ language: "unknown", confidence: 0 }];
   }
 };
 
@@ -231,8 +231,8 @@ export const translateText = async (
   if (!detectedSource) {
     try {
       const detection = await detectLanguage(text);
-      if (detection.length > 0 && detection[0].confidence > 0.5) {
-        detectedSource = detection[0].detectedLanguage;
+      if (detection && detection.length > 0 && detection[0].confidence > 0.5) {
+        detectedSource = detection[0].language || "zh";
       } else {
         detectedSource = "zh";
       }
@@ -243,9 +243,10 @@ export const translateText = async (
   }
 
   if (
-    detectedSource === targetLanguage ||
-    detectedSource === "ko" ||
-    detectedSource.startsWith("ko-")
+    detectedSource &&
+    (detectedSource === targetLanguage ||
+      detectedSource === "ko" ||
+      detectedSource.startsWith("ko-"))
   ) {
     return text;
   }
