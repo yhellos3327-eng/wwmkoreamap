@@ -33,19 +33,26 @@ export const moveToLocation = (
 
   const currentZoom = state.map.getZoom();
   const targetZoom = currentZoom > 11 ? currentZoom : 11;
-  state.map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
+
+  // Use a promise to track animation completion
+  const flyToPromise = new Promise((resolve) => {
+    state.map.once("moveend", resolve);
+    state.map.flyTo(latlng, targetZoom, { animate: true, duration: 0.8 });
+  });
 
   if (isGpuRenderingAvailable()) {
     const id =
       itemId ||
       (marker && marker.markerData ? marker.markerData.item.id : null);
     if (id) {
-      const sprite = state.pixiContainer?.children.find(
-        (s) => s.markerData && String(s.markerData.item.id) === String(id),
-      );
-      if (sprite) {
-        setTimeout(() => showPopupForSprite(sprite), 300);
-      }
+      flyToPromise.then(() => {
+        const sprite = state.pixiContainer?.children.find(
+          (s) => s.markerData && String(s.markerData.item.id) === String(id),
+        );
+        if (sprite) {
+          setTimeout(() => showPopupForSprite(sprite), 100);
+        }
+      });
     }
     return;
   }
@@ -58,13 +65,16 @@ export const moveToLocation = (
       if (btn) btn.classList.add("active");
     }
 
-    if (state.enableClustering && state.markerClusterGroup) {
-      state.markerClusterGroup.zoomToShowLayer(marker, () => {
+    flyToPromise.then(() => {
+      if (state.enableClustering && state.markerClusterGroup) {
+        state.markerClusterGroup.zoomToShowLayer(marker, () => {
+          setTimeout(() => marker.openPopup(), 100);
+        });
+      } else {
+        if (!state.map.hasLayer(marker)) state.map.addLayer(marker);
         setTimeout(() => marker.openPopup(), 100);
-      });
-    } else {
-      if (!state.map.hasLayer(marker)) state.map.addLayer(marker);
-      setTimeout(() => marker.openPopup(), 300);
-    }
+      }
+    });
   }
 };
+

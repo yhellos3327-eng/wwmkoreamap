@@ -353,29 +353,51 @@ export const expandRelated = (btn) => {
  * @param {string|number} id - The item ID.
  */
 export const jumpToId = (id) => {
+  console.log("[Navigation] jumpToId called with:", id);
+
+  // Close sidebar on mobile/small screens to show the map
+  if (window.innerWidth <= 768) {
+    import("./sidebar.js").then(({ toggleSidebar }) => {
+      toggleSidebar("close");
+    });
+  }
+
+  // Close AI chat or other modals if they might be covering the map
+  const aiChatModal = document.getElementById("ai-chat-modal");
+  if (aiChatModal && !aiChatModal.classList.contains("hidden")) {
+    aiChatModal.classList.add("hidden");
+  }
+
   let target = /** @type {MarkerInfo} */ (
     state.allMarkers.get(id) || state.allMarkers.get(String(id))
   );
 
   if (!target) {
-    const item = state.mapData.items.find(i => String(i.id) === String(id));
+    const item = state.mapData.items.find((i) => String(i.id) === String(id));
     if (item) {
-      import("../map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
-        const sprite = getSpriteById(id);
-        moveToLocation(
-          [parseFloat(item.x), parseFloat(item.y)],
-          sprite,
-          item.forceRegion || item.region,
-          item.id
-        );
-      });
+      console.log("[Navigation] Found item in mapData, moving to location");
+      import("../map/pixiOverlay/spriteFactory.js").then(
+        ({ getSpriteById }) => {
+          const sprite = getSpriteById(id);
+          moveToLocation(
+            [parseFloat(item.x), parseFloat(item.y)],
+            sprite,
+            item.forceRegion || item.region,
+            item.id,
+          );
+        },
+      );
       return;
     }
+    console.warn("[Navigation] jumpToId: target not found for ID", id);
   }
   if (target) {
     const latlng = target.marker
       ? target.marker.getLatLng()
       : [target.lat, target.lng];
+
+    console.log("[Navigation] Target found, jumping to:", latlng, "Region:", target.region);
+
     moveToLocation(
       latlng,
       target.marker || target.sprite,
@@ -384,6 +406,7 @@ export const jumpToId = (id) => {
     );
   }
 };
+
 
 /**
  * Finds an item by ID, activates necessary filters, and navigates to it.

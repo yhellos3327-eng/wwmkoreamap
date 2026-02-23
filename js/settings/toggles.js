@@ -32,7 +32,6 @@ export const initAdToggle = async () => {
 
   toggleAd.checked = showAd;
   adContainer.style.display = showAd ? "block" : "none";
-
   toggleAd.addEventListener("change", async (e) => {
     const isChecked = /** @type {HTMLInputElement} */ (e.target).checked;
     try {
