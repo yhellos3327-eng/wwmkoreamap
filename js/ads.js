@@ -27,13 +27,16 @@ export function initAds() {
   const ads = [
     {
       type: "kakao",
-      weight: 100,
+      weight: 20,
       render: (container) => {
         container.innerHTML = "";
         const ins = document.createElement("ins");
         ins.className = "kakao_ad_area";
         ins.style.display = "block";
+        ins.style.borderRadius = "12px";
+        ins.style.overflow = "hidden";
         ins.setAttribute("data-ad-unit", "DAN-s2pO3hHAlyqBHTmC");
+
         ins.setAttribute("data-ad-width", "320");
         ins.setAttribute("data-ad-height", "100");
         container.appendChild(ins);
@@ -46,34 +49,8 @@ export function initAds() {
       },
     },
     {
-      type: "coffee",
-      weight: 0,
-      render: (container) => {
-        const el = document.createElement("div");
-        el.className = "ad-placeholder";
-        el.style.background = "#ffffff";
-        el.style.border = "none";
-        el.style.cursor = "pointer";
-        el.style.position = "relative";
-        el.style.display = "flex";
-        el.style.alignItems = "center";
-        el.style.justifyContent = "center";
-        el.style.overflow = "hidden";
-
-        const img = document.createElement("img");
-        img.src = "image/coffee2.png";
-        img.style.width = "120%";
-
-        el.appendChild(img);
-        el.onclick = () =>
-          window.open("https://buymeacoffee.com/wwmmap", "_blank");
-        container.innerHTML = "";
-        container.appendChild(el);
-      },
-    },
-    {
       type: "wwmtips",
-      weight: 0,
+      weight: 40,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -97,7 +74,7 @@ export function initAds() {
     },
     {
       type: "wwmkodiscord",
-      weight: 0,
+      weight: 40,
       render: (container) => {
         const el = document.createElement("div");
         el.className = "ad-placeholder";
@@ -119,35 +96,8 @@ export function initAds() {
         container.appendChild(el);
       },
     },
-    {
-      type: "public",
-      weight: 0,
-      render: (container) => {
-        const el = createAdElement(
-          "공익 광고 캠페인",
-          "수익 미발생",
-          "#2ecc71",
-          "#ffffff",
-        );
-        container.innerHTML = "";
-        container.appendChild(el);
-      },
-    },
-    {
-      type: "alliance",
-      weight: 0,
-      render: (container) => {
-        const el = createAdElement(
-          "자체 광고",
-          "수익 미발생",
-          "#3498db",
-          "#ffffff",
-        );
-        container.innerHTML = "";
-        container.appendChild(el);
-      },
-    },
   ];
+
 
   /**
    * 가중치를 기반으로 랜덤 광고를 표시합니다.
@@ -172,6 +122,7 @@ export function initAds() {
     currentAdType = selectedAd.type;
     selectedAd.render(adContainer);
   }
+
 
   showRandomAd();
   setInterval(showRandomAd, 30000);
