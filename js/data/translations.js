@@ -157,7 +157,12 @@ const parseImageField = (imageRaw, key) => {
     return content
       .split("|")
       .map((v) => {
+
         let path = v.trim();
+        // 앞뒤 따옴표 제거 (CSV 수동 작성 시 포함될 수 있음)
+        if ((path.startsWith('"') && path.endsWith('"')) || (path.startsWith("'") && path.endsWith("'"))) {
+          path = path.slice(1, -1).trim();
+        }
         if (path.includes("{id}")) {
           path = path.replace("{id}", key);
         }
@@ -166,12 +171,17 @@ const parseImageField = (imageRaw, key) => {
       .filter((v) => v !== "");
   } else {
     let path = trimmed;
+    // 앞뒤 따옴표 제거
+    if ((path.startsWith('"') && path.endsWith('"')) || (path.startsWith("'") && path.endsWith("'"))) {
+      path = path.slice(1, -1).trim();
+    }
     if (path.includes("{id}")) {
       path = path.replace("{id}", key);
     }
     return path;
   }
 };
+
 
 /**
  * 비디오 필드를 파싱합니다.

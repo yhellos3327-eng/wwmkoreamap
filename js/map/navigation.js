@@ -43,11 +43,11 @@ export const moveToLocation = (
   if (isGpuRenderingAvailable()) {
     const id =
       itemId ||
-      (marker && marker.markerData ? marker.markerData.item.id : null);
+      (marker && marker.markerData?.item ? marker.markerData.item.id : null);
     if (id) {
       flyToPromise.then(() => {
         const sprite = state.pixiContainer?.children.find(
-          (s) => s.markerData && String(s.markerData.item.id) === String(id),
+          (s) => s.markerData?.item?.id && String(s.markerData.item.id) === String(id),
         );
         if (sprite) {
           setTimeout(() => showPopupForSprite(sprite), 100);
