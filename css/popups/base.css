@@ -241,14 +241,99 @@
 
 .popup-content ul,
 .popup-content ol {
-    margin: 6px 0 10px 20px;
+    margin: 12px 0;
     padding: 0;
+    list-style: none;
 }
 
 .popup-content li {
-    margin-bottom: 4px;
+    position: relative;
+    padding-left: 18px;
+    margin-bottom: 6px;
     line-height: 1.6;
+    font-size: 0.88rem;
 }
+
+.popup-content li::before {
+    content: "•";
+    position: absolute;
+    left: 4px;
+    color: var(--accent);
+    font-weight: bold;
+    font-size: 1.2rem;
+    line-height: 1.2;
+}
+
+/* 참고 자료 전용 스타일 */
+.reference-thread {
+    margin-top: 14px;
+    padding-top: 4px;
+    border-top: 1px dashed var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.reference-thread .reference-item {
+    margin-top: 0;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    border-top: none;
+}
+
+.reference-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+}
+
+
+
+.ref-icon {
+    width: 12px;
+    height: 12px;
+    color: var(--accent);
+    opacity: 0.7;
+    transition: transform 0.3s ease;
+}
+
+.reference-item a {
+    color: var(--accent) !important;
+    text-decoration: none !important;
+    font-weight: 500;
+    position: relative;
+    padding-bottom: 2px;
+}
+
+.reference-item a::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: var(--accent);
+    transform: scaleX(0.3);
+    transform-origin: left;
+    transition: transform 0.3s ease;
+    opacity: 0.5;
+}
+
+.reference-item:hover a::after {
+    transform: scaleX(1);
+    opacity: 1;
+}
+
+.reference-item:hover .ref-icon {
+    transform: translateX(3px) rotate(15deg);
+    opacity: 1;
+}
+
+
+
+
 
 .popup-content blockquote {
     margin: 10px 0;

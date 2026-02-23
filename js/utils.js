@@ -282,37 +282,6 @@ export const parseMarkdown = (text) => {
   if (!text) return "";
   let html = text;
 
-  // 1. 목록 - 강조(*)와의 충돌을 피하기 위해 블록 수준 목록을 먼저 처리
-  html = html.replace(
-    /(^|\r?\n)((?:[-*] .+(?:\r?\n|$))+)/g,
-    (match, prefix, list) => {
-      const items = list
-        .trim()
-        .split(/\r?\n/)
-        .map((line) => {
-          return `<li>${line.replace(/^[-*] /, "")}</li>`;
-        })
-        .join("");
-      return `${prefix}<ul>${items}</ul>`;
-    },
-  );
-
-  // 2. Headers
-  html = html.replace(/^### (.*$)/gm, "<h3>$1</h3>");
-  html = html.replace(/^## (.*$)/gm, "<h2>$1</h2>");
-  html = html.replace(/^# (.*$)/gm, "<h1>$1</h1>");
-
-  // 3. Blockquotes
-  html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
-
-  // 4. Code Blocks
-  html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
-  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
-
-  // 5. HR
-  html = html.replace(/^---$/gm, "<hr>");
-
-  // 6. Images & Links
   const sanitizeUrl = (url) => {
     if (!url) return "";
     let decoded;
@@ -341,6 +310,49 @@ export const parseMarkdown = (text) => {
         })[c],
     );
 
+  // 1. 목록 - 강조(*)와의 충돌을 피하기 위해 블록 수준 목록을 먼저 처리
+
+  html = html.replace(
+    /(^|\r?\n)((?:[-*] .+(?:\r?\n|$))+)/g,
+    (match, prefix, list) => {
+      const items = list
+        .trim()
+        .split(/\r?\n/)
+        .map((line) => {
+          return `<li>${line.replace(/^[-*] /, "")}</li>`;
+        })
+        .join("");
+      return `${prefix}<ul>${items}</ul>`;
+    },
+  );
+
+  // 2. Headers
+  html = html.replace(/(?:^|[\r\n]|<br\s*\/?>)\s*### (.*$)/gm, "<h3>$1</h3>");
+  html = html.replace(/(?:^|[\r\n]|<br\s*\/?>)\s*## (.*$)/gm, "<h2>$1</h2>");
+  html = html.replace(/(?:^|[\r\n]|<br\s*\/?>)\s*# (.*$)/gm, "<h1>$1</h1>");
+
+  // 3. Blockquotes
+  html = html.replace(/^> (.*$)/gm, "<blockquote>$1</blockquote>");
+
+  // 4. Code Blocks
+  html = html.replace(/```([\s\S]*?)```/g, "<pre><code>$1</code></pre>");
+  html = html.replace(/`([^`]+)`/g, "<code>$1</code>");
+
+  // 5. HR
+  html = html.replace(/^---$/gm, "<hr>");
+
+  // 6. Custom Reference Item (Placeholder to prevent link parser collision)
+  const refPlaceholders = [];
+  html = html.replace(
+    /@{ref}(\[.*?\](?:\(.*?\))?)/g,
+    (match, content) => {
+      const placeholder = `__REF_PLACEHOLDER_${refPlaceholders.length}__`;
+      refPlaceholders.push({ placeholder, content });
+      return placeholder;
+    }
+  );
+
+  // 7. Images & Links
   html = html.replace(
     /!\[([^\]]*)\]\(([^)]+)\)/g,
     (match, alt, url) =>
@@ -352,6 +364,44 @@ export const parseMarkdown = (text) => {
     (match, text, url) =>
       `<a href="${sanitizeUrl(url)}" target="_blank" style="color: var(--accent); text-decoration: underline;">${escapeHtml(text)}</a>`,
   );
+
+  refPlaceholders.forEach(({ placeholder, content }) => {
+    let refHtml = "";
+    if (content.includes("{t:")) {
+      const cleanContent = content.startsWith("[") && content.endsWith("]")
+        ? content.slice(1, -1)
+        : content;
+
+      const items = cleanContent.split("|").map(item => {
+        const titleMatch = item.match(/t:(.*?),/);
+        const urlMatch = item.match(/u:(.*?)(?:}|$)/);
+        if (titleMatch && urlMatch) {
+          return { title: titleMatch[1].trim(), url: sanitizeUrl(urlMatch[1].trim()) };
+        }
+        return null;
+      }).filter(Boolean);
+
+      if (items.length > 0) {
+        const listHtml = items.map(item => `
+          <div class="reference-item">
+            <svg class="ref-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+            </svg>
+            <a href="${item.url}" target="_blank">${escapeHtml(item.title)}</a>
+          </div>`).join("");
+        refHtml = `<div class="reference-thread">${listHtml}</div>`;
+      }
+    } else {
+      const singleMatch = content.match(/\[(.*?)\]\((.*?)\)/);
+      if (singleMatch) {
+        const text = singleMatch[1].trim();
+        const url = sanitizeUrl(singleMatch[2].trim());
+        refHtml = `<div class="reference-item"><svg class="ref-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg><a href="${url}" target="_blank">${escapeHtml(text)}</a></div>`;
+      }
+    }
+    html = html.replace(placeholder, refHtml || content);
+  });
 
   // 7. Emphasis
   html = html.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
