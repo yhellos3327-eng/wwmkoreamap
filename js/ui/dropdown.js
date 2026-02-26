@@ -3,6 +3,7 @@
 import { state, setState } from "../state.js";
 import { MAP_CONFIGS } from "../config.js";
 import { loadMapData } from "../data.js";
+import { setUrlParam, removeUrlParam } from "../urlHandler.js";
 
 /**
  * @typedef {import("../config.js").MapConfig} MapConfig
@@ -32,6 +33,13 @@ export const handleMapSelection = async (
 
   setState("currentMapKey", key);
   if (selectedText) selectedText.textContent = config.name;
+
+  // URL 파라미터에 맵 키를 저장하여 새로고침 시에도 유지되도록 함
+  if (key === "qinghe") {
+    removeUrlParam("map");
+  } else {
+    setUrlParam("map", key);
+  }
 
   const allOptions = optionsContainer.querySelectorAll(".custom-option");
   allOptions.forEach((opt) => opt.classList.remove("selected"));
