@@ -1,0 +1,15 @@
+{
+    "message": "操作成功",
+    "data": [
+        {
+            "mapId": 3005,
+            "title": "하서",
+            "zoom": 11,
+            "latitude": "1.02",
+            "longitude": "-0.75",
+            "coordinates": [],
+            "id": 99,
+            "map_id": 3005
+        }
+    ]
+}
