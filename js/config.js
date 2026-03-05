@@ -70,6 +70,21 @@ export const MAP_CONFIGS = {
     zoom: 11,
     tilePadding: 1.0,
   },
+  liangzhou: {
+    id: 3005,
+    name: "하서",
+    tileUrl:
+      "https://ue.17173cdn.com/a/terra/tiles/yysls/3005_v4_y675ty/{z}/{y}_{x}.png?v2",
+    dataFile: "./data3.json",
+    newDataFile: "./data5.csv",
+    regionFile: "./regions3.json",
+    minZoom: 9,
+    maxZoom: 14,
+    maxNativeZoom: 13,
+    center: [1.02, -0.75],
+    zoom: 11,
+    tilePadding: 1.0,
+  },
 };
 
 /** @type {Object.<string, null>} */

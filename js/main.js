@@ -8,7 +8,7 @@ import { state, setState, subscribe, initStateFromVault } from "./state.js";
 import { loadMapData } from "./data.js";
 import { renderMapDataAndMarkers } from "./map.js";
 import { renderFavorites, initCustomDropdown, renderModalList } from "./ui.js";
-import { initMainNotice } from "./main-notice.js";
+import { initMainNotice, initDataSourceNotice } from "./main-notice.js";
 import { initAuth } from "./auth.js";
 import { initSearch, initModalSearch } from "./search.js";
 import { initAllEventHandlers } from "./events.js";
@@ -35,6 +35,7 @@ const setupLoadingSubscription = () => {
     // 로딩이 완료되면 메인 공지사항을 표시하고 스켈레톤 상태를 제거합니다.
     if (!loadingState.isVisible) {
       initMainNotice()
+        .then(() => initDataSourceNotice())
         .then(() => {
           // 페이지에서 남아있는 스켈레톤 상태 제거
           document.querySelectorAll(".skeleton-loading").forEach((el) => {

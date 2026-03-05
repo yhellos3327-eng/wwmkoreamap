@@ -82,6 +82,14 @@ export const loadTranslations = async (mapKey) => {
       console.warn("translation2.csv not found or failed to load", e);
     }
   }
+
+  if (mapKey === "liangzhou") {
+    try {
+      await fetchAndParseCSVChunks("./translation3.csv", processCSVChunk);
+    } catch (e) {
+      console.warn("translation3.csv not found or failed to load", e);
+    }
+  }
 };
 
 /**
