@@ -44,6 +44,9 @@ function createDataSourceToast() {
                 </div>
                 <div class="main-toast-body">
                     <p>모든 데이터와 이미지는 <strong>17173 사이트</strong> 기반입니다. 글로벌 서버 정보와 차이가 있을 수 있습니다.</p>
+                    <p style="font-size: 0.85rem; color: #888; margin-top: 8px;">
+                        잘못된 정보 발견 시 <a href="#" id="link-to-arca" style="color: #007aff; text-decoration: underline;">아카라이브 채널</a>에 제보를 하거나, <strong>커뮤니티 모드</strong>에서 직접 정보를 추가하실 수 있습니다.
+                    </p>
                 </div>
                 <div class="main-toast-footer">
                     <label class="main-toast-dont-show">
@@ -60,6 +63,11 @@ function createDataSourceToast() {
 
     document.getElementById('btn-close-ds-x').addEventListener('click', closeDataSourceToast);
     document.getElementById('btn-close-ds-toast').addEventListener('click', closeDataSourceToast);
+
+    document.getElementById('link-to-arca').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('open-arca-channel')?.click();
+    });
 }
 
 function injectToastIntoDOM(html, id, closeFn) {
