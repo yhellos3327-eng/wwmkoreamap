@@ -69,7 +69,7 @@ export const loadComments = async (itemId, forceRefresh = false) => {
       // Fetch votes in background to update UI
       const commentIds = Array.from(
         container.querySelectorAll(".comment-item"),
-      ).map((el) => /** @type {HTMLElement} */ (el).dataset.id);
+      ).map((el) => /** @type {HTMLElement} */(el).dataset.id);
       if (commentIds.length > 0) {
         fetchBatchVotes(commentIds);
       }
