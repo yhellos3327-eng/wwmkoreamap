@@ -96,6 +96,41 @@ export function initAds() {
         container.appendChild(el);
       },
     },
+    {
+      type: "wwmapp",
+      weight: 40,
+      render: (container) => {
+        const el = document.createElement("div");
+        el.className = "ad-placeholder";
+
+        // Premium Background
+        el.style.background = "linear-gradient(135deg, #1a1c2e 0%, #2a2d45 100%)";
+        el.style.borderRadius = "12px";
+        el.style.cursor = "pointer";
+        el.style.position = "relative";
+        el.style.display = "flex";
+        el.style.alignItems = "center";
+        el.style.justifyContent = "center";
+        el.style.overflow = "hidden";
+        el.style.padding = "10px";
+        el.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.2)";
+
+        const title = document.createElement("span");
+        title.textContent = "연운 스케줄러";
+        title.style.color = "#fff";
+        title.style.fontSize = "32px";
+        title.style.fontWeight = "800";
+        title.style.letterSpacing = "-0.02em";
+        title.style.fontFamily = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+
+        el.appendChild(title);
+
+        el.onclick = () => window.open("https://wwm-app.com/ko", "_blank");
+
+        container.innerHTML = "";
+        container.appendChild(el);
+      },
+    },
   ];
 
 
