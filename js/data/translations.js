@@ -90,6 +90,13 @@ export const loadTranslations = async (mapKey) => {
       console.warn("translation3.csv not found or failed to load", e);
     }
   }
+  if (mapKey === "yumenguan") {
+    try {
+      await fetchAndParseCSVChunks("./translation4.csv", processCSVChunk);
+    } catch (e) {
+      console.warn("translation4.csv not found or failed to load", e);
+    }
+  }
 };
 
 /**

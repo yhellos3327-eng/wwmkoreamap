@@ -71,6 +71,10 @@ export const initMap = async (mapKey) => {
     map.on("moveend", () => {
       setState("isDragging", false);
 
+      const center = map.getCenter();
+      const zoom = map.getZoom();
+      console.log(`Current Map View: center: [${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}], zoom: ${zoom}`);
+
       import("./regions.js").then(({ updateRegionOverlay }) =>
         updateRegionOverlay(),
       );

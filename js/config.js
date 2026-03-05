@@ -70,6 +70,21 @@ export const MAP_CONFIGS = {
     zoom: 11,
     tilePadding: 1.0,
   },
+  yumenguan: {
+    id: 3004,
+    name: "옥문관",
+    tileUrl:
+      "https://ue.17173cdn.com/a/terra/tiles/yysls/3004_v1_kd5j9n/{z}/{y}_{x}.png?v2",
+    dataFile: "./data4.json",
+    newDataFile: "./data6.csv",
+    regionFile: null,
+    minZoom: 9,
+    maxZoom: 14,
+    maxNativeZoom: 13,
+    center: [0.8130, -0.8781],
+    zoom: 11,
+    tilePadding: 1.0,
+  },
   liangzhou: {
     id: 3005,
     name: "하서",
