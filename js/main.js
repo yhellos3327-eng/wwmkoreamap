@@ -261,7 +261,6 @@ const verifyDataIntegrity = async () => {
  */
 const initializeApp = async () => {
   await initTheme();
-  initAudioManager();
   initMigration();
 
   if (isOldDomain()) {
@@ -281,6 +280,7 @@ const initializeApp = async () => {
 
   try {
     await loadAllComponents();
+    initAudioManager();
 
     if (!document.body.classList.contains("embed-mode")) {
       document.body.classList.add("sidebar-open");
