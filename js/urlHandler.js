@@ -27,10 +27,6 @@ export const handleUrlParams = () => {
     if (sidebar) sidebar.classList.add("collapsed");
   }
 
-  if (urlParams.get("overlay") === "true") {
-    document.body.classList.add("overlay-mode");
-  }
-
   if (urlParams.get("page") === "quest" || urlParams.get("mode") === "quest") {
     document.body.classList.add("quest-page-mode");
   }
