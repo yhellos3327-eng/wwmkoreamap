@@ -17,6 +17,7 @@ export const initAudioManager = () => {
 
     // @ts-ignore
     window.onYouTubeIframeAPIReady = () => {
+        console.log("YouTube API Ready");
         isApiLoaded = true;
         createPlayer();
         initAudioUI();
@@ -33,18 +34,18 @@ export const initAudioManager = () => {
 };
 
 const createPlayer = () => {
+    const audioBar = document.getElementById('bgm-audio-bar');
     let container = document.getElementById('youtube-bgm-container');
+
     if (!container) {
         container = document.createElement('div');
         container.id = 'youtube-bgm-container';
-        container.style.position = 'absolute';
-        container.style.top = '-9999px';
-        container.style.left = '-9999px';
-        container.style.width = '1px';
-        container.style.height = '1px';
-        container.style.pointerEvents = 'none';
-        container.style.opacity = '0';
-        document.body.appendChild(container);
+        // Container styling moved mostly to CSS for hover effect
+        if (audioBar) {
+            audioBar.appendChild(container);
+        } else {
+            document.body.appendChild(container);
+        }
     }
 
     const playerDiv = document.createElement('div');
@@ -55,7 +56,7 @@ const createPlayer = () => {
     player = new window.YT.Player('youtube-bgm-active-player', {
         height: '100%',
         width: '100%',
-        videoId: '',
+        // videoId is omitted. Providing an invalid ID causes player loading issues.
         playerVars: {
             'autoplay': 1,
             'controls': 0,
@@ -64,7 +65,7 @@ const createPlayer = () => {
             'rel': 0,
             'showinfo': 0,
             'modestbranding': 1,
-            'origin': window.location.origin
+            // Origin removed to reduce cross-domain issues in some environments
         },
         events: {
             'onReady': (/** @type {any} */ event) => {
@@ -123,17 +124,22 @@ export const playBgm = (mapKey) => {
 const playBgmById = (id) => {
     if (!player) return;
 
+    // Use loadVideoById, but we must handle the play promise if applicable, though YT API doesn't use promises.
     player.loadVideoById({
         videoId: id,
         suggestedQuality: 'small'
     });
 
-    player.unMute();
-    if (player.setVolume) {
-        player.setVolume(currentVolume);
-    }
-    player.playVideo();
-    updateAudioUI();
+    // small delay to ensure video load starts before unmuting/playing
+    setTimeout(() => {
+        if (player.unMute) player.unMute();
+        if (player.setVolume) player.setVolume(currentVolume);
+
+        // Browsers block autoplay for unmuted audio. This will likely fail until user interacts.
+        // The state will go to PAUSED or UNSTARTED, and UI will update via onStateChange.
+        if (player.playVideo) player.playVideo();
+        updateAudioUI();
+    }, 100);
 };
 
 /**
@@ -263,11 +269,21 @@ const updateAudioUI = () => {
         }
     }
 
-    if (titleEl && player.getVideoData) {
-        const videoData = player.getVideoData();
-        if (videoData && videoData.title) {
-            titleEl.textContent = videoData.title;
+    if (titleEl) {
+        let newTitle = "재생 대기 중...";
+        if (player.getVideoData) {
+            const videoData = player.getVideoData();
+            if (videoData && videoData.title) {
+                newTitle = videoData.title;
+            }
         }
+
+        // @ts-ignore
+        if (state === window.YT.PlayerState.UNSTARTED || state === window.YT.PlayerState.CUED) {
+            newTitle = "재생 대기 중... (시작 버튼을 누르세요)";
+        }
+
+        titleEl.textContent = newTitle;
     }
 };
 

@@ -182,6 +182,7 @@
   width: 60px;
   height: 4px;
   -webkit-appearance: none;
+  appearance: none;
   background: var(--border);
   border-radius: 2px;
   outline: none;
@@ -214,4 +215,35 @@
 /* Sidebar padding adjustment for the bar */
 .sidebar {
   padding-bottom: 64px !important;
+}
+/* BGM Video Hover Preview */
+#youtube-bgm-container {
+  position: absolute;
+  bottom: 72px;
+  right: 16px;
+  width: 240px;
+  height: 135px;
+  background: var(--bg-item);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(10px) scale(0.95);
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1002;
+  backdrop-filter: blur(10px);
+}
+
+.bgm-audio-bar:hover #youtube-bgm-container {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+#youtube-bgm-active-player {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
 }

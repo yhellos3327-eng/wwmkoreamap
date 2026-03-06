@@ -85,7 +85,7 @@ export const MAP_CONFIGS = {
     center: [0.8130, -0.8781],
     zoom: 11,
     tilePadding: 1.0,
-    bgmId: "H6F_00P_0gM", //Placeholder
+    bgmId: "Fkc_imtLZ3k",
   },
   liangzhou: {
     id: 3005,
@@ -101,7 +101,7 @@ export const MAP_CONFIGS = {
     center: [1.02, -0.75],
     zoom: 11,
     tilePadding: 1.0,
-    bgmId: "Fkc_imtLZ3k", //Placeholder
+    bgmId: "Fkc_imtLZ3k",
   },
 };
 
