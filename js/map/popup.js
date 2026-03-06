@@ -495,7 +495,7 @@ export const initPopupEventDelegation = () => {
 
 document.addEventListener("click", (e) => {
   const targetElement =
-    e.target instanceof HTMLElement
+    e.target instanceof Element
       ? e.target.closest("[data-action]")
       : null;
   if (!targetElement || !(targetElement instanceof HTMLElement)) return;

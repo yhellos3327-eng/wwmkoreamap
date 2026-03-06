@@ -18,6 +18,7 @@
  * @property {number} zoom - 기본 줌 레벨
  * @property {number} [tilePadding] - 타일 패딩
  * @property {number[][]} [bounds] - 지도 경계 [[lat, lng], [lat, lng]]
+ * @property {string} [bgmId] - 유튜브 영상 ID
  */
 
 /** @type {Object.<string, MapConfig>} */
@@ -84,6 +85,7 @@ export const MAP_CONFIGS = {
     center: [0.8130, -0.8781],
     zoom: 11,
     tilePadding: 1.0,
+    bgmId: "H6F_00P_0gM", //Placeholder
   },
   liangzhou: {
     id: 3005,
@@ -99,6 +101,7 @@ export const MAP_CONFIGS = {
     center: [1.02, -0.75],
     zoom: 11,
     tilePadding: 1.0,
+    bgmId: "Fkc_imtLZ3k", //Placeholder
   },
 };
 

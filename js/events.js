@@ -10,6 +10,7 @@ import {
   renderContributionModal,
 } from "./ui.js";
 import { toggleCommunityMode } from "./map/community.js";
+import { toggleMute } from "./audio.js";
 
 /**
  * 탭 이벤트 리스너를 초기화합니다.
@@ -288,6 +289,7 @@ export const initQuestGuide = () => {
     if (m.initQuestGuideEvents) m.initQuestGuideEvents();
   });
 };
+
 
 /**
  * 모든 이벤트 핸들러를 초기화합니다.
