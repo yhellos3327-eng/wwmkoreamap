@@ -22,6 +22,7 @@ import { handleUrlParams, handleSharedLink } from "./urlHandler.js";
 import { initSyncHandler } from "./syncHandler.js";
 import { initDebug, loadDevToolsIfNeeded } from "./debug.js";
 import { createLogger } from "./utils/logStyles.js";
+import { initAudioManager, playBgm } from "./audio.js";
 
 const log = createLogger("Main");
 
@@ -82,6 +83,7 @@ const loadMapDataWithProgress = async () => {
 
   setTimeout(() => {
     setState("loadingState", { ...state.loadingState, isVisible: false });
+    playBgm(state.currentMapKey);
   }, 500);
 };
 
@@ -259,6 +261,7 @@ const verifyDataIntegrity = async () => {
  */
 const initializeApp = async () => {
   await initTheme();
+  initAudioManager();
   initMigration();
 
   if (isOldDomain()) {

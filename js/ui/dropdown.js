@@ -4,6 +4,7 @@ import { state, setState } from "../state.js";
 import { MAP_CONFIGS } from "../config.js";
 import { loadMapData } from "../data.js";
 import { setUrlParam, removeUrlParam } from "../urlHandler.js";
+import { playBgm } from "../audio.js";
 
 /**
  * @typedef {import("../config.js").MapConfig} MapConfig
@@ -48,6 +49,8 @@ export const handleMapSelection = async (
   customSelect.classList.remove("open");
 
   syncDropdowns(key, config.name);
+
+  playBgm(key);
 
   await loadMapData(state.currentMapKey);
 };
@@ -122,7 +125,7 @@ export const setupDropdownEvents = (customSelect, trigger) => {
   });
 
   document.addEventListener("click", (e) => {
-    if (!customSelect.contains(/** @type {Node} */ (e.target))) {
+    if (!customSelect.contains(/** @type {Node} */(e.target))) {
       customSelect.classList.remove("open");
     }
   });
