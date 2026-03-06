@@ -8,6 +8,7 @@ let isMuted = false;
 let currentBgmId = null;
 let isPlayerReady = false;
 let currentVolume = 15;
+let hasGlobalInteraction = false;
 
 /**
  * YouTube API를 로드하고 플레이어를 초기화합니다.
@@ -21,6 +22,7 @@ export const initAudioManager = () => {
         isApiLoaded = true;
         createPlayer();
         initAudioUI();
+        setupInteractionAutoplay();
     };
 
     const tag = document.createElement('script');
@@ -168,6 +170,42 @@ export const toggleMute = () => {
     }
     updateAudioUI();
     return isMuted;
+};
+
+/**
+ * 브라우저 자동 재생 정책 우회를 위한 전역 사용자 인터랙션 핸들러
+ */
+const setupInteractionAutoplay = () => {
+    const unlockAudio = (/** @type {Event} */ e) => {
+        hasGlobalInteraction = true;
+
+        // 이벤트 리스너 제거
+        document.removeEventListener('click', unlockAudio, true);
+        document.removeEventListener('keydown', unlockAudio, true);
+        document.removeEventListener('touchstart', unlockAudio, true);
+
+        // 오디오 컨트롤 바를 직접 클릭한 경우에는 버튼 핸들러에 맡김
+        if (e.target && /** @type {HTMLElement} */ (e.target).closest && /** @type {HTMLElement} */ (e.target).closest('.audio-controls')) {
+            return;
+        }
+
+        // BGM이 재생 대기 상태(UNSTARTED, CUED 등)일 경우 재생 시작
+        if (player && currentBgmId) {
+            // @ts-ignore
+            const state = player.getPlayerState();
+            // @ts-ignore
+            if (state !== window.YT.PlayerState.PLAYING && state !== window.YT.PlayerState.PAUSED) {
+                if (player.unMute) player.unMute();
+                if (player.setVolume) player.setVolume(currentVolume);
+                if (player.playVideo) player.playVideo();
+                setTimeout(updateAudioUI, 200);
+            }
+        }
+    };
+
+    document.addEventListener('click', unlockAudio, { capture: true });
+    document.addEventListener('keydown', unlockAudio, { capture: true });
+    document.addEventListener('touchstart', unlockAudio, { capture: true });
 };
 
 /**
