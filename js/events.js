@@ -29,6 +29,11 @@ export const initTabs = () => {
           c.classList.add("active");
           if (targetId === "favorite-tab") {
             import("./ui.js").then((ui) => ui.renderFavorites());
+          } else if (targetId === "wiki-tab") {
+            import("./ui/wiki.js").then((wiki) => {
+              const container = document.getElementById("global-wiki-list");
+              if (container) wiki.renderGlobalWikiHistory(container);
+            });
           }
         }
       });

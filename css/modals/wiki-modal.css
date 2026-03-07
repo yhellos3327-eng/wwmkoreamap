@@ -273,17 +273,44 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 2px 6px;
+    padding: 4px 8px;
     border-radius: 4px;
     background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-family: inherit;
+}
+
+.wiki-history-vote-btn {
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.wiki-history-vote-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-1px);
+}
+
+.wiki-history-vote-btn:active {
+    transform: translateY(0);
 }
 
 .wiki-vote-up {
     color: #4ade80;
 }
 
+.wiki-vote-up:hover {
+    border-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+}
+
 .wiki-vote-down {
     color: #f87171;
+}
+
+.wiki-vote-down:hover {
+    border-color: #f87171;
+    box-shadow: 0 0 8px rgba(248, 113, 113, 0.2);
 }
 
 .wiki-empty {

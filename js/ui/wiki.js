@@ -66,6 +66,11 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     </div>
                     
                     <div class="wiki-form-group">
+                        <label>지역 명</label>
+                        <input type="text" id="wiki-region-${itemId}" class="wiki-input" value="${targetItem.region || ''}" placeholder="예: 청하, 금주 등">
+                    </div>
+                    
+                    <div class="wiki-form-group">
                         <label>설명 (마크다운 지원) 및 미리보기</label>
                         <div class="wiki-editor-container">
                             <textarea id="wiki-desc-${itemId}" class="wiki-textarea wiki-editor-textarea" placeholder="자세한 위치나 팁을 적어주세요.">${currentDesc}</textarea>
@@ -97,7 +102,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                                 본문에 이미지 업로드 및 삽입
                             </button>
                             <input type="file" id="wiki-inline-img-file-${itemId}" accept="image/jpeg, image/png, image/webp" style="display: none;">
-                            <small style="color: #888; display: block; margin-top: 4px;">업로드 시 본문에 마크다운 형태( ![이미지](URL) )로 삽입됩니다.</small>
+                            <small style="color: #888; display: block; margin-top: 4px;">업로드 시 본문에 마크다운 형태( ![이미지](${BACKEND_URL}/...) )로 삽입됩니다.</small>
                         </div>
                     </div>
 
@@ -224,6 +229,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
             e.preventDefault();
 
             const titleEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-title-${itemId}`));
+            const regionEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-region-${itemId}`));
             const descEl = /** @type {HTMLTextAreaElement} */ (document.getElementById(`wiki-desc-${itemId}`));
             const imgEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-img-${itemId}`));
             const videoEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-video-${itemId}`));
@@ -248,6 +254,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                 formData.append('target_marker_id', String(itemId));
                 formData.append('is_official', String(isOfficial));
                 formData.append('title', titleEl.value.trim());
+                formData.append('region_name', regionEl.value.trim());
                 formData.append('description', descEl.value.trim());
                 formData.append('video', videoEl.value.trim());
                 formData.append('edit_reason', reasonEl.value.trim());
@@ -376,6 +383,7 @@ export const openWikiHistoryModal = async (itemId) => {
                         <div class="wiki-history-changes">
                             수정 항목: 
                             ${rev.revision_data.title ? `<span class="wiki-tag">제목</span> ` : ''}
+                            ${rev.revision_data.region_name ? `<span class="wiki-tag">지역</span> ` : ''}
                             ${rev.revision_data.description ? `<span class="wiki-tag">설명</span> ` : ''}
                             ${rev.revision_data.video ? `<span class="wiki-tag">영상</span> ` : ''}
                             ${rev.revision_data.screenshot ? `<span class="wiki-tag">이미지(슬라이드)</span> ` : ''}
@@ -384,21 +392,22 @@ export const openWikiHistoryModal = async (itemId) => {
                         
                         <div id="wiki-rev-detail-${index}" class="wiki-history-detail" style="display: none;">
                             ${rev.revision_data.title ? `<div class="wiki-detail-field"><strong>제목:</strong> ${rev.revision_data.title}</div>` : ''}
+                            ${rev.revision_data.region_name ? `<div class="wiki-detail-field"><strong>지역 명:</strong> ${rev.revision_data.region_name}</div>` : ''}
                             ${rev.revision_data.description ? `<div class="wiki-detail-field"><strong>설명:</strong> <div class="wiki-detail-md">${parseMarkdown(rev.revision_data.description)}</div></div>` : ''}
                             ${rev.revision_data.video ? `<div class="wiki-detail-field"><strong>영상:</strong> <a href="${rev.revision_data.video}" target="_blank">${rev.revision_data.video}</a></div>` : ''}
                             ${rev.revision_data.screenshot ? `<div class="wiki-detail-field"><strong>이미지:</strong> <img src="${rev.revision_data.screenshot}" style="max-width: 100%; border-radius: 4px; margin-top: 4px;"></div>` : ''}
                         </div>
                         ${rev.status === 'pending' ? `
-                           <div class="wiki-history-votes">
-                                <span class="wiki-vote-badge wiki-vote-up">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                                    추천 ${rev.votes}/5
-                                </span>
-                                <span class="wiki-vote-badge wiki-vote-down">
-                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
-                                    신고 ${rev.reports}/3
-                                </span>
-                           </div>
+                            <div class="wiki-history-votes">
+                                 <button type="button" class="wiki-vote-badge wiki-vote-up wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="up">
+                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                                     추천 <span class="vote-count">${rev.votes}</span>/5
+                                 </button>
+                                 <button type="button" class="wiki-vote-badge wiki-vote-down wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="report">
+                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
+                                     신고 <span class="report-count">${rev.reports}</span>/3
+                                 </button>
+                            </div>
                         ` : ''}
                         <div class="admin-rollback-slot" data-rev-id="${rev.id}"></div>
                     </div>
@@ -436,6 +445,46 @@ export const openWikiHistoryModal = async (itemId) => {
                     const isHidden = detail.style.display === 'none';
                     detail.style.display = isHidden ? 'block' : 'none';
                     /** @type {HTMLElement} */(e.target).textContent = isHidden ? '닫기' : '내용 보기';
+                }
+            };
+        });
+
+        // Revision Vote Logic
+        overlay.querySelectorAll('.wiki-history-vote-btn').forEach(btn => {
+            (/** @type {HTMLElement} */(btn)).onclick = async (e) => {
+                const button = /** @type {HTMLElement} */(e.currentTarget);
+                const revId = button.dataset.revId;
+                const voteType = button.dataset.type;
+
+                try {
+                    const { getAuthToken, isLoggedIn } = await import("../auth.js");
+                    if (!isLoggedIn()) {
+                        alert("투표하려면 로그인이 필요합니다.");
+                        return;
+                    }
+
+                    const token = await getAuthToken();
+                    const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/vote`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ type: voteType })
+                    });
+
+                    const result = await res.json();
+                    if (result.success) {
+                        alert(voteType === 'up' ? "추천되었습니다!" : "신고되었습니다!");
+                        // Optional: update the count locally if we want to be fancy, 
+                        // but re-opening or just alerting is standard for this scope.
+                    } else {
+                        alert("투표 실패: " + (result.error || "권한이 없거나 이미 투표했을 수 있습니다."));
+                    }
+                } catch (err) {
+                    console.error("Revision vote error:", err);
+                    alert("투표 중 오류가 발생했습니다.");
                 }
             };
         });
@@ -495,3 +544,73 @@ export const openWikiHistoryModal = async (itemId) => {
         if (closeBtn) closeBtn.onclick = () => overlay.remove();
     }
 };
+
+/**
+ * Renders the global wiki history in the sidebar tab
+ * @param {HTMLElement} container
+ */
+export const renderGlobalWikiHistory = async (container) => {
+    container.innerHTML = `<p class="empty-msg">로딩 중...</p>`;
+
+    try {
+        const res = await fetch(`${BACKEND_URL}/api/revisions`);
+        const data = await res.json();
+
+        if (!data.success || !data.revisions) {
+            container.innerHTML = `<p class="empty-msg">기록을 불러오지 못했습니다.</p>`;
+            return;
+        }
+
+        if (data.revisions.length === 0) {
+            container.innerHTML = `<p class="empty-msg">기록이 없습니다.</p>`;
+            return;
+        }
+
+        container.innerHTML = data.revisions.map((rev, index) => {
+            const date = new Date(rev.created_at).toLocaleDateString('ko-KR');
+            const safeName = rev.display_name || `User#${rev.user_id}`;
+            const markerName = rev.revision_data.title || `마커 #${rev.target_marker_id}`;
+
+            const stateText =
+                rev.status === 'approved' ? '승인' :
+                    rev.status === 'rejected' ? '반려' :
+                        rev.status === 'reverted' ? '되돌림' : '대기';
+
+            const stateClass = `wiki-status-${rev.status}`;
+
+            return `
+                <div class="favorite-item wiki-global-item" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display: flex; justify-content: space-between; width: 100%; font-size: 11px; opacity: 0.8;">
+                        <span>${date}</span>
+                        <span class="wiki-history-status ${stateClass}" style="font-size: 10px; padding: 2px 4px; border-radius: 3px;">${stateText}</span>
+                    </div>
+                    <div style="font-weight: bold; font-size: 13px; color: var(--accent); cursor: pointer;" class="wiki-global-target" data-marker-id="${rev.target_marker_id}">
+                        ${markerName}
+                    </div>
+                    <div style="font-size: 11px; opacity: 0.9;">
+                        기여자: ${safeName}
+                    </div>
+                    <div style="font-size: 10px; font-style: italic; margin-top: 4px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
+                        "${rev.edit_reason || '사유 없음'}"
+                    </div>
+                    <button class="action-btn-small wiki-global-view-btn" style="margin-top: 8px; width: 100%;" data-marker-id="${rev.target_marker_id}">
+                        마커 기록 보기
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        // Add event listeners
+        container.querySelectorAll('.wiki-global-target, .wiki-global-view-btn').forEach(el => {
+            (/** @type {HTMLElement} */(el)).onclick = (e) => {
+                const markerId = /** @type {HTMLElement} */(e.currentTarget).dataset.markerId;
+                if (markerId) openWikiHistoryModal(markerId);
+            };
+        });
+
+    } catch (err) {
+        console.error("Global wiki history error:", err);
+        container.innerHTML = `<p class="empty-msg">서버 연결 오류</p>`;
+    }
+};
+
