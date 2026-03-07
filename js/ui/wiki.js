@@ -336,7 +336,7 @@ export const openWikiHistoryModal = async (itemId) => {
 
         let listHtml = "";
         if (data.history && data.history.length > 0) {
-            listHtml = data.history.map(rev => {
+            listHtml = data.history.map((rev, index) => {
                 const date = new Date(rev.created_at).toLocaleString('ko-KR');
                 const stateColor =
                     rev.status === 'approved' ? 'color: #4ade80;' : // green
