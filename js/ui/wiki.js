@@ -375,10 +375,18 @@ export const openWikiHistoryModal = async (itemId) => {
                         </div>
                         <div class="wiki-history-changes">
                             수정 항목: 
-                            ${rev.revision_data.title ? `제목, ` : ''}
-                            ${rev.revision_data.description ? `설명, ` : ''}
-                            ${rev.revision_data.screenshot ? `이미지, ` : ''}
-                            ${rev.revision_data.video ? `영상 ` : ''}
+                            ${rev.revision_data.title ? `<span class="wiki-tag">제목</span> ` : ''}
+                            ${rev.revision_data.description ? `<span class="wiki-tag">설명</span> ` : ''}
+                            ${rev.revision_data.video ? `<span class="wiki-tag">영상</span> ` : ''}
+                            ${rev.revision_data.screenshot ? `<span class="wiki-tag">이미지(슬라이드)</span> ` : ''}
+                            <button class="wiki-history-view-btn" data-rev-index="${index}">내용 보기</button>
+                        </div>
+                        
+                        <div id="wiki-rev-detail-${index}" class="wiki-history-detail" style="display: none;">
+                            ${rev.revision_data.title ? `<div class="wiki-detail-field"><strong>제목:</strong> ${rev.revision_data.title}</div>` : ''}
+                            ${rev.revision_data.description ? `<div class="wiki-detail-field"><strong>설명:</strong> <div class="wiki-detail-md">${parseMarkdown(rev.revision_data.description)}</div></div>` : ''}
+                            ${rev.revision_data.video ? `<div class="wiki-detail-field"><strong>영상:</strong> <a href="${rev.revision_data.video}" target="_blank">${rev.revision_data.video}</a></div>` : ''}
+                            ${rev.revision_data.screenshot ? `<div class="wiki-detail-field"><strong>이미지:</strong> <img src="${rev.revision_data.screenshot}" style="max-width: 100%; border-radius: 4px; margin-top: 4px;"></div>` : ''}
                         </div>
                         ${rev.status === 'pending' ? `
                            <div class="wiki-history-votes">
@@ -418,6 +426,19 @@ export const openWikiHistoryModal = async (itemId) => {
 
         const closeBtn = document.getElementById(`close-${modalId}`);
         if (closeBtn) closeBtn.onclick = () => overlay.remove();
+
+        // Toggle Detail Logic
+        overlay.querySelectorAll('.wiki-history-view-btn').forEach(btn => {
+            (/** @type {HTMLElement} */(btn)).onclick = (e) => {
+                const index = /** @type {HTMLElement} */(e.target).dataset.revIndex;
+                const detail = document.getElementById(`wiki-rev-detail-${index}`);
+                if (detail) {
+                    const isHidden = detail.style.display === 'none';
+                    detail.style.display = isHidden ? 'block' : 'none';
+                    /** @type {HTMLElement} */(e.target).textContent = isHidden ? '닫기' : '내용 보기';
+                }
+            };
+        });
 
         // Inject Admin buttons if authorized
         import("../auth.js").then(({ isAdminUser, getAuthToken }) => {
