@@ -67,6 +67,13 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     
                     <div class="wiki-form-group">
                         <label>설명 (마크다운 지원) 및 미리보기</label>
+                        <div class="wiki-editor-toolbar">
+                            <button type="button" id="wiki-insert-img-${itemId}" class="wiki-toolbar-btn" title="본문에 이미지 삽입">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                이미지 삽입
+                            </button>
+                            <input type="file" id="wiki-inline-img-file-${itemId}" accept="image/jpeg, image/png, image/webp" style="display: none;">
+                        </div>
                         <div class="wiki-editor-container">
                             <textarea id="wiki-desc-${itemId}" class="wiki-textarea wiki-editor-textarea" placeholder="자세한 위치나 팁을 적어주세요.">${currentDesc}</textarea>
                             <div id="wiki-preview-${itemId}" class="wiki-preview-content markdown-body"></div>
@@ -113,6 +120,62 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
         };
         textDescEl.addEventListener('input', updatePreview);
         updatePreview(); // Initial render
+
+        // Inline Image Upload Logic
+        const insertImgBtn = document.getElementById(`wiki-insert-img-${itemId}`);
+        const inlineImgFile = document.getElementById(`wiki-inline-img-file-${itemId}`);
+
+        if (insertImgBtn && inlineImgFile) {
+            insertImgBtn.onclick = () => inlineImgFile.click();
+
+            inlineImgFile.onchange = async (e) => {
+                const file = /** @type {HTMLInputElement} */(e.target).files?.[0];
+                if (!file) return;
+
+                const originalText = insertImgBtn.innerHTML;
+                insertImgBtn.innerHTML = "업로드 중...";
+                // @ts-ignore
+                insertImgBtn.disabled = true;
+
+                try {
+                    const token = await getAuthToken();
+                    const formData = new FormData();
+                    formData.append('image', file);
+
+                    const res = await fetch(`${BACKEND_URL}/api/revisions/upload`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: formData
+                    });
+
+                    const data = await res.json();
+                    if (data.success && data.url) {
+                        const imgMarkdown = `\n![이미지](${data.url})\n`;
+                        const textarea = /** @type {HTMLTextAreaElement} */(textDescEl);
+                        const startObj = textarea.selectionStart;
+                        const endObj = textarea.selectionEnd;
+
+                        textarea.value = textarea.value.substring(0, startObj) + imgMarkdown + textarea.value.substring(endObj, textarea.value.length);
+
+                        // Move cursor after the inserted markdown
+                        textarea.selectionStart = textarea.selectionEnd = startObj + imgMarkdown.length;
+                        textarea.focus();
+                        updatePreview();
+                    } else {
+                        alert("이미지 업로드 실패: " + (data.error || "알 수 없는 오류"));
+                    }
+                } catch (err) {
+                    console.error("Inline image upload error:", err);
+                    alert("업로드 중 인터넷 연결 오류가 발생했습니다.");
+                } finally {
+                    insertImgBtn.innerHTML = originalText;
+                    // @ts-ignore
+                    insertImgBtn.disabled = false;
+                    // @ts-ignore
+                    inlineImgFile.value = "";
+                }
+            };
+        }
     }
 
     const form = document.getElementById(`wiki-form-${itemId}`);

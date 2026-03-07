@@ -87,6 +87,36 @@
     font-family: inherit;
 }
 
+.wiki-editor-toolbar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.wiki-toolbar-btn {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.wiki-toolbar-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--accent);
+}
+
+.wiki-toolbar-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 .wiki-editor-container {
     display: flex;
     gap: 12px;
