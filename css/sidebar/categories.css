@@ -277,10 +277,40 @@
     backdrop-filter: blur(10px);
 }
 
+.tab-actions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.btn-action-all {
+    width: 42px;
+    height: 42px;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 12px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1.2em;
+    position: relative;
+    overflow: hidden;
+}
+
 .btn-toggle-all:hover {
     background: var(--bg-item-hover);
     border-color: var(--border);
     transform: translateY(-1px);
+}
+
+.btn-toggle-all {
+    width: 100%;
+    margin-bottom: 0 !important;
+    height: 42px;
+    font-size: 0.95em;
 }
 
 .region-reset-btn {

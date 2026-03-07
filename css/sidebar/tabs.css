@@ -62,7 +62,8 @@
 .filter-container {
     flex: 1;
     overflow-y: auto;
-    padding: 20px 24px;
+    padding: 20px 24px 84px 24px;
+    /* 20px top, 24px sides, 84px bottom for audio-bar + 20px gap */
     background-color: transparent;
 }
 

@@ -10,7 +10,6 @@ import {
   renderContributionModal,
 } from "./ui.js";
 import { toggleCommunityMode } from "./map/community.js";
-import { toggleMute } from "./audio.js";
 
 /**
  * 탭 이벤트 리스너를 초기화합니다.
