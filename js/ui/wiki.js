@@ -67,13 +67,6 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     
                     <div class="wiki-form-group">
                         <label>설명 (마크다운 지원) 및 미리보기</label>
-                        <div class="wiki-editor-toolbar">
-                            <button type="button" id="wiki-insert-img-${itemId}" class="wiki-toolbar-btn" title="본문에 이미지 삽입">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                이미지 삽입
-                            </button>
-                            <input type="file" id="wiki-inline-img-file-${itemId}" accept="image/jpeg, image/png, image/webp" style="display: none;">
-                        </div>
                         <div class="wiki-editor-container">
                             <textarea id="wiki-desc-${itemId}" class="wiki-textarea wiki-editor-textarea" placeholder="자세한 위치나 팁을 적어주세요.">${currentDesc}</textarea>
                             <div id="wiki-preview-${itemId}" class="wiki-preview-content markdown-body"></div>
@@ -81,8 +74,31 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     </div>
 
                     <div class="wiki-form-group">
-                        <label>스크린샷 첨부 (선택)</label>
-                        <input type="file" id="wiki-img-${itemId}" class="wiki-file-input" accept="image/jpeg, image/png, image/webp">
+                        <label>이미지 첨부 방식</label>
+                        <div class="wiki-image-options" style="display: flex; gap: 16px; margin-bottom: 8px;">
+                            <label style="display: flex; align-items: center; gap: 4px; font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="wiki-img-type-${itemId}" value="slide" checked>
+                                슬라이드형 (썸네일)
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 4px; font-weight: normal; cursor: pointer;">
+                                <input type="radio" name="wiki-img-type-${itemId}" value="inline">
+                                본문 삽입형
+                            </label>
+                        </div>
+                        
+                        <div id="wiki-img-slide-container-${itemId}" style="display: block;">
+                            <input type="file" id="wiki-img-${itemId}" class="wiki-file-input" accept="image/jpeg, image/png, image/webp">
+                            <small style="color: #888; display: block; margin-top: 4px;">게시글 상단에 슬라이드 형태로 단일 이미지가 추가됩니다.</small>
+                        </div>
+                        
+                        <div id="wiki-img-inline-container-${itemId}" style="display: none;">
+                            <button type="button" id="wiki-insert-img-${itemId}" class="wiki-toolbar-btn" title="본문에 이미지 삽입">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                본문에 이미지 업로드 및 삽입
+                            </button>
+                            <input type="file" id="wiki-inline-img-file-${itemId}" accept="image/jpeg, image/png, image/webp" style="display: none;">
+                            <small style="color: #888; display: block; margin-top: 4px;">업로드 시 본문에 마크다운 형태( ![이미지](URL) )로 삽입됩니다.</small>
+                        </div>
                     </div>
 
                     <div class="wiki-form-group">
@@ -120,6 +136,23 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
         };
         textDescEl.addEventListener('input', updatePreview);
         updatePreview(); // Initial render
+
+        // Image Type Selection Logic
+        const slideContainer = document.getElementById(`wiki-img-slide-container-${itemId}`);
+        const inlineContainer = document.getElementById(`wiki-img-inline-container-${itemId}`);
+        const typeRadios = document.querySelectorAll(`input[name="wiki-img-type-${itemId}"]`);
+
+        typeRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (/** @type {HTMLInputElement} */(e.target).value === 'slide') {
+                    if (slideContainer) slideContainer.style.display = 'block';
+                    if (inlineContainer) inlineContainer.style.display = 'none';
+                } else {
+                    if (slideContainer) slideContainer.style.display = 'none';
+                    if (inlineContainer) inlineContainer.style.display = 'block';
+                }
+            });
+        });
 
         // Inline Image Upload Logic
         const insertImgBtn = document.getElementById(`wiki-insert-img-${itemId}`);
