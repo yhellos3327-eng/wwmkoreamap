@@ -131,6 +131,7 @@
                     <li><a href="/" class="action-btn">🗺️ 지도 메인으로 이동</a></li>
                     <li><button class="action-btn" onclick="openUserManager()">👥 유저 관리 (차단 해제 등)</button></li>
                     <li><button class="action-btn" onclick="openPendingMarkers()">📝 제보 일괄 처리</button></li>
+                    <li><button class="action-btn" onclick="openRevisionManager()">📝 위키 편집 내역 관리</button></li>
                 </ul>
             </div>
             
@@ -360,6 +361,81 @@
                 
                 // Refresh list
                 window.openPendingMarkers();
+            } catch (e) {
+                alert("Error: " + e.message);
+            }
+        };
+
+        window.openRevisionManager = async () => {
+            const container = document.getElementById('modal-content');
+            const modal = document.getElementById('admin-modal');
+            const title = document.getElementById('modal-title');
+            
+            title.innerText = "📝 위키 편집 내역 관리 (All Revisions)";
+            container.innerHTML = "로딩 중...";
+            modal.style.display = "flex";
+
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/revisions`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.revisions.length === 0) {
+                        container.innerHTML = "<p style='color:#888; text-align:center;'>편집 내역이 없습니다.</p>";
+                        return;
+                    }
+
+                    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
+                    data.revisions.forEach(rev => {
+                        const date = new Date(rev.created_at).toLocaleString();
+                        const markerName = rev.revision_data?.title || `Marker #${rev.target_marker_id}`;
+                        const statusColor = 
+                            rev.status === 'approved' ? '#4ade80' : 
+                            rev.status === 'rejected' ? '#f87171' : 
+                            rev.status === 'pending' ? '#fbbf24' : '#9ca3af';
+
+                        html += `
+                            <div style="background:#2d2d2d; padding:12px; border-radius:4px; border:1px solid #444;">
+                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+                                    <span style="font-weight:bold; color:#daac71;">${markerName}</span>
+                                    <span style="font-size:11px; color:${statusColor}; border:1px solid ${statusColor}; padding:1px 5px; border-radius:3px;">${rev.status.toUpperCase()}</span>
+                                </div>
+                                <div style="font-size:12px; color:#aaa; margin-bottom:5px;">
+                                    기여자: ${rev.display_name || 'Unknown'} (${rev.user_id}) | ${date}
+                                </div>
+                                <div style="font-size:13px; color:#eee; font-style:italic;">"${rev.edit_reason || '사유 없음'}"</div>
+                                <div style="display:flex; justify-content:flex-end; margin-top:8px;">
+                                    <button onclick="deleteRevision(${rev.id})" style="padding:4px 10px; background:rgba(255,0,0,0.2); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; cursor:pointer; border-radius:4px; font-size:12px;">기록 삭제 (Admin)</button>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                    container.innerHTML = html;
+                }
+            } catch (e) {
+                container.innerText = "Error loading revisions: " + e.message;
+            }
+        };
+
+        window.deleteRevision = async (revId) => {
+            if (!confirm(`정말 이 편집 내역(#${revId})을 영구 삭제하시겠습니까?\n(마커 데이터 자체는 삭제되지 않습니다)`)) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const result = await response.json();
+                if (result.success) {
+                    alert("삭제되었습니다.");
+                    window.openRevisionManager(); // Refresh
+                } else {
+                    alert("삭제 실패: " + result.error);
+                }
             } catch (e) {
                 alert("Error: " + e.message);
             }

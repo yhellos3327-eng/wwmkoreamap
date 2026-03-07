@@ -494,33 +494,60 @@ export const openWikiHistoryModal = async (itemId) => {
             if (isAdminUser()) {
                 overlay.querySelectorAll('.admin-rollback-slot').forEach(slot => {
                     const revId = /** @type {HTMLElement} */(slot).dataset.revId;
-                    const btn = document.createElement("button");
-                    btn.className = "action-btn-small wiki-admin-revert-btn";
-                    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>이 버전으로 강제 되돌리기 (Admin)`;
 
-                    btn.onclick = async () => {
+                    // Revert Button
+                    const revertBtn = document.createElement("button");
+                    revertBtn.className = "action-btn-small wiki-admin-revert-btn";
+                    revertBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>되돌리기`;
+                    revertBtn.style.marginRight = "5px";
+
+                    revertBtn.onclick = async () => {
                         if (!confirm(`정말 이 리비전(#${revId}) 상태로 마커를 완전히 되돌리시겠습니까?`)) return;
                         try {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/revert`, {
                                 method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`
-                                }
+                                headers: { 'Authorization': `Bearer ${token}` }
                             });
                             const result = await res.json();
                             if (result.success) {
-                                alert("성공적으로 되돌렸습니다. 새로고침 시 적용됩니다.");
+                                alert("성공적으로 되돌렸습니다.");
                                 location.reload();
                             } else {
                                 alert("되돌리기 실패: " + result.error);
                             }
-                        } catch (e) {
-                            alert("서버 연결 실패");
-                        }
+                        } catch (e) { alert("서버 연결 실패"); }
                     };
 
-                    slot.appendChild(btn);
+                    // Delete Button
+                    const deleteBtn = document.createElement("button");
+                    deleteBtn.className = "action-btn-small";
+                    deleteBtn.style.background = "rgba(255, 0, 0, 0.2)";
+                    deleteBtn.style.color = "#ff6b6b";
+                    deleteBtn.style.border = "1px solid rgba(255, 0, 0, 0.3)";
+                    deleteBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>삭제 (Admin)`;
+
+                    deleteBtn.onclick = async () => {
+                        if (!confirm(`이 편집 기록(#${revId})을 영구 삭제하시겠습니까?`)) return;
+                        try {
+                            const token = await getAuthToken();
+                            const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert("삭제되었습니다.");
+                                overlay.remove();
+                                openWikiHistoryModal(itemId);
+                            } else {
+                                alert("삭제 실패: " + result.error);
+                            }
+                        } catch (e) { alert("서버 연결 실패"); }
+                    };
+
+                    slot.appendChild(revertBtn);
+                    slot.appendChild(deleteBtn);
                 });
             }
         });
@@ -593,9 +620,12 @@ export const renderGlobalWikiHistory = async (container) => {
                     <div style="font-size: 10px; font-style: italic; margin-top: 4px; opacity: 0.7; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;">
                         "${rev.edit_reason || '사유 없음'}"
                     </div>
-                    <button class="action-btn-small wiki-global-view-btn" style="margin-top: 8px; width: 100%;" data-marker-id="${rev.target_marker_id}">
-                        마커 기록 보기
-                    </button>
+                    <div style="display: flex; gap: 5px; width: 100%; margin-top: 8px;">
+                        <button class="action-btn-small wiki-global-view-btn" style="flex: 1;" data-marker-id="${rev.target_marker_id}">
+                            기록
+                        </button>
+                        <div class="admin-delete-slot" data-rev-id="${rev.id}"></div>
+                    </div>
                 </div>
             `;
         }).join('');
@@ -606,6 +636,41 @@ export const renderGlobalWikiHistory = async (container) => {
                 const markerId = /** @type {HTMLElement} */(e.currentTarget).dataset.markerId;
                 if (markerId) openWikiHistoryModal(markerId);
             };
+        });
+
+        // Admin Delete Button for global feed
+        import("../auth.js").then(({ isAdminUser, getAuthToken }) => {
+            if (isAdminUser()) {
+                container.querySelectorAll('.admin-delete-slot').forEach(slot => {
+                    const revId = /** @type {HTMLElement} */(slot).dataset.revId;
+                    const btn = document.createElement("button");
+                    btn.className = "action-btn-small";
+                    btn.style.background = "rgba(255, 0, 0, 0.2)";
+                    btn.style.color = "#ff6b6b";
+                    btn.style.border = "1px solid rgba(255, 0, 0, 0.3)";
+                    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+                    btn.onclick = async (e) => {
+                        e.stopPropagation();
+                        if (!confirm(`이 편집 기록(#${revId})을 삭제하시겠습니까?`)) return;
+                        try {
+                            const token = await getAuthToken();
+                            const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                                method: 'DELETE',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert("삭제되었습니다.");
+                                renderGlobalWikiHistory(container); // Refresh sidebar
+                            } else {
+                                alert("삭제 실패: " + result.error);
+                            }
+                        } catch (e) { alert("서버 연결 실패"); }
+                    };
+                    slot.appendChild(btn);
+                });
+            }
         });
 
     } catch (err) {
