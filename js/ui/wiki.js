@@ -175,11 +175,18 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     const formData = new FormData();
                     formData.append('image', file);
 
-                    const res = await fetch(`${BACKEND_URL}/api/revisions/upload`, {
+                    /** @type {RequestInit} */
+                    const fetchOptions = {
                         method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
+                        credentials: 'include',
                         body: formData
-                    });
+                    };
+
+                    if (token) {
+                        fetchOptions.headers = { 'Authorization': `Bearer ${token}` };
+                    }
+
+                    const res = await fetch(`${BACKEND_URL}/api/revisions/upload`, fetchOptions);
 
                     const data = await res.json();
                     if (data.success && data.url) {
@@ -249,13 +256,18 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     formData.append('screenshot', imgEl.files[0]);
                 }
 
-                const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+                /** @type {RequestInit} */
+                const fetchOptions = {
                     method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    },
+                    credentials: 'include',
                     body: formData
-                });
+                };
+
+                if (token) {
+                    fetchOptions.headers = { 'Authorization': `Bearer ${token}` };
+                }
+
+                const res = await fetch(`${BACKEND_URL}/api/revisions`, fetchOptions);
 
                 const data = await res.json();
                 if (data.success) {
