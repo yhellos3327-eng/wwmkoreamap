@@ -2,7 +2,7 @@
 import { state } from "../state.js";
 import { BACKEND_URL } from "../config.js";
 import { getAuthToken, isLoggedIn } from "../auth.js";
-import { t } from "../utils.js";
+import { t, parseMarkdown } from "../utils.js";
 
 /**
  * Opens a modal to propose edits for a marker
@@ -66,8 +66,11 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     </div>
                     
                     <div class="wiki-form-group">
-                        <label>설명 (마크다운 지원)</label>
-                        <textarea id="wiki-desc-${itemId}" class="wiki-textarea" placeholder="자세한 위치나 팁을 적어주세요.">${currentDesc}</textarea>
+                        <label>설명 (마크다운 지원) 및 미리보기</label>
+                        <div class="wiki-editor-container">
+                            <textarea id="wiki-desc-${itemId}" class="wiki-textarea wiki-editor-textarea" placeholder="자세한 위치나 팁을 적어주세요.">${currentDesc}</textarea>
+                            <div id="wiki-preview-${itemId}" class="wiki-preview-content markdown-body"></div>
+                        </div>
                     </div>
 
                     <div class="wiki-form-group">
@@ -101,6 +104,16 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
     const closeBtn = document.getElementById(`close-${modalId}`);
     if (closeBtn) closeBtn.onclick = () => overlay.remove();
+
+    const textDescEl = document.getElementById(`wiki-desc-${itemId}`);
+    const previewEl = document.getElementById(`wiki-preview-${itemId}`);
+    if (textDescEl && previewEl) {
+        const updatePreview = () => {
+            previewEl.innerHTML = parseMarkdown((/** @type {HTMLTextAreaElement} */ (textDescEl)).value);
+        };
+        textDescEl.addEventListener('input', updatePreview);
+        updatePreview(); // Initial render
+    }
 
     const form = document.getElementById(`wiki-form-${itemId}`);
     if (form) {

@@ -1,6 +1,7 @@
 /* css/modals/wiki-modal.css */
 .wiki-modal {
-    max-width: 500px;
+    max-width: 800px;
+    width: 90%;
     padding: 24px;
     background: var(--bg-panel);
     border-radius: 12px;
@@ -84,6 +85,60 @@
     height: 120px;
     resize: vertical;
     font-family: inherit;
+}
+
+.wiki-editor-container {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+}
+
+.wiki-editor-textarea {
+    flex: 1;
+    min-width: 0;
+    font-family: monospace;
+}
+
+.wiki-preview-content {
+    flex: 1;
+    min-width: 0;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: #fff;
+    overflow-y: auto;
+    height: 120px;
+    word-break: break-word;
+    line-height: 1.5;
+}
+
+.wiki-preview-content p {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.wiki-preview-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 4px;
+}
+
+.wiki-preview-content ul,
+.wiki-preview-content ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+@media (max-width: 600px) {
+    .wiki-editor-container {
+        flex-direction: column;
+    }
+
+    .wiki-preview-content {
+        height: 150px;
+    }
 }
 
 .wiki-file-input {
