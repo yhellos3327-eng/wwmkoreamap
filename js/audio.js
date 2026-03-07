@@ -7,7 +7,7 @@ let isApiLoaded = false;
 let isMuted = false;
 let currentBgmId = null;
 let isPlayerReady = false;
-let currentVolume = 15;
+let currentVolume = 5;
 let hasGlobalInteraction = false;
 
 /**
