@@ -80,6 +80,44 @@ export const loadMapData = async (mapKey, onProgress) => {
       logger.log("Data", `신규 마커 로드됨: ${newDataItems.length} items`);
     }
 
+    // [WIKI FEATURE] Fetch approved revisions and override base items
+    try {
+      const { BACKEND_URL } = await import("../config.js");
+      const revRes = await fetch(`${BACKEND_URL}/api/revisions?status=approved`);
+      const revData = await revRes.json();
+
+      if (revData.success && revData.revisions && revData.revisions.length > 0) {
+        let overriddenCount = 0;
+
+        // Build map for O(1) lookup
+        const revisionMap = new Map();
+        revData.revisions.forEach(rev => {
+          if (!revisionMap.has(rev.target_marker_id)) {
+            revisionMap.set(rev.target_marker_id, rev.revision_data);
+          }
+        });
+
+        // Apply overrides to rawItems
+        rawItems.forEach(item => {
+          const revOverride = revisionMap.get(String(item.id));
+          if (revOverride) {
+            if (revOverride.title) item.title = revOverride.title;
+            // Handle both name and title mappings to ensure UI picks it up
+            if (revOverride.title) item.name = revOverride.title;
+            if (revOverride.description) item.description = revOverride.description;
+            if (revOverride.screenshot) item.images = [revOverride.screenshot];
+            if (revOverride.video) item.video_url = [revOverride.video];
+            item.isWikiEdited = true; // Flag for UI hinting
+            overriddenCount++;
+          }
+        });
+
+        logger.success("Wiki", `Applied ${overriddenCount} approved wiki revisions.`);
+      }
+    } catch (wikiErr) {
+      logger.error("Wiki", "Failed to fetch map wiki revisions.", wikiErr);
+    }
+
     const { mapData, itemsByCategory } = await processMapData(
       rawItems,
       regionResult.regionIdMap,

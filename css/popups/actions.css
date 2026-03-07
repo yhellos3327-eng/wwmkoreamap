@@ -45,6 +45,26 @@
     transform: translateY(-1px);
 }
 
+.action-btn-small {
+    padding: 4px 6px;
+    background: var(--bg-item);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-main);
+    opacity: 0.8;
+}
+
+.action-btn-small:hover {
+    background: var(--bg-item-hover);
+    opacity: 1;
+    border-color: var(--accent);
+}
+
 .action-btn:active {
     transform: translateY(0);
     background: var(--bg-item-hover);

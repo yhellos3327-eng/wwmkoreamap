@@ -375,7 +375,7 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                 <img src="./icons/${displayItem.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
                 <div style="display:flex; flex-direction:column; gap: 4px;">
                     <h4 style="margin:0;">${translatedName}</h4>
-                    <div style="display: flex; align-items: center; gap: 6px;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
                         ${displayItem.user_id ? `
                             <div class="author-profile" style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
                                 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -383,15 +383,30 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                             </div>
                         ` : ''} 
                         ${displayItem.id !== item.id ? '<span style="font-size: 10px; color: var(--accent); font-weight: 700; background: rgba(255, 187, 0, 0.15); padding: 2px 6px; border-radius: 12px;">중복 제보</span>' : ''}
+                        ${displayItem.isWikiEdited ? '<span title="유저 참여로 수정된 문서입니다." style="font-size: 10px; color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 2px 6px; border-radius: 12px; cursor: help;">지도 위키 반영됨</span>' : ''}
                     </div>
                 </div>
             </div>
         </div>
+        
+
         <div class="popup-quest-info hidden" data-item-id="${item.id}">
         </div>
         <div class="popup-body">
             ${mediaHtml}
             ${bodyContent}
+            
+            <div style="display:flex; gap: 6px; justify-content: flex-end; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
+                <button class="action-btn-small" data-action="open-history-modal" data-item-id="${displayItem.id}" title="이 마커의 수정 역사 보기">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span style="font-size: 11px; margin-left: 2px;">역사 기록</span>
+                </button>
+                <button class="action-btn-small" data-action="open-edit-modal" data-item-id="${displayItem.id}" data-is-official="${!displayItem.isBackend}" title="이 마커 정보 수정 제안하기">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span style="font-size: 11px; margin-left: 2px;">편집 제안</span>
+                </button>
+            </div>
+            
             ${translateBtnHtml}
             ${renderVoteButtons(displayItem.id, false, !!displayItem.isBackend)}
             ${aggregatedReportsHtml}
@@ -632,6 +647,23 @@ document.addEventListener("click", (e) => {
           }
         }
       }
+      break;
+    }
+
+    case "open-edit-modal": {
+      const isOfficial = target.dataset.isOfficial === "true";
+      // @ts-ignore
+      import("../ui/wiki.js").then(({ openWikiEditModal }) => {
+        openWikiEditModal(itemId, isOfficial);
+      });
+      break;
+    }
+
+    case "open-history-modal": {
+      // @ts-ignore
+      import("../ui/wiki.js").then(({ openWikiHistoryModal }) => {
+        openWikiHistoryModal(itemId);
+      });
       break;
     }
 

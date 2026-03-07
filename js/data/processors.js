@@ -52,9 +52,12 @@ export const USE_WORKERS = true;
  * @property {number} [x]
  * @property {number} [y]
  * @property {boolean} [hasCustomPosition]
+ * @property {boolean} [isWikiEdited] - 위키에 의해 수정된 항목인지 여부
+ * @property {boolean} [isCompleted] - 사용자가 이 위치를 탐색했는지 여부
+ * @property {boolean} [isTranslated] - 로컬 DB에 의해 내용이 번역되었는지 여부
  * @property {number} [imageSizeW]
  * @property {number} [imageSizeH]
- * @property {boolean} [isBackend]
+ * @property {boolean} [isBackend] - 백엔드에서 불러온 데이터인지 여부 (커뮤니티 마커)
  * @property {number} [votes]
  * @property {string|number} [user_id]
  * @property {string} [status]
