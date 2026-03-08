@@ -63,15 +63,14 @@ export const canRevert = () => {
  * @returns {Promise<string|null>} 토큰 또는 null.
  */
 export const getAuthToken = async () => {
-  if (currentUser?.provider === "firebase") {
-    try {
-      const { auth } = await import("./firebase-config.js");
-      if (auth.currentUser) {
-        return await auth.currentUser.getIdToken();
-      }
-    } catch (e) {
-      console.warn("Failed to get firebase token", e);
+  try {
+    const { auth, firebaseInitialized } = await import("./firebase-config.js");
+    await firebaseInitialized;
+    if (auth && auth.currentUser) {
+      return await auth.currentUser.getIdToken();
     }
+  } catch (e) {
+    // console.warn("Failed to get firebase token", e);
   }
   return null;
 };
