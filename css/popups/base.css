@@ -330,7 +330,7 @@
 }
 
 .wiki-translate-group {
-    margin-top: 12px;
+    grid-column: 1 / -1;
     display: flex;
     justify-content: flex-end;
 }
