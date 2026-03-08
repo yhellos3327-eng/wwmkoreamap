@@ -10,6 +10,7 @@ import { initSync, cleanupRealtimeSync } from "./sync.js";
  * @property {string} provider - 인증 제공자 (google, kakao 등)
  * @property {string} [avatar] - 사용자 아바타 URL
  * @property {boolean} [isAdmin] - 관리자 여부
+ * @property {number} [level] - 사용자 레벨
  */
 
 /** @type {User | null} */
@@ -50,6 +51,14 @@ export const isAdminUser = () => {
 };
 
 /**
+ * 사용자가 되돌리기(Revert) 권한이 있는지 확인합니다.
+ * (모든 로그인 사용자 Lv.1 이상 허용)
+ */
+export const canRevert = () => {
+  return (currentUser?.level || 0) >= 1 || isAdminUser();
+};
+
+/**
  * 현재 인증 토큰을 가져옵니다 (firebase인 경우).
  * @returns {Promise<string|null>} 토큰 또는 null.
  */
@@ -74,8 +83,13 @@ export const getAuthToken = async () => {
  */
 const checkAuthStatus = async () => {
   try {
+    const token = await getAuthToken();
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers["Authorization"] = `Bearer ${token}`;
+
     const response = await fetch(`${BACKEND_URL}/auth/user`, {
       credentials: "include",
+      headers
     });
 
     if (response.ok) {
@@ -89,6 +103,7 @@ const checkAuthStatus = async () => {
           provider: data.user.provider,
           avatar: data.user.profileImage,
           isAdmin: data.isAdmin,
+          level: data.user.level || 0,
         };
         return;
       }

@@ -491,22 +491,19 @@ export const maskIdentifier = (value, type) => {
 
   if (type === 'ip') {
     if (value.includes(':')) {
-      // IPv6: Mask after 3rd segment
+      // IPv6: First 3 segments
       const parts = value.split(':');
-      return parts.slice(0, 3).join(':') + ':****';
+      return parts.slice(0, 3).join(':');
     }
-    // IPv4: Mask after 2nd octet
+    // IPv4: First 2 octets
     const parts = value.split('.');
-    if (parts.length === 4) {
-      return `${parts[0]}.${parts[1]}.***.***`;
+    if (parts.length >= 2) {
+      return `${parts[0]}.${parts[1]}`;
     }
-    return value.substring(0, 7) + '***';
+    return value.substring(0, 5);
   } else {
     // Fingerprint: Keep first 4 chars
-    if (value.length > 4) {
-      return value.substring(0, 4) + '****';
-    }
-    return value + '****';
+    return value.substring(0, 4);
   }
 };
 

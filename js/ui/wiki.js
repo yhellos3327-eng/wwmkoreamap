@@ -378,7 +378,7 @@ export const openWikiHistoryModal = async (itemId) => {
                             rev.status === 'reverted' ? '되돌려짐' :
                                 '실시간 반영됨 (검토중)'; // '검토 대기중' 대신 더 긍정적인 문구로 변경
 
-                const safeName = rev.display_name || `User#${rev.user_id}`;
+                const safeName = rev.display_name || (rev.user_id ? `User#${rev.user_id}` : "익명");
                 const levelIcon = getUserLevelIcon(rev.user_level);
                 const maskedIp = rev.ip_address ? maskIdentifier(rev.ip_address, 'ip') : null;
                 const maskedFp = rev.fingerprint ? maskIdentifier(rev.fingerprint, 'fp') : null;
@@ -515,9 +515,12 @@ export const openWikiHistoryModal = async (itemId) => {
             };
         });
 
-        // Inject Admin buttons if authorized
-        import("../auth.js").then(({ isAdminUser, getAuthToken }) => {
-            if (isAdminUser()) {
+        // Inject Admin/Expert/Logged-in buttons if authorized
+        import("../auth.js").then(({ isAdminUser, canRevert, getAuthToken }) => {
+            const isAdmin = isAdminUser();
+            const allowedToRevert = canRevert();
+
+            if (isAdmin || allowedToRevert) {
                 overlay.querySelectorAll('.admin-rollback-slot').forEach(slot => {
                     const revId = /** @type {HTMLElement} */(slot).dataset.revId;
                     const uId = /** @type {HTMLElement} */(slot).dataset.userId;
@@ -547,6 +550,11 @@ export const openWikiHistoryModal = async (itemId) => {
                             }
                         } catch (e) { alert("서버 연결 실패"); }
                     };
+
+                    slot.appendChild(revertBtn);
+
+                    // Only Admins can Ban or Delete
+                    if (!isAdmin) return;
 
                     // Ban Button
                     const banBtn = document.createElement("button");
