@@ -783,25 +783,40 @@ export const renderGlobalWikiHistory = async (container) => {
             };
         });
 
-        // Jump to marker location (with cross-map support)
+        // Jump to marker location (with cross-map auto-search)
         container.querySelectorAll('.wiki-global-jump-btn').forEach(el => {
             (/** @type {HTMLElement} */(el)).onclick = async (e) => {
                 e.stopPropagation();
                 const btn = /** @type {HTMLElement} */(e.currentTarget);
                 const markerId = btn.dataset.markerId;
-                const mapId = btn.dataset.mapId || 'qinghe';
+                const revMapId = btn.dataset.mapId;
                 if (!markerId) return;
 
-                // Switch map if needed
-                if (state.currentMapKey !== mapId) {
-                    const { loadMapData } = await import("../data/loader.js");
-                    const { setState } = await import("../state.js");
-                    setState("currentMapKey", mapId);
-                    await loadMapData(mapId);
+                const { loadMapData } = await import("../data/loader.js");
+                const { setState } = await import("../state.js");
+                const { MAP_CONFIGS } = await import("../config.js");
+                const { findItem } = await import("./navigation.js");
+
+                const tryMap = async (mapKey) => {
+                    if (state.currentMapKey !== mapKey) {
+                        setState("currentMapKey", mapKey);
+                        await loadMapData(mapKey);
+                    }
+                    return state.mapData?.items?.some(i => String(i.id) === String(markerId));
+                };
+
+                // 1) Try revision's map_id first, then current map
+                const firstTry = (revMapId && revMapId !== 'qinghe') ? revMapId : state.currentMapKey;
+                if (await tryMap(firstTry)) { findItem(markerId); return; }
+
+                // 2) Search remaining maps
+                for (const key of Object.keys(MAP_CONFIGS)) {
+                    if (key === firstTry) continue;
+                    if (await tryMap(key)) { findItem(markerId); return; }
                 }
 
-                const { findItem } = await import("./navigation.js");
-                findItem(markerId);
+                const { showSyncToast } = await import("../sync/ui.js");
+                showSyncToast("해당 마커를 찾을 수 없습니다.", "error");
             };
         });
 
