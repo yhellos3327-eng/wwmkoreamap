@@ -313,6 +313,22 @@ export async function initAuth() {
     user: getCurrentUser(),
   });
 
+  // Listen for Firebase auth state changes to keep backend user state in sync
+  // This is crucial for Admin login (Email/Password) which happens via Firebase only
+  try {
+    const { auth, firebaseInitialized } = await import("./firebase-config.js");
+    await firebaseInitialized;
+    if (auth) {
+      onAuthStateChanged(auth, async (user) => {
+        // console.log("[Auth] Firebase auth state changed:", user ? "LoggedIn" : "LoggedOut");
+        await checkAuthStatus();
+        updateAuthUI();
+      });
+    }
+  } catch (e) {
+    console.warn("[Auth] Failed to setup firebase auth listener", e);
+  }
+
   if (isLoggedIn()) {
     await initSync();
     import("./map/community.js").then(({ fetchUserCompletions }) => {
@@ -320,3 +336,5 @@ export async function initAuth() {
     }).catch(() => { });
   }
 }
+
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";

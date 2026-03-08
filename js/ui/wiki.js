@@ -622,69 +622,72 @@ export const openWikiHistoryModal = async (itemId) => {
                     slot.appendChild(deleteBtn);
                 });
 
-                // Show admin elements
-                overlay.querySelectorAll('.admin-select-slot').forEach(el => (/** @type {HTMLElement} */(el)).style.display = 'flex');
-                const bulkActions = /** @type {HTMLElement} */(overlay.querySelector('.wiki-admin-bulk-actions'));
-                if (bulkActions) bulkActions.style.display = 'flex';
+                // Only Admins see Bulk Actions and Checkboxes
+                if (isAdmin) {
+                    // Show admin selection UI
+                    overlay.querySelectorAll('.admin-select-slot').forEach(el => (/** @type {HTMLElement} */(el)).style.display = 'flex');
+                    const bulkActions = /** @type {HTMLElement} */(overlay.querySelector('.wiki-admin-bulk-actions'));
+                    if (bulkActions) bulkActions.style.display = 'flex';
 
-                // Select All Logic
-                const selectAllImg = /** @type {HTMLInputElement} */(overlay.querySelector('#wiki-history-select-all'));
-                const individualCbs = overlay.querySelectorAll('.wiki-history-select');
+                    // Select All Logic
+                    const selectAllImg = /** @type {HTMLInputElement} */(overlay.querySelector('#wiki-history-select-all'));
+                    const individualCbs = overlay.querySelectorAll('.wiki-history-select');
 
-                if (selectAllImg) {
-                    /** @type {any} */(selectAllImg).onchange = (e) => {
-                        const checked = (/** @type {HTMLInputElement} */(e.target)).checked;
-                        individualCbs.forEach(cb => {
-                            (/** @type {HTMLInputElement} */(cb)).checked = checked;
-                            if (checked) cb.closest('.wiki-history-item').classList.add('selected');
+                    if (selectAllImg) {
+                        /** @type {any} */(selectAllImg).onchange = (e) => {
+                            const checked = (/** @type {HTMLInputElement} */(e.target)).checked;
+                            individualCbs.forEach(cb => {
+                                (/** @type {HTMLInputElement} */(cb)).checked = checked;
+                                if (checked) cb.closest('.wiki-history-item').classList.add('selected');
+                                else cb.closest('.wiki-history-item').classList.remove('selected');
+                            });
+                        };
+                    }
+
+                    individualCbs.forEach(cb => {
+                        /** @type {any} */(cb).onchange = (e) => {
+                            const allChecked = Array.from(individualCbs).every(c => (/** @type {HTMLInputElement} */(c)).checked);
+                            if (selectAllImg) selectAllImg.checked = allChecked;
+
+                            if ((/** @type {HTMLInputElement} */(e.target)).checked) cb.closest('.wiki-history-item').classList.add('selected');
                             else cb.closest('.wiki-history-item').classList.remove('selected');
-                        });
-                    };
-                }
+                        };
+                    });
 
-                individualCbs.forEach(cb => {
-                    /** @type {any} */(cb).onchange = (e) => {
-                        const allChecked = Array.from(individualCbs).every(c => (/** @type {HTMLInputElement} */(c)).checked);
-                        if (selectAllImg) selectAllImg.checked = allChecked;
+                    // Bulk Delete Logic
+                    const bulkDeleteBtn = overlay.querySelector('#wiki-history-bulk-delete');
+                    if (bulkDeleteBtn) {
+                        (/** @type {HTMLElement} */(bulkDeleteBtn)).onclick = async () => {
+                            const selectedCbs = overlay.querySelectorAll('.wiki-history-select:checked');
+                            if (selectedCbs.length === 0) {
+                                alert("삭제할 항목을 선택해주세요.");
+                                return;
+                            }
 
-                        if ((/** @type {HTMLInputElement} */(e.target)).checked) cb.closest('.wiki-history-item').classList.add('selected');
-                        else cb.closest('.wiki-history-item').classList.remove('selected');
-                    };
-                });
+                            if (!confirm(`선택한 ${selectedCbs.length}개의 편집 기록을 영구 삭제하시겠습니까?`)) return;
 
-                // Bulk Delete Logic
-                const bulkDeleteBtn = overlay.querySelector('#wiki-history-bulk-delete');
-                if (bulkDeleteBtn) {
-                    (/** @type {HTMLElement} */(bulkDeleteBtn)).onclick = async () => {
-                        const selectedCbs = overlay.querySelectorAll('.wiki-history-select:checked');
-                        if (selectedCbs.length === 0) {
-                            alert("삭제할 항목을 선택해주세요.");
-                            return;
-                        }
+                            const token = await getAuthToken();
+                            let successCount = 0;
+                            let failCount = 0;
 
-                        if (!confirm(`선택한 ${selectedCbs.length}개의 편집 기록을 영구 삭제하시겠습니까?`)) return;
+                            for (const cb of selectedCbs) {
+                                const revId = (/** @type {HTMLInputElement} */(cb)).dataset.revId;
+                                try {
+                                    const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                                        method: 'DELETE',
+                                        headers: { 'Authorization': `Bearer ${token}` }
+                                    });
+                                    const result = await res.json();
+                                    if (result.success) successCount++;
+                                    else failCount++;
+                                } catch (e) { failCount++; }
+                            }
 
-                        const token = await getAuthToken();
-                        let successCount = 0;
-                        let failCount = 0;
-
-                        for (const cb of selectedCbs) {
-                            const revId = (/** @type {HTMLInputElement} */(cb)).dataset.revId;
-                            try {
-                                const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
-                                    method: 'DELETE',
-                                    headers: { 'Authorization': `Bearer ${token}` }
-                                });
-                                const result = await res.json();
-                                if (result.success) successCount++;
-                                else failCount++;
-                            } catch (e) { failCount++; }
-                        }
-
-                        alert(`${successCount}개 삭제 완료` + (failCount > 0 ? `, ${failCount}개 실패` : ""));
-                        overlay.remove();
-                        openWikiHistoryModal(itemId);
-                    };
+                            alert(`${successCount}개 삭제 완료` + (failCount > 0 ? `, ${failCount}개 실패` : ""));
+                            overlay.remove();
+                            openWikiHistoryModal(itemId);
+                        };
+                    }
                 }
             }
         });
