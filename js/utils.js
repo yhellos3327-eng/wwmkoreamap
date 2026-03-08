@@ -439,4 +439,75 @@ export const resetGif = (img) => {
   }
 };
 
+/**
+ * Returns an SVG icon based on the user level.
+ * @param {number} level - User level (0-4).
+ * @returns {string} SVG string.
+ */
+export const getUserLevelIcon = (level) => {
+  const lv = Number(level) || 0;
+  let color = "#888";
+  let path = "";
+  let title = "익명";
+
+  switch (lv) {
+    case 1:
+      color = "#4CAF50"; // Sprout
+      path = "M12 22V12M12 12C12 12 12 7 17 7M12 12C12 12 12 9 8 9";
+      title = "새싹";
+      break;
+    case 2:
+      color = "#2E7D32"; // Tree
+      path = "M12 22V17M12 17C15 17 19 15 19 10C19 5 15 2 12 2C9 2 5 5 5 10C5 15 9 17 12 17Z";
+      title = "숙련자";
+      break;
+    case 3:
+      color = "#FFD700"; // Medal
+      path = "M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15ZM12 15V23L15 20L18 23V15M12 15V23L9 20L6 23V15";
+      title = "전문가";
+      break;
+    case 4:
+      color = "#E91E63"; // Crown
+      path = "M2 20L5 7L12 11L19 7L22 20H2Z M12 6A1 1 0 1 0 12 8A1 1 0 1 0 12 6 Z M5 5A1 1 0 1 0 5 7A1 1 0 1 0 5 5 Z M19 5A1 1 0 1 0 19 7A1 1 0 1 0 19 5 Z";
+      title = "관리자";
+      break;
+    default: // Lv 0 or Seed
+      color = "#888";
+      path = "M12 20C14.2091 20 16 18.2091 16 16C16 13.7909 14.2091 12 12 12C9.79086 12 8 13.7909 8 16C8 18.2091 9.79086 20 12 20Z";
+      title = "익명";
+  }
+
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;" title="${title}"><path d="${path}"></path></svg>`;
+};
+
+/**
+ * Masks an identifier (IP address or Fingerprint).
+ * @param {string} value - The identifier to mask.
+ * @param {'ip'|'fp'} type - The type of identifier.
+ * @returns {string} Masked string.
+ */
+export const maskIdentifier = (value, type) => {
+  if (!value || value === 'unknown') return '알 수 없음';
+
+  if (type === 'ip') {
+    if (value.includes(':')) {
+      // IPv6: Mask after 3rd segment
+      const parts = value.split(':');
+      return parts.slice(0, 3).join(':') + ':****';
+    }
+    // IPv4: Mask after 2nd octet
+    const parts = value.split('.');
+    if (parts.length === 4) {
+      return `${parts[0]}.${parts[1]}.***.***`;
+    }
+    return value.substring(0, 7) + '***';
+  } else {
+    // Fingerprint: Keep first 4 chars
+    if (value.length > 4) {
+      return value.substring(0, 4) + '****';
+    }
+    return value + '****';
+  }
+};
+
 export { debounce };

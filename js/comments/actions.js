@@ -1,6 +1,7 @@
 // @ts-check
 /// <reference path="../types.d.ts" />
 import { db, firebaseInitialized } from "../firebase-config.js";
+import { state } from "../state.js";
 import {
   collection,
   addDoc,
@@ -110,6 +111,7 @@ export const submitAnonymousComment = async (event, itemId) => {
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
       isAnonymous: true,
+      userLevel: state.user?.level || 0,
     });
 
     input.value = "";
@@ -230,6 +232,7 @@ export const submitReply = async (event, itemId, parentId) => {
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
       isAnonymous: true,
+      userLevel: state.user?.level || 0,
     });
 
     invalidateCache(numericId);

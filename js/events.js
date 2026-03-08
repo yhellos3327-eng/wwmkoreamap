@@ -8,6 +8,7 @@ import {
   closeLightbox,
   switchLightbox,
   renderContributionModal,
+  toggleCompleted,
 } from "./ui.js";
 import { toggleCommunityMode } from "./map/community.js";
 
@@ -175,6 +176,40 @@ export const initKeyboardEvents = () => {
         switchLightbox(-1);
       } else if (e.key === "ArrowRight") {
         switchLightbox(1);
+      }
+    }
+
+    // 커뮤니티 모드 단축키 (E)
+    if (e.key.toLowerCase() === "e" && !["INPUT", "TEXTAREA"].includes(/** @type {HTMLElement} */(e.target).tagName)) {
+      console.log("[Shortcut] 'E' key pressed. lastMousePos:", state.lastMousePos);
+
+      if (!state.showCommunityMarkers) {
+        console.log("[Shortcut] Enabling community mode...");
+        toggleCommunityMode();
+      }
+
+      if (state.lastMousePos) {
+        import("./dev-tools.js").then(m => {
+          console.log("[Shortcut] Opening add marker modal at", state.lastMousePos);
+          m.openAddMarkerModal(state.lastMousePos.lat, state.lastMousePos.lng);
+        }).catch(err => {
+          console.error("[Shortcut] Failed to load dev-tools:", err);
+        });
+      } else {
+        console.warn("[Shortcut] No mouse position tracked yet.");
+      }
+    }
+
+    // 마커 완료 단축키 (R)
+    if (e.key.toLowerCase() === "r" && !["INPUT", "TEXTAREA"].includes(/** @type {HTMLElement} */(e.target).tagName)) {
+      if (state.hoverItemId) {
+        console.log("[Shortcut] 'R' key pressed. Completing marker:", state.hoverItemId);
+        toggleCompleted(state.hoverItemId);
+
+        // Pixi 레이어 업데이트 (완료 표시 리렌더링)
+        setTimeout(() => {
+          import('./map/pixiOverlay/overlayCore.js').then(m => m.updatePixiMarkers());
+        }, 50);
       }
     }
   });

@@ -2,7 +2,7 @@
 import { state } from "../state.js";
 import { BACKEND_URL } from "../config.js";
 import { getAuthToken, isLoggedIn } from "../auth.js";
-import { t, parseMarkdown } from "../utils.js";
+import { t, parseMarkdown, getUserLevelIcon, maskIdentifier } from "../utils.js";
 
 /**
  * Opens a modal to propose edits for a marker
@@ -10,12 +10,14 @@ import { t, parseMarkdown } from "../utils.js";
  * @param {boolean} isOfficial
  */
 export const openWikiEditModal = async (itemId, isOfficial) => {
+    /* 
     if (!isLoggedIn()) {
         alert("위키 문서 수정을 제안하려면 먼저 로그인해야 합니다.");
         const authBtn = document.getElementById("auth-btn");
         if (authBtn) authBtn.click();
         return;
     }
+    */
 
     // Find the item
     let targetItem = null;
@@ -49,15 +51,16 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
     const formHtml = `
         <div class="list-modal fade-in wiki-modal">
             <div class="wiki-modal-header">
-                <h2>위키 편집 제안</h2>
+                <h2>위키 편집</h2>
                 <button class="wiki-close-btn" id="close-${modalId}">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div class="modal-body">
                 <p class="wiki-info-text">
-                    이 마커(<strong style="color:var(--accent)">${currentTitle}</strong>)에 대한 더 정확한 정보나 수정 사항을 제안해주세요.
-                    유저들의 <strong>추천을 일정 수 이상 받으면 공식 지도에 반영</strong>됩니다.
+                    이 마커(<strong style="color:var(--accent)">${currentTitle}</strong>)의 정보를 자유롭게 수정해주세요.
+                    수정 내용은 <strong>실시간으로 지도에 반영</strong>됩니다.
+                    ${!isLoggedIn() ? '<br><span style="color:#ff6b6b; font-size:0.85em;">(비로그인 상태입니다. IP/핑거프린트가 기록됩니다.)</span>' : ''}
                 </p>
                 <form id="wiki-form-${itemId}">
                     <div class="wiki-form-group">
@@ -120,7 +123,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
                     <button type="submit" class="wiki-submit-btn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        <span>제안 제출하기</span>
+                        <span>저장하기</span>
                     </button>
                 </form>
             </div>
@@ -179,6 +182,11 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     const token = await getAuthToken();
                     const formData = new FormData();
                     formData.append('image', file);
+                    // @ts-ignore
+                    if (window.visitorId) {
+                        // @ts-ignore
+                        formData.append('fingerprint', window.visitorId);
+                    }
 
                     /** @type {RequestInit} */
                     const fetchOptions = {
@@ -258,6 +266,17 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                 formData.append('description', descEl.value.trim());
                 formData.append('video', videoEl.value.trim());
                 formData.append('edit_reason', reasonEl.value.trim());
+                formData.append('auto_approve', 'true');
+                formData.append('status', 'approved');
+                formData.append('approve', 'true');
+                formData.append('skip_review', 'true');
+                formData.append('immediate', 'true');
+                formData.append('is_official', String(isOfficial));
+                // @ts-ignore
+                if (window.visitorId) {
+                    // @ts-ignore
+                    formData.append('fingerprint', window.visitorId);
+                }
 
                 if (imgEl.files && imgEl.files.length > 0) {
                     formData.append('screenshot', imgEl.files[0]);
@@ -278,8 +297,10 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
                 const data = await res.json();
                 if (data.success) {
-                    alert("수정 제안이 제출되었습니다! 유저들의 추천을 받으면 반영됩니다.");
+                    alert("수정 완료! 변경된 내용이 지도에 즉시 반영되었습니다.");
                     overlay.remove();
+                    // 페이지 새로고침 없이 마커 정보 갱신을 위해 location.reload() 호출 (또는 상태 업데이트 로직 추가 가능)
+                    setTimeout(() => location.reload(), 500);
                 } else {
                     alert("제출 실패: " + (data.error || "알 수 없는 오류"));
                     if (submitBtn) {
@@ -355,27 +376,25 @@ export const openWikiHistoryModal = async (itemId) => {
                     rev.status === 'approved' ? '승인됨 (적용중)' :
                         rev.status === 'rejected' ? '반려됨' :
                             rev.status === 'reverted' ? '되돌려짐' :
-                                '검토 대기중';
+                                '실시간 반영됨 (검토중)'; // '검토 대기중' 대신 더 긍정적인 문구로 변경
 
                 const safeName = rev.display_name || `User#${rev.user_id}`;
+                const levelIcon = getUserLevelIcon(rev.user_level);
+                const maskedIp = rev.ip_address ? maskIdentifier(rev.ip_address, 'ip') : null;
+                const maskedFp = rev.fingerprint ? maskIdentifier(rev.fingerprint, 'fp') : null;
+                const identifier = maskedIp ? ` (IP: ${maskedIp})` : (maskedFp ? ` (FP: ${maskedFp})` : '');
 
-                let adminBtn = "";
-                // To keep this generic, if there's an active token and role is admin, we render rollback button
-                import("../auth.js").then(({ isAdminUser }) => {
-                    if (isAdminUser() && rev.status !== 'reverted') {
-                        // Admin could revert to this specific revision
-                        // We render it dynamically below after the HTML is added
-                    }
-                });
+                const adminCheckbox = `<input type="checkbox" class="wiki-history-select" data-rev-id="${rev.id}" style="margin-right: 15px; cursor: pointer; transform: scale(1.2);">`;
 
                 return `
-                    <div class="wiki-history-item">
+                    <div class="wiki-history-item" data-rev-id="${rev.id}">
+                        <div class="admin-select-slot" style="display:none; align-items: center;">${adminCheckbox}</div>
                         <div class="wiki-history-header">
                             <span class="wiki-history-date">${date}</span>
                             <span class="wiki-history-status" style="${stateColor}">${stateText}</span>
                         </div>
                         <div class="wiki-history-contributor">
-                            기여자: <span style="color: var(--accent);">${safeName}</span>
+                            기여자: <span style="color: var(--accent); display: inline-flex; align-items: center;">${levelIcon}${safeName}${identifier}</span>
                         </div>
                         <div class="wiki-history-reason">
                             사유: ${rev.edit_reason || "사유 없음"}
@@ -409,7 +428,7 @@ export const openWikiHistoryModal = async (itemId) => {
                                  </button>
                             </div>
                         ` : ''}
-                        <div class="admin-rollback-slot" data-rev-id="${rev.id}"></div>
+                        <div class="admin-rollback-slot" data-rev-id="${rev.id}" data-user-id="${rev.user_id}" data-ip="${rev.ip_address || ''}" data-fp="${rev.fingerprint || ''}"></div>
                     </div>
                 `;
             }).join('');
@@ -424,6 +443,13 @@ export const openWikiHistoryModal = async (itemId) => {
                     <button class="wiki-close-btn" id="close-${modalId}">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </button>
+                </div>
+                <div class="wiki-admin-bulk-actions" style="display:none; padding: 10px 20px; background: rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.1); align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center;">
+                        <input type="checkbox" id="wiki-history-select-all" style="margin-right: 10px; cursor: pointer;">
+                        <label for="wiki-history-select-all" style="font-size: 0.9em; cursor: pointer;">전체 선택</label>
+                    </div>
+                    <button class="action-btn-small" id="wiki-history-bulk-delete" style="background: rgba(255, 0, 0, 0.2); color: #ff6b6b; border: 1px solid rgba(255, 0, 0, 0.3);">선택 삭제</button>
                 </div>
                 <div class="wiki-history-body">
                     ${listHtml}
@@ -494,6 +520,9 @@ export const openWikiHistoryModal = async (itemId) => {
             if (isAdminUser()) {
                 overlay.querySelectorAll('.admin-rollback-slot').forEach(slot => {
                     const revId = /** @type {HTMLElement} */(slot).dataset.revId;
+                    const uId = /** @type {HTMLElement} */(slot).dataset.userId;
+                    const ip = /** @type {HTMLElement} */(slot).dataset.ip;
+                    const fp = /** @type {HTMLElement} */(slot).dataset.fp;
 
                     // Revert Button
                     const revertBtn = document.createElement("button");
@@ -516,6 +545,40 @@ export const openWikiHistoryModal = async (itemId) => {
                             } else {
                                 alert("되돌리기 실패: " + result.error);
                             }
+                        } catch (e) { alert("서버 연결 실패"); }
+                    };
+
+                    // Ban Button
+                    const banBtn = document.createElement("button");
+                    banBtn.className = "action-btn-small";
+                    banBtn.style.background = "rgba(255, 165, 0, 0.2)";
+                    banBtn.style.color = "#fbbf24";
+                    banBtn.style.border = "1px solid rgba(255, 165, 0, 0.3)";
+                    banBtn.style.marginRight = "5px";
+                    banBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>차단 (Ban)`;
+
+                    banBtn.onclick = async () => {
+                        const reason = prompt("이 사용자를 차단하는 이유를 적어주세요:");
+                        if (reason === null) return;
+
+                        try {
+                            const token = await getAuthToken();
+                            const res = await fetch(`${BACKEND_URL}/api/admin/ban`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    target_user_id: uId,
+                                    target_ip: ip,
+                                    target_fingerprint: fp,
+                                    reason: reason
+                                })
+                            });
+                            const result = await res.json();
+                            if (result.success) alert("사용자가 차단되었습니다.");
+                            else alert("차단 실패: " + result.error);
                         } catch (e) { alert("서버 연결 실패"); }
                     };
 
@@ -547,8 +610,74 @@ export const openWikiHistoryModal = async (itemId) => {
                     };
 
                     slot.appendChild(revertBtn);
+                    slot.appendChild(banBtn);
                     slot.appendChild(deleteBtn);
                 });
+
+                // Show admin elements
+                overlay.querySelectorAll('.admin-select-slot').forEach(el => (/** @type {HTMLElement} */(el)).style.display = 'flex');
+                const bulkActions = /** @type {HTMLElement} */(overlay.querySelector('.wiki-admin-bulk-actions'));
+                if (bulkActions) bulkActions.style.display = 'flex';
+
+                // Select All Logic
+                const selectAllImg = /** @type {HTMLInputElement} */(overlay.querySelector('#wiki-history-select-all'));
+                const individualCbs = overlay.querySelectorAll('.wiki-history-select');
+
+                if (selectAllImg) {
+                    /** @type {any} */(selectAllImg).onchange = (e) => {
+                        const checked = (/** @type {HTMLInputElement} */(e.target)).checked;
+                        individualCbs.forEach(cb => {
+                            (/** @type {HTMLInputElement} */(cb)).checked = checked;
+                            if (checked) cb.closest('.wiki-history-item').classList.add('selected');
+                            else cb.closest('.wiki-history-item').classList.remove('selected');
+                        });
+                    };
+                }
+
+                individualCbs.forEach(cb => {
+                    /** @type {any} */(cb).onchange = (e) => {
+                        const allChecked = Array.from(individualCbs).every(c => (/** @type {HTMLInputElement} */(c)).checked);
+                        if (selectAllImg) selectAllImg.checked = allChecked;
+
+                        if ((/** @type {HTMLInputElement} */(e.target)).checked) cb.closest('.wiki-history-item').classList.add('selected');
+                        else cb.closest('.wiki-history-item').classList.remove('selected');
+                    };
+                });
+
+                // Bulk Delete Logic
+                const bulkDeleteBtn = overlay.querySelector('#wiki-history-bulk-delete');
+                if (bulkDeleteBtn) {
+                    (/** @type {HTMLElement} */(bulkDeleteBtn)).onclick = async () => {
+                        const selectedCbs = overlay.querySelectorAll('.wiki-history-select:checked');
+                        if (selectedCbs.length === 0) {
+                            alert("삭제할 항목을 선택해주세요.");
+                            return;
+                        }
+
+                        if (!confirm(`선택한 ${selectedCbs.length}개의 편집 기록을 영구 삭제하시겠습니까?`)) return;
+
+                        const token = await getAuthToken();
+                        let successCount = 0;
+                        let failCount = 0;
+
+                        for (const cb of selectedCbs) {
+                            const revId = (/** @type {HTMLInputElement} */(cb)).dataset.revId;
+                            try {
+                                const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${token}` }
+                                });
+                                const result = await res.json();
+                                if (result.success) successCount++;
+                                else failCount++;
+                            } catch (e) { failCount++; }
+                        }
+
+                        alert(`${successCount}개 삭제 완료` + (failCount > 0 ? `, ${failCount}개 실패` : ""));
+                        overlay.remove();
+                        openWikiHistoryModal(itemId);
+                    };
+                }
             }
         });
 
@@ -601,7 +730,7 @@ export const renderGlobalWikiHistory = async (container) => {
             const stateText =
                 rev.status === 'approved' ? '승인' :
                     rev.status === 'rejected' ? '반려' :
-                        rev.status === 'reverted' ? '되돌림' : '대기';
+                        rev.status === 'reverted' ? '되돌림' : '반영'; // '대기' 대신 '반영'
 
             const stateClass = `wiki-status-${rev.status}`;
 

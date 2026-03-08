@@ -122,7 +122,7 @@ const createDevModal = () => {
 /**
  * 새 마커 추가 모달 생성
  */
-const createAddMarkerModal = (lat, lng) => {
+export const createAddMarkerModal = (lat, lng) => {
   let modal = document.getElementById("dev-add-marker-modal");
   if (!modal) {
     modal = document.createElement("div");
