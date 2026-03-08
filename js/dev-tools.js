@@ -529,6 +529,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
       formData.append("type", catId);
       if (region) formData.append("region", region);
       formData.append("mapId", state.currentMapKey || 'qinghe');
+      formData.append("status", "approved");
       if (screenshotFile) formData.append("screenshot", screenshotFile);
       if (imageUrl) formData.append("imageUrl", imageUrl); // Assuming backend supports this!
       if (videoUrl) formData.append("video", videoUrl);
