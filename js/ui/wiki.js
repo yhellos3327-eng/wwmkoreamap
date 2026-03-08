@@ -261,6 +261,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
                 formData.append('target_marker_id', String(itemId));
                 formData.append('is_official', String(isOfficial));
+                formData.append('map_id', state.currentMapKey || 'qinghe');
                 formData.append('title', titleEl.value.trim());
                 formData.append('region_name', regionEl.value.trim());
                 formData.append('description', descEl.value.trim());
@@ -761,6 +762,10 @@ export const renderGlobalWikiHistory = async (container) => {
                         "${rev.edit_reason || '사유 없음'}"
                     </div>
                     <div style="display: flex; gap: 5px; width: 100%; margin-top: 8px;">
+                        <button class="action-btn-small wiki-global-jump-btn" style="flex: 1;" data-marker-id="${rev.target_marker_id}" data-map-id="${rev.map_id || 'qinghe'}" title="마커 위치로 이동">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            위치
+                        </button>
                         <button class="action-btn-small wiki-global-view-btn" style="flex: 1;" data-marker-id="${rev.target_marker_id}">
                             기록
                         </button>
@@ -775,6 +780,28 @@ export const renderGlobalWikiHistory = async (container) => {
             (/** @type {HTMLElement} */(el)).onclick = (e) => {
                 const markerId = /** @type {HTMLElement} */(e.currentTarget).dataset.markerId;
                 if (markerId) openWikiHistoryModal(markerId);
+            };
+        });
+
+        // Jump to marker location (with cross-map support)
+        container.querySelectorAll('.wiki-global-jump-btn').forEach(el => {
+            (/** @type {HTMLElement} */(el)).onclick = async (e) => {
+                e.stopPropagation();
+                const btn = /** @type {HTMLElement} */(e.currentTarget);
+                const markerId = btn.dataset.markerId;
+                const mapId = btn.dataset.mapId || 'qinghe';
+                if (!markerId) return;
+
+                // Switch map if needed
+                if (state.currentMapKey !== mapId) {
+                    const { loadMapData } = await import("../data/loader.js");
+                    const { setState } = await import("../state.js");
+                    setState("currentMapKey", mapId);
+                    await loadMapData(mapId);
+                }
+
+                const { findItem } = await import("./navigation.js");
+                findItem(markerId);
             };
         });
 
