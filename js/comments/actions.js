@@ -2,6 +2,7 @@
 /// <reference path="../types.d.ts" />
 import { db, firebaseInitialized } from "../firebase-config.js";
 import { state } from "../state.js";
+import { getCurrentUser } from "../auth.js";
 import {
   collection,
   addDoc,
@@ -107,11 +108,11 @@ export const submitAnonymousComment = async (event, itemId) => {
       text: text,
       nickname: nickname || "익명",
       ip: maskedIp,
-      passwordHash: passwordHash,
+passwordHash: passwordHash,
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
-      isAnonymous: true,
-      userLevel: state.user?.level || 0,
+      isAnonymous: !getCurrentUser(),
+      userLevel: getCurrentUser()?.level || 0,
     });
 
     input.value = "";
@@ -228,11 +229,11 @@ export const submitReply = async (event, itemId, parentId) => {
       text: text,
       nickname: nickname || "익명",
       ip: maskedIp,
-      passwordHash: passwordHash,
+passwordHash: passwordHash,
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
-      isAnonymous: true,
-      userLevel: state.user?.level || 0,
+      isAnonymous: !getCurrentUser(),
+      userLevel: getCurrentUser()?.level || 0,
     });
 
     invalidateCache(numericId);
