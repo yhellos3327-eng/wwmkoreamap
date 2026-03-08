@@ -490,12 +490,12 @@ export const openWikiHistoryModal = async (itemId) => {
                     }
 
                     const token = await getAuthToken();
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (token) headers['Authorization'] = `Bearer ${token}`;
+
                     const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/vote`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
+                        headers,
                         credentials: 'include',
                         body: JSON.stringify({ type: voteType })
                     });
