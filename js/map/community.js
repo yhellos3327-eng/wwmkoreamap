@@ -4,6 +4,13 @@ import { BACKEND_URL } from "../config.js";
 import { renderMapDataAndMarkers } from "./markers.js";
 import { setVoteCache } from "../votes.js";
 
+import { t } from "../utils.js";
+import {
+    toggleSidebar,
+    setAllCategories,
+    setAllRegions,
+} from "../ui.js";
+
 const BOUNDARY_STONE_NAME = "경계석"; // OR "Boundary Stone"
 
 /**
@@ -91,6 +98,10 @@ export const toggleCommunityMode = async () => {
     setState("showCommunityMarkers", isEnabled);
 
     if (isEnabled) {
+        // 커뮤니티 모드 활성화 시 모든 필터 ON (indexDB 기록 사용)
+        setAllCategories(true);
+        setAllRegions(true);
+
         // If enabling, ensure markers are fetched
         if (state.communityMarkers.size === 0) {
             await fetchCommunityMarkers();

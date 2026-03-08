@@ -132,6 +132,35 @@ export const createSpriteForItem = (item) => {
   const sprite = new PIXI.Sprite(texture);
   sprite.anchor.set(0.5, 0.5);
 
+  // 유저 마커 차별화: 우측 상단에 유저 아이콘 추가
+  if (item.isBackend) {
+    const userIconSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    `;
+    const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
+    const userIconSprite = new PIXI.Sprite(userIconTexture);
+
+    // 아이콘 크기 및 위치 조정 (마커 크기 대비)
+    userIconSprite.width = texture.width * 0.45;
+    userIconSprite.height = texture.height * 0.45;
+    userIconSprite.anchor.set(0.5, 0.5);
+    userIconSprite.position.set(texture.width * 0.35, -texture.height * 0.35);
+
+    // 배경 원 추가 (가독성 향상)
+    const badgeBg = new PIXI.Graphics();
+    badgeBg.beginFill(0xdaac71);
+    badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
+    badgeBg.endFill();
+    badgeBg.lineStyle(1, 0xffffff, 0.8);
+    badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
+
+    sprite.addChild(badgeBg);
+    sprite.addChild(userIconSprite);
+  }
+
   sprite.alpha = isCompleted ? 0.4 : 1.0;
 
   if (isCompleted) {

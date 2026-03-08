@@ -87,6 +87,9 @@ const log = createLogger("State");
  * @property {Set<string>} activeQuestMarkerIds
  * @property {Object.<string, string[]>} questProgress
  * @property {{showImages: boolean, showVideos: boolean, showMapCoords: boolean}} questDisplayOptions
+ * @property {{lat: number, lng: number}|null} lastMousePos
+ * @property {string|number|null} hoverItemId
+ * @property {{id: string|number, name: string, level: number, contribution: number, profileImage?: string}|null} user
  */
 
 const checkWebGL = (() => {
@@ -154,6 +157,8 @@ const initialState = {
   activeQuestMarkerIds: new Set(),
   questProgress: {},
   questDisplayOptions: { showImages: true, showVideos: true, showMapCoords: true },
+  lastMousePos: null,
+  hoverItemId: null,
 
   savedAIProvider: "gemini",
   savedApiKey: "",
@@ -208,6 +213,7 @@ const initialState = {
   },
   deeplGlossaryId: null,
   globalMarkerNames: new Map(),
+  user: null,
 };
 
 const store = createStore(() => initialState);

@@ -37,6 +37,15 @@ const init = async () => {
   const logoutView = /** @type {HTMLElement} */ (
     document.getElementById("logout-view")
   );
+  const goDashboardBtn = /** @type {HTMLButtonElement} */ (
+    document.getElementById("btn-go-dashboard")
+  );
+
+  if (goDashboardBtn) {
+    goDashboardBtn.addEventListener("click", () => {
+      window.location.href = "/admin-dashboard.html";
+    });
+  }
 
   onAuthStateChanged(auth, (user) => {
     if (user) {

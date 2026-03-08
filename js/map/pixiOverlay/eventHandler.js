@@ -334,6 +334,7 @@ export const attachEventHandlers = (map, overlay, container) => {
 
   const handleMouseMove = (e) => {
     if (!container || container.children.length === 0) {
+      state.hoverItemId = null;
       hideCompletedTooltip();
       return;
     }
@@ -342,6 +343,7 @@ export const attachEventHandlers = (map, overlay, container) => {
     const clickLng = e.latlng.lng;
     const zoom = map.getZoom();
     const hitRadiusDeg = calculateHitRadius(clickLat, zoom);
+    const proximityRadiusDeg = hitRadiusDeg * (60 / 22); // 약 60px 근접 반경
 
     const sprite = findSpriteAtPosition(
       container,
@@ -349,6 +351,25 @@ export const attachEventHandlers = (map, overlay, container) => {
       clickLng,
       hitRadiusDeg,
     );
+
+    // [E 키 호버 기능용] 근접 마커 검색
+    // 기존 히트 스피라이트가 클러스터가 아니면 그대로 사용, 아니면 더 넓은 반경으로 일반 마커 검색
+    let proximitySprite = sprite;
+    if (!proximitySprite || (proximitySprite.markerData && proximitySprite.markerData.isCluster)) {
+      proximitySprite = findSpriteAtPosition(
+        container,
+        clickLat,
+        clickLng,
+        proximityRadiusDeg
+      );
+    }
+
+    if (proximitySprite && proximitySprite.markerData && !proximitySprite.markerData.isCluster) {
+      state.hoverItemId = proximitySprite.markerData.item?.id || null;
+      // 디버깅용: console.log("Hovering near marker:", state.hoverItemId);
+    } else {
+      state.hoverItemId = null;
+    }
 
     if (sprite && sprite.markerData && sprite.markerData.isCompleted) {
       const currentPopup = map._popup;

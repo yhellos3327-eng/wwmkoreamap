@@ -1,171 +1,481 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>관리자 대시보드 - 연운 지도</title>
-    <link rel="stylesheet" href="style.css">
+    <title>관리 시스템 - 연운 지도</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background-color: #121212;
-            color: #e0e0e0;
-            margin: 0;
-            padding: 20px;
-            font-family: 'Suit', sans-serif;
+        :root {
+            --primary: #daac71;
+            --primary-dark: #b88d55;
+            --bg-dark: #0a0a0a;
+            --sidebar-bg: #111111;
+            --card-bg: #1a1a1a;
+            --border: rgba(255, 255, 255, 0.08);
+            --text-main: #e0e0e0;
+            --text-muted: #888;
+            --success: #4ade80;
+            --danger: #f87171;
+            --warning: #fbbf24;
+            --accent-blue: #60a5fa;
+            --sidebar-width: 260px;
         }
 
-        .dashboard-container {
-            max-width: 1200px;
-            margin: 0 auto;
+        * {
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Sidebar Styles */
+        aside {
+            width: var(--sidebar-width);
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 48px;
+            text-decoration: none;
+        }
+
+        .nav-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            color: var(--text-muted);
+            text-decoration: none;
+            cursor: pointer;
+            font-weight: 500;
+            border: 1px solid transparent;
+        }
+
+        .nav-item:hover, .nav-item.active {
+            background: rgba(218, 172, 113, 0.08);
+            color: var(--primary);
+            border-color: rgba(218, 172, 113, 0.2);
+        }
+
+        .nav-item svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            border-top: 1px solid var(--border);
+            padding-top: 24px;
+        }
+
+        /* Main Content */
+        main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: radial-gradient(circle at top right, rgba(218, 172, 113, 0.03), transparent 40%);
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #333;
+            margin-bottom: 40px;
         }
 
-        h1 {
-            color: #daac71;
+        .page-title h1 {
             margin: 0;
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .page-title p {
+            margin: 4px 0 0;
+            color: var(--text-muted);
+            font-size: 14px;
         }
 
-        .btn-logout {
-            padding: 8px 16px;
-            background-color: #ff5555;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-
+        /* Dashboard Grid */
         .dashboard-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        /* Table & Lists */
+        .content-section {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+        .content-section.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .card {
-            background-color: #1e1e1e;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
         }
 
-        .card h2 {
-            margin-top: 0;
-            color: #ccc;
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .card-title {
             font-size: 18px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 10px;
+            font-weight: 600;
+            margin: 0;
         }
 
-        .stat-value {
-            font-size: 36px;
-            font-weight: bold;
-            color: #daac71;
-            margin: 10px 0;
+        /* List Items */
+        .data-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .data-item:hover {
+            border-color: var(--primary);
+            background: rgba(255, 255, 255, 0.05);
         }
 
-        .action-list {
-            list-style: none;
-            padding: 0;
+        .item-icon {
+            width: 48px;
+            height: 48px;
+            background: rgba(218, 172, 113, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
         }
 
-        .action-list li {
-            margin-bottom: 10px;
-        }
+        .item-info { flex: 1; }
+        .item-info h4 { margin: 0 0 4px; font-size: 16px; }
+        .item-info p { margin: 0; font-size: 13px; color: var(--text-muted); }
 
-        .action-btn {
-            display: block;
-            width: 100%;
-            padding: 10px;
-            background-color: #2d2d2d;
-            border: 1px solid #444;
-            color: #eee;
-            text-align: left;
-            border-radius: 4px;
+        .item-actions { display: flex; gap: 8px; }
+
+        /* Buttons */
+        .btn {
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 14px;
             cursor: pointer;
+            border: 1px solid transparent;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             text-decoration: none;
-            transition: background 0.2s;
         }
+        .btn-primary { background: var(--primary); color: #000; }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+        .btn-outline { background: transparent; border-color: var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: rgba(255,255,255,0.05); border-color: var(--text-muted); }
+        .btn-danger { background: rgba(248, 113, 113, 0.1); color: var(--danger); border-color: rgba(248, 113, 113, 0.2); }
+        .btn-danger:hover { background: var(--danger); color: #fff; }
 
-        .action-btn:hover {
-            background-color: #3d3d3d;
-            border-color: #daac71;
+        /* Form Controls */
+        .settings-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 32px;
         }
+        .settings-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .settings-item label { font-size: 14px; font-weight: 600; color: var(--primary); }
+        .input-control {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--border);
+            padding: 12px 16px;
+            border-radius: 10px;
+            color: #fff;
+            outline: none;
+            font-family: inherit;
+        }
+        .input-control:focus { border-color: var(--primary); }
 
-        .message {
-             background: rgba(255, 187, 0, 0.1);
-             color: #daac71;
-             padding: 15px;
-             border-radius: 4px;
-             margin-bottom: 20px;
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
         }
+        .modal {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            width: 100%;
+            max-width: 800px;
+            max-height: 90vh;
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+        }
+        .modal-header {
+            padding: 24px 32px;
+            border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-body { padding: 32px; overflow-y: auto; }
+        
+        .badge {
+            padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase;
+        }
+        .badge-pending { background: rgba(251, 191, 36, 0.1); color: var(--warning); }
+        .badge-approved { background: rgba(74, 222, 128, 0.1); color: var(--success); }
+        .badge-rejected { background: rgba(248, 113, 113, 0.1); color: var(--danger); }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #444; }
     </style>
 </head>
-
 <body>
-    <div class="dashboard-container">
+    <aside>
+        <a href="/" class="logo">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L4.5 20.29L5.21 21L12 18L18.79 21L19.5 20.29L12 2Z"/></svg>
+            MAP ADMIN
+        </a>
+        <nav class="nav-group">
+            <div class="nav-item active" data-tab="overview">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                데이터 요약
+            </div>
+            <div class="nav-item" data-tab="markers">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                제보 마커 관리
+            </div>
+            <div class="nav-item" data-tab="revisions">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                위키 편집 내역
+            </div>
+            <div class="nav-item" data-tab="users">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                사용자 및 제재
+            </div>
+            <div class="nav-item" data-tab="settings">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                환경 설정
+            </div>
+        </nav>
+        <div class="sidebar-footer">
+            <button id="btn-logout" class="nav-item" style="width:100%; border:none; background:none;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                로그아웃
+            </button>
+        </div>
+    </aside>
+
+    <main>
         <header>
-            <h1>관리자 대시보드</h1>
-            <div style="display: flex; gap: 10px;">
-                <a href="/" class="btn-logout" style="background-color: #444; text-decoration: none; line-height: 20px;">지도 보기</a>
-                <button id="btn-logout" class="btn-logout">로그아웃</button>
+            <div class="page-title">
+                <h1 id="tab-title">데이터 요약</h1>
+                <p id="tab-desc">시스템의 주요 지표와 실시간 상태를 확인합니다.</p>
+            </div>
+            <div class="user-profile" style="display:flex; align-items:center; gap:12px;">
+                <div style="text-align:right;">
+                    <div style="font-weight:600; font-size:14px;" id="admin-name">Administrator</div>
+                    <div style="font-size:12px; color:var(--text-muted);" id="admin-email">admin@map.com</div>
+                </div>
+                <div style="width:40px; height:40px; border-radius:50%; background:var(--primary); color:#000; display:flex; align-items:center; justify-content:center; font-weight:700;">A</div>
             </div>
         </header>
 
-        <div id="auth-check" class="message" style="display: none;">
-            권한 확인 중...
+        <!-- Overview Section -->
+        <div id="overview-section" class="content-section active">
+            <div class="dashboard-grid">
+                <div class="stat-card">
+                    <span class="stat-label">가입 사용자</span>
+                    <span class="stat-value" id="stats-users">-</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">서버 상태</span>
+                    <span class="stat-value" style="color:var(--success)">정상 운영 중</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-label">데이터베이스</span>
+                    <span class="stat-value" style="color:var(--success)">정상 연결됨</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">빠른 바로가기</h3>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:16px;">
+                    <a href="/" class="btn btn-outline" style="justify-content:center;">지도 메인으로 이동</a>
+                    <button onclick="switchTab('settings')" class="btn btn-primary" style="justify-content:center;">시스템 정책 수정하기</button>
+                </div>
+            </div>
         </div>
 
-        <div class="dashboard-grid">
+        <!-- Markers Section -->
+        <div id="markers-section" class="content-section">
             <div class="card">
-                <h2>빠른 실행</h2>
-                <ul class="action-list">
-                    <li><a href="/" class="action-btn">🗺️ 지도 메인으로 이동</a></li>
-                    <li><button class="action-btn" onclick="openUserManager()">👥 유저 관리 (차단 해제 등)</button></li>
-                    <li><button class="action-btn" onclick="openPendingMarkers()">📝 제보 일괄 처리</button></li>
-                    <li><button class="action-btn" onclick="openRevisionManager()">📝 위키 편집 내역 관리</button></li>
-                </ul>
+                <div class="card-header">
+                    <h3 class="card-title">대기 중인 제보 목록</h3>
+                    <button onclick="loadPendingMarkers()" class="btn btn-outline">새로고침</button>
+                </div>
+                <div id="pending-markers-list">
+                    <!-- Loaded dynamically -->
+                </div>
             </div>
-            
-            <div class="card">
-                <h2>통계 (Demo)</h2>
-                <div class="stat-value" id="stats-users">-</div>
-                <div style="color: #888; font-size: 14px;">총 가입 유저</div>
-            </div>
+        </div>
 
+        <!-- Revisions Section -->
+        <div id="revisions-section" class="content-section">
             <div class="card">
-                <h2>시스템 상태</h2>
-                <div style="margin-top: 15px;">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
-                        <span>서버 상태</span>
-                        <span style="color: #4ade80;">정상 ✅</span>
+                <div class="card-header">
+                    <h3 class="card-title">최신 위키 편집 내역</h3>
+                    <button onclick="loadRevisions()" class="btn btn-outline">새로고침</button>
+                </div>
+                <div id="revisions-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Section -->
+        <div id="users-section" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">제재된 사용자 관리</h3>
+                    <button onclick="loadBlockedUsers()" class="btn btn-outline">새로고침</button>
+                </div>
+                <div id="blocked-users-list">
+                    <!-- Loaded dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Section -->
+        <div id="settings-section" class="content-section">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">시스템 정책 설정</h3>
+                    <button id="btn-save-settings" class="btn btn-primary">변경사항 저장</button>
+                </div>
+                <div class="settings-grid">
+                    <div class="settings-item">
+                        <label>위키 즉시 승인 최소 레벨</label>
+                        <select id="setting-auto-approve-level" class="input-control">
+                            <option value="0">레벨 0 (익명 포함 전체)</option>
+                            <option value="1">레벨 1 (로그인 유저 이상)</option>
+                            <option value="2">레벨 2 (숙련자 이상)</option>
+                            <option value="3">레벨 3 (전문가 이상)</option>
+                            <option value="4">레벨 4 (관리자 전용)</option>
+                        </select>
+                        <p style="font-size:12px; color:var(--text-muted); margin:4px 0;">설정된 레벨 미만의 사용자는 관리자의 승인을 거쳐야 합니다.</p>
                     </div>
-                     <div style="display: flex; justify-content: space-between;">
-                        <span>DB 연결</span>
-                        <span style="color: #4ade80;">정상 ✅</span>
+                    <div class="settings-item">
+                        <label>위키 기본 상태 (Fallback)</label>
+                        <select id="setting-default-status" class="input-control">
+                            <option value="approved">승인 (Approved)</option>
+                            <option value="pending">대기 (Pending)</option>
+                        </select>
+                    </div>
+                    <div class="settings-item">
+                        <label>사이트 공지사항</label>
+                        <textarea id="setting-site-notice" class="input-control" style="height:100px; resize:none;" placeholder="서버 공지사항을 입력하세요."></textarea>
+                    </div>
+                    <div class="settings-item">
+                        <label>유지보수 모드</label>
+                        <select id="setting-maintenance-mode" class="input-control">
+                            <option value="false">비활성 (정상 운영)</option>
+                            <option value="true">활성 (접속 제한)</option>
+                        </select>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
+    </main>
 
-    <!-- Admin Modal -->
-    <div id="admin-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; justify-content:center; align-items:center;">
-        <div style="background:#1e1e1e; width:90%; max-width:600px; max-height:80vh; border-radius:8px; padding:20px; display:flex; flex-direction:column; box-shadow:0 4px 15px rgba(0,0,0,0.5);">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:10px;">
-                <h3 id="modal-title" style="margin:0; color:#daac71;">Modal Title</h3>
-                <button onclick="closeModal()" style="background:none; border:none; color:#aaa; font-size:24px; cursor:pointer;">&times;</button>
+    <!-- Generic Modal overlay -->
+    <div id="global-modal-overlay" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="global-modal-title" style="margin:0; color:var(--primary);">Title</h3>
+                <button onclick="closeModal()" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;">&times;</button>
             </div>
-            <div id="modal-content" style="flex:1; overflow-y:auto; color:#eee;">
-                <!-- Content goes here -->
+            <div id="global-modal-body" class="modal-body">
+                <!-- Content -->
             </div>
         </div>
     </div>
@@ -175,21 +485,31 @@
         import { BACKEND_URL } from "./js/config.js";
         import { signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";
 
+        const tabs = {
+            overview: { title: "데이터 요약", desc: "시스템의 주요 지표와 실시간 상태를 확인합니다." },
+            markers: { title: "제보 마커 관리", desc: "사용자들이 제보한 마커를 검토하고 승인하거나 삭제합니다.", load: loadPendingMarkers },
+            revisions: { title: "위키 편집 내역", desc: "전체 위키 편집 로그를 확인하고 부적절한 편집을 되돌리거나 삭제합니다.", load: loadRevisions },
+            users: { title: "사용자 및 제재", desc: "활동이 감지된 사용자 목록과 제재(차단) 현황을 관리합니다.", load: loadBlockedUsers },
+            settings: { title: "환경 설정", desc: "위키 승인 정책 및 사이트 전역 설정을 실시간으로 변경합니다.", load: loadSettings }
+        };
+
         const init = async () => {
             await firebaseInitialized;
             
-            const authCheck = document.getElementById("auth-check");
-            // authCheck.style.display = "block";
-
             onAuthStateChanged(auth, (user) => {
-                // authCheck.style.display = "none";
                 if (!user) {
-                    alert("로그인이 필요합니다.");
                     window.location.href = "admin.html";
                 } else {
-                    console.log("Admin Logged In:", user.email);
+                    document.getElementById('admin-email').innerText = user.email;
+                    document.getElementById('admin-name').innerText = user.displayName || 'Administrator';
                     fetchStats();
+                    loadAllTabsOnDemand();
                 }
+            });
+
+            // Nav switching
+            document.querySelectorAll('.nav-item[data-tab]').forEach(item => {
+                item.addEventListener('click', () => switchTab(item.getAttribute('data-tab')));
             });
 
             document.getElementById("btn-logout").addEventListener("click", async () => {
@@ -198,255 +518,224 @@
                     window.location.href = "admin.html";
                 }
             });
+
+            document.getElementById("btn-save-settings").addEventListener("click", saveSettings);
+        };
+
+        const switchTab = (tabId) => {
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.querySelector(`.nav-item[data-tab="${tabId}"]`).classList.add('active');
+            
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`${tabId}-section`).classList.add('active');
+            
+            document.getElementById('tab-title').innerText = tabs[tabId].title;
+            document.getElementById('tab-desc').innerText = tabs[tabId].desc;
+            
+            if (tabs[tabId].load) tabs[tabId].load();
+        };
+
+        const loadAllTabsOnDemand = () => {
+            // Check hash or default
         };
 
         const fetchStats = async () => {
-            const statsUsers = document.getElementById("stats-users");
-            statsUsers.innerText = "Loading...";
-            
             try {
                 const token = await auth.currentUser.getIdToken();
                 const response = await fetch(`${BACKEND_URL}/api/admin/stats`, {
-                    headers: {
-                        "Authorization": `Bearer ${token}`
-                    }
-                });
-                
-                if (!response.ok) {
-                    if (response.status === 401 || response.status === 403) {
-                         const email = auth.currentUser?.email;
-                         alert(`접근 권한이 없습니다.\n관리자 이메일 목록(backend/.env > ADMIN_EMAILS)에 다음 이메일을 추가해주세요:\n${email}`);
-                         throw new Error("Unauthorized");
-                    }
-                    throw new Error("Failed to fetch stats");
-                }
-                
-                const data = await response.json();
-                if (data.success) {
-                    statsUsers.innerText = data.stats.users;
-                }
-            } catch (e) {
-                console.error(e);
-                if (statsUsers.innerText === "Loading...") {
-                    statsUsers.innerText = "Error";
-                }
-            }
-        };
-
-        window.openUserManager = async () => {
-            const container = document.getElementById('modal-content');
-            const modal = document.getElementById('admin-modal');
-            const title = document.getElementById('modal-title');
-            
-            title.innerText = "👥 유저 관리 (차단된 유저)";
-            container.innerHTML = "로딩 중...";
-            modal.style.display = "flex";
-
-            try {
-                const token = await auth.currentUser.getIdToken();
-                const response = await fetch(`${BACKEND_URL}/api/admin/users/blocked`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 const data = await response.json();
-                
                 if (data.success) {
-                    if (data.blocks.length === 0) {
-                        container.innerHTML = "<p style='color:#888; text-align:center;'>차단된 유저가 없습니다.</p>";
-                        return;
-                    }
-                    
-                    let html = `<ul style="list-style:none; padding:0;">`;
-                    data.blocks.forEach(block => {
-                        html += `
-                            <li style="background:#2d2d2d; padding:10px; margin-bottom:8px; border-radius:4px; display:flex; justify-content:space-between; align-items:center;">
-                                <div>
-                                    <div style="font-weight:bold; color:#ff6b6b;">${block.reason}</div>
-                                    <div style="font-size:12px; color:#888;">User: ${block.user_id || '-'} / IP: ${block.ip || '-'}</div>
-                                    <div style="font-size:10px; color:#666;">${new Date(block.blocked_at).toLocaleString()}</div>
-                                </div>
-                                <button onclick="unblockUser(${block.id})" style="padding:4px 8px; background:#444; border:none; color:#eee; border-radius:4px; cursor:pointer;">해제</button>
-                            </li>
-                        `;
-                    });
-                    html += `</ul>`;
-                    container.innerHTML = html;
+                    document.getElementById("stats-users").innerText = data.stats.users.toLocaleString();
                 }
-            } catch (e) {
-                container.innerText = "Error loading users: " + e.message;
-            }
+            } catch (e) { console.error(e); }
         };
 
-        window.unblockUser = async (blockId) => {
-            if (!confirm("차단을 해제하시겠습니까?")) return;
-            try {
-                const token = await auth.currentUser.getIdToken();
-                await fetch(`${BACKEND_URL}/api/admin/users/blocked/${blockId}`, {
-                    method: "DELETE",
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                alert("차단이 해제되었습니다.");
-                window.openUserManager(); // Refresh
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.openPendingMarkers = async () => {
-            const container = document.getElementById('modal-content');
-            const modal = document.getElementById('admin-modal');
-            const title = document.getElementById('modal-title');
-            
-            title.innerText = "📝 제보 일괄 처리 (Pending Markers)";
-            container.innerHTML = "로딩 중...";
-            modal.style.display = "flex";
-
+        async function loadPendingMarkers() {
+            const container = document.getElementById('pending-markers-list');
+            container.innerHTML = "<p style='color:#888;'>로딩 중...</p>";
             try {
                 const token = await auth.currentUser.getIdToken();
                 const response = await fetch(`${BACKEND_URL}/api/admin/markers/pending`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 const data = await response.json();
-                
                 if (data.success) {
                     if (data.markers.length === 0) {
-                        container.innerHTML = "<p style='color:#888; text-align:center;'>대기 중인 제보가 없습니다.</p>";
+                        container.innerHTML = "<p style='text-align:center; padding:40px; color:#888;'>대기 중인 제보가 없습니다.</p>";
                         return;
                     }
-
-                    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-                    data.markers.forEach(marker => {
-                        html += `
-                            <div style="background:#2d2d2d; padding:12px; border-radius:4px; border:1px solid #444;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                    <span style="font-weight:bold; color:#daac71;">${marker.title}</span>
-                                    <span style="font-size:11px; background:#444; padding:2px 6px; border-radius:4px;">${marker.type}</span>
-                                </div>
-                                <div style="font-size:13px; color:#ccc; margin-bottom:8px;">${marker.description || '(내용 없음)'}</div>
-                                ${marker.screenshot ? `<img src="${marker.screenshot}" style="max-height:100px; max-width:100%; object-fit:contain; margin-bottom:8px; border-radius:4px;">` : ''}
-                                <div style="display:flex; gap:10px; margin-top:5px;">
-                                    <button onclick="processMarker(${marker.id}, 'approve')" style="flex:1; padding:6px; background:rgba(0,255,0,0.2); border:1px solid rgba(0,255,0,0.3); color:#4ade80; cursor:pointer; border-radius:4px;">승인</button>
-                                    <button onclick="processMarker(${marker.id}, 'reject')" style="flex:1; padding:6px; background:rgba(255,165,0,0.2); border:1px solid rgba(255,165,0,0.3); color:#fb923c; cursor:pointer; border-radius:4px;">거부</button>
-                                    <button onclick="processMarker(${marker.id}, 'delete')" style="padding:6px 12px; background:rgba(255,0,0,0.2); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; cursor:pointer; border-radius:4px;">삭제</button>
-                                </div>
+                    container.innerHTML = data.markers.map(m => `
+                        <div class="data-item">
+                            <div class="item-icon">📍</div>
+                            <div class="item-info">
+                                <h4>${m.title}</h4>
+                                <p>${m.type} | ${new Date(m.created_at).toLocaleString()}</p>
+                                <p style="margin-top:4px; color:#ccc;">${m.description || '(내용 없음)'}</p>
                             </div>
-                        `;
-                    });
-                    html += `</div>`;
-                    container.innerHTML = html;
+                            <div class="item-actions">
+                                <button onclick="processMarker(${m.id}, 'approve')" class="btn btn-outline" style="color:var(--success)">승인</button>
+                                <button onclick="processMarker(${m.id}, 'reject')" class="btn btn-outline" style="color:var(--warning)">거부</button>
+                                <button onclick="processMarker(${m.id}, 'delete')" class="btn btn-danger">삭제</button>
+                            </div>
+                        </div>
+                    `).join('');
                 }
-            } catch (e) {
-                container.innerText = "Error loading markers: " + e.message;
-            }
-        };
+            } catch (e) { container.innerText = "Error: " + e.message; }
+        }
 
-        window.processMarker = async (markerId, action) => {
-            if (!confirm(`${action} 처리 하시겠습니까?`)) return;
-            try {
-                const token = await auth.currentUser.getIdToken();
-                let url = `${BACKEND_URL}/api/admin/markers/${markerId}`;
-                let method = "POST";
-                
-                if (action === 'delete') {
-                    method = "DELETE";
-                } else if (action === 'approve') {
-                    url += "/approve";
-                } else if (action === 'reject') {
-                    url += "/reject";
-                }
-
-                await fetch(url, {
-                    method: method,
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                
-                // Refresh list
-                window.openPendingMarkers();
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
-        };
-
-        window.openRevisionManager = async () => {
-            const container = document.getElementById('modal-content');
-            const modal = document.getElementById('admin-modal');
-            const title = document.getElementById('modal-title');
-            
-            title.innerText = "📝 위키 편집 내역 관리 (All Revisions)";
-            container.innerHTML = "로딩 중...";
-            modal.style.display = "flex";
-
+        async function loadRevisions() {
+            const container = document.getElementById('revisions-list');
+            container.innerHTML = "<p style='color:#888;'>로딩 중...</p>";
             try {
                 const token = await auth.currentUser.getIdToken();
                 const response = await fetch(`${BACKEND_URL}/api/revisions`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
                 const data = await response.json();
-                
                 if (data.success) {
-                    if (data.revisions.length === 0) {
-                        container.innerHTML = "<p style='color:#888; text-align:center;'>편집 내역이 없습니다.</p>";
-                        return;
-                    }
-
-                    let html = `<div style="display:flex; flex-direction:column; gap:10px;">`;
-                    data.revisions.forEach(rev => {
-                        const date = new Date(rev.created_at).toLocaleString();
-                        const markerName = rev.revision_data?.title || `Marker #${rev.target_marker_id}`;
-                        const statusColor = 
-                            rev.status === 'approved' ? '#4ade80' : 
-                            rev.status === 'rejected' ? '#f87171' : 
-                            rev.status === 'pending' ? '#fbbf24' : '#9ca3af';
-
-                        html += `
-                            <div style="background:#2d2d2d; padding:12px; border-radius:4px; border:1px solid #444;">
-                                <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-                                    <span style="font-weight:bold; color:#daac71;">${markerName}</span>
-                                    <span style="font-size:11px; color:${statusColor}; border:1px solid ${statusColor}; padding:1px 5px; border-radius:3px;">${rev.status.toUpperCase()}</span>
+                    container.innerHTML = data.revisions.map(rev => `
+                        <div class="data-item">
+                            <div class="item-icon">📝</div>
+                            <div class="item-info">
+                                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                                    <h4>${rev.revision_data?.title || 'Marker #'+rev.target_marker_id}</h4>
+                                    <span class="badge badge-${rev.status}">${rev.status}</span>
                                 </div>
-                                <div style="font-size:12px; color:#aaa; margin-bottom:5px;">
-                                    기여자: ${rev.display_name || 'Unknown'} (${rev.user_id}) | ${date}
-                                </div>
-                                <div style="font-size:13px; color:#eee; font-style:italic;">"${rev.edit_reason || '사유 없음'}"</div>
-                                <div style="display:flex; justify-content:flex-end; margin-top:8px;">
-                                    <button onclick="deleteRevision(${rev.id})" style="padding:4px 10px; background:rgba(255,0,0,0.2); border:1px solid rgba(255,0,0,0.3); color:#ff6b6b; cursor:pointer; border-radius:4px; font-size:12px;">기록 삭제 (Admin)</button>
-                                </div>
+                                <p>${rev.display_name || 'Anonymous'} | ${new Date(rev.created_at).toLocaleString()}</p>
+                                <p style="margin-top:4px; font-style:italic;">"${rev.edit_reason || '사유 없음'}"</p>
                             </div>
-                        `;
-                    });
-                    html += `</div>`;
-                    container.innerHTML = html;
+                            <button onclick="deleteRevision(${rev.id})" class="btn btn-danger">기록 삭제</button>
+                        </div>
+                    `).slice(0, 30).join('');
                 }
-            } catch (e) {
-                container.innerText = "Error loading revisions: " + e.message;
-            }
-        };
+            } catch (e) { container.innerText = "Error: " + e.message; }
+        }
 
-        window.deleteRevision = async (revId) => {
-            if (!confirm(`정말 이 편집 내역(#${revId})을 영구 삭제하시겠습니까?\n(마커 데이터 자체는 삭제되지 않습니다)`)) return;
+        async function loadBlockedUsers() {
+            const container = document.getElementById('blocked-users-list');
+            container.innerHTML = "<p style='color:#888;'>로딩 중...</p>";
             try {
                 const token = await auth.currentUser.getIdToken();
-                const response = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                const response = await fetch(`${BACKEND_URL}/api/admin/users/blocked`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    if (data.blocks.length === 0) {
+                        container.innerHTML = "<p style='text-align:center; padding:40px; color:#888;'>제재 중인 유저가 없습니다.</p>";
+                        return;
+                    }
+                    container.innerHTML = data.blocks.map(b => `
+                        <div class="data-item">
+                            <div class="item-icon" style="color:var(--danger)">🚫</div>
+                            <div class="item-info">
+                                <h4>${b.reason}</h4>
+                                <p>IP: ${b.ip || '-'} / UID: ${b.user_id || '-'}</p>
+                                <p style="color:var(--warning); font-size:11px;">만료: ${b.expires_at ? new Date(b.expires_at).toLocaleString() : '영구 차단'}</p>
+                            </div>
+                            <button onclick="unblockUser(${b.id})" class="btn btn-outline">차단 해제</button>
+                        </div>
+                    `).join('');
+                }
+            } catch (e) { container.innerText = "Error: " + e.message; }
+        }
+
+        async function loadSettings() {
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/admin/settings`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const s = data.settings;
+                    document.getElementById('setting-auto-approve-level').value = s.wiki_auto_approve_level || '0';
+                    document.getElementById('setting-default-status').value = s.wiki_default_status || 'approved';
+                    document.getElementById('setting-site-notice').value = s.site_notice || '';
+                    document.getElementById('setting-maintenance-mode').value = s.maintenance_mode || 'false';
+                }
+            } catch (e) { alert("설정을 불러오지 못했습니다: " + e.message); }
+        }
+
+        async function saveSettings() {
+            const btn = document.getElementById('btn-save-settings');
+            const originalText = btn.innerText;
+            btn.innerText = "저장 중...";
+            btn.disabled = true;
+
+            try {
+                const settings = {
+                    wiki_auto_approve_level: document.getElementById('setting-auto-approve-level').value,
+                    wiki_default_status: document.getElementById('setting-default-status').value,
+                    site_notice: document.getElementById('setting-site-notice').value,
+                    maintenance_mode: document.getElementById('setting-maintenance-mode').value
+                };
+
+                const token = await auth.currentUser.getIdToken();
+                const response = await fetch(`${BACKEND_URL}/api/admin/settings`, {
+                    method: "POST",
+                    headers: { 
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(settings)
+                });
+                
+                if (response.ok) {
+                    alert("설정이 성공적으로 저장되었습니다.");
+                } else {
+                    throw new Error("저장 실패");
+                }
+            } catch (e) { alert("에러: " + e.message); }
+            finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        // Action wrappers (Expose to window for inline onclick)
+        window.processMarker = async (id, action) => {
+            if (!confirm(`${action} 처리 하시겠습니까?`)) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                let url = `${BACKEND_URL}/api/admin/markers/${id}`;
+                let method = action === 'delete' ? "DELETE" : "POST";
+                if (action === 'approve') url += "/approve";
+                if (action === 'reject') url += "/reject";
+
+                await fetch(url, { method, headers: { "Authorization": `Bearer ${token}` } });
+                loadPendingMarkers();
+            } catch (e) { alert(e.message); }
+        };
+
+        window.deleteRevision = async (id) => {
+            if (!confirm("이 편집 내역을 영구 삭제하시겠습니까?")) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                await fetch(`${BACKEND_URL}/api/revisions/${id}`, {
                     method: "DELETE",
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                const result = await response.json();
-                if (result.success) {
-                    alert("삭제되었습니다.");
-                    window.openRevisionManager(); // Refresh
-                } else {
-                    alert("삭제 실패: " + result.error);
-                }
-            } catch (e) {
-                alert("Error: " + e.message);
-            }
+                loadRevisions();
+            } catch (e) { alert(e.message); }
         };
 
-        window.closeModal = () => {
-             document.getElementById('admin-modal').style.display = "none";
+        window.unblockUser = async (id) => {
+            if (!confirm("차단을 해제하시겠습니까?")) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                await fetch(`${BACKEND_URL}/api/admin/users/blocked/${id}`, {
+                    method: "DELETE",
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                loadBlockedUsers();
+            } catch (e) { alert(e.message); }
         };
 
+        window.switchTab = switchTab;
         init();
     </script>
 </body>
-
 </html>

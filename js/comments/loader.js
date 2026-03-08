@@ -16,6 +16,7 @@ import { getCachedComments, setCachedComments } from "./cache.js";
 import { containsBadWord } from "./badwords.js";
 import { processCommentText } from "./textProcessor.js";
 import { fetchBatchVotes, renderVoteButtons, getVoteCounts } from "../votes.js";
+import { getUserLevelIcon, maskIdentifier } from "../utils.js";
 
 const TTL_DAYS = 90;
 const ENABLE_IP_DELETE = true;
@@ -217,11 +218,14 @@ export const loadComments = async (itemId, forceRefresh = false) => {
         ? '<div class="blur-overlay" data-action="reveal-comment"><span>비추천이 많은 댓글입니다 (클릭하여 보기)</span></div>'
         : "";
 
+      const levelIcon = getUserLevelIcon(data.userLevel);
+      const maskedIp = maskIdentifier(data.ip, 'ip');
+
       return `
                 <div class="comment-item ${isReply ? "comment-reply" : ""} ${blurClass}" data-id="${data.id}">
                     ${blurOverlay}
                     <div class="comment-header">
-                        <span class="comment-author"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -1px; margin-right: 4px;"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${data.ip && data.ip !== "unknown" ? data.ip : "알 수 없음"})</span></span>
+                        <span class="comment-author">${levelIcon}${nickname} <span style="font-size:0.8em; color:#888; font-weight:normal;">(${maskedIp})</span></span>
                         <span class="comment-meta">
                             <span class="comment-date">${date}</span>
                             ${deleteBtn}

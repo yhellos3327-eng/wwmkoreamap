@@ -84,6 +84,14 @@ export const initMap = async (mapKey) => {
       if (window.innerWidth <= 768) toggleSidebar("close");
     });
 
+    // 전역 마우스 좌표 추적 (단축키용) - 중복 등록 방지
+    if (!map._isMouseTrackingAdded) {
+      map.on("mousemove", (e) => {
+        state.lastMousePos = { lat: e.latlng.lat, lng: e.latlng.lng };
+      });
+      map._isMouseTrackingAdded = true;
+    }
+
     const mapContainer = map.getContainer();
     mapContainer.addEventListener("auxclick", (e) => {
       if (!state.showCommunityMarkers) return;
