@@ -87,9 +87,7 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
       itemDescription = itemDescription.replace(/{region}/g, displayRegion);
 
       itemDescription = parseMarkdown(itemDescription);
-
       itemDescription = itemDescription.replace(/\n/g, "<br>");
-
       itemDescription = itemDescription.replace(
         /{spoiler}([\s\S]*?){\/spoiler}/g,
         '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
@@ -140,6 +138,17 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
     }
   }
 
+  let heroBgStyle = "";
+  if (mediaItems.length > 0 && mediaItems[0].type === "image") {
+    let imgSrc = mediaItems[0].src;
+    if (imgSrc && !imgSrc.startsWith("http") && !imgSrc.startsWith("data:") && !imgSrc.startsWith("/")) {
+      if (imgSrc.startsWith("assets.wwmmap.kr")) {
+        imgSrc = "https://" + imgSrc;
+      }
+    }
+    heroBgStyle = `background-image: linear-gradient(to bottom, rgba(0,0,0,0.1), var(--wiki-glass-bg) 95%), url('${imgSrc}'); background-size: cover; background-position: center;`;
+  }
+
   if (mediaItems.length > 0) {
     const slides = mediaItems
       .map((media, index) => {
@@ -148,16 +157,12 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
         if (media.type === "image") {
           let imgSrc = media.src;
           if (imgSrc && !imgSrc.startsWith("http") && !imgSrc.startsWith("data:") && !imgSrc.startsWith("/")) {
-            // Assume it's a domain-relative or absolute URL needing protocol if it looks like one, or just prepend relative path?
-            // If it starts with 'assets.wwmmap.kr', it definitely needs https://
             if (imgSrc.startsWith("assets.wwmmap.kr")) {
               imgSrc = "https://" + imgSrc;
             }
           }
 
-          const placeholder =
-            "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-
+          const placeholder = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
           const isFirst = index === 0;
           const srcAttr = isFirst ? imgSrc : placeholder;
           const lazyClass = isFirst ? "" : "lazy-load";
@@ -235,46 +240,17 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
     !isExternalContent
   ) {
     translateBtnHtml = `
-            <div class="translate-buttons" style="display: flex; gap: 8px;">
-                <button class="btn-translate btn-translate-chrome" data-action="translate" data-translate-type="chrome" data-item-id="${item.id}" 
-                    title="Chrome 내장 번역&#10;• 무료, 빠름&#10;• 단순 번역만 가능&#10;• 게임 용어 인식 불가"
-                    style="flex:1; padding:6px 8px; background:rgba(66,133,244,0.1); border:1px solid rgba(66,133,244,0.4); color:#4285f4; border-radius:6px; cursor:pointer; font-size: 0.8em; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="4" y="4" width="16" height="16" rx="2"></rect>
-                        <rect x="9" y="9" width="6" height="6"></rect>
-                        <path d="M9 1v3M15 1v3M9 20v3M15 20v3M1 9h3M1 15h3M20 9h3M20 15h3"></path>
-                    </svg>
-                    <span class="btn-text">내장</span>
-                </button>
-                <button class="btn-translate btn-translate-ai" data-action="translate" data-translate-type="ai" data-item-id="${item.id}"
-                    title="AI 번역 (권장)&#10;• API 키 필요&#10;• 게임 용어 사전 참조&#10;• 문맥 인식, 정확한 번역"
-                    style="flex:1; padding:6px 8px; background:var(--accent-bg); border:1px solid var(--accent); color:var(--accent); border-radius:6px; cursor:pointer; font-size: 0.8em; display:flex; align-items:center; justify-content:center; gap:5px;">
-                    <svg class="btn-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
-                        <circle cx="8.5" cy="15.5" r="1.5"></circle>
-                        <circle cx="15.5" cy="15.5" r="1.5"></circle>
-                        <path d="M8.5 11V7a3.5 3.5 0 0 1 7 0v4"></path>
-                        <path d="M12 3v2"></path>
-                        <path d="M3 15h-2M23 15h-2"></path>
-                    </svg>
-                    <span class="btn-text">AI</span>
+            <div class="wiki-translate-group">
+                <button class="wiki-btn-translate" data-action="translate" data-translate-type="ai" data-item-id="${item.id}" title="AI 번역">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg> AI 번역
                 </button>
             </div>
         `;
   }
 
-  let relatedHtml = "";
+  let commentsHtml = "";
   if (state.showComments) {
-    relatedHtml = `
-        <div class="popup-related">
-            <div class="popup-related-header">
-                <h5>
-                    <span style="flex:1"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 6px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>이정표</span>
-                    <button class="btn-search-modal" data-action="open-modal" data-category="${item.category}" title="전체 목록 검색">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    </button>
-                </h5>
-            </div>
+    commentsHtml = `
             <div class="popup-comments-container">
                 <div id="comments-list-${item.id}" class="comments-list">
                     <div class="skeleton-comment">
@@ -296,18 +272,14 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                     </ul>
                 </div>
 
-                <form class="comment-form" data-item-id="${item.id}">
-                    <div class="comment-input-group">
+                <form class="comment-form wiki-comment-form" data-item-id="${item.id}">
+                    <div class="wiki-comment-inputs">
                         <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
                         <input type="password" class="comment-password" placeholder="비밀번호" maxlength="16" title="삭제 시 필요">
-                        <button type="button" class="btn-guide" data-action="toggle-guide" data-target="comment-guide-${item.id}" title="작성 가이드">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        </button>
                     </div>
-                    <div class="comment-input-wrapper" style="position: relative;">
+                    <div class="comment-input-wrapper">
                         <div id="sticker-modal-${item.id}" class="sticker-modal">
-                            <div class="sticker-grid" id="sticker-grid-${item.id}">
-                            </div>
+                            <div class="sticker-grid" id="sticker-grid-${item.id}"></div>
                         </div>
                         <button type="button" class="btn-sticker" data-action="toggle-sticker" data-item-id="${item.id}" title="스티커">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></svg>
@@ -317,15 +289,13 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                     </div>
                 </form>
             </div>
-        </div>
     `;
   }
 
   const contentId = `popup-content-${item.id}`;
-
   const bodyContent = isExternalContent
     ? `<div id="${contentId}"></div>`
-    : `<div class="popup-content">${itemDescription}</div>`;
+    : `<div class="wiki-content-markdown">${itemDescription}</div>`;
 
   let aggregatedReportsHtml = "";
   if (item.aggregated && item.aggregated.length > 0) {
@@ -337,122 +307,142 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
         const reportTitle = t(report.name) || "제보 내용";
 
         return `
-          <div class="report-item ${isActive ? "active" : ""}" 
+          <div class="wiki-report-card ${isActive ? "active" : ""}" 
                data-action="switch-report" 
                data-item-id="${item.id}" 
-               data-report-id="${report.id}"
-               style="padding: 8px; border-radius: 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 8px; border: 1px solid ${isActive ? "var(--accent)" : "rgba(255,255,255,0.05)"}; background: ${isActive ? "rgba(255,187,0,0.1)" : "rgba(255,255,255,0.03)"};">
-              <div class="report-author-icon" style="flex-shrink: 0; width: 24px; height: 24px; border-radius: 50%; background: ${isActive ? "var(--accent)" : "rgba(255,255,255,0.1)"}; display: flex; align-items: center; justify-content: center;">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="${isActive ? "#000" : "currentColor"}" stroke-width="3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+               data-report-id="${report.id}">
+              <div class="wiki-report-icon">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
               </div>
-              <div style="flex: 1; min-width: 0;">
-                  <div style="font-size: 11px; font-weight: 700; color: ${isActive ? "var(--accent)" : "#eee"}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${reportTitle}</div>
-                  <div style="font-size: 9px; color: rgba(255,255,255,0.5);">${reportAuthor}</div>
+              <div class="wiki-report-info">
+                  <div class="wiki-report-title">${reportTitle}</div>
+                  <div class="wiki-report-author">${reportAuthor}</div>
               </div>
-              ${isActive ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ""}
+              ${isActive ? `<svg class="wiki-report-check" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>` : ""}
           </div>
         `;
       })
       .join("");
 
     aggregatedReportsHtml = `
-      <div class="popup-aggregated-section" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 12px;">
-          <h5 style="margin: 0 0 8px 4px; font-size: 10px; color: rgba(255,255,255,0.4); text-transform: uppercase; letter-spacing: 0.5px; display: flex; align-items: center; gap: 5px;">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-              이 위치의 다른 제보 (${allReports.length})
+      <div class="wiki-aggregated-section">
+          <h5 class="wiki-section-title">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              유저 제보 모음 (${allReports.length})
           </h5>
-          <div class="report-list" style="display: flex; flex-direction: column; gap: 6px; max-height: 150px; overflow-y: auto; padding-right: 4px;">
+          <div class="wiki-report-list">
               ${listItems}
           </div>
       </div>
     `;
   }
 
+  const adminHtml = (displayItem.isBackend && isAdminUser()) ? `
+      <div class="wiki-admin-actions">
+          <div class="wiki-admin-label">Admin Tools</div>
+          <div class="wiki-admin-btn-group">
+              <button class="wiki-admin-btn btn-delete" data-action="admin-delete" data-item-id="${displayItem.id}">삭제</button>
+              ${displayItem.status === 'pending' || displayItem.status === 'rejected' ? `<button class="wiki-admin-btn btn-approve" data-action="admin-approve" data-item-id="${displayItem.id}">승인</button>` : ''}
+              ${displayItem.status !== 'rejected' ? `<button class="wiki-admin-btn btn-reject" data-action="admin-reject" data-item-id="${displayItem.id}">거부</button>` : ''}
+              <button class="wiki-admin-btn btn-block" data-action="admin-block-user" data-user-id="${displayItem.user_id}">유저 차단</button>
+          </div>
+      </div>
+  ` : '';
+
   return `
-    <div class="popup-container" data-id="${item.id}" data-lat="${lat}" data-lng="${lng}">
-        <div class="popup-header">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <img src="./icons/${displayItem.category}.png" class="popup-icon" alt="${categoryName}" onerror="this.style.display='none'">
-                <div style="display:flex; flex-direction:column; gap: 4px;">
-                    <h4 style="margin:0;">${translatedName}</h4>
-                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
-                        ${displayItem.user_id ? `
-                            <div class="author-profile" style="display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.1); padding: 2px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15);">
-                                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="color: var(--accent);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                <span style="font-size: 10px; font-weight: 600; color: #eee; letter-spacing: -0.2px;">${displayItem.user_id}</span>
-                            </div>
-                        ` : ''} 
-                        ${displayItem.id !== item.id ? '<span style="font-size: 10px; color: var(--accent); font-weight: 700; background: rgba(255, 187, 0, 0.15); padding: 2px 6px; border-radius: 12px;">중복 제보</span>' : ''}
-                        ${displayItem.isWikiEdited ? '<span title="유저 참여로 수정된 문서입니다." style="font-size: 10px; color: #4ade80; font-weight: 700; background: rgba(74, 222, 128, 0.15); padding: 2px 6px; border-radius: 12px; cursor: help;">지도 위키 반영됨</span>' : ''}
-                    </div>
+    <div class="wiki-popup-container" data-id="${item.id}" data-lat="${lat}" data-lng="${lng}">
+        <header class="wiki-hero" style="${heroBgStyle}">
+            <div class="wiki-hero-content">
+                <div class="wiki-hero-badges">
+                    <span class="wiki-badge category">
+                        <img src="./icons/${displayItem.category}.png" alt="${categoryName}" onerror="this.style.display='none'">
+                        ${categoryName}
+                    </span>
+                    <span class="wiki-badge region">${t(displayRegion)}</span>
+                    ${displayItem.id !== item.id ? '<span class="wiki-badge duplicate">중복 제보</span>' : ''}
+                    ${displayItem.isWikiEdited ? '<span class="wiki-badge edited" title="유저 참여로 수정된 문서입니다.">위키 반영됨</span>' : ''}
                 </div>
+                <h2 class="wiki-hero-title">${translatedName}</h2>
+                ${displayItem.user_id ? `
+                    <div class="wiki-hero-author">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                        ${displayItem.user_id}
+                    </div>
+                ` : ''}
             </div>
-        </div>
-        
+        </header>
 
-        <div class="popup-quest-info hidden" data-item-id="${item.id}">
-        </div>
-        <div class="popup-body">
-            ${mediaHtml}
-            ${bodyContent}
-            
-            <div style="display:flex; gap: 6px; justify-content: flex-end; margin-top: 12px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.1);">
-                <button class="action-btn-small" data-action="open-history-modal" data-item-id="${displayItem.id}" title="이 마커의 수정 역사 보기">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span style="font-size: 11px; margin-left: 2px;">역사 기록</span>
-                </button>
-                <button class="action-btn-small" data-action="open-edit-modal" data-item-id="${displayItem.id}" data-is-official="${!displayItem.isBackend}" title="이 마커 정보 수정 제안하기">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-                    <span style="font-size: 11px; margin-left: 2px;">편집 제안</span>
-                </button>
-            </div>
-            
-            ${translateBtnHtml}
-            ${renderVoteButtons(displayItem.id, false, !!displayItem.isBackend)}
-            ${aggregatedReportsHtml}
-        </div>
-        ${relatedHtml}
-        <div class="popup-actions">
-            <button class="action-btn btn-fav ${isFav ? "active" : ""}" data-action="toggle-fav" data-item-id="${displayItem.id}" title="즐겨찾기">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
-            </button>
-            <button class="action-btn btn-complete ${isCompleted ? "active" : ""}" data-action="toggle-complete" data-item-id="${completedId}" title="완료 상태로 표시">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                ${isCompleted ? `완료${completedTimeStr ? `<span class="completed-time">${completedTimeStr}</span>` : ""}` : "완료"}
-            </button>
-            <button class="action-btn btn-route" data-action="add-to-route" data-item-id="${displayItem.id}" title="경로에 추가">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
-                경로
-            </button>
-            <button class="action-btn btn-share" data-action="share" data-item-id="${item.id}" title="위치 공유">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
-            </button>
-        </div>
-        ${(() => {
-      if (displayItem.isBackend && isAdminUser()) {
-        return `
-              <div class="admin-actions" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;">
-                  <div style="font-size: 10px; font-weight: bold; color: #ff6b6b; margin-bottom: 5px; text-transform: uppercase;">Admin Tools</div>
-                  <div style="display: flex; gap: 5px; flex-wrap: wrap;">
-                      <button class="action-btn" data-action="admin-delete" data-item-id="${displayItem.id}" style="background: rgba(255,0,0,0.2); color: #ff6b6b; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(255,0,0,0.3);">삭제</button>
-                      ${displayItem.status === 'pending' || displayItem.status === 'rejected' ? `<button class="action-btn" data-action="admin-approve" data-item-id="${displayItem.id}" style="background: rgba(0,255,0,0.2); color: #4ade80; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(0,255,0,0.3);">승인</button>` : ''}
-                      ${displayItem.status !== 'rejected' ? `<button class="action-btn" data-action="admin-reject" data-item-id="${displayItem.id}" style="background: rgba(255,165,0,0.2); color: #fb923c; font-size: 11px; padding: 4px 8px; border: 1px solid rgba(255,165,0,0.3);">거부</button>` : ''}
-                      <button class="action-btn" data-action="admin-block-user" data-user-id="${displayItem.user_id}" style="background: rgba(100,100,100,0.2); color: #aaa; font-size: 11px; padding: 4px 8px; margin-left: auto; border: 1px solid rgba(255,255,255,0.1);">유저 차단</button>
-                  </div>
-              </div>
-            `;
-      }
-      return '';
-    })()}
-        <div class="popup-footer">
-            <div class="footer-badges">
-                <span class="badge">${categoryName}</span>
-                <span class="badge">${t(displayRegion)}</span>
-            </div>
+        <nav class="wiki-tab-nav">
+            <label class="wiki-tab-label">
+                <input type="radio" name="wiki-tab-${item.id}" value="info" checked>
+                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> 문서</span>
+            </label>
+            ${state.showComments ? `
+            <label class="wiki-tab-label">
+                <input type="radio" name="wiki-tab-${item.id}" value="community">
+                <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> 커뮤니티</span>
+            </label>` : ''}
+        </nav>
 
+        <div class="wiki-tab-panels">
+            <section class="wiki-tab-panel info-panel">
+                ${mediaItems.length > 0 ? `
+                <div class="wiki-media-section">
+                    <div class="wiki-media-header">
+                        <span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg> 미디어 (${mediaItems.length})</span>
+                        <div class="wiki-media-toggle">
+                            <button class="active" data-action="toggle-media-view" data-view="slide" data-item-id="${item.id}" title="슬라이드 뷰">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="9" y1="3" x2="9" y2="21"></line></svg>
+                            </button>
+                            <button data-action="toggle-media-view" data-view="inline" data-item-id="${item.id}" title="본문 삽입 뷰">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="wiki-media-content slide-view" id="media-content-${item.id}">
+                        ${mediaHtml}
+                    </div>
+                </div>` : ''}
+
+                ${bodyContent}
+
+                ${translateBtnHtml}
+                
+                <div class="wiki-info-actions">
+                    <button class="wiki-action-sm" data-action="open-edit-modal" data-item-id="${displayItem.id}" data-is-official="${!displayItem.isBackend}" title="이 마커 정보 수정 제안하기">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> 편집 제안
+                    </button>
+                    <button class="wiki-action-sm" data-action="open-history-modal" data-item-id="${displayItem.id}" title="이 마커의 수정 역사 보기">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 역사 기록
+                    </button>
+                </div>
+                ${renderVoteButtons(displayItem.id, false, !!displayItem.isBackend)}
+                ${aggregatedReportsHtml}
+                ${adminHtml}
+            </section>
+
+            ${state.showComments ? `
+            <section class="wiki-tab-panel community-panel">
+                ${commentsHtml}
+            </section>` : ''}
+        </div>
+
+        <div class="wiki-sticky-action-bar">
+            <button class="wiki-fab-btn ${isFav ? "active" : ""}" data-action="toggle-fav" data-item-id="${displayItem.id}" title="즐겨찾기">
+                <svg viewBox="0 0 24 24" fill="${isFav ? "currentColor" : "none"}" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </button>
+            <button class="wiki-fab-btn ${isCompleted ? "active" : ""}" data-action="toggle-complete" data-item-id="${completedId}" title="획득 완료">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </button>
+            <button class="wiki-fab-btn route" data-action="add-to-route" data-item-id="${displayItem.id}" title="경로 추가">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="10" r="3"></circle><path d="M12 21.7C17.3 17 20 13 20 10a8 8 0 1 0-16 0c0 3 2.7 7 8 11.7z"></path></svg>
+            </button>
+            <button class="wiki-fab-btn" data-action="share" data-item-id="${item.id}" title="공유하기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><polyline points="16 6 12 2 8 6"></polyline><line x1="12" y1="2" x2="12" y2="15"></line></svg>
+            </button>
         </div>
     </div>
-`;
+  `;
 };
 
 /**
@@ -539,6 +529,34 @@ document.addEventListener("click", (e) => {
     case "switch-image":
       switchImage(target, parseInt(target.dataset.dir));
       break;
+    case "toggle-media-view": {
+      const view = target.dataset.view;
+      const mediaSection = target.closest('.wiki-media-section');
+      if (mediaSection) {
+        const content = mediaSection.querySelector('.wiki-media-content');
+        const buttons = mediaSection.querySelectorAll('.wiki-media-toggle button');
+        buttons.forEach(b => b.classList.remove('active'));
+        target.classList.add('active');
+        content.className = `wiki-media-content ${view}-view`;
+
+        // When switching to slide-view, ensure only the active slide is visible
+        if (view === "slide") {
+          const container = content.querySelector('.popup-image-container');
+          const idx = 0;
+          if (container) {
+            container.setAttribute('data-idx', String(idx));
+            const images = container.querySelectorAll('.popup-media');
+            images.forEach((img, i) => {
+              if (i === idx) img.classList.add('active');
+              else img.classList.remove('active');
+            });
+            const counter = container.querySelector('.img-counter');
+            if (counter) counter.textContent = `1 / ${images.length}`;
+          }
+        }
+      }
+      break;
+    }
     case "translate":
       const translateType = target.dataset.translateType || "ai";
       translateItem(parseInt(itemId), translateType);
