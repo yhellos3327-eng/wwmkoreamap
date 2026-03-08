@@ -446,38 +446,36 @@ export const resetGif = (img) => {
  */
 export const getUserLevelIcon = (level) => {
   const lv = Number(level) || 0;
-  let color = "#888";
-  let path = "";
-  let title = "익명";
+  let color, title, content;
 
   switch (lv) {
-    case 1:
-      color = "#4CAF50"; // Sprout
-      path = "M12 22V12M12 12C12 12 12 7 17 7M12 12C12 12 12 9 8 9";
+    case 1: // 새싹 (Sprout)
+      color = "#66BB6A";
       title = "새싹";
+      content = `<line x1="12" y1="22" x2="12" y2="12" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/><path d="M12 12c0-5 5-7.5 9-7.5C21 9.5 17 12 12 12z" fill="${color}"/><path d="M12 16c0-3.5-3.5-5.5-7-5.5C5 14.5 8.5 16 12 16z" fill="${color}" opacity="0.7"/>`;
       break;
-    case 2:
-      color = "#2E7D32"; // Tree
-      path = "M12 22V17M12 17C15 17 19 15 19 10C19 5 15 2 12 2C9 2 5 5 5 10C5 15 9 17 12 17Z";
+    case 2: // 숙련자 (Tree)
+      color = "#43A047";
       title = "숙련자";
+      content = `<path d="M12 2L7 8.5h2.5L6 14.5h3L5.5 21h13L15 14.5h3L14.5 8.5H17z" fill="${color}"/><rect x="10.5" y="20" width="3" height="3" rx="0.5" fill="${color}" opacity="0.6"/>`;
       break;
-    case 3:
-      color = "#FFD700"; // Medal
-      path = "M12 15C15.866 15 19 11.866 19 8C19 4.13401 15.866 1 12 1C8.13401 1 5 4.13401 5 8C5 11.866 8.13401 15 12 15ZM12 15V23L15 20L18 23V15M12 15V23L9 20L6 23V15";
+    case 3: // 전문가 (Star)
+      color = "#FFC107";
       title = "전문가";
+      content = `<path d="M12 2l2.9 5.8 6.4 1-4.6 4.5 1.1 6.4L12 16.8l-5.8 2.9 1.1-6.4-4.6-4.5 6.4-1z" fill="${color}"/>`;
       break;
-    case 4:
-      color = "#E91E63"; // Crown
-      path = "M2 20L5 7L12 11L19 7L22 20H2Z M12 6A1 1 0 1 0 12 8A1 1 0 1 0 12 6 Z M5 5A1 1 0 1 0 5 7A1 1 0 1 0 5 5 Z M19 5A1 1 0 1 0 19 7A1 1 0 1 0 19 5 Z";
+    case 4: // 관리자 (Crown)
+      color = "#E91E63";
       title = "관리자";
+      content = `<path d="M2.5 18l2.5-10L9 13l3-9 3 9 4-5 2.5 10z" fill="${color}"/><rect x="2.5" y="18" width="19" height="3.5" rx="1" fill="${color}" opacity="0.8"/><circle cx="12" cy="4" r="1.5" fill="${color}"/><circle cx="5" cy="8" r="1.5" fill="${color}"/><circle cx="19" cy="8" r="1.5" fill="${color}"/>`;
       break;
-    default: // Lv 0 or Seed
-      color = "#888";
-      path = "M12 20C14.2091 20 16 18.2091 16 16C16 13.7909 14.2091 12 12 12C9.79086 12 8 13.7909 8 16C8 18.2091 9.79086 20 12 20Z";
+    default: // 익명 (Anonymous)
+      color = "#9E9E9E";
       title = "익명";
+      content = `<circle cx="12" cy="8" r="4" fill="${color}" opacity="0.6"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" fill="${color}" opacity="0.35"/>`;
   }
 
-  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 4px;" title="${title}"><path d="${path}"></path></svg>`;
+  return `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="vertical-align: middle; margin-right: 4px;" title="${title}">${content}</svg>`;
 };
 
 /**
