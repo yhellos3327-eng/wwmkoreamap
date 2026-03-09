@@ -1319,6 +1319,11 @@ export const setMode = (mode) => {
     if (mode === "region") {
       startRegionMode();
     }
+
+    // Ensure listeners are bound when any mode is active (for Community Toolbar compatibility)
+    if (mode) {
+      ensureDevListenersBound();
+    }
   }
   document.body.setAttribute("data-dev-mode", devState.currentMode || "none");
   updateUI();
@@ -1809,6 +1814,26 @@ const bindDevEvents = () => {
 };
 
 /**
+ * 전역 리스너 보장 (맵 클릭 등)
+ * Community Toolbar 등으로 진입 시에도 이벤트가 작동하도록 함
+ */
+export const ensureDevListenersBound = () => {
+  if (!state.map) return;
+
+  // 맵 이벤트 (중복 방지를 위해 off 후 on)
+  state.map.off("click", handleMapClick);
+  state.map.off("mousemove", handleMouseMove);
+
+  if (devState.isActive || devState.currentMode || devState.isDeleteMode) {
+    state.map.on("click", handleMapClick);
+    state.map.on("mousemove", handleMouseMove);
+  }
+
+  // 마커 이벤트
+  attachMarkerListeners();
+};
+
+/**
  * 마커들에 이벤트 연결
  */
 const attachMarkerListeners = () => {
@@ -1842,11 +1867,8 @@ const startDev = () => {
   modal.style.display = "block";
 
   if (state.map) {
-    state.map.on("click", handleMapClick);
-    state.map.on("mousemove", handleMouseMove);
+    ensureDevListenersBound();
   }
-
-  attachMarkerListeners();
 
   console.log(
     "%c🔧 개발자 도구가 활성화되었습니다!",
@@ -1876,8 +1898,7 @@ const stopDev = () => {
   }
 
   if (state.map) {
-    state.map.off("click", handleMapClick);
-    state.map.off("mousemove", handleMouseMove);
+    ensureDevListenersBound();
   }
 
   console.log("%c🔧 개발자 도구가 비활성화되었습니다.", "color: #888;");
@@ -1935,6 +1956,9 @@ export const setDevMode = (mode) => {
     devState.isDeleteMode = false;
     setMode(mode);
   }
+
+  // Ensure listeners are bound immediately
+  ensureDevListenersBound();
 };
 
 const toggleRegionEditor = () => {
@@ -2215,12 +2239,11 @@ dev.handleGpuClick = handleGpuMarkerClick;
 
 export { dev, startDev, stopDev };
 
-// Clean up temp marker when modal is closed (this function needs to be called by close handler)
+// Clean up temp marker when modal is closed
 export const closeAddMarkerModal = () => {
   const modal = document.getElementById("dev-add-marker-modal");
   if (modal) {
     modal.style.display = "none";
-    // modal.remove(); // Optional: remove entirely or just hide
   }
   if (devState.tempMarker) {
     if (state.map) state.map.removeLayer(devState.tempMarker);
