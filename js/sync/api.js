@@ -1,13 +1,27 @@
-// @ts-check
 import { BACKEND_URL } from "../config.js";
+
+/**
+ * 인증 헤더를 동적으로 가져옵니다.
+ * @returns {Promise<Object>}
+ */
+const getHeaders = async () => {
+  try {
+    const { getAuthHeaders } = await import("../auth.js");
+    return await getAuthHeaders();
+  } catch (e) {
+    return { "Content-Type": "application/json" };
+  }
+};
 
 /**
  * 클라우드에서 사용자 데이터를 가져옵니다.
  * @returns {Promise<{data: any|null, version: number}>} 클라우드 데이터 및 버전.
  */
 export const fetchCloudData = async () => {
+  const headers = await getHeaders();
   const response = await fetch(`${BACKEND_URL}/api/sync/load`, {
     credentials: "include",
+    headers
   });
   const result = await response.json();
   return {
@@ -28,9 +42,10 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
     payload.expectedVersion = expectedVersion;
   }
 
+  const headers = await getHeaders();
   const response = await fetch(`${BACKEND_URL}/api/sync/save`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: JSON.stringify(payload),
   });
@@ -53,8 +68,10 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
  * @returns {Promise<any[]>} 백업 목록 배열.
  */
 export const fetchBackupList = async () => {
+  const headers = await getHeaders();
   const response = await fetch(`${BACKEND_URL}/api/backup/list`, {
     credentials: "include",
+    headers
   });
   if (!response.ok) throw new Error(`Failed to fetch: ${response.status}`);
   const result = await response.json();
@@ -73,9 +90,10 @@ export const saveCloudBackup = async (label = null, data = null) => {
     Object.assign(payload, data);
   }
 
+  const headers = await getHeaders();
   const response = await fetch(`${BACKEND_URL}/api/backup/save`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     credentials: "include",
     body: JSON.stringify(payload),
   });
@@ -89,11 +107,13 @@ export const saveCloudBackup = async (label = null, data = null) => {
  * @returns {Promise<any>} 복원 응답.
  */
 export const restoreFromBackup = async (backupId) => {
+  const headers = await getHeaders();
   const response = await fetch(
     `${BACKEND_URL}/api/backup/restore/${backupId}`,
     {
       method: "POST",
       credentials: "include",
+      headers
     },
   );
   if (!response.ok) throw new Error(`Failed to restore: ${response.status}`);

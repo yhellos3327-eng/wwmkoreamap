@@ -67,18 +67,10 @@ class CommunityToolbar {
         if (btn) btn.classList.add('active');
 
         // Logic integration
-        if (tool === 'move') {
-            import("../dev-tools.js").then(m => {
-                // @ts-ignore
-                if (typeof m.setDevMode === 'function') m.setDevMode('move');
-            });
-        } else if (tool === 'add') {
-            alert("지도의 빈 공간을 클릭하여 새로운 마커를 추가하세요.");
-            // Add logic typically handles itself on map click if community mode is on
-        } else if (tool === 'delete') {
-            alert("삭제할 마커를 선택하여 삭제 제안을 진행하세요.");
-            // Delete mode logic will be integrated in map click handler
-        }
+        import("../dev-tools.js").then(m => {
+            // @ts-ignore
+            if (typeof m.setDevMode === 'function') m.setDevMode(tool);
+        });
     }
 
     deactivateAll() {
