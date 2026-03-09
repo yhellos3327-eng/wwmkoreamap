@@ -330,9 +330,8 @@
 }
 
 .wiki-translate-group {
-    grid-column: 1 / -1;
     display: flex;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .wiki-btn-translate {

@@ -273,9 +273,16 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                 </div>
 
                 <form class="comment-form wiki-comment-form" data-item-id="${item.id}">
-                    <div class="wiki-comment-inputs">
-                        <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
-                        <input type="password" class="comment-password" placeholder="비밀번호" maxlength="16" title="삭제 시 필요">
+                    <div class="wiki-comment-inputs ${isAdminUser() ? 'is-admin-form' : ''}">
+                        ${isAdminUser() ? `
+                            <div class="admin-indicator-badge">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2.5 18l2.5-10L9 13l3-9 3 9 4-5 2.5 10z" fill="currentColor"/><rect x="2.5" y="18" width="19" height="3.5" rx="1" fill="currentColor" opacity="0.8"/></svg>
+                                관리자
+                            </div>
+                        ` : `
+                            <input type="text" class="comment-nickname" placeholder="닉네임" maxlength="8">
+                            <input type="password" class="comment-password" placeholder="비밀번호" maxlength="16" title="삭제 시 필요">
+                        `}
                     </div>
                     <div class="comment-input-wrapper">
                         <div id="sticker-modal-${item.id}" class="sticker-modal">
@@ -407,13 +414,13 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
                 ${bodyContent}
 
                 <div class="wiki-info-actions">
+                    ${translateBtnHtml}
                     <button class="wiki-action-sm" data-action="open-edit-modal" data-item-id="${displayItem.id}" data-is-official="${!displayItem.isBackend}" title="이 마커 정보 수정 제안하기">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> 편집 제안
                     </button>
                     <button class="wiki-action-sm" data-action="open-history-modal" data-item-id="${displayItem.id}" title="이 마커의 수정 역사 보기">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> 역사 기록
                     </button>
-                    ${translateBtnHtml}
                 </div>
                 ${renderVoteButtons(displayItem.id, false, !!displayItem.isBackend)}
                 ${aggregatedReportsHtml}
