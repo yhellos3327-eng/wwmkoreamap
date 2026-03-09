@@ -502,6 +502,17 @@
                 } else {
                     document.getElementById('admin-email').innerText = user.email;
                     document.getElementById('admin-name').innerText = user.displayName || 'Administrator';
+                    
+                    // Fetch user level to enable tiered buttons
+                    fetch(`${BACKEND_URL}/auth/user`, { credentials: 'include' })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.isAuthenticated) {
+                                window.currentUserLevel = data.user.level || 0;
+                                window.currentUserId = data.user.id;
+                            }
+                        });
+
                     fetchStats();
                     loadAllTabsOnDemand();
                 }
@@ -596,21 +607,52 @@
                 const data = await response.json();
                 if (data.success) {
                     container.innerHTML = data.revisions.map(rev => `
-                        <div class="data-item">
+                        <div class="data-item" data-rev-id="${rev.id}">
                             <div class="item-icon">📝</div>
                             <div class="item-info">
                                 <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
                                     <h4>${rev.revision_data?.title || 'Marker #'+rev.target_marker_id}</h4>
                                     <span class="badge badge-${rev.status}">${rev.status}</span>
+                                    ${rev.revision_data?.deleted ? '<span class="badge badge-rejected" style="background:rgba(255,0,0,0.2)">삭제 제안</span>' : ''}
+                                    ${rev.revision_data?.lat ? '<span class="badge badge-pending" style="background:rgba(96,165,250,0.2); color:#60a5fa;">위치 변경</span>' : ''}
                                 </div>
                                 <p>${rev.display_name || 'Anonymous'} | ${new Date(rev.created_at).toLocaleString()}</p>
                                 <p style="margin-top:4px; font-style:italic;">"${rev.edit_reason || '사유 없음'}"</p>
+                                ${rev.revision_data?.lat ? `<p style="font-size:11px; color:#888;">새 위치: ${rev.revision_data.lat}, ${rev.revision_data.lng}</p>` : ''}
                             </div>
-                            <button onclick="deleteRevision(${rev.id})" class="btn btn-danger">기록 삭제</button>
+                            <div class="item-actions">
+                                ${rev.status === 'pending' ? renderApprovalButtons(rev) : ''}
+                                <button onclick="deleteRevision(${rev.id})" class="btn btn-danger">기록 삭제</button>
+                            </div>
                         </div>
-                    `).slice(0, 30).join('');
+                    `).slice(0, 50).join('');
                 }
             } catch (e) { container.innerText = "Error: " + e.message; }
+        }
+
+        function renderApprovalButtons(rev) {
+            const userLevel = window.currentUserLevel || 0;
+            const userId = window.currentUserId;
+            const isOfficial = rev.is_official === 1;
+            const data = rev.revision_data || {};
+            
+            let requiredLevel = 4;
+            if (!isOfficial) {
+                if (data.deleted) requiredLevel = 3;
+                else if (data.lat !== undefined) requiredLevel = 2;
+                else if (!rev.user_id) requiredLevel = 1;
+                else requiredLevel = 2;
+            }
+
+            const isSelf = rev.user_id && userId && String(rev.user_id) === String(userId);
+            const canApprove = userLevel >= requiredLevel && !isSelf;
+
+            if (!canApprove) return '';
+
+            return `
+                <button onclick="processRevision(${rev.id}, 'approve')" class="btn btn-outline" style="color:var(--success)">승인</button>
+                <button onclick="processRevision(${rev.id}, 'reject')" class="btn btn-outline" style="color:var(--warning)">반려</button>
+            `;
         }
 
         async function loadBlockedUsers() {
@@ -705,8 +747,28 @@
                 if (action === 'approve') url += "/approve";
                 if (action === 'reject') url += "/reject";
 
-                await fetch(url, { method, headers: { "Authorization": `Bearer ${token}` } });
+                const res = await fetch(url, { method, headers: { "Authorization": `Bearer ${token}` } });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.message || result.error || "처리 실패");
+                
                 loadPendingMarkers();
+            } catch (e) { alert(e.message); }
+        };
+
+        window.processRevision = async (id, action) => {
+            if (!confirm(`${action === 'approve' ? '승인' : '반려'} 처리 하시겠습니까?`)) return;
+            try {
+                const token = await auth.currentUser.getIdToken();
+                const url = `${BACKEND_URL}/api/revisions/${id}/${action}`;
+                const res = await fetch(url, { 
+                    method: "POST", 
+                    headers: { "Authorization": `Bearer ${token}` } 
+                });
+                const result = await res.json();
+                if (!res.ok) throw new Error(result.message || result.error || "처리 실패");
+                
+                alert(action === 'approve' ? "승인되었습니다." : "반려되었습니다.");
+                loadRevisions();
             } catch (e) { alert(e.message); }
         };
 

@@ -109,6 +109,14 @@ export const toggleCommunityMode = async () => {
         } else {
             await fetchUserCompletions(); // Always sync when toggling on
         }
+
+        // Show guide
+        import("../ui/community-guide.js").then(module => {
+            module.showCommunityGuide();
+        });
+
+        // [COMMUNITY TOOLBAR] Show the dedicated toolbar
+        import("../ui/community-toolbar.js").then(m => m.communityToolbar.show());
     }
 
     // Trigger map re-render
@@ -133,6 +141,11 @@ const updateCommunityButtonState = (isEnabled) => {
             }
         }
     });
+
+    if (!isEnabled) {
+        // [COMMUNITY TOOLBAR] Hide the dedicated toolbar
+        import("../ui/community-toolbar.js").then(m => m.communityToolbar.hide());
+    }
 };
 
 /**

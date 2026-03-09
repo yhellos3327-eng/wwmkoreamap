@@ -138,6 +138,63 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
     const textDescEl = document.getElementById(`wiki-desc-${itemId}`);
     const previewEl = document.getElementById(`wiki-preview-${itemId}`);
+
+    // Add Delete Button to the bottom of the form
+    const wikiForm = document.getElementById(`wiki-form-${itemId}`);
+    if (wikiForm) {
+        const deleteBtnContainer = document.createElement("div");
+        deleteBtnContainer.style.marginTop = "16px";
+        deleteBtnContainer.style.display = "flex";
+        deleteBtnContainer.style.justifyContent = "center";
+        deleteBtnContainer.innerHTML = `
+            <button type="button" id="wiki-delete-提案-${itemId}" class="wiki-delete-btn" style="background: rgba(255, 0, 0, 0.1); color: #ff6b6b; border: 1px solid rgba(255, 0, 0, 0.2); padding: 8px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                이 마커 삭제 제안
+            </button>
+        `;
+        wikiForm.appendChild(deleteBtnContainer);
+
+        const deleteProposalBtn = document.getElementById(`wiki-delete-提案-${itemId}`);
+        if (deleteProposalBtn) {
+            deleteProposalBtn.onclick = async () => {
+                const reason = prompt("이 마커를 삭제해야 하는 이유를 입력해주세요:");
+                if (!reason || !reason.trim()) return;
+
+                if (!confirm("정말 이 마커의 삭제를 제안하시겠습니까?")) return;
+
+                try {
+                    const token = await getAuthToken();
+                    const formData = new FormData();
+                    formData.append('target_marker_id', String(itemId));
+                    formData.append('is_official', String(isOfficial));
+                    formData.append('map_id', state.currentMapKey || 'qinghe');
+                    formData.append('deleted', 'true');
+                    formData.append('edit_reason', reason.trim());
+                    // Force pending for deletions usually, unless highly trusted
+                    formData.append('status', 'pending');
+
+                    const response = await fetch(`${BACKEND_URL}/api/revisions`, {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: formData,
+                        headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                    });
+
+                    const data = await response.json();
+                    if (data.success) {
+                        alert("삭제 제안이 제출되었습니다. 관리자 검토 후 반영됩니다.");
+                        overlay.remove();
+                    } else {
+                        alert("제출 실패: " + (data.error || "알 수 없는 오류"));
+                    }
+                } catch (err) {
+                    console.error("Delete proposal error:", err);
+                    alert("서버 연결 실패");
+                }
+            };
+        }
+    }
+
     if (textDescEl && previewEl) {
         const updatePreview = () => {
             previewEl.innerHTML = parseMarkdown((/** @type {HTMLTextAreaElement} */ (textDescEl)).value);
@@ -418,15 +475,20 @@ export const openWikiHistoryModal = async (itemId) => {
                             ${rev.revision_data.screenshot ? `<div class="wiki-detail-field"><strong>이미지:</strong> <img src="${rev.revision_data.screenshot}" style="max-width: 100%; border-radius: 4px; margin-top: 4px;"></div>` : ''}
                         </div>
                         ${rev.status === 'pending' ? `
-                            <div class="wiki-history-votes">
-                                 <button type="button" class="wiki-vote-badge wiki-vote-up wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="up">
-                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
-                                     추천 <span class="vote-count">${rev.votes}</span>/5
-                                 </button>
-                                 <button type="button" class="wiki-vote-badge wiki-vote-down wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="report">
-                                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
-                                     신고 <span class="report-count">${rev.reports}</span>/3
-                                 </button>
+                            <div class="wiki-history-actions">
+                                <div class="wiki-history-votes">
+                                     <button type="button" class="wiki-vote-badge wiki-vote-up wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="up">
+                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
+                                         추천 <span class="vote-count">${rev.votes}</span>/5
+                                     </button>
+                                     <button type="button" class="wiki-vote-badge wiki-vote-down wiki-history-vote-btn" data-rev-id="${rev.id}" data-type="report">
+                                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-2"></path></svg>
+                                         신고 <span class="report-count">${rev.reports}</span>/3
+                                     </button>
+                                </div>
+                                <div class="wiki-approval-controls" data-rev-id="${rev.id}" data-is-official="${rev.is_official}" data-rev-data='${JSON.stringify(rev.revision_data).replace(/'/g, "&apos;")}' data-author-id="${rev.user_id || ''}">
+                                    <!-- Slots for Approve/Reject buttons -->
+                                </div>
                             </div>
                         ` : ''}
                         <div class="admin-rollback-slot" data-rev-id="${rev.id}" data-user-id="${rev.user_id}" data-ip="${rev.ip_address || ''}" data-fp="${rev.fingerprint || ''}"></div>
@@ -517,9 +579,83 @@ export const openWikiHistoryModal = async (itemId) => {
         });
 
         // Inject Admin/Expert/Logged-in buttons if authorized
-        import("../auth.js").then(({ isAdminUser, canRevert, getAuthToken }) => {
+        import("../auth.js").then(({ isAdminUser, canRevert, getAuthToken, getCurrentUser }) => {
             const isAdmin = isAdminUser();
             const allowedToRevert = canRevert();
+            const user = getCurrentUser();
+            const userLevel = user?.level || 0;
+
+            // Tiered Approval Controls Injection
+            overlay.querySelectorAll('.wiki-approval-controls').forEach(container => {
+                const slot = /** @type {HTMLElement} */(container);
+                const revId = slot.dataset.revId;
+                const authorId = slot.dataset.authorId;
+                const isOfficial = String(slot.dataset.isOfficial) === '1';
+                /** @type {any} */
+                let revData = {};
+                try { revData = JSON.parse(slot.dataset.revData || '{}'); } catch (e) { }
+
+                // Determine required level
+                let requiredLevel = 4; // Admin
+                if (!isOfficial) {
+                    if (revData.deleted) requiredLevel = 3;
+                    else if (revData.lat !== undefined) requiredLevel = 2;
+                    else if (!authorId) requiredLevel = 1;
+                    else requiredLevel = 2; // Default community content
+                }
+
+                const isSelf = authorId && user && String(authorId) === String(user.id);
+                const hasPermission = isAdmin || (userLevel >= requiredLevel && !isSelf);
+
+                if (hasPermission) {
+                    const approveBtn = document.createElement("button");
+                    approveBtn.className = "wiki-history-approve-btn";
+                    approveBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>승인`;
+                    approveBtn.onclick = async () => {
+                        if (!confirm("이 제안을 승인하시겠습니까?")) return;
+                        try {
+                            const token = await getAuthToken();
+                            const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/approve`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert("승인되었습니다.");
+                                overlay.remove();
+                                openWikiHistoryModal(itemId);
+                            } else {
+                                alert(result.message || "승인 실패");
+                            }
+                        } catch (e) { alert("연결 실패"); }
+                    };
+
+                    const rejectBtn = document.createElement("button");
+                    rejectBtn.className = "wiki-history-reject-btn";
+                    rejectBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>반려`;
+                    rejectBtn.onclick = async () => {
+                        if (!confirm("이 제안을 반려하시겠습니까?")) return;
+                        try {
+                            const token = await getAuthToken();
+                            const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/reject`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert("반려되었습니다.");
+                                overlay.remove();
+                                openWikiHistoryModal(itemId);
+                            } else {
+                                alert(result.message || "반려 실패");
+                            }
+                        } catch (e) { alert("연결 실패"); }
+                    };
+
+                    slot.appendChild(approveBtn);
+                    slot.appendChild(rejectBtn);
+                }
+            });
 
             if (isAdmin || allowedToRevert) {
                 overlay.querySelectorAll('.admin-rollback-slot').forEach(slot => {

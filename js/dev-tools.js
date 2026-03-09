@@ -10,9 +10,10 @@ import { MAP_CONFIGS } from "./config.js";
 import { t, isPointInPolygon } from "./utils.js";
 import { getRegionPolygonsCache } from "./map/markerFactory.js";
 
-const devState = {
+export const devState = {
   isActive: false,
   currentMode: null,
+  isDeleteMode: false,
   selectedMarker: null,
   selectedMarkerData: null,
   changes: new Map(),
@@ -1278,7 +1279,7 @@ const updateUI = () => {
 /**
  * 모드 설정
  */
-const setMode = (mode) => {
+export const setMode = (mode) => {
   if (devState.currentMode === "region" && mode !== "region") {
     stopRegionMode();
   }
@@ -1409,7 +1410,10 @@ const handleMarkerAction = (markerData, leafletMarker) => {
  * 맵 클릭 핸들러
  */
 const handleMapClick = (e) => {
-  if (!devState.isActive || !devState.currentMode) return;
+  // If community toolbar is active, we might allow clicks even if devState.isActive is false
+  const isCommunityToolActive = state.showCommunityMarkers && (devState.currentMode || devState.isDeleteMode);
+  if (!devState.isActive && !isCommunityToolActive) return;
+  if (!devState.currentMode && !devState.isDeleteMode) return;
 
   const lat = e.latlng.lat.toFixed(6);
   const lng = e.latlng.lng.toFixed(6);
@@ -1426,6 +1430,52 @@ const handleMapClick = (e) => {
       });
   } else if (devState.currentMode === "move" && devState.selectedMarkerData) {
     const markerData = devState.selectedMarkerData;
+
+    // [COMMUNITY MODE INTEGRATION]
+    // If community mode is enabled, propose a move revision instead of direct local edit
+    if (state.showCommunityMarkers) {
+      const reason = prompt(`[${markerData.title || markerData.name}] 마커의 위치를 여기로 변경하시겠습니까?\n이유를 간단히 입력해주세요:`);
+      if (reason === null) {
+        clearSelection();
+        return;
+      }
+
+      const isOfficial = !markerData.isBackend;
+
+      import("./ui/wiki.js").then(async (wiki) => {
+        const { getAuthToken } = await import("./auth.js");
+        const token = await getAuthToken();
+        const formData = new FormData();
+        formData.append('target_marker_id', String(markerData.id));
+        formData.append('is_official', String(isOfficial));
+        formData.append('map_id', state.currentMapKey || 'qinghe');
+        formData.append('lat', String(lat));
+        formData.append('lng', String(lng));
+        formData.append('edit_reason', reason || "위치 조정");
+        formData.append('status', 'pending');
+
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+            method: 'POST',
+            credentials: 'include',
+            body: formData,
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          const result = await res.json();
+          if (result.success) {
+            alert("위치 변경 제안이 제출되었습니다. 관리자 승인 후 반영됩니다.");
+            addLog(`위치 변경 제안 완료: ${markerData.title || markerData.id}`, "success");
+          } else {
+            alert("제출 실패: " + (result.error || "알 수 없는 오류"));
+          }
+        } catch (e) {
+          alert("서버 연결 실패");
+        }
+        clearSelection();
+      });
+      return;
+    }
+
     const originalLat = markerData.lat;
     const originalLng = markerData.lng;
 
@@ -1496,7 +1546,7 @@ const handleMapClick = (e) => {
       modified: { lat: parseFloat(lat), lng: parseFloat(lng) },
     });
 
-    const icon = devState.selectedMarker.getElement?.();
+    const icon = devState.selectedMarker?.getElement?.();
     if (icon) {
       icon.classList.remove("dev-selected-marker");
       icon.classList.add("dev-modified-marker");
@@ -1810,6 +1860,20 @@ dev.help = () => {
 };
 
 window.dev = dev;
+
+/**
+ * 전용 툴바를 위한 모드 설정 래퍼
+ * @param {string|null} mode
+ */
+export const setDevMode = (mode) => {
+  if (mode === 'delete') {
+    devState.isDeleteMode = true;
+    setMode(null);
+  } else {
+    devState.isDeleteMode = false;
+    setMode(mode);
+  }
+};
 
 const toggleRegionEditor = () => {
   if (devState.currentMode === "region") {
