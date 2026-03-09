@@ -13,6 +13,7 @@ import { logMarkerDebugInfo } from "./markerDebug.js";
 import { toggleCompleted } from "../ui.js";
 import { loadComments } from "../comments.js";
 import { fetchVoteCounts } from "../votes.js";
+import { BACKEND_URL } from "../config.js";
 
 let regionPolygonsCache = [];
 
@@ -129,8 +130,48 @@ export const createMarkerForItem = (item) => {
   marker.off("popupopen");
   marker.unbindPopup();
 
-  marker.on("click", (e) => {
+  marker.on("click", async (e) => {
     if (e && e.originalEvent) e.originalEvent.stopPropagation();
+
+    // [COMMUNITY TOOLBAR: DELETE MODE]
+    // @ts-ignore
+    const { devState } = await import("../dev-tools.js");
+    if (devState && devState.isDeleteMode) {
+      import("../ui/wiki.js").then(async wiki => {
+        if (typeof wiki.openWikiEditModal === 'function') {
+          // We need a way to trigger just the delete part, or open modal and auto-click delete?
+          // The user requested 'tools', so maybe clicking a marker in delete mode should immediately prompt.
+          // Let's re-use the logic from wiki.js openWikiEditModal's delete button but specialized.
+          const reason = prompt(`[${item.name}] 이 마커의 삭제를 제안하시겠습니까?\n이유를 입력해주세요:`);
+          if (reason) {
+            const { getAuthToken } = await import("../auth.js");
+            getAuthToken().then(async token => {
+              const formData = new FormData();
+              formData.append('target_marker_id', String(item.id));
+              formData.append('is_official', String(!item.isBackend));
+              formData.append('map_id', state.currentMapKey || 'qinghe');
+              formData.append('deleted', 'true');
+              formData.append('edit_reason', reason);
+              formData.append('status', 'pending');
+
+              try {
+                const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+                  method: 'POST',
+                  credentials: 'include',
+                  body: formData,
+                  headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                const result = await res.json();
+                if (result.success) alert("삭제 제안이 제출되었습니다.");
+                else alert("실패: " + result.error);
+              } catch (err) { alert("서버 오류"); }
+            });
+          }
+        }
+      });
+      return;
+    }
+
     logMarkerDebugInfo(item, catId, finalRegionName, lat, lng);
   });
 

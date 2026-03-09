@@ -9,6 +9,7 @@
 @import "css/responsive.css";
 @import "css/web-llm.css";
 @import "css/mobile-new.css";
+@import "css/controls/community-toolbar.css";
 
 .leaflet-container.low-quality-mode .game-marker-icon {
   transform: scale(0.6) !important;

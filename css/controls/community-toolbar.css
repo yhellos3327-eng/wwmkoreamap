@@ -1,0 +1,87 @@
+/* Community Toolbar Styles */
+.community-toolbar {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(100px);
+    display: flex;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(15, 15, 15, 0.85);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(218, 172, 113, 0.3);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.community-toolbar.active {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+    pointer-events: all;
+}
+
+.community-tool-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    color: #aaa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    gap: 4px;
+}
+
+.community-tool-btn svg {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.2s ease;
+}
+
+.community-tool-btn .label {
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.community-tool-btn:hover {
+    background: rgba(218, 172, 113, 0.1);
+    color: var(--primary);
+    border-color: rgba(218, 172, 113, 0.2);
+}
+
+.community-tool-btn:hover svg {
+    transform: translateY(-2px);
+}
+
+.community-tool-btn.active {
+    background: rgba(218, 172, 113, 0.15);
+    color: var(--primary);
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(218, 172, 113, 0.2);
+}
+
+.community-tool-btn.active svg {
+    filter: drop-shadow(0 0 4px var(--primary));
+}
+
+@media (max-width: 768px) {
+    .community-toolbar {
+        bottom: 80px;
+        /* Above mobile bottom nav */
+        padding: 6px;
+        border-radius: 12px;
+    }
+
+    .community-tool-btn {
+        width: 56px;
+        height: 56px;
+    }
+}

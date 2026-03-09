@@ -107,6 +107,22 @@ export const loadMapData = async (mapKey, onProgress) => {
             if (revOverride.description) item.description = revOverride.description;
             if (revOverride.screenshot) item.images = [revOverride.screenshot];
             if (revOverride.video) item.video_url = [revOverride.video];
+
+            // Coordinate Overrides
+            if (revOverride.lat !== undefined) {
+              item.lat = revOverride.lat;
+              item.x = String(revOverride.lat);
+            }
+            if (revOverride.lng !== undefined) {
+              item.lng = revOverride.lng;
+              item.y = String(revOverride.lng);
+            }
+
+            // Deletion logic
+            if (revOverride.deleted === true) {
+              item.isDeleted = true;
+            }
+
             item.isWikiEdited = true; // Flag for UI hinting
             overriddenCount++;
           }
@@ -119,7 +135,7 @@ export const loadMapData = async (mapKey, onProgress) => {
     }
 
     const { mapData, itemsByCategory } = await processMapData(
-      rawItems,
+      rawItems.filter(item => !item.isDeleted),
       regionResult.regionIdMap,
       missingItems,
       regionResult.reverseRegionMap,
