@@ -1128,6 +1128,18 @@ const addDevStyles = () => {
             transform: translateY(0);
         }
 
+        /* Marker Selection Glow Effect */
+        .dev-selected-marker {
+            filter: drop-shadow(0 0 10px #daac71) drop-shadow(0 0 20px #daac71) !important;
+            transform: scale(1.3) !important;
+            z-index: 1000 !important;
+            transition: all 0.3s ease;
+        }
+
+        .dev-modified-marker {
+            filter: drop-shadow(0 0 8px #4ade80) !important;
+        }
+
         /* Drag and Drop Zone */
         .dev-drop-zone {
             border: 2px dashed rgba(255, 255, 255, 0.2);
@@ -1331,7 +1343,13 @@ const clearSelection = () => {
  * 마커 클릭 핸들러 (CPU 모드 Leaflet 마커용)
  */
 const handleMarkerClick = (e) => {
-  if (!devState.isActive || !devState.currentMode) return;
+  // 추가 모드일 때는 마커 클릭 무시 (사용자 요청: 추가 모드 동안에는 마커 클릭 안되게 막아야해)
+  if (devState.currentMode === "add") {
+    return;
+  }
+
+  if (!devState.isActive && !state.showCommunityMarkers) return;
+  if (!devState.currentMode && !devState.isDeleteMode) return;
 
   const marker = e.target;
   const markerData = Array.from(state.allMarkers.values()).find(
@@ -1344,7 +1362,9 @@ const handleMarkerClick = (e) => {
 
   handleMarkerAction(markerData, marker);
 
-  e.originalEvent?.stopPropagation();
+  if (e.originalEvent) {
+    e.originalEvent.stopPropagation();
+  }
 };
 
 /**
@@ -1381,26 +1401,68 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       }
     }
 
-    addLog(`선택: ${markerData.originalName || markerData.id}`, "info");
+    addLog(`이동 대상 선택: ${markerData.originalName || markerData.id}`, "info");
     updateUI();
     return true;
-  } else if (devState.currentMode === "inspect") {
-    const info = {
-      id: markerData.id,
-      name: markerData.originalName,
-      category: markerData.category,
-      lat: markerData.lat,
-      lng: markerData.lng,
-      region: markerData.region,
-    };
+  } else if (devState.isDeleteMode || devState.currentMode === "delete") {
+    // 삭제 모드: 마커 클릭 시 즉시 glow 효과와 함께 삭제 사유 입력받음
+    clearSelection();
 
-    console.log(
-      "%c🔍 마커 정보",
-      "color: #60a5fa; font-size: 14px; font-weight: bold;",
-    );
-    console.table(info);
+    if (leafletMarker) {
+      const icon = leafletMarker.getElement?.();
+      if (icon) {
+        icon.classList.add("dev-selected-marker");
+      }
+    }
 
-    addLog(`정보 출력: ${markerData.originalName || markerData.id}`, "success");
+    const reason = prompt(`[${markerData.originalName || markerData.id}] 마커를 삭제 제안하시겠습니까?\n이유를 입력해주세요:`);
+
+    if (!reason || !reason.trim()) {
+      if (leafletMarker) {
+        const icon = leafletMarker.getElement?.();
+        if (icon) icon.classList.remove("dev-selected-marker");
+      }
+      return false;
+    }
+
+    const isOfficial = !markerData.isBackend;
+
+    import("./ui/wiki.js").then(async (wiki) => {
+      const { getAuthToken } = await import("./auth.js");
+      const token = await getAuthToken();
+      const formData = new FormData();
+      formData.append('target_marker_id', String(markerData.id));
+      formData.append('is_official', String(isOfficial));
+      formData.append('map_id', state.currentMapKey || 'qinghe');
+      formData.append('deleted', 'true');
+      formData.append('edit_reason', reason.trim());
+      formData.append('status', 'pending');
+
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+          method: 'POST',
+          credentials: 'include',
+          body: formData,
+          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert("삭제 제안이 제출되었습니다.");
+          addLog(`삭제 제안 완료: ${markerData.originalName || markerData.id}`, "success");
+        } else {
+          alert("제출 실패: " + (result.error || "알 수 없는 오류"));
+        }
+      } catch (e) {
+        alert("서버 연결 실패");
+      }
+
+      if (leafletMarker) {
+        const icon = leafletMarker.getElement?.();
+        if (icon) icon.classList.remove("dev-selected-marker");
+      }
+      clearSelection();
+    });
+
     return true;
   }
   return false;

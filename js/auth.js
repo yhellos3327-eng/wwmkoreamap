@@ -76,15 +76,36 @@ export const getAuthToken = async () => {
 };
 
 /**
+ * 모든 API 요청에 사용할 공통 인증 헤더를 생성합니다.
+ * @returns {Promise<Object>} 헤더 객체.
+ */
+export const getAuthHeaders = async () => {
+  const headers = { "Content-Type": "application/json" };
+
+  // 1. Firebase Bearer 토큰 추가
+  const token = await getAuthToken();
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  // 2. Fingerprint 추가 (보안 강화)
+  // @ts-ignore
+  if (window.visitorId) {
+    // @ts-ignore 
+    headers["x-fingerprint"] = window.visitorId;
+  }
+
+  return headers;
+};
+
+/**
  * 백엔드와 인증 상태를 확인합니다.
  * 해당하는 경우 로컬 개발 테스트 사용자를 처리합니다.
  * @returns {Promise<void>}
  */
 const checkAuthStatus = async () => {
   try {
-    const token = await getAuthToken();
-    const headers = { "Content-Type": "application/json" };
-    if (token) headers["Authorization"] = `Bearer ${token}`;
+    const headers = await getAuthHeaders();
 
     const response = await fetch(`${BACKEND_URL}/auth/user`, {
       credentials: "include",

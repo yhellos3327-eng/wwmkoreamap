@@ -699,24 +699,43 @@ export const initSync = async () => {
 
   showSyncTooltip("데이터 동기화 중...");
 
-  try {
-    const mergedData = await performFullSync(true, false);
-    if (mergedData) {
-      window.dispatchEvent(
-        new CustomEvent("syncDataLoaded", { detail: mergedData }),
-      );
-      showSyncTooltip("동기화 완료!", "success");
-      hideSyncTooltip(1500);
-      setInitialSyncComplete(true);
-    } else {
-      hideSyncTooltip(0);
+  // 첫 로그인 시 세션 불안정이나 네트워크 지연으로 인해 실패하는 경우를 대비한 횟수 제한 재시도 로직
+  const trySync = async (isRetry = false) => {
+    try {
+      const mergedData = await performFullSync(true, false);
+      if (mergedData) {
+        window.dispatchEvent(
+          new CustomEvent("syncDataLoaded", { detail: mergedData }),
+        );
+        showSyncTooltip("동기화 완료!", "success");
+        hideSyncTooltip(1500);
+        setInitialSyncComplete(true);
+        setupRealtimeSync();
+        return true;
+      } else {
+        if (!isRetry) {
+          log.warn("초기 동기화 실패: 1.5초 후 재시도합니다...");
+          setTimeout(() => trySync(true), 1500);
+        } else {
+          hideSyncTooltip(0);
+          setupRealtimeSync();
+        }
+        return false;
+      }
+    } catch (error) {
+      log.error(isRetry ? "초기화 재시도 실패" : "초기화 실패", error);
+      if (!isRetry) {
+        setTimeout(() => trySync(true), 1500);
+      } else {
+        showSyncTooltip("동기화 실패", "error");
+        hideSyncTooltip(2000);
+        setupRealtimeSync();
+      }
+      return false;
     }
-    setupRealtimeSync();
-  } catch (error) {
-    log.error("초기화 실패", error);
-    showSyncTooltip("동기화 실패", "error");
-    hideSyncTooltip(2000);
-  }
+  };
+
+  await trySync();
 };
 
 export { mergeData } from "./merge.js";
