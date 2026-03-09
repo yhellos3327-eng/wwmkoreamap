@@ -1348,13 +1348,17 @@ const clearSelection = () => {
  * 마커 클릭 핸들러 (CPU 모드 Leaflet 마커용)
  */
 const handleMarkerClick = (e) => {
-  // 추가 모드일 때는 마커 클릭 무시 (사용자 요청: 추가 모드 동안에는 마커 클릭 안되게 막아야해)
+  // 추가 모드일 때는 마커 클릭 무시
   if (devState.currentMode === "add") {
+    if (e.originalEvent) {
+      e.originalEvent.stopPropagation();
+      e.originalEvent.preventDefault();
+    }
     return;
   }
 
-  if (!devState.isActive && !state.showCommunityMarkers) return;
-  if (!devState.currentMode && !devState.isDeleteMode) return;
+  const isCommunityToolActive = !!(devState.currentMode || devState.isDeleteMode);
+  if (!devState.isActive && !isCommunityToolActive) return;
 
   const marker = e.target;
   const markerData = Array.from(state.allMarkers.values()).find(
@@ -1365,10 +1369,11 @@ const handleMarkerClick = (e) => {
 
   marker.closePopup();
 
-  handleMarkerAction(markerData, marker);
-
-  if (e.originalEvent) {
-    e.originalEvent.stopPropagation();
+  if (handleMarkerAction(markerData, marker)) {
+    if (e.originalEvent) {
+      e.originalEvent.stopPropagation();
+      e.originalEvent.preventDefault();
+    }
   }
 };
 
@@ -1376,7 +1381,8 @@ const handleMarkerClick = (e) => {
  * GPU 모드 마커 클릭 핸들러 (ID 기반)
  */
 const handleGpuMarkerClick = (markerId) => {
-  if (!devState.isActive || !devState.currentMode) return false;
+  // Check if any mode is active (permitting Community Toolbar use)
+  if (!devState.currentMode && !devState.isDeleteMode) return false;
 
   const markerData =
     state.allMarkers.get(markerId) || state.allMarkers.get(String(markerId));
@@ -1386,6 +1392,9 @@ const handleGpuMarkerClick = (markerId) => {
     state.map.closePopup();
   }
 
+  // Set a temporary flag to ignore the next map click in the same event loop
+  devState._lastMarkerClickTime = Date.now();
+
   return handleMarkerAction(markerData, null);
 };
 
@@ -1393,6 +1402,11 @@ const handleGpuMarkerClick = (markerId) => {
  * 마커 액션 처리 (공통)
  */
 const handleMarkerAction = (markerData, leafletMarker) => {
+  if (devState.currentMode === "add") {
+    // 추가 모드에서는 마커 클릭 시 아무 동작도 하지 않고 차단만 함
+    return true;
+  }
+
   if (devState.currentMode === "move") {
     clearSelection();
 
@@ -1427,7 +1441,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         const icon = leafletMarker.getElement?.();
         if (icon) icon.classList.remove("dev-selected-marker");
       }
-      return false;
+      return true; // 취소해도 정보 모달이 뜨는 것을 방지하기 위해 true 반환
     }
 
     const isOfficial = !markerData.isBackend;
@@ -1477,10 +1491,13 @@ const handleMarkerAction = (markerData, leafletMarker) => {
  * 맵 클릭 핸들러
  */
 const handleMapClick = (e) => {
-  // If community toolbar is active, we might allow clicks even if devState.isActive is false
-  const isCommunityToolActive = state.showCommunityMarkers && (devState.currentMode || devState.isDeleteMode);
+  // Avoid processing map click if it was already handled by a marker click in this same event loop
+  if (devState._lastMarkerClickTime && Date.now() - devState._lastMarkerClickTime < 50) {
+    return;
+  }
+
+  const isCommunityToolActive = !!(devState.currentMode || devState.isDeleteMode);
   if (!devState.isActive && !isCommunityToolActive) return;
-  if (!devState.currentMode && !devState.isDeleteMode) return;
 
   const lat = e.latlng.lat.toFixed(6);
   const lng = e.latlng.lng.toFixed(6);
@@ -1943,6 +1960,8 @@ dev.help = () => {
 };
 
 window.dev = dev;
+// @ts-ignore
+window.devState = devState;
 
 /**
  * 전용 툴바를 위한 모드 설정 래퍼

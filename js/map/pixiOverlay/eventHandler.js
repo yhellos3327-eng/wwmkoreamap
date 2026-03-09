@@ -171,10 +171,14 @@ export const attachEventHandlers = (map, overlay, container) => {
   }
 
   const handleClick = (e) => {
+    // Check if dev mode OR community interaction mode is active
+    const win = /** @type {any} */ (window);
+    const isDevOrCommunityInteraction = state.isDevMode || (state.showCommunityMarkers && win.devState && (win.devState.currentMode || win.devState.isDeleteMode));
+
     if (
-      state.isDevMode &&
-      /** @type {any} */ (window).dev &&
-      /** @type {any} */ (window).dev.handleGpuClick
+      isDevOrCommunityInteraction &&
+      win.dev &&
+      win.dev.handleGpuClick
     ) {
       const clickLat = e.latlng.lat;
       const clickLng = e.latlng.lng;
