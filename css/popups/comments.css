@@ -129,17 +129,31 @@
     margin-top: 8px;
 }
 
-.comment-input-group {
+.wiki-comment-inputs {
     display: flex;
     gap: 8px;
     align-items: center;
 }
 
-.comment-input-wrapper {
+.wiki-comment-inputs.is-admin-form {
+    padding: 2px 4px;
+}
+
+.admin-indicator-badge {
     display: flex;
-    gap: 8px;
     align-items: center;
-    position: relative;
+    gap: 6px;
+    background: rgba(233, 30, 99, 0.15);
+    color: #E91E63;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid rgba(233, 30, 99, 0.3);
+}
+
+.admin-indicator-badge svg {
+    margin: 0;
 }
 
 .comment-nickname {

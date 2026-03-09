@@ -94,7 +94,7 @@ export const submitAnonymousComment = async (event, itemId) => {
     );
     const password = passwordInput ? passwordInput.value.trim() : "";
     let passwordHash = null;
-    if (password) {
+    if (!getIsAdmin() && password) {
       logger.log(
         "Save",
         `저장 비밀번호 길이: ${password.length}, 첫글자 코드: ${password.charCodeAt(0)}`,
@@ -106,13 +106,13 @@ export const submitAnonymousComment = async (event, itemId) => {
     await addDoc(collection(db, "comments"), {
       itemId: numericId,
       text: text,
-      nickname: nickname || "익명",
+      nickname: getIsAdmin() ? "관리자" : (nickname || "익명"),
       ip: maskedIp,
-passwordHash: passwordHash,
+      passwordHash: passwordHash,
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
-      isAnonymous: !getCurrentUser(),
-      userLevel: getCurrentUser()?.level || 0,
+      isAnonymous: !getIsAdmin() && !getCurrentUser(),
+      userLevel: getIsAdmin() ? 4 : (getCurrentUser()?.level || 0),
     });
 
     input.value = "";
@@ -219,7 +219,7 @@ export const submitReply = async (event, itemId, parentId) => {
     );
     const password = passwordInput ? passwordInput.value.trim() : "";
     let passwordHash = null;
-    if (password) {
+    if (!getIsAdmin() && password) {
       passwordHash = await hashPassword(password);
     }
 
@@ -227,13 +227,13 @@ export const submitReply = async (event, itemId, parentId) => {
       itemId: numericId,
       parentId: parentId,
       text: text,
-      nickname: nickname || "익명",
+      nickname: getIsAdmin() ? "관리자" : (nickname || "익명"),
       ip: maskedIp,
-passwordHash: passwordHash,
+      passwordHash: passwordHash,
       createdAt: serverTimestamp(),
       expireAt: getExpireAt(),
-      isAnonymous: !getCurrentUser(),
-      userLevel: getCurrentUser()?.level || 0,
+      isAnonymous: !getIsAdmin() && !getCurrentUser(),
+      userLevel: getIsAdmin() ? 4 : (getCurrentUser()?.level || 0),
     });
 
     invalidateCache(numericId);
