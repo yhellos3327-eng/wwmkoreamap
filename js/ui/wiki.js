@@ -461,8 +461,10 @@ export const openWikiHistoryModal = async (itemId) => {
                             사유: ${rev.edit_reason || "사유 없음"}
                         </div>
                         <div class="wiki-history-changes">
-                            수정 항목: 
-                            ${rev.revision_data.title ? `<span class="wiki-tag">제목</span> ` : ''}
+                            ${rev.is_creation ? '<span class="wiki-tag" style="background:rgba(74,222,128,0.2); color:#4ade80;">신규 추가</span>' : ''}
+                            ${rev.revision_data.deleted ? '<span class="wiki-tag" style="background:rgba(248,113,113,0.2); color:#f87171;">삭제 제안</span>' : ''}
+                            ${(rev.revision_data.lat !== undefined || rev.revision_data.lng !== undefined) ? '<span class="wiki-tag" style="background:rgba(96,165,250,0.2); color:#60a5fa;">위치 이동</span>' : ''}
+                            ${rev.revision_data.title && !rev.is_creation ? `<span class="wiki-tag">제목</span> ` : ''}
                             ${rev.revision_data.region_name ? `<span class="wiki-tag">지역</span> ` : ''}
                             ${rev.revision_data.description ? `<span class="wiki-tag">설명</span> ` : ''}
                             ${rev.revision_data.video ? `<span class="wiki-tag">영상</span> ` : ''}
@@ -891,7 +893,12 @@ export const renderGlobalWikiHistory = async (container) => {
                 <div class="favorite-item wiki-global-item" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div style="display: flex; justify-content: space-between; width: 100%; font-size: 11px; opacity: 0.8;">
                         <span>${date}</span>
-                        <span class="wiki-history-status ${stateClass}" style="font-size: 10px; padding: 2px 4px; border-radius: 3px;">${stateText}</span>
+                        <div style="display: flex; gap: 4px;">
+                            ${rev.is_creation ? '<span style="background:rgba(74,222,128,0.2); color:#4ade80; font-size: 10px; padding: 2px 4px; border-radius: 3px;">신규</span>' : ''}
+                            ${rev.revision_data.deleted ? '<span style="background:rgba(248,113,113,0.2); color:#f87171; font-size: 10px; padding: 2px 4px; border-radius: 3px;">삭제</span>' : ''}
+                            ${(rev.revision_data.lat !== undefined || rev.revision_data.lng !== undefined) ? '<span style="background:rgba(96,165,250,0.2); color:#60a5fa; font-size: 10px; padding: 2px 4px; border-radius: 3px;">이동</span>' : ''}
+                            <span class="wiki-history-status ${stateClass}" style="font-size: 10px; padding: 2px 4px; border-radius: 3px;">${stateText}</span>
+                        </div>
                     </div>
                     <div style="font-weight: bold; font-size: 13px; color: var(--accent); cursor: pointer;" class="wiki-global-target" data-marker-id="${rev.target_marker_id}">
                         ${markerName}
@@ -910,7 +917,7 @@ export const renderGlobalWikiHistory = async (container) => {
                         <button class="action-btn-small wiki-global-view-btn" style="flex: 1;" data-marker-id="${rev.target_marker_id}">
                             기록
                         </button>
-                        <div class="admin-delete-slot" data-rev-id="${rev.id}"></div>
+                        <div class="admin-delete-slot" data-rev-id="${rev.id}" data-is-creation="${rev.is_creation}"></div>
                     </div>
                 </div>
             `;
@@ -966,6 +973,8 @@ export const renderGlobalWikiHistory = async (container) => {
             if (isAdminUser()) {
                 container.querySelectorAll('.admin-delete-slot').forEach(slot => {
                     const revId = /** @type {HTMLElement} */(slot).dataset.revId;
+                    const isCreation = /** @type {HTMLElement} */(slot).dataset.isCreation === '1';
+                    if (isCreation) return; // Cannot delete initial creation 'history' only - it's tied to the marker
                     const btn = document.createElement("button");
                     btn.className = "action-btn-small";
                     btn.style.background = "rgba(255, 0, 0, 0.2)";
