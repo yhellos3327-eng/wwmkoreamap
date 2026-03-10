@@ -946,11 +946,16 @@ export const renderGlobalWikiHistory = async (container) => {
                 const { findItem } = await import("./navigation.js");
 
                 const tryMap = async (mapKey) => {
+                    const { fetchCommunityMarkers } = await import("../map/community.js");
                     if (state.currentMapKey !== mapKey) {
                         setState("currentMapKey", mapKey);
                         await loadMapData(mapKey);
+                        // Fetch community markers for the new map if we're in community mode or looking for one
+                        await fetchCommunityMarkers();
                     }
-                    return state.mapData?.items?.some(i => String(i.id) === String(markerId));
+                    const inStatic = state.mapData?.items?.some(i => String(i.id) === String(markerId));
+                    const inCommunity = state.communityMarkers?.has(String(markerId));
+                    return inStatic || inCommunity;
                 };
 
                 // 1) Try revision's map_id first, then current map
