@@ -316,27 +316,35 @@ export const initCommunityMode = () => {
  * 사이드바 완료 숨기기 버튼을 초기화합니다.
  */
 export const initSidebarHideCompleted = () => {
-  const btn = document.getElementById("sidebar-hide-completed-toggle");
-  if (!btn) return;
+  const btns = document.querySelectorAll(".btn-hide-completed");
+  if (btns.length === 0) return;
 
   // 초기 상태 동기화
-  btn.classList.toggle("active", !!state.hideCompleted);
+  btns.forEach(btn => {
+    btn.classList.toggle("active", !!state.hideCompleted);
+  });
 
-  btn.addEventListener("click", () => {
-    const newValue = !state.hideCompleted;
-    setState("hideCompleted", newValue);
-    btn.classList.toggle("active", newValue);
+  btns.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const newValue = !state.hideCompleted;
+      setState("hideCompleted", newValue);
 
-    // 설정 패널 체크박스와 동기화
-    const checkbox = /** @type {HTMLInputElement|null} */ (document.getElementById("toggle-hide-completed"));
-    if (checkbox) checkbox.checked = newValue;
+      // 모든 버튼 상태 동기화
+      document.querySelectorAll(".btn-hide-completed").forEach(b => {
+        b.classList.toggle("active", newValue);
+      });
 
-    // 저장 + 재렌더
-    import("./sync/core.js").then(({ updateSettingWithTimestamp }) => {
-      updateSettingWithTimestamp("hideCompleted", newValue).catch(() => {});
-    });
-    import("./map.js").then(({ renderMapDataAndMarkers }) => {
-      renderMapDataAndMarkers();
+      // 설정 패널 체크박스와 동기화
+      const checkbox = /** @type {HTMLInputElement|null} */ (document.getElementById("toggle-hide-completed"));
+      if (checkbox) checkbox.checked = newValue;
+
+      // 저장 + 재렌더
+      import("./sync/core.js").then(({ updateSettingWithTimestamp }) => {
+        updateSettingWithTimestamp("hideCompleted", newValue).catch(() => { });
+      });
+      import("./map.js").then(({ renderMapDataAndMarkers }) => {
+        renderMapDataAndMarkers();
+      });
     });
   });
 };

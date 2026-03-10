@@ -240,8 +240,8 @@ export const initToggles = () => {
       const checked = /** @type {HTMLInputElement} */(e.target).checked;
       setState("hideCompleted", checked);
       // 사이드바 버튼 동기화
-      const sidebarBtn = document.getElementById("sidebar-hide-completed-toggle");
-      if (sidebarBtn) sidebarBtn.classList.toggle("active", checked);
+      const sidebarBtns = document.querySelectorAll(".btn-hide-completed");
+      sidebarBtns.forEach(btn => btn.classList.toggle("active", checked));
       updateSettingWithTimestamp(
         "hideCompleted",
         checked,
