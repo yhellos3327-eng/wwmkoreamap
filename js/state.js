@@ -486,6 +486,7 @@ export const initStateFromVault = async () => {
       if (settings.disableRegionClickPan !== undefined) stateUpdates.disableRegionClickPan = settings.disableRegionClickPan;
       if (settings.aiProvider !== undefined) stateUpdates.savedAIProvider = settings.aiProvider;
       if (settings.apiModel !== undefined) stateUpdates.savedApiModel = settings.apiModel;
+      if (settings.showCommunityMarkers !== undefined) stateUpdates.showCommunityMarkers = settings.showCommunityMarkers;
     }
 
     // Batch update state

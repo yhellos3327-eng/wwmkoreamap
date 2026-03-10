@@ -237,13 +237,14 @@ export const initToggles = () => {
     /** @type {HTMLInputElement} */ (hideCompletedInput).checked =
       state.hideCompleted;
     hideCompletedInput.addEventListener("change", (e) => {
-      setState(
-        "hideCompleted",
-        /** @type {HTMLInputElement} */(e.target).checked,
-      );
+      const checked = /** @type {HTMLInputElement} */(e.target).checked;
+      setState("hideCompleted", checked);
+      // 사이드바 버튼 동기화
+      const sidebarBtn = document.getElementById("sidebar-hide-completed-toggle");
+      if (sidebarBtn) sidebarBtn.classList.toggle("active", checked);
       updateSettingWithTimestamp(
         "hideCompleted",
-        /** @type {HTMLInputElement} */(e.target).checked,
+        checked,
       ).catch((err) => console.warn("완료 숨기기 설정 업데이트 실패:", err));
       renderMapDataAndMarkers();
     });

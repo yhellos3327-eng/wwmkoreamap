@@ -94,8 +94,11 @@ export const fetchUserCompletions = async () => {
 export const toggleCommunityMode = async () => {
     const isEnabled = !state.showCommunityMarkers;
 
-    // Toggle state
+    // Toggle state + IDB 저장
     setState("showCommunityMarkers", isEnabled);
+    import("../sync/core.js").then(({ updateSettingWithTimestamp }) => {
+      updateSettingWithTimestamp("showCommunityMarkers", isEnabled).catch(() => {});
+    });
 
     if (isEnabled) {
         // 커뮤니티 모드 활성화 시 모든 필터 ON (indexDB 기록 사용)
