@@ -163,7 +163,11 @@ export const loginWithProvider = async (provider) => {
   }
 
   const { primaryDb } = await import("./storage/db.js");
-  const result = await primaryDb.set("wwm_auth_return_url", window.location.href);
+  const returnUrl = window.location.pathname.includes("admin.html")
+    ? `${window.location.origin}/admin-dashboard.html`
+    : window.location.href;
+
+  const result = await primaryDb.set("wwm_auth_return_url", returnUrl);
   if (!result || !result.success) {
     console.error("Failed to set return URL", result);
   }
