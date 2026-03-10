@@ -1508,7 +1508,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       formData.append('map_id', state.currentMapKey || 'qinghe');
       formData.append('deleted', 'true');
       formData.append('edit_reason', reason.trim());
-      formData.append('status', 'pending');
+      formData.append('status', 'approved');
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/revisions`, {
@@ -1519,8 +1519,18 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         });
         const result = await res.json();
         if (result.success) {
-          alert("삭제 제안이 제출되었습니다.");
-          addLog(`삭제 제안 완료: ${markerData.originalName || markerData.id}`, "success");
+          // 즉시 로컬에서 마커 숨김 처리
+          if (markerData.isBackend) {
+            state.communityMarkers.delete(String(markerData.id));
+          }
+          // 지도에서 마커 제거
+          if (leafletMarker) {
+            state.map.removeLayer(leafletMarker);
+          }
+          addLog(`마커 숨김 처리됨: ${markerData.originalName || markerData.id}`, "success");
+          import("./sync/ui.js").then(({ showSyncToast }) => {
+            showSyncToast("마커가 숨김 처리되었습니다.", "success");
+          });
         } else {
           alert("제출 실패: " + (result.error || "알 수 없는 오류"));
         }
