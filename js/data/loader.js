@@ -92,12 +92,19 @@ export const loadMapData = async (mapKey, onProgress) => {
         // Build map for O(1) lookup
         const revisionMap = new Map();
         revData.revisions.forEach(rev => {
-          if (!revisionMap.has(rev.target_marker_id)) {
-            revisionMap.set(rev.target_marker_id, rev.revision_data);
+          // Use string key for map to ensure consistency (especially for UNIONed numeric IDs)
+          const targetId = String(rev.target_marker_id);
+          // ORDER BY created_at DESC ensures the NEWEST revision is processed first.
+          // We only take the newest revision for each target_marker_id.
+          if (!revisionMap.has(targetId)) {
+            // For community creation records in my UNION, they have is_creation: 1.
+            // We should prioritize actual edits/deletions (is_creation: 0) if they exist.
+            // But since it's ordered by date DESC, the edit/deletion revision is already newer.
+            revisionMap.set(targetId, rev.revision_data);
           }
         });
 
-        // Apply overrides to rawItems
+        // Apply revisions to raw data
         rawItems.forEach(item => {
           const revOverride = revisionMap.get(String(item.id));
           if (revOverride) {
@@ -109,12 +116,12 @@ export const loadMapData = async (mapKey, onProgress) => {
             if (revOverride.video) item.video_url = [revOverride.video];
 
             // Coordinate Overrides
-            if (revOverride.lat !== undefined) {
-              item.lat = revOverride.lat;
+            if (revOverride.lat !== undefined && !isNaN(parseFloat(revOverride.lat))) {
+              item.latitude = parseFloat(revOverride.lat);
               item.x = String(revOverride.lat);
             }
-            if (revOverride.lng !== undefined) {
-              item.lng = revOverride.lng;
+            if (revOverride.lng !== undefined && !isNaN(parseFloat(revOverride.lng))) {
+              item.longitude = parseFloat(revOverride.lng);
               item.y = String(revOverride.lng);
             }
 
