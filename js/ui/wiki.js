@@ -1,7 +1,7 @@
 // @ts-check
 import { state } from "../state.js";
 import { BACKEND_URL } from "../config.js";
-import { getAuthToken, isLoggedIn } from "../auth.js";
+import { getAuthToken, isLoggedIn, getAuthHeaders } from "../auth.js";
 import { t, parseMarkdown, getUserLevelIcon, maskIdentifier } from "../utils.js";
 
 /**
@@ -415,7 +415,9 @@ export const openWikiHistoryModal = async (itemId) => {
     if (closeLoadingBtn) closeLoadingBtn.onclick = () => overlay.remove();
 
     try {
-        const res = await fetch(`${BACKEND_URL}/api/revisions/target/${itemId}`);
+        const res = await fetch(`${BACKEND_URL}/api/revisions/target/${itemId}`, {
+            credentials: 'include'
+        });
         const data = await res.json();
 
         if (!data.success) throw new Error(data.error);
@@ -559,7 +561,7 @@ export const openWikiHistoryModal = async (itemId) => {
 
                     const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/vote`, {
                         method: 'POST',
-                        headers,
+                        headers: await getAuthHeaders(),
                         credentials: 'include',
                         body: JSON.stringify({ type: voteType })
                     });
@@ -618,7 +620,8 @@ export const openWikiHistoryModal = async (itemId) => {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/approve`, {
                                 method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}` }
+                                headers: await getAuthHeaders(),
+                                credentials: 'include'
                             });
                             const result = await res.json();
                             if (result.success) {
@@ -640,7 +643,8 @@ export const openWikiHistoryModal = async (itemId) => {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/reject`, {
                                 method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}` }
+                                headers: await getAuthHeaders(),
+                                credentials: 'include'
                             });
                             const result = await res.json();
                             if (result.success) {
@@ -677,7 +681,8 @@ export const openWikiHistoryModal = async (itemId) => {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}/revert`, {
                                 method: 'POST',
-                                headers: { 'Authorization': `Bearer ${token}` }
+                                headers: await getAuthHeaders(),
+                                credentials: 'include'
                             });
                             const result = await res.json();
                             if (result.success) {
@@ -711,10 +716,8 @@ export const openWikiHistoryModal = async (itemId) => {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/admin/ban`, {
                                 method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                },
+                                headers: await getAuthHeaders(),
+                                credentials: 'include',
                                 body: JSON.stringify({
                                     target_user_id: uId,
                                     target_ip: ip,
@@ -742,7 +745,8 @@ export const openWikiHistoryModal = async (itemId) => {
                             const token = await getAuthToken();
                             const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
                                 method: 'DELETE',
-                                headers: { 'Authorization': `Bearer ${token}` }
+                                headers: await getAuthHeaders(),
+                                credentials: 'include'
                             });
                             const result = await res.json();
                             if (result.success) {

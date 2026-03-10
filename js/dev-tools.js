@@ -124,34 +124,32 @@ const createDevModal = () => {
  * 새 마커 추가 모달 생성
  */
 export const createAddMarkerModal = (lat, lng) => {
+  // 기존 모달이 있으면 제거 후 새로 생성 (temp marker 재생성 보장)
   let modal = document.getElementById("dev-add-marker-modal");
-  if (!modal) {
-    modal = document.createElement("div");
-    modal.id = "dev-add-marker-modal";
-    modal.className = "dev-modal-overlay";
-    document.body.appendChild(modal);
-
-    // 임시 핀 로직
-    if (devState.tempMarker) {
-      state.map.removeLayer(devState.tempMarker);
-    }
-    const pinIcon = /** @type {any} */ (L).divIcon({
-      className: "",
-      html: `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); fill: #ff4444;">
-          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-        </svg>
-      `,
-      iconSize: [36, 36],
-      iconAnchor: [18, 36],
-    });
-    devState.tempMarker = /** @type {any} */ (L).marker([lat, lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(state.map);
-  } else {
-    // 기존 모달을 업데이트하는 경우 (예: 이동 중), 핀 위치 업데이트
-    if (devState.tempMarker) {
-      devState.tempMarker.setLatLng([lat, lng]);
-    }
+  if (modal) {
+    modal.remove();
   }
+
+  modal = document.createElement("div");
+  modal.id = "dev-add-marker-modal";
+  modal.className = "dev-modal-overlay";
+  document.body.appendChild(modal);
+
+  // 임시 핀 로직
+  if (devState.tempMarker) {
+    state.map.removeLayer(devState.tempMarker);
+  }
+  const pinIcon = /** @type {any} */ (L).divIcon({
+    className: "",
+    html: `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="36" height="36" style="filter: drop-shadow(0 2px 3px rgba(0,0,0,0.5)); fill: #ff4444;">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+      </svg>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+  });
+  devState.tempMarker = /** @type {any} */ (L).marker([lat, lng], { icon: pinIcon, zIndexOffset: 1000 }).addTo(state.map);
 
   let categories = state.mapData.categories || [];
   const config = MAP_CONFIGS[state.currentMapKey];
@@ -455,8 +453,9 @@ import { isLoggedIn } from "./auth.js";
  * 신규 마커 저장 및 표시
  */
 const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFile, videoUrl, imageUrl) => {
+  const isCommunityMode = state.showCommunityMarkers;
   const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-  const isDev = isLocal || devState.isActive;
+  const isDev = !isCommunityMode && (isLocal || devState.isActive);
 
   if (!isDev && !isLoggedIn()) {
     import("./sync/ui.js").then(({ showSyncToast }) => {
@@ -559,7 +558,9 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
 
     const newId = newMarkerData.id;
 
-    devState.newMarkers.push(newMarkerData);
+    if (!isCommunityMode) {
+      devState.newMarkers.push(newMarkerData);
+    }
 
     // 백엔드 마커: state.communityMarkers에 즉시 추가 → 새로고침 없이도 표시
     if (!isDev) {
@@ -602,7 +603,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         images: isDev ? [newMarkerData.uploadedImage || newMarkerData.screenshot].filter(Boolean) : (newMarkerData.images || [newMarkerData.screenshot]).filter(Boolean),
         video_url: videoUrl ? [videoUrl] : [],
         isBackend: true,
-        status: 'pending',
+        status: isDev ? 'pending' : (newMarkerData.status || 'approved'),
         votes: 0,
         user_id: null
       },
@@ -618,7 +619,13 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
     updateUI();
 
     if (!isDev) {
-      alert("마커가 추가되었습니다. 관리자 승인 후 공개됩니다.");
+      if (isCommunityMode) {
+        import("./sync/ui.js").then(({ showSyncToast }) => {
+          showSyncToast("마커가 추가되었습니다!", "success");
+        });
+      } else {
+        alert("마커가 추가되었습니다. 관리자 승인 후 공개됩니다.");
+      }
     } else {
       console.log(`[DEV] Local marker added: ${title} (${newId})`);
 
@@ -1501,7 +1508,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       formData.append('map_id', state.currentMapKey || 'qinghe');
       formData.append('deleted', 'true');
       formData.append('edit_reason', reason.trim());
-      formData.append('status', 'pending');
+      formData.append('status', 'approved');
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/revisions`, {
@@ -1512,8 +1519,18 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         });
         const result = await res.json();
         if (result.success) {
-          alert("삭제 제안이 제출되었습니다.");
-          addLog(`삭제 제안 완료: ${markerData.originalName || markerData.id}`, "success");
+          // 즉시 로컬에서 마커 숨김 처리
+          if (markerData.isBackend) {
+            state.communityMarkers.delete(String(markerData.id));
+          }
+          // 지도에서 마커 제거
+          if (leafletMarker) {
+            state.map.removeLayer(leafletMarker);
+          }
+          addLog(`마커 숨김 처리됨: ${markerData.originalName || markerData.id}`, "success");
+          import("./sync/ui.js").then(({ showSyncToast }) => {
+            showSyncToast("마커가 숨김 처리되었습니다.", "success");
+          });
         } else {
           alert("제출 실패: " + (result.error || "알 수 없는 오류"));
         }
@@ -1627,7 +1644,7 @@ const handleMapClick = (e) => {
           formData.append('lat', String(lat));
           formData.append('lng', String(lng));
           formData.append('edit_reason', reason);
-          formData.append('status', 'pending');
+          formData.append('status', 'approved');
           try {
             const res = await fetch(`${BACKEND_URL}/api/revisions`, {
               method: 'POST',
@@ -1637,7 +1654,18 @@ const handleMapClick = (e) => {
             });
             const result = await res.json();
             if (result.success) {
-              addLog(`위치 변경 제안 완료: ${markerData.title || markerData.id}`, "success");
+              addLog(`위치 변경 승인됨: ${markerData.title || markerData.id}`, "success");
+              // 즉시 로컬 상태 업데이트
+              if (markerData.isBackend) {
+                const cm = state.communityMarkers.get(String(markerData.id));
+                if (cm) {
+                  cm.lat = parseFloat(lat);
+                  cm.lng = parseFloat(lng);
+                }
+              }
+              import("./sync/ui.js").then(({ showSyncToast }) => {
+                showSyncToast("위치가 변경되었습니다!", "success");
+              });
             } else {
               alert("제출 실패: " + (result.error || "알 수 없는 오류"));
             }
