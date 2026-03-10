@@ -102,9 +102,9 @@ export const loadMapData = async (mapKey, onProgress) => {
           const revOverride = revisionMap.get(String(item.id));
           if (revOverride) {
             if (revOverride.title) item.title = revOverride.title;
-            // Handle both name and title mappings to ensure UI picks it up
-            if (revOverride.title) item.name = revOverride.title;
+            // item.name is the koDict English key — do NOT overwrite with Korean title
             if (revOverride.description) item.description = revOverride.description;
+            if (revOverride.region_name) item.region = revOverride.region_name;
             if (revOverride.screenshot) item.images = [revOverride.screenshot];
             if (revOverride.video) item.video_url = [revOverride.video];
 

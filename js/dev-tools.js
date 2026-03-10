@@ -561,6 +561,25 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
 
     devState.newMarkers.push(newMarkerData);
 
+    // 백엔드 마커: state.communityMarkers에 즉시 추가 → 새로고침 없이도 표시
+    if (!isDev) {
+      state.communityMarkers.set(String(newMarkerData.id), {
+        id: String(newMarkerData.id),
+        name: newMarkerData.title,
+        description: newMarkerData.description,
+        category: newMarkerData.type,
+        lat: parseFloat(newMarkerData.lat),
+        lng: parseFloat(newMarkerData.lng),
+        isBackend: true,
+        images: newMarkerData.screenshot ? [newMarkerData.screenshot] : [],
+        video_url: newMarkerData.video ? [newMarkerData.video] : [],
+        votes: 0,
+        user_id: null,
+        region: newMarkerData.region || '',
+        status: newMarkerData.status || 'pending',
+      });
+    }
+
     const svgIcon = /** @type {any} */ (L).divIcon({
       className: "",
       html: `
@@ -1339,6 +1358,18 @@ const clearSelection = () => {
       icon.classList.remove("dev-selected-marker");
     }
   }
+  // Pixi 스프라이트 선택 효과 초기화
+  if (devState._selectedSprite) {
+    devState._selectedSprite.tint = devState._selectedSpriteOrigTint ?? 0xFFFFFF;
+    devState._selectedSprite.scale.set(
+      devState._selectedSpriteOrigScale?.x ?? 1,
+      devState._selectedSpriteOrigScale?.y ?? 1,
+    );
+    import("./map/pixiOverlay/overlayCore.js").then(({ redrawPixiOverlay }) => {
+      redrawPixiOverlay();
+    });
+    devState._selectedSprite = null;
+  }
   devState.selectedMarker = null;
   devState.selectedMarkerData = null;
   updateUI();
@@ -1420,6 +1451,21 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       }
     }
 
+    // Pixi 스프라이트 선택 효과 (골드 하이라이트)
+    import("./map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
+      const sprite = getSpriteById(markerData.id);
+      if (sprite) {
+        devState._selectedSprite = sprite;
+        devState._selectedSpriteOrigTint = sprite.tint ?? 0xFFFFFF;
+        devState._selectedSpriteOrigScale = { x: sprite.scale.x, y: sprite.scale.y };
+        sprite.tint = 0xFFD700;
+        sprite.scale.set(sprite.scale.x * 1.3, sprite.scale.y * 1.3);
+        import("./map/pixiOverlay/overlayCore.js").then(({ redrawPixiOverlay }) => {
+          redrawPixiOverlay();
+        });
+      }
+    });
+
     addLog(`이동 대상 선택: ${markerData.originalName || markerData.id}`, "info");
     updateUI();
     return true;
@@ -1488,6 +1534,54 @@ const handleMarkerAction = (markerData, leafletMarker) => {
 };
 
 /**
+ * 마커 이동 확인 오버레이 표시 (prompt() 대체)
+ */
+const showMoveConfirmOverlay = (lat, lng, markerData, onConfirm, onCancel) => {
+  const previewIcon = /** @type {any} */ (L).divIcon({
+    className: '',
+    html: `<div style="width:24px;height:24px;border-radius:50%;background:rgba(255,215,0,0.5);border:2px solid #FFD700;box-shadow:0 0 10px rgba(255,215,0,0.9);"></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
+  const previewMarker = /** @type {any} */ (L).marker([parseFloat(lat), parseFloat(lng)], { icon: previewIcon }).addTo(state.map);
+
+  const overlay = document.createElement('div');
+  overlay.id = 'move-confirm-overlay';
+  overlay.style.cssText = [
+    'position:fixed', 'bottom:100px', 'left:50%', 'transform:translateX(-50%)',
+    'background:#1a1a2e', 'border:1px solid #FFD700', 'border-radius:8px',
+    'padding:12px 16px', 'z-index:9999', 'color:#fff', 'font-size:13px',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.6)', 'display:flex',
+    'flex-direction:column', 'gap:8px', 'min-width:280px', 'max-width:380px',
+  ].join(';');
+  overlay.innerHTML = `
+    <div style="font-weight:600;color:#FFD700;">[${markerData.title || markerData.name}] 위치 이동 제안</div>
+    <div style="color:#aaa;font-size:11px;">→ ${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}</div>
+    <input id="move-reason-input" placeholder="이유 (선택 사항)" style="background:#0d0d1a;border:1px solid #555;border-radius:4px;padding:6px 8px;color:#fff;font-size:12px;outline:none;"/>
+    <div style="display:flex;gap:8px;justify-content:flex-end;">
+      <button id="move-cancel-btn" style="background:transparent;border:1px solid #888;border-radius:4px;color:#aaa;padding:5px 12px;cursor:pointer;font-size:12px;">취소</button>
+      <button id="move-confirm-btn" style="background:#FFD700;border:none;border-radius:4px;color:#111;padding:5px 12px;cursor:pointer;font-size:12px;font-weight:600;">이동 제안</button>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  const cleanup = () => {
+    previewMarker.remove();
+    overlay.remove();
+  };
+
+  document.getElementById('move-confirm-btn').onclick = () => {
+    const reason = /** @type {HTMLInputElement} */ (document.getElementById('move-reason-input')).value.trim() || '위치 조정';
+    cleanup();
+    onConfirm(reason);
+  };
+  document.getElementById('move-cancel-btn').onclick = () => {
+    cleanup();
+    onCancel();
+  };
+};
+
+/**
  * 맵 클릭 핸들러
  */
 const handleMapClick = (e) => {
@@ -1518,44 +1612,42 @@ const handleMapClick = (e) => {
     // [COMMUNITY MODE INTEGRATION]
     // If community mode is enabled, propose a move revision instead of direct local edit
     if (state.showCommunityMarkers) {
-      const reason = prompt(`[${markerData.title || markerData.name}] 마커의 위치를 여기로 변경하시겠습니까?\n이유를 간단히 입력해주세요:`);
-      if (reason === null) {
-        clearSelection();
-        return;
-      }
+      // 이미 오버레이가 열려있으면 무시
+      if (document.getElementById('move-confirm-overlay')) return;
 
-      const isOfficial = !markerData.isBackend;
-
-      import("./ui/wiki.js").then(async (wiki) => {
-        const { getAuthToken } = await import("./auth.js");
-        const token = await getAuthToken();
-        const formData = new FormData();
-        formData.append('target_marker_id', String(markerData.id));
-        formData.append('is_official', String(isOfficial));
-        formData.append('map_id', state.currentMapKey || 'qinghe');
-        formData.append('lat', String(lat));
-        formData.append('lng', String(lng));
-        formData.append('edit_reason', reason || "위치 조정");
-        formData.append('status', 'pending');
-
-        try {
-          const res = await fetch(`${BACKEND_URL}/api/revisions`, {
-            method: 'POST',
-            credentials: 'include',
-            body: formData,
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-          });
-          const result = await res.json();
-          if (result.success) {
-            alert("위치 변경 제안이 제출되었습니다. 관리자 승인 후 반영됩니다.");
-            addLog(`위치 변경 제안 완료: ${markerData.title || markerData.id}`, "success");
-          } else {
-            alert("제출 실패: " + (result.error || "알 수 없는 오류"));
+      showMoveConfirmOverlay(lat, lng, markerData, (reason) => {
+        const isOfficial = !markerData.isBackend;
+        import("./ui/wiki.js").then(async (wiki) => {
+          const { getAuthToken } = await import("./auth.js");
+          const token = await getAuthToken();
+          const formData = new FormData();
+          formData.append('target_marker_id', String(markerData.id));
+          formData.append('is_official', String(isOfficial));
+          formData.append('map_id', state.currentMapKey || 'qinghe');
+          formData.append('lat', String(lat));
+          formData.append('lng', String(lng));
+          formData.append('edit_reason', reason);
+          formData.append('status', 'pending');
+          try {
+            const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+              method: 'POST',
+              credentials: 'include',
+              body: formData,
+              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            const result = await res.json();
+            if (result.success) {
+              addLog(`위치 변경 제안 완료: ${markerData.title || markerData.id}`, "success");
+            } else {
+              alert("제출 실패: " + (result.error || "알 수 없는 오류"));
+            }
+          } catch (e) {
+            alert("서버 연결 실패");
           }
-        } catch (e) {
-          alert("서버 연결 실패");
-        }
-        clearSelection();
+          clearSelection();
+        });
+      }, () => {
+        // 취소 — 선택 상태 유지 (재선택 가능)
       });
       return;
     }

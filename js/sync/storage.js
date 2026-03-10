@@ -89,6 +89,7 @@ const getSettingsFromState = (state) => {
     useChromeTranslator: state.useChromeTranslator,
     disableRegionClickPan: state.disableRegionClickPan,
     enableWebLLM: state.enableWebLLM ?? false,
+    showCommunityMarkers: state.showCommunityMarkers ?? false,
   };
 };
 
