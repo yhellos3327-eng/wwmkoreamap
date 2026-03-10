@@ -124,6 +124,7 @@ export const loadMapData = async (mapKey, onProgress) => {
             }
 
             item.isWikiEdited = true; // Flag for UI hinting
+            item.isTranslated = true; // Mark as translated for progress tracking
             overriddenCount++;
           }
         });
