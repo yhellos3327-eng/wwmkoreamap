@@ -199,6 +199,16 @@ export const attachEventHandlers = (map, overlay, container) => {
           return;
         }
       }
+
+      // 커뮤니티 추가 모드: 빈 공간 클릭 시 모달 직접 호출
+      if (!sprite && win.devState && win.devState.currentMode === 'add') {
+        const lat = e.latlng.lat.toFixed(6);
+        const lng = e.latlng.lng.toFixed(6);
+        import("../../dev-tools.js").then(m => {
+          m.createAddMarkerModal(lat, lng);
+        });
+        return;
+      }
     }
 
     const clickLat = e.latlng.lat;
