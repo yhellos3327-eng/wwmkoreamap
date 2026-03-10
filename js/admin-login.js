@@ -109,6 +109,20 @@ const init = async () => {
   };
   emailInput.addEventListener("keypress", handleEnter);
   passwordInput.addEventListener("keypress", handleEnter);
+
+  // SNS Login for Admin
+  const kakaoLoginBtn = document.getElementById("btn-kakao-login");
+  const googleLoginBtn = document.getElementById("btn-google-login");
+
+  if (kakaoLoginBtn || googleLoginBtn) {
+    const { loginWithProvider } = await import("./auth.js");
+    if (kakaoLoginBtn) {
+      kakaoLoginBtn.addEventListener("click", () => loginWithProvider("kakao"));
+    }
+    if (googleLoginBtn) {
+      googleLoginBtn.addEventListener("click", () => loginWithProvider("google"));
+    }
+  }
 };
 
 init();

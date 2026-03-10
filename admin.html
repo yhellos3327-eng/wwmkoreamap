@@ -142,6 +142,60 @@
             cursor: pointer;
             margin-top: 10px;
             box-shadow: 0 10px 20px -5px rgba(218, 172, 113, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-sns {
+            margin-top: 0;
+            margin-bottom: 12px;
+            font-size: 15px;
+        }
+
+        .btn-kakao {
+            background: #FEE500;
+            color: #000;
+            box-shadow: 0 10px 20px -5px rgba(254, 229, 0, 0.2);
+        }
+
+        .btn-kakao:hover {
+            background: #fada00;
+            box-shadow: 0 15px 30px -5px rgba(254, 229, 0, 0.3);
+        }
+
+        .btn-google {
+            background: #ffffff;
+            color: #000;
+            box-shadow: 0 10px 20px -5px rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-google:hover {
+            background: #f1f1f1;
+            box-shadow: 0 15px 30px -5px rgba(255, 255, 255, 0.2);
+        }
+
+        .sns-divider {
+            display: flex;
+            align-items: center;
+            margin: 24px 0;
+            color: var(--text-muted);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .sns-divider::before,
+        .sns-divider::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
+
+        .sns-divider span {
+            padding: 0 12px;
         }
 
         .btn-login:hover {
@@ -208,6 +262,21 @@
                 <span>ADMIN</span>
             </div>
             <div class="login-title">관리자 인증이 필요합니다.</div>
+
+            <div style="margin-bottom: 24px;">
+                <button id="btn-kakao-login" class="btn-login btn-sns btn-kakao">
+                    <img src="icons/kakao-btn.svg" alt="" style="width: 20px; height: 18px;">
+                    카카오로 관리자 로그인
+                </button>
+                <button id="btn-google-login" class="btn-login btn-sns btn-google">
+                    <img src="icons/google-btn.svg" alt="" style="width: 18px; height: 18px;">
+                    구글로 관리자 로그인
+                </button>
+            </div>
+
+            <div class="sns-divider">
+                <span>또는 기존 계정 사용</span>
+            </div>
             
             <div class="form-group">
                 <label for="email">Email Address</label>

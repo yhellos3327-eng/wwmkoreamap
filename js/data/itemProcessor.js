@@ -18,6 +18,7 @@
  * @property {string} [image]
  * @property {string[]} [images]
  * @property {string|string[]} [video_url]
+ * @property {string} [region]
  * @property {boolean} [isTranslated]
  */
 
@@ -71,7 +72,7 @@ export const createProcessedItem = (item, catId, regionName, imgList) => {
         description: item.description ?? "",
         x: item.latitude,
         y: item.longitude,
-        region: regionName,
+        region: item.region ?? regionName,
         images: imgList,
         imageSizeW: 44,
         imageSizeH: 44,

@@ -431,16 +431,17 @@ export const openWikiHistoryModal = async (itemId) => {
                                 'color: #fbbf24;'; // yellow pending
 
                 const stateText =
-                    rev.status === 'approved' ? '승인됨 (적용중)' :
-                        rev.status === 'rejected' ? '반려됨' :
+                    rev.status === 'approved' ? '승인' :
+                        rev.status === 'rejected' ? '반려' :
                             rev.status === 'reverted' ? '되돌려짐' :
-                                '실시간 반영됨 (검토중)'; // '검토 대기중' 대신 더 긍정적인 문구로 변경
+                                '검토중';
 
-                const safeName = rev.display_name || (rev.user_id ? `User#${rev.user_id}` : "익명");
+                const isAdmin = rev.user_level === 4 || rev.is_admin;
+                const safeName = isAdmin ? "관리자" : (rev.display_name || (rev.user_id ? `User#${rev.user_id}` : "익명"));
                 const levelIcon = getUserLevelIcon(rev.user_level);
                 const maskedIp = rev.ip_address ? maskIdentifier(rev.ip_address, 'ip') : null;
                 const maskedFp = rev.fingerprint ? maskIdentifier(rev.fingerprint, 'fp') : null;
-                const identifier = maskedIp ? ` (IP: ${maskedIp})` : (maskedFp ? ` (FP: ${maskedFp})` : '');
+                const identifier = (isAdmin || !maskedIp && !maskedFp) ? '' : (maskedIp ? ` (IP: ${maskedIp})` : ` (FP: ${maskedFp})`);
 
                 const adminCheckbox = `<input type="checkbox" class="wiki-history-select" data-rev-id="${rev.id}" style="margin-right: 15px; cursor: pointer; transform: scale(1.2);">`;
 

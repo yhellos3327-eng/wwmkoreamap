@@ -87,11 +87,6 @@ export const createPopupHtml = (item, lat, lng, regionName, activeReportId = nul
       itemDescription = itemDescription.replace(/{region}/g, displayRegion);
 
       itemDescription = parseMarkdown(itemDescription);
-      itemDescription = itemDescription.replace(/\n/g, "<br>");
-      itemDescription = itemDescription.replace(
-        /{spoiler}([\s\S]*?){\/spoiler}/g,
-        '<span class="spoiler" data-action="reveal-spoiler">$1</span>',
-      );
     } else {
       itemDescription = "";
     }
