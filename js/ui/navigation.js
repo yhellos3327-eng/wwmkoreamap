@@ -373,6 +373,7 @@ export const jumpToId = (id) => {
   );
 
   if (!target) {
+    // 1) Search in core mapData
     const item = state.mapData.items.find((i) => String(i.id) === String(id));
     if (item) {
       console.log("[Navigation] Found item in mapData, moving to location");
@@ -389,6 +390,36 @@ export const jumpToId = (id) => {
       );
       return;
     }
+
+    // 2) Search in community markers
+    if (state.communityMarkers && state.communityMarkers.has(String(id))) {
+      const communityItem = state.communityMarkers.get(String(id));
+      console.log("[Navigation] Found item in communityMarkers, enabling mode if needed");
+
+      const doMove = () => {
+        import("../map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
+          const sprite = getSpriteById(id);
+          moveToLocation(
+            [parseFloat(communityItem.lat), parseFloat(communityItem.lng)],
+            sprite,
+            communityItem.region,
+            communityItem.id
+          );
+        });
+      };
+
+      if (!state.showCommunityMarkers) {
+        import("../map/community.js").then(async ({ toggleCommunityMode }) => {
+          await toggleCommunityMode();
+          // Brief delay to allow rendering
+          setTimeout(doMove, 300);
+        });
+      } else {
+        doMove();
+      }
+      return;
+    }
+
     console.warn("[Navigation] jumpToId: target not found for ID", id);
   }
   if (target) {
@@ -433,7 +464,13 @@ export const findItem = async (id) => {
     logger.success("Navigation", `[${target.name}] 마커로 이동`);
     return;
   }
-  const item = state.mapData.items.find((i) => String(i.id) === targetId);
+  let item = state.mapData.items.find((i) => String(i.id) === targetId);
+  let isCommunity = false;
+
+  if (!item && state.communityMarkers) {
+    item = state.communityMarkers.get(targetId);
+    if (item) isCommunity = true;
+  }
 
   if (!item) {
     logger.warn("Navigation", `ID [${targetId}]를 찾을 수 없음`);
@@ -460,6 +497,12 @@ export const findItem = async (id) => {
       document.getElementById("toggle-hide-completed")
     );
     if (hideToggle) hideToggle.checked = false;
+  }
+
+  if (isCommunity && !state.showCommunityMarkers) {
+    const { toggleCommunityMode } = await import("../map/community.js");
+    await toggleCommunityMode();
+    filtersChanged = true;
   }
 
   if (filtersChanged) {
