@@ -46,6 +46,15 @@ export const getCurrentUser = () => {
   return currentUser;
 };
 
+/**
+ * 인증 토큰 상태를 확인합니다.
+ * (httpOnly 쿠키는 JS에서 직접 접근 불가, 현재 사용자 객체로 인증 상태 반환)
+ * @returns {string|null} 인증 상태 ("authenticated" 또는 null)
+ */
+export const getAuthToken = () => {
+  return currentUser ? "authenticated" : null;
+};
+
 export const isAdminUser = () => {
   return currentUser?.isAdmin || false;
 };
