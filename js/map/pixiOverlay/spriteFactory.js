@@ -136,26 +136,26 @@ export const createSpriteForItem = (item) => {
   if (item.isBackend) {
     let userIconSprite = null;
 
-    // 프로필 이미지가 있으면 사용, 없으면 기본 SVG 사용
-    if (item.profile_image) {
-      try {
-        const profileTexture = await PIXI.Assets.load(item.profile_image);
-        userIconSprite = new PIXI.Sprite(profileTexture);
-      } catch (e) {
-        console.warn("Failed to load profile image:", item.profile_image, e);
-      }
-    }
+    // 기본 SVG 아이콘 사용 (프로필 이미지는 나중에 비동기로 로드)
+    const userIconSvg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+        <circle cx="12" cy="7" r="4"></circle>
+      </svg>
+    `;
+    const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
+    userIconSprite = new PIXI.Sprite(userIconTexture);
 
-    // 프로필 이미지 로드 실패 시 기본 SVG 사용
-    if (!userIconSprite) {
-      const userIconSvg = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
-          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-          <circle cx="12" cy="7" r="4"></circle>
-        </svg>
-      `;
-      const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
-      userIconSprite = new PIXI.Sprite(userIconTexture);
+    // 프로필 이미지가 있으면 비동기로 로드 후 업데이트
+    if (item.profile_image) {
+      PIXI.Assets.load(item.profile_image)
+        .then((profileTexture) => {
+          userIconSprite.texture = profileTexture;
+        })
+        .catch((e) => {
+          console.warn("Failed to load profile image:", item.profile_image, e);
+          // SVG 아이콘 유지
+        });
     }
 
     // 아이콘 크기 및 위치 조정 (마커 크기 대비)
