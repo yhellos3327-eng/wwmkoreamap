@@ -12,7 +12,7 @@
  */
 export async function isAuthenticated() {
   try {
-    const response = await fetch('/api/auth/user', {
+    const response = await fetch('/auth/user', {
       method: 'GET',
       credentials: 'include', // Send httpOnly cookies
     });
@@ -30,7 +30,7 @@ export async function isAuthenticated() {
  */
 export async function getCurrentUser() {
   try {
-    const response = await fetch('/api/auth/user', {
+    const response = await fetch('/auth/user', {
       method: 'GET',
       credentials: 'include',
     });
@@ -52,7 +52,7 @@ export async function getCurrentUser() {
  */
 export async function refreshToken() {
   try {
-    const response = await fetch('/api/auth/refresh', {
+    const response = await fetch('/auth/refresh', {
       method: 'POST',
       credentials: 'include',
     });
@@ -73,7 +73,7 @@ export async function refreshToken() {
  */
 export async function logout() {
   try {
-    const response = await fetch('/api/auth/logout', {
+    const response = await fetch('/auth/logout', {
       method: 'POST',
       credentials: 'include',
     });
@@ -90,7 +90,7 @@ export async function logout() {
 export function loginWithGoogle() {
   // Redirect to backend OAuth endpoint
   // Server will exchange code for JWT and set cookies automatically
-  window.location.href = '/api/auth/google';
+  window.location.href = '/auth/google';
 }
 
 /**
@@ -99,7 +99,7 @@ export function loginWithGoogle() {
 export function loginWithKakao() {
   // Redirect to backend OAuth endpoint
   // Server will exchange code for JWT and set cookies automatically
-  window.location.href = '/api/auth/kakao';
+  window.location.href = '/auth/kakao';
 }
 
 /**
