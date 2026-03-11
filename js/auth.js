@@ -151,7 +151,7 @@ export const loginWithProvider = async (provider) => {
   if (!result || !result.success) {
     console.error("Failed to set return URL", result);
   }
-  window.location.href = `${BACKEND_URL}/auth/${provider}`;
+  window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
 };
 
 /**
