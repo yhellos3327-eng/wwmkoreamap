@@ -132,16 +132,31 @@ export const createSpriteForItem = (item) => {
   const sprite = new PIXI.Sprite(texture);
   sprite.anchor.set(0.5, 0.5);
 
-  // 유저 마커 차별화: 우측 상단에 유저 아이콘 추가
+  // 유저 마커 차별화: 우측 상단에 유저 프로필 이미지 추가
   if (item.isBackend) {
-    const userIconSvg = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
-    `;
-    const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
-    const userIconSprite = new PIXI.Sprite(userIconTexture);
+    let userIconSprite = null;
+
+    // 프로필 이미지가 있으면 사용, 없으면 기본 SVG 사용
+    if (item.profile_image) {
+      try {
+        const profileTexture = await PIXI.Assets.load(item.profile_image);
+        userIconSprite = new PIXI.Sprite(profileTexture);
+      } catch (e) {
+        console.warn("Failed to load profile image:", item.profile_image, e);
+      }
+    }
+
+    // 프로필 이미지 로드 실패 시 기본 SVG 사용
+    if (!userIconSprite) {
+      const userIconSvg = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      `;
+      const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
+      userIconSprite = new PIXI.Sprite(userIconTexture);
+    }
 
     // 아이콘 크기 및 위치 조정 (마커 크기 대비)
     userIconSprite.width = texture.width * 0.45;
@@ -151,10 +166,10 @@ export const createSpriteForItem = (item) => {
 
     // 배경 원 추가 (가독성 향상)
     const badgeBg = new PIXI.Graphics();
-    badgeBg.beginFill(0xdaac71);
+    badgeBg.beginFill(0xffffff);
     badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
     badgeBg.endFill();
-    badgeBg.lineStyle(1, 0xffffff, 0.8);
+    badgeBg.lineStyle(2, 0x333333, 1);
     badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
 
     sprite.addChild(badgeBg);
