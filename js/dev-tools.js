@@ -1523,10 +1523,15 @@ const handleMarkerAction = (markerData, leafletMarker) => {
           if (markerData.isBackend) {
             state.communityMarkers.delete(String(markerData.id));
           }
-          // 지도에서 마커 제거
+          // 지도에서 마커 제거 (Leaflet)
           if (leafletMarker) {
             state.map.removeLayer(leafletMarker);
           }
+          // Pixi 스프라이트 제거
+          state.allMarkers.delete(markerData.id);
+          import("./map/pixiOverlay/overlayCore.js").then(({ redrawPixiOverlay }) => {
+            redrawPixiOverlay();
+          });
           addLog(`마커 숨김 처리됨: ${markerData.originalName || markerData.id}`, "success");
           import("./sync/ui.js").then(({ showSyncToast }) => {
             showSyncToast("마커가 숨김 처리되었습니다.", "success");
