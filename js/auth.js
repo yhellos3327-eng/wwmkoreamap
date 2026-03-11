@@ -87,7 +87,7 @@ const checkAuthStatus = async () => {
   try {
     const headers = getAuthHeaders();
 
-    const response = await fetch(`${BACKEND_URL}/api/auth/user`, {
+    const response = await fetch(`${BACKEND_URL}/auth/user`, {
       credentials: "include", // httpOnly 쿠키 전송
       headers
     });
@@ -151,7 +151,7 @@ export const loginWithProvider = async (provider) => {
   if (!result || !result.success) {
     console.error("Failed to set return URL", result);
   }
-  window.location.href = `${BACKEND_URL}/api/auth/${provider}`;
+  window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
 /**
@@ -209,7 +209,7 @@ export const logout = async () => {
   // JWT 쿠키 삭제 (서버)
   try {
     const headers = getAuthHeaders();
-    const response = await fetch(`${BACKEND_URL}/api/auth/logout`, {
+    const response = await fetch(`${BACKEND_URL}/auth/logout`, {
       method: "POST",
       credentials: "include",
       headers
