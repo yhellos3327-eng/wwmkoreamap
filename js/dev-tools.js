@@ -1529,7 +1529,15 @@ const handleMarkerAction = (markerData, leafletMarker) => {
           }
           // Pixi 스프라이트 제거
           state.allMarkers.delete(markerData.id);
-          import("./map/pixiOverlay/overlayCore.js").then(({ redrawPixiOverlay }) => {
+          Promise.all([
+            import("./map/pixiOverlay/spriteFactory.js"),
+            import("./map/pixiOverlay/overlayCore.js"),
+          ]).then(([{ getSpriteById }, { getPixiContainer, redrawPixiOverlay }]) => {
+            const sprite = getSpriteById(markerData.id);
+            if (sprite) {
+              const container = getPixiContainer();
+              if (container) container.removeChild(sprite);
+            }
             redrawPixiOverlay();
           });
           addLog(`마커 숨김 처리됨: ${markerData.originalName || markerData.id}`, "success");
