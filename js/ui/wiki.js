@@ -864,7 +864,9 @@ export const renderGlobalWikiHistory = async (container) => {
     container.innerHTML = `<p class="empty-msg">로딩 중...</p>`;
 
     try {
-        const res = await fetch(`${BACKEND_URL}/api/revisions`);
+        const res = await fetch(`${BACKEND_URL}/api/revisions`, {
+            credentials: 'include'
+        });
         const data = await res.json();
 
         if (!data.success || !data.revisions) {
