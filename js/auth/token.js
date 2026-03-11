@@ -90,7 +90,7 @@ export async function logout() {
 export function loginWithGoogle() {
   // Redirect to backend OAuth endpoint
   // Server will exchange code for JWT and set cookies automatically
-  window.location.href = '/auth/google';
+  window.location.href = '/api/auth/google';
 }
 
 /**
@@ -99,7 +99,7 @@ export function loginWithGoogle() {
 export function loginWithKakao() {
   // Redirect to backend OAuth endpoint
   // Server will exchange code for JWT and set cookies automatically
-  window.location.href = '/auth/kakao';
+  window.location.href = '/api/auth/kakao';
 }
 
 /**
