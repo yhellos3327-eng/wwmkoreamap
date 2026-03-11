@@ -877,7 +877,7 @@ export const renderGlobalWikiHistory = async (container) => {
             return;
         }
 
-        container.innerHTML = data.revisions.map((rev, index) => {
+        const listHtml = data.revisions.map((rev) => {
             const date = new Date(rev.created_at).toLocaleDateString('ko-KR');
             const safeName = rev.display_name || `User#${rev.user_id}`;
             const markerName = rev.revision_data.title || `마커 #${rev.target_marker_id}`;
@@ -890,9 +890,12 @@ export const renderGlobalWikiHistory = async (container) => {
             const stateClass = `wiki-status-${rev.status}`;
 
             return `
-                <div class="favorite-item wiki-global-item" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <div class="favorite-item wiki-global-item" data-rev-id="${rev.id}" style="flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.05);">
                     <div style="display: flex; justify-content: space-between; width: 100%; font-size: 11px; opacity: 0.8;">
-                        <span>${date}</span>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <input type="checkbox" class="wiki-bulk-check" data-rev-id="${rev.id}" data-is-creation="${rev.is_creation}" style="display:none; cursor:pointer; accent-color: var(--accent);">
+                            <span>${date}</span>
+                        </div>
                         <div style="display: flex; gap: 4px;">
                             ${rev.is_creation ? '<span style="background:rgba(74,222,128,0.2); color:#4ade80; font-size: 10px; padding: 2px 4px; border-radius: 3px;">신규</span>' : ''}
                             ${rev.revision_data.deleted ? '<span style="background:rgba(248,113,113,0.2); color:#f87171; font-size: 10px; padding: 2px 4px; border-radius: 3px;">삭제</span>' : ''}
@@ -922,6 +925,7 @@ export const renderGlobalWikiHistory = async (container) => {
                 </div>
             `;
         }).join('');
+        container.innerHTML = listHtml;
 
         // Add event listeners
         container.querySelectorAll('.wiki-global-target, .wiki-global-view-btn').forEach(el => {
@@ -973,41 +977,110 @@ export const renderGlobalWikiHistory = async (container) => {
             };
         });
 
-        // Admin Delete Button for global feed
+        // Admin: bulk toolbar + individual delete buttons
         import("../auth.js").then(({ isAdminUser, getAuthToken }) => {
-            if (isAdminUser()) {
-                container.querySelectorAll('.admin-delete-slot').forEach(slot => {
-                    const revId = /** @type {HTMLElement} */(slot).dataset.revId;
-                    const isCreation = /** @type {HTMLElement} */(slot).dataset.isCreation === '1';
-                    if (isCreation) return; // Cannot delete initial creation 'history' only - it's tied to the marker
-                    const btn = document.createElement("button");
-                    btn.className = "action-btn-small";
-                    btn.style.background = "rgba(255, 0, 0, 0.2)";
-                    btn.style.color = "#ff6b6b";
-                    btn.style.border = "1px solid rgba(255, 0, 0, 0.3)";
-                    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+            if (!isAdminUser()) return;
 
-                    btn.onclick = async (e) => {
-                        e.stopPropagation();
-                        if (!confirm(`이 편집 기록(#${revId})을 삭제하시겠습니까?`)) return;
-                        try {
-                            const token = await getAuthToken();
-                            const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
-                                method: 'DELETE',
-                                headers: { 'Authorization': `Bearer ${token}` }
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                                alert("삭제되었습니다.");
-                                renderGlobalWikiHistory(container); // Refresh sidebar
-                            } else {
-                                alert("삭제 실패: " + result.error);
-                            }
-                        } catch (e) { alert("서버 연결 실패"); }
-                    };
-                    slot.appendChild(btn);
+            // Insert admin toolbar above the list
+            const toolbar = document.createElement("div");
+            toolbar.id = "wiki-admin-toolbar";
+            toolbar.style.cssText = "display:flex; align-items:center; gap:8px; padding:8px 12px; background:rgba(255,0,0,0.07); border-bottom:1px solid rgba(255,0,0,0.15);";
+            toolbar.innerHTML = `
+                <input type="checkbox" id="wiki-check-all" title="전체 선택" style="cursor:pointer; accent-color:var(--accent);">
+                <label for="wiki-check-all" style="font-size:12px; cursor:pointer; flex:1;">전체 선택</label>
+                <button id="wiki-bulk-delete-btn" class="action-btn-small" style="background:rgba(255,0,0,0.2); color:#ff6b6b; border:1px solid rgba(255,0,0,0.3); display:none;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    선택 삭제 (<span id="wiki-bulk-count">0</span>)
+                </button>
+            `;
+            container.insertBefore(toolbar, container.firstChild);
+
+            // Show checkboxes
+            container.querySelectorAll('.wiki-bulk-check').forEach(cb => {
+                /** @type {HTMLElement} */(cb).style.display = 'inline-block';
+            });
+
+            const checkAll = /** @type {HTMLInputElement} */(container.querySelector('#wiki-check-all'));
+            const bulkBtn = /** @type {HTMLElement} */(container.querySelector('#wiki-bulk-delete-btn'));
+            const countSpan = /** @type {HTMLElement} */(container.querySelector('#wiki-bulk-count'));
+
+            const updateBulkBtn = () => {
+                const checked = container.querySelectorAll('.wiki-bulk-check:checked');
+                const count = checked.length;
+                countSpan.textContent = String(count);
+                bulkBtn.style.display = count > 0 ? 'flex' : 'none';
+            };
+
+            checkAll.onchange = () => {
+                container.querySelectorAll('.wiki-bulk-check').forEach(cb => {
+                    /** @type {HTMLInputElement} */(cb).checked = checkAll.checked;
                 });
-            }
+                updateBulkBtn();
+            };
+
+            container.querySelectorAll('.wiki-bulk-check').forEach(cb => {
+                cb.addEventListener('change', () => {
+                    const all = container.querySelectorAll('.wiki-bulk-check');
+                    const checked = container.querySelectorAll('.wiki-bulk-check:checked');
+                    checkAll.indeterminate = checked.length > 0 && checked.length < all.length;
+                    checkAll.checked = checked.length === all.length;
+                    updateBulkBtn();
+                });
+            });
+
+            bulkBtn.onclick = async () => {
+                const checked = /** @type {NodeListOf<HTMLInputElement>} */(container.querySelectorAll('.wiki-bulk-check:checked'));
+                const ids = Array.from(checked).map(cb => cb.dataset.revId).filter(Boolean);
+                if (ids.length === 0) return;
+                if (!confirm(`선택한 ${ids.length}개의 편집 기록을 삭제하시겠습니까?`)) return;
+
+                try {
+                    const token = await getAuthToken();
+                    let failed = 0;
+                    await Promise.all(ids.map(async (revId) => {
+                        const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const result = await res.json();
+                        if (!result.success) failed++;
+                    }));
+                    if (failed > 0) alert(`${failed}개 삭제 실패`);
+                    renderGlobalWikiHistory(container);
+                } catch (e) { alert("서버 연결 실패"); }
+            };
+
+            // Individual delete buttons
+            container.querySelectorAll('.admin-delete-slot').forEach(slot => {
+                const revId = /** @type {HTMLElement} */(slot).dataset.revId;
+                const isCreation = /** @type {HTMLElement} */(slot).dataset.isCreation === '1';
+                if (isCreation) return;
+                const btn = document.createElement("button");
+                btn.className = "action-btn-small";
+                btn.style.background = "rgba(255, 0, 0, 0.2)";
+                btn.style.color = "#ff6b6b";
+                btn.style.border = "1px solid rgba(255, 0, 0, 0.3)";
+                btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+                btn.onclick = async (e) => {
+                    e.stopPropagation();
+                    if (!confirm(`이 편집 기록(#${revId})을 삭제하시겠습니까?`)) return;
+                    try {
+                        const token = await getAuthToken();
+                        const res = await fetch(`${BACKEND_URL}/api/revisions/${revId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            renderGlobalWikiHistory(container);
+                        } else {
+                            alert("삭제 실패: " + result.error);
+                        }
+                    } catch (e) { alert("서버 연결 실패"); }
+                };
+                slot.appendChild(btn);
+            });
         });
 
     } catch (err) {
