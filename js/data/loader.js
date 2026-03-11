@@ -83,7 +83,9 @@ export const loadMapData = async (mapKey, onProgress) => {
     // [WIKI FEATURE] Fetch approved revisions and override base items
     try {
       const { BACKEND_URL } = await import("../config.js");
-      const revRes = await fetch(`${BACKEND_URL}/api/revisions?status=approved`);
+      const revRes = await fetch(`${BACKEND_URL}/api/revisions?status=approved`, {
+        credentials: "include"
+      });
       const revData = await revRes.json();
 
       if (revData.success && revData.revisions && revData.revisions.length > 0) {

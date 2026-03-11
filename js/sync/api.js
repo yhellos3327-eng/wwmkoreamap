@@ -2,12 +2,13 @@ import { BACKEND_URL } from "../config.js";
 
 /**
  * 인증 헤더를 동적으로 가져옵니다.
+ * JWT는 httpOnly 쿠키에 자동으로 포함되므로 Authorization 헤더는 필요 없습니다.
  * @returns {Promise<Object>}
  */
 const getHeaders = async () => {
   try {
     const { getAuthHeaders } = await import("../auth.js");
-    return await getAuthHeaders();
+    return getAuthHeaders();
   } catch (e) {
     return { "Content-Type": "application/json" };
   }

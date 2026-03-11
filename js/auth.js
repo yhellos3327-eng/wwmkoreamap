@@ -59,39 +59,18 @@ export const canRevert = () => {
 };
 
 /**
- * 현재 인증 토큰을 가져옵니다 (firebase인 경우).
- * @returns {Promise<string|null>} 토큰 또는 null.
- */
-export const getAuthToken = async () => {
-  try {
-    const { auth, firebaseInitialized } = await import("./firebase-config.js");
-    await firebaseInitialized;
-    if (auth && auth.currentUser) {
-      return await auth.currentUser.getIdToken();
-    }
-  } catch (e) {
-    // console.warn("Failed to get firebase token", e);
-  }
-  return null;
-};
-
-/**
  * 모든 API 요청에 사용할 공통 인증 헤더를 생성합니다.
- * @returns {Promise<Object>} 헤더 객체.
+ * JWT는 httpOnly 쿠키에 자동으로 포함됩니다.
+ * Fingerprint만 추가합니다.
+ * @returns {Object} 헤더 객체.
  */
-export const getAuthHeaders = async () => {
+export const getAuthHeaders = () => {
   const headers = { "Content-Type": "application/json" };
 
-  // 1. Firebase Bearer 토큰 추가
-  const token = await getAuthToken();
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  // 2. Fingerprint 추가 (보안 강화)
+  // Fingerprint 추가 (보안 강화)
   // @ts-ignore
   if (window.visitorId) {
-    // @ts-ignore 
+    // @ts-ignore
     headers["x-fingerprint"] = window.visitorId;
   }
 
@@ -100,15 +79,16 @@ export const getAuthHeaders = async () => {
 
 /**
  * 백엔드와 인증 상태를 확인합니다.
+ * JWT 토큰은 httpOnly 쿠키에 자동으로 포함됩니다.
  * 해당하는 경우 로컬 개발 테스트 사용자를 처리합니다.
  * @returns {Promise<void>}
  */
 const checkAuthStatus = async () => {
   try {
-    const headers = await getAuthHeaders();
+    const headers = getAuthHeaders();
 
-    const response = await fetch(`${BACKEND_URL}/auth/user`, {
-      credentials: "include",
+    const response = await fetch(`${BACKEND_URL}/api/auth/user`, {
+      credentials: "include", // httpOnly 쿠키 전송
       headers
     });
 
@@ -129,7 +109,7 @@ const checkAuthStatus = async () => {
       }
     }
   } catch (error) {
-    console.warn("Backend auth check failed, checking firebase/local...", error);
+    console.warn("Backend auth check failed, checking local dev...", error);
   }
 
   // 로컬 개발을 위한 폴백
@@ -214,17 +194,6 @@ export const testLogin = async () => {
 export const logout = async () => {
   cleanupRealtimeSync();
 
-  try {
-    const { auth, firebaseInitialized } = await import("./firebase-config.js");
-    await firebaseInitialized;
-    if (auth && auth.currentUser) {
-      await auth.signOut();
-      console.log("[Auth] Signed out from Firebase key");
-    }
-  } catch (e) {
-    console.warn("[Auth] Firebase signout attempt failed", e);
-  }
-
   if (isLocalDev()) {
     const { primaryDb } = await import("./storage/db.js");
     const result = await primaryDb.delete("wwm_test_user");
@@ -232,20 +201,32 @@ export const logout = async () => {
       console.error("Failed to delete test user", result);
     }
 
-    if (currentUser && currentUser.provider !== "test") {
-      try {
-        await fetch(`${BACKEND_URL}/auth/logout`, { credentials: "include" });
-      } catch (e) {
-        console.warn("Backend logout request failed", e);
-      }
-    }
-
     currentUser = null;
     updateAuthUI();
     return;
   }
 
-  window.location.href = `${BACKEND_URL}/auth/logout`;
+  // JWT 쿠키 삭제 (서버)
+  try {
+    const headers = getAuthHeaders();
+    const response = await fetch(`${BACKEND_URL}/api/auth/logout`, {
+      method: "POST",
+      credentials: "include",
+      headers
+    });
+
+    if (response.ok) {
+      currentUser = null;
+      updateAuthUI();
+      console.log("[Auth] Logged out successfully");
+      return;
+    }
+  } catch (e) {
+    console.warn("[Auth] Logout request failed", e);
+  }
+
+  // 폴백: 페이지 새로고침
+  window.location.href = window.location.origin;
 };
 
 /**
@@ -338,22 +319,6 @@ export async function initAuth() {
     user: getCurrentUser(),
   });
 
-  // Listen for Firebase auth state changes to keep backend user state in sync
-  // This is crucial for Admin login (Email/Password) which happens via Firebase only
-  try {
-    const { auth, firebaseInitialized } = await import("./firebase-config.js");
-    await firebaseInitialized;
-    if (auth) {
-      onAuthStateChanged(auth, async (user) => {
-        // console.log("[Auth] Firebase auth state changed:", user ? "LoggedIn" : "LoggedOut");
-        await checkAuthStatus();
-        updateAuthUI();
-      });
-    }
-  } catch (e) {
-    console.warn("[Auth] Failed to setup firebase auth listener", e);
-  }
-
   if (isLoggedIn()) {
     await initSync();
     import("./map/community.js").then(({ fetchUserCompletions }) => {
@@ -361,5 +326,3 @@ export async function initAuth() {
     }).catch(() => { });
   }
 }
-
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js";

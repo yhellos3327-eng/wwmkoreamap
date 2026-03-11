@@ -481,7 +481,8 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
           addLog("이미지 업로드 중...", "info");
           const uploadRes = await fetch(`${BACKEND_URL}/api/markers/upload`, {
             method: "POST",
-            body: uploadFormData
+            body: uploadFormData,
+            credentials: "include"
           });
 
           if (!uploadRes.ok) throw new Error(`HTTP ${uploadRes.status}`);
@@ -1500,13 +1501,10 @@ const handleMarkerAction = (markerData, leafletMarker) => {
     // 커뮤니티 마커는 직접 삭제 엔드포인트 사용, 공식 마커는 리비전으로 삭제 제안
     if (markerData.isBackend) {
       (async () => {
-        const { getAuthToken } = await import("./auth.js");
-        const token = await getAuthToken();
         try {
           const res = await fetch(`${BACKEND_URL}/api/markers/${markerData.id}`, {
             method: 'DELETE',
-            credentials: 'include',
-            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            credentials: 'include'
           });
           const result = await res.json();
           if (result.success) {
@@ -1541,7 +1539,6 @@ const handleMarkerAction = (markerData, leafletMarker) => {
     // 공식 마커 삭제 제안은 리비전으로 처리
     import("./ui/wiki.js").then(async (wiki) => {
       const { getAuthToken } = await import("./auth.js");
-      const token = await getAuthToken();
       const formData = new FormData();
       formData.append('target_marker_id', String(markerData.id));
       formData.append('is_official', 'true');
@@ -1553,8 +1550,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         const res = await fetch(`${BACKEND_URL}/api/revisions`, {
           method: 'POST',
           credentials: 'include',
-          body: formData,
-          headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          body: formData
         });
         const result = await res.json();
         if (result.success) {
@@ -1658,36 +1654,31 @@ const handleMapClick = (e) => {
     const markerData = devState.selectedMarkerData;
 
     // [COMMUNITY MODE INTEGRATION]
-    // If community mode is enabled, propose a move revision instead of direct local edit
+    // If community mode is enabled, move marker via PATCH /api/markers/:id
     if (state.showCommunityMarkers) {
       // 이미 오버레이가 열려있으면 무시
       if (document.getElementById('move-confirm-overlay')) return;
 
       showMoveConfirmOverlay(lat, lng, markerData, (reason) => {
-        const isOfficial = !markerData.isBackend;
-        import("./ui/wiki.js").then(async (wiki) => {
-          const { getAuthToken } = await import("./auth.js");
-          const token = await getAuthToken();
+        (async () => {
           const formData = new FormData();
-          formData.append('target_marker_id', String(markerData.id));
-          formData.append('is_official', String(isOfficial));
-          formData.append('map_id', state.currentMapKey || 'qinghe');
           formData.append('lat', String(lat));
           formData.append('lng', String(lng));
-          formData.append('edit_reason', reason);
-          formData.append('status', 'approved');
+          formData.append('reason', reason || '마커 위치 변경');
+          formData.append('mapId', state.currentMapKey || 'qinghe');
+
           try {
-            const res = await fetch(`${BACKEND_URL}/api/revisions`, {
-              method: 'POST',
+            const res = await fetch(`${BACKEND_URL}/api/markers/${markerData.id}`, {
+              method: 'PATCH',
               credentials: 'include',
-              body: formData,
-              headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+              body: formData
             });
             const result = await res.json();
             if (result.success) {
-              addLog(`위치 변경 승인됨: ${markerData.title || markerData.id}`, "success");
+              addLog(`위치 변경됨: ${markerData.title || markerData.id}`, "success");
               const newLat = parseFloat(lat);
               const newLng = parseFloat(lng);
+
               // 즉시 로컬 상태 업데이트
               markerData.lat = newLat;
               markerData.lng = newLng;
@@ -1698,6 +1689,7 @@ const handleMapClick = (e) => {
                   cm.lng = newLng;
                 }
               }
+
               // Pixi 스프라이트 위치 업데이트
               import("./map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
                 const sprite = getSpriteById(markerData.id);
@@ -1709,17 +1701,19 @@ const handleMapClick = (e) => {
                   redrawPixiOverlay();
                 });
               });
+
               import("./sync/ui.js").then(({ showSyncToast }) => {
                 showSyncToast("위치가 변경되었습니다!", "success");
               });
             } else {
-              alert("제출 실패: " + (result.error || "알 수 없는 오류"));
+              alert("변경 실패: " + (result.error || "알 수 없는 오류"));
             }
           } catch (e) {
+            console.error("마커 이동 오류:", e);
             alert("서버 연결 실패");
           }
           clearSelection();
-        });
+        })();
       }, () => {
         // 취소 — 선택 상태 유지 (재선택 가능)
       });
