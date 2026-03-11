@@ -85,7 +85,7 @@ export const loadAllData = async (options = {}) => {
  * @param {Function} log - 로그 출력 함수.
  */
 const loadJSONMarkers = async (markerIds, log) => {
-  const files = ["./data.json", "./data2.json"];
+  const files = ["./data.json", "./data2.json", "./data3.json", "./data4.json"];
 
   for (const file of files) {
     try {
@@ -118,7 +118,7 @@ const loadJSONMarkers = async (markerIds, log) => {
  * @param {Function} log - 로그 출력 함수.
  */
 const loadCSVMarkers = async (markerIds, regionNames, log) => {
-  const files = ["./data3.csv", "./data4.csv"];
+  const files = ["./data3.csv", "./data4.csv", "./data5.csv", "./data6.csv"];
 
   for (const file of files) {
     try {
@@ -139,7 +139,7 @@ const loadCSVMarkers = async (markerIds, regionNames, log) => {
         const line = lines[i].trim();
         if (!line) continue;
 
-        const parts = line.split(",");
+        const parts = parseCSVLine(line);
         if (parts.length > 0 && parts[0]) {
           const id = parts[0].trim();
           if (/^\d+$/.test(id)) {
@@ -173,7 +173,7 @@ const loadCSVMarkers = async (markerIds, regionNames, log) => {
  * @param {Function} log - 로그 출력 함수.
  */
 const loadRegionJSON = async (regionNames, log) => {
-  const files = ["./regions.json", "./regions2.json"];
+  const files = ["./regions.json", "./regions2.json", "./regions3.json"];
 
   for (const file of files) {
     try {
@@ -205,7 +205,12 @@ const loadRegionJSON = async (regionNames, log) => {
  * @param {Function} log - 로그 출력 함수.
  */
 const loadTranslationCSV = async (regionNames, log) => {
-  const files = ["./translation.csv", "./translation2.csv"];
+  const files = [
+    "./translation.csv",
+    "./translation2.csv",
+    "./translation3.csv",
+    "./translation4.csv",
+  ];
 
   for (const file of files) {
     try {
