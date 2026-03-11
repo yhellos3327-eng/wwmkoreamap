@@ -439,6 +439,7 @@ export const renderMarkersWithPixi = async (items) => {
           region: sprite.markerData.region,
           lat: sprite.markerData.lat,
           lng: sprite.markerData.lng,
+          isBackend: item.isBackend,
         };
         state.allMarkers.set(item.id, markerInfo);
 
