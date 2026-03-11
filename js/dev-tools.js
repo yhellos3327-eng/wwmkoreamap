@@ -1497,18 +1497,57 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       return true; // 취소해도 정보 모달이 뜨는 것을 방지하기 위해 true 반환
     }
 
-    const isOfficial = !markerData.isBackend;
+    // 커뮤니티 마커는 직접 삭제 엔드포인트 사용, 공식 마커는 리비전으로 삭제 제안
+    if (markerData.isBackend) {
+      (async () => {
+        const { getAuthToken } = await import("./auth.js");
+        const token = await getAuthToken();
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/markers/${markerData.id}`, {
+            method: 'DELETE',
+            credentials: 'include',
+            headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+          });
+          const result = await res.json();
+          if (result.success) {
+            state.communityMarkers.delete(String(markerData.id));
+            state.allMarkers.delete(markerData.id);
+            Promise.all([
+              import("./map/pixiOverlay/spriteFactory.js"),
+              import("./map/pixiOverlay/overlayCore.js"),
+            ]).then(([{ getSpriteById }, { getPixiContainer, redrawPixiOverlay }]) => {
+              const sprite = getSpriteById(markerData.id);
+              if (sprite) {
+                const container = getPixiContainer();
+                if (container) container.removeChild(sprite);
+              }
+              redrawPixiOverlay();
+            });
+            addLog(`마커 삭제됨: ${markerData.name || markerData.id}`, "success");
+            import("./sync/ui.js").then(({ showSyncToast }) => {
+              showSyncToast("마커가 삭제되었습니다.", "success");
+            });
+          } else {
+            alert("삭제 실패: " + (result.error || "알 수 없는 오류"));
+          }
+        } catch (e) {
+          alert("서버 연결 실패");
+        }
+        clearSelection();
+      })();
+      return true;
+    }
 
+    // 공식 마커 삭제 제안은 리비전으로 처리
     import("./ui/wiki.js").then(async (wiki) => {
       const { getAuthToken } = await import("./auth.js");
       const token = await getAuthToken();
       const formData = new FormData();
       formData.append('target_marker_id', String(markerData.id));
-      formData.append('is_official', String(isOfficial));
+      formData.append('is_official', 'true');
       formData.append('map_id', state.currentMapKey || 'qinghe');
       formData.append('deleted', 'true');
       formData.append('edit_reason', reason.trim());
-      formData.append('status', 'approved');
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/revisions`, {
@@ -1519,30 +1558,9 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         });
         const result = await res.json();
         if (result.success) {
-          // 즉시 로컬에서 마커 숨김 처리
-          if (markerData.isBackend) {
-            state.communityMarkers.delete(String(markerData.id));
-          }
-          // 지도에서 마커 제거 (Leaflet)
-          if (leafletMarker) {
-            state.map.removeLayer(leafletMarker);
-          }
-          // Pixi 스프라이트 제거
-          state.allMarkers.delete(markerData.id);
-          Promise.all([
-            import("./map/pixiOverlay/spriteFactory.js"),
-            import("./map/pixiOverlay/overlayCore.js"),
-          ]).then(([{ getSpriteById }, { getPixiContainer, redrawPixiOverlay }]) => {
-            const sprite = getSpriteById(markerData.id);
-            if (sprite) {
-              const container = getPixiContainer();
-              if (container) container.removeChild(sprite);
-            }
-            redrawPixiOverlay();
-          });
-          addLog(`마커 숨김 처리됨: ${markerData.originalName || markerData.id}`, "success");
+          addLog(`삭제 제안 제출됨: ${markerData.name || markerData.id}`, "success");
           import("./sync/ui.js").then(({ showSyncToast }) => {
-            showSyncToast("마커가 숨김 처리되었습니다.", "success");
+            showSyncToast("삭제 제안이 제출되었습니다.", "success");
           });
         } else {
           alert("제출 실패: " + (result.error || "알 수 없는 오류"));
