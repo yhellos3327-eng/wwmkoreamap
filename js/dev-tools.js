@@ -1660,14 +1660,29 @@ const handleMapClick = (e) => {
             const result = await res.json();
             if (result.success) {
               addLog(`위치 변경 승인됨: ${markerData.title || markerData.id}`, "success");
+              const newLat = parseFloat(lat);
+              const newLng = parseFloat(lng);
               // 즉시 로컬 상태 업데이트
+              markerData.lat = newLat;
+              markerData.lng = newLng;
               if (markerData.isBackend) {
                 const cm = state.communityMarkers.get(String(markerData.id));
                 if (cm) {
-                  cm.lat = parseFloat(lat);
-                  cm.lng = parseFloat(lng);
+                  cm.lat = newLat;
+                  cm.lng = newLng;
                 }
               }
+              // Pixi 스프라이트 위치 업데이트
+              import("./map/pixiOverlay/spriteFactory.js").then(({ getSpriteById }) => {
+                const sprite = getSpriteById(markerData.id);
+                if (sprite) {
+                  sprite.markerData.lat = newLat;
+                  sprite.markerData.lng = newLng;
+                }
+                import("./map/pixiOverlay/overlayCore.js").then(({ redrawPixiOverlay }) => {
+                  redrawPixiOverlay();
+                });
+              });
               import("./sync/ui.js").then(({ showSyncToast }) => {
                 showSyncToast("위치가 변경되었습니다!", "success");
               });
