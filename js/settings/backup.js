@@ -288,23 +288,30 @@ const handleRestore = async (e) => {
   }
 };
 
+/** @type {Promise|null} 중복 호출 방지 guard */
+let _loadingPromise = null;
+
 /**
  * 클라우드 백업 목록을 불러옵니다.
  */
 export const loadCloudBackups = async () => {
+  if (_loadingPromise) return _loadingPromise;
+
   const container = document.getElementById("cloud-backup-list");
   if (!container) return;
 
   container.innerHTML = '<div class="backup-loading">불러오는 중...</div>';
 
-  try {
-    const backups = await fetchBackupList();
-    renderBackupList(backups);
-  } catch (error) {
-    console.error("Failed to load backups:", error);
-    container.innerHTML =
-      '<div class="backup-error">백업 목록을 불러올 수 없습니다.</div>';
-  }
+  _loadingPromise = fetchBackupList()
+    .then((backups) => renderBackupList(backups))
+    .catch((error) => {
+      console.error("Failed to load backups:", error);
+      container.innerHTML =
+        '<div class="backup-error">백업 목록을 불러올 수 없습니다.</div>';
+    })
+    .finally(() => { _loadingPromise = null; });
+
+  return _loadingPromise;
 };
 
 const SAVE_BUTTON_HTML = `
@@ -316,13 +323,13 @@ const SAVE_BUTTON_HTML = `
 /**
  * 로그인 상태에 따라 클라우드 백업 섹션의 표시 여부를 업데이트합니다.
  */
-export const refreshCloudBackupVisibility = () => {
+export const refreshCloudBackupVisibility = async () => {
   const cloudBackupSection = document.getElementById("cloud-backup-section");
   if (!cloudBackupSection) return;
 
   if (isLoggedIn()) {
+    await loadCloudBackups();
     cloudBackupSection.style.display = "block";
-    loadCloudBackups();
   } else {
     cloudBackupSection.style.display = "none";
   }

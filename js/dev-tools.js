@@ -423,7 +423,7 @@ export const createAddMarkerModal = (lat, lng) => {
     });
   });
 
-  document.getElementById("dev-add-save").onclick = () => {
+  document.getElementById("dev-add-save").onclick = async () => {
     const catId = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-cat")).value;
     const title = /** @type {HTMLInputElement} */ (document.getElementById("dev-add-title")).value;
     const desc = /** @type {HTMLTextAreaElement} */ (document.getElementById("dev-add-desc")).value;
@@ -438,7 +438,8 @@ export const createAddMarkerModal = (lat, lng) => {
       return;
     }
 
-    saveNewMarker(lat, lng, catId, title, desc, region, screenshotFile, videoUrl, imageUrl);
+    // 저장 완료 후 모달 닫기 (마커가 렌더링된 뒤 temp pin 제거)
+    await saveNewMarker(lat, lng, catId, title, desc, region, screenshotFile, videoUrl, imageUrl);
     close();
   };
 };
@@ -573,7 +574,7 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
         lat: parseFloat(newMarkerData.lat),
         lng: parseFloat(newMarkerData.lng),
         isBackend: true,
-        images: newMarkerData.screenshot ? [newMarkerData.screenshot] : [],
+        images: newMarkerData.screenshots_json ? JSON.parse(newMarkerData.screenshots_json) : (newMarkerData.screenshot ? [newMarkerData.screenshot] : []),
         video_url: newMarkerData.video ? [newMarkerData.video] : [],
         votes: 0,
         user_id: null,
@@ -613,9 +614,14 @@ const saveNewMarker = async (lat, lng, catId, title, desc, region, screenshotFil
       region || ""
     );
 
-    /** @type {any} */ (L).marker([parseFloat(lat), parseFloat(lng)], { icon: svgIcon })
+    const marker = /** @type {any} */ (L).marker([parseFloat(lat), parseFloat(lng)], { icon: svgIcon })
       .addTo(state.map)
       .bindPopup(popupContent);
+
+    // [Part 3 Fix A] Immediately open popup
+    setTimeout(() => {
+      marker.openPopup();
+    }, 100);
 
     updateUI();
 

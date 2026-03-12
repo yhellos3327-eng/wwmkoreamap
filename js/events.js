@@ -11,6 +11,7 @@ import {
   toggleCompleted,
 } from "./ui.js";
 import { toggleCommunityMode } from "./map/community.js";
+import { initBgmPlayer } from "./bgm/ui.js";
 
 /**
  * 탭 이벤트 리스너를 초기화합니다.
@@ -383,4 +384,5 @@ export const initAllEventHandlers = () => {
   initCommunityMode();
   initSidebarHideCompleted();
   initQuestGuide();
+  initBgmPlayer();
 };

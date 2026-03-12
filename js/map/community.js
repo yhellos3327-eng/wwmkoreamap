@@ -34,7 +34,7 @@ export const fetchCommunityMarkers = async () => {
                     lat: parseFloat(m.lat),
                     lng: parseFloat(m.lng),
                     isBackend: true, // Marker to identify backend items
-                    images: m.screenshot ? [m.screenshot] : [],
+                    images: m.screenshots_json ? JSON.parse(m.screenshots_json) : (m.screenshot ? [m.screenshot] : []),
                     video_url: m.video ? [m.video] : [],
                     votes: m.votes,
                     user_id: m.userId,
@@ -96,9 +96,8 @@ export const toggleCommunityMode = async () => {
 
     // Toggle state + IDB 저장
     setState("showCommunityMarkers", isEnabled);
-    import("../sync/core.js").then(({ updateSettingWithTimestamp }) => {
-      updateSettingWithTimestamp("showCommunityMarkers", isEnabled).catch(() => {});
-    });
+    const { updateSettingWithTimestamp } = await import("../sync/core.js");
+    await updateSettingWithTimestamp("showCommunityMarkers", isEnabled).catch(() => { });
 
     if (isEnabled) {
         // 커뮤니티 모드 활성화 시 모든 필터 ON (indexDB 기록 사용)
@@ -114,18 +113,22 @@ export const toggleCommunityMode = async () => {
         }
 
         // Show guide
-        import("../ui/community-guide.js").then(module => {
-            module.showCommunityGuide();
-        });
+        const guideModule = await import("../ui/community-guide.js");
+        guideModule.showCommunityGuide();
 
         // [COMMUNITY TOOLBAR] Show the dedicated toolbar
-        import("../ui/community-toolbar.js").then(m => m.communityToolbar.show());
+        const toolbarModule = await import("../ui/community-toolbar.js");
+        toolbarModule.communityToolbar.show();
+    } else {
+        // 비활성화 시 툴바 숨김
+        const toolbarModule = await import("../ui/community-toolbar.js");
+        toolbarModule.communityToolbar.hide();
     }
 
     // Trigger map re-render
     await renderMapDataAndMarkers();
 
-    // Update button visual state (handled in main.js or here via event)
+    // 버튼 상태 업데이트 (렌더 완료 후)
     updateCommunityButtonState(isEnabled);
 };
 
