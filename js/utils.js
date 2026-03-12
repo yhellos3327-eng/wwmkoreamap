@@ -300,7 +300,7 @@ export const parseMarkdown = (text) => {
     let processedText = text.replace(
       /@{ref}(\[.*?\](?:\(.*?\))?)/g,
       (match, content) => {
-        const placeholder = `__REF_PLACEHOLDER_${refPlaceholders.length}__`;
+        const placeholder = `REFPH${refPlaceholders.length}PHREF`;
         refPlaceholders.push({ placeholder, content });
         return placeholder;
       }

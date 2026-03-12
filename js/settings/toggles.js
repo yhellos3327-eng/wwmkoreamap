@@ -101,6 +101,7 @@ export const initToggles = () => {
   );
   const adToggleInput = document.getElementById("toggle-ad");
   const webLLMToggleInput = document.getElementById("toggle-web-llm");
+  const communityToggleInput = document.getElementById("toggle-community-markers");
 
   const chromeTranslatorStatus = document.getElementById(
     "chrome-translator-status",
@@ -295,6 +296,18 @@ export const initToggles = () => {
     });
   }
 
+  if (communityToggleInput) {
+    /** @type {HTMLInputElement} */ (communityToggleInput).checked =
+      state.showCommunityMarkers;
+    communityToggleInput.addEventListener("change", async (e) => {
+      const isChecked = /** @type {HTMLInputElement} */(e.target).checked;
+      if (isChecked !== state.showCommunityMarkers) {
+        const { toggleCommunityMode } = await import("../map/community.js");
+        await toggleCommunityMode();
+      }
+    });
+  }
+
   return {
     loadValues: async () => {
       if (adToggleInput) {
@@ -328,6 +341,9 @@ export const initToggles = () => {
       if (webLLMToggleInput)
         /** @type {HTMLInputElement} */ (webLLMToggleInput).checked =
           state.enableWebLLM;
+      if (communityToggleInput)
+        /** @type {HTMLInputElement} */ (communityToggleInput).checked =
+          state.showCommunityMarkers;
 
       updateClusteringToggleState();
     },

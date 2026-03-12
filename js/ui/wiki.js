@@ -1,6 +1,6 @@
 // @ts-check
 import { state } from "../state.js";
-import { BACKEND_URL } from "../config.js";
+import { BACKEND_URL, MAP_CONFIGS } from "../config.js";
 import { getAuthToken, isLoggedIn, getAuthHeaders } from "../auth.js";
 import { t, parseMarkdown, getUserLevelIcon, maskIdentifier } from "../utils.js";
 
@@ -47,20 +47,63 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
     const currentTitle = t(targetItem.title || targetItem.name || "");
     const currentDesc = targetItem.description || "";
+    const currentCatId = targetItem.category || targetItem.category_id || "";
+
+    // Prepare categories for selection
+    let categories = [...(state.mapData.categories || [])];
+    const config = MAP_CONFIGS[state.currentMapKey];
+
+    if (categories.length <= 1 || (config && config.type === "image")) {
+        const allCatIds = Object.keys(state.categoryItemTranslations).filter(
+            (id) => id.length > 5 && !isNaN(Number(id)),
+        );
+
+        if (allCatIds.length > 0) {
+            const transCats = allCatIds.map((id) => ({
+                id: id,
+                name: t(id) || id,
+                image: `./icons/${id}.png`,
+            }));
+            const existingIds = new Set(categories.map((c) => c.id));
+            transCats.forEach((c) => {
+                if (!existingIds.has(c.id)) {
+                    categories.push(c);
+                }
+            });
+        }
+    }
+
+    const sortedCategories = [...categories].sort((a, b) =>
+        String(t(a.name)).localeCompare(String(t(b.name))),
+    );
+
+    const categoryItemsHtml = sortedCategories
+        .map(
+            (cat) => `
+            <div class="dev-cat-item ${cat.id === String(currentCatId) ? "active" : ""}" data-id="${cat.id}" title="${t(cat.name)} (${cat.id})">
+                <img src="${cat.image || `./icons/${cat.id}.png`}" onerror="this.src='./icons/default.png'">
+                <span class="dev-cat-name">${t(cat.name)}</span>
+            </div>
+        `,
+        )
+        .join("");
 
     const formHtml = `
         <div class="list-modal fade-in wiki-modal">
             <div class="wiki-modal-header">
-                <h2>위키 편집</h2>
+                <h2>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align: middle; margin-right: 8px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    위키 편집
+                </h2>
                 <button class="wiki-close-btn" id="close-${modalId}">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
             <div class="modal-body">
                 <p class="wiki-info-text">
-                    이 마커(<strong style="color:var(--accent)">${currentTitle}</strong>)의 정보를 자유롭게 수정해주세요.
+                    이 마커(<strong style="color:var(--wiki-accent)">${currentTitle}</strong>)의 정보를 자유롭게 수정해주세요.
                     수정 내용은 <strong>실시간으로 지도에 반영</strong>됩니다.
-                    ${!isLoggedIn() ? '<br><span style="color:#ff6b6b; font-size:0.85em;">(비로그인 상태입니다. IP/핑거프린트가 기록됩니다.)</span>' : ''}
+                    ${!isLoggedIn() ? '<br><span style="color:#ff6b6b; font-size:0.85em;">⚠️ 비로그인 상태입니다. IP/핑거프린트가 기록됩니다.</span>' : ''}
                 </p>
                 <form id="wiki-form-${itemId}">
                     <div class="wiki-form-group">
@@ -71,6 +114,17 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     <div class="wiki-form-group">
                         <label>지역 명</label>
                         <input type="text" id="wiki-region-${itemId}" class="wiki-input" value="${targetItem.region || ''}" placeholder="예: 청하, 금주 등">
+                    </div>
+
+                    <div class="wiki-form-group">
+                        <label>마커 타입 (카테고리)</label>
+                        <div class="dev-cat-search-wrapper">
+                            <input type="text" id="wiki-cat-search-${itemId}" class="wiki-input" placeholder="카테고리 검색...">
+                        </div>
+                        <div class="dev-cat-grid" id="wiki-cat-grid-${itemId}">
+                            ${categoryItemsHtml}
+                        </div>
+                        <input type="hidden" id="wiki-cat-id-${itemId}" value="${currentCatId}">
                     </div>
                     
                     <div class="wiki-form-group">
@@ -83,29 +137,29 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
                     <div class="wiki-form-group">
                         <label>이미지 첨부 방식</label>
-                        <div class="wiki-image-options" style="display: flex; gap: 16px; margin-bottom: 8px;">
-                            <label style="display: flex; align-items: center; gap: 4px; font-weight: normal; cursor: pointer;">
-                                <input type="radio" name="wiki-img-type-${itemId}" value="slide" checked>
-                                슬라이드형 (썸네일)
+                        <div class="wiki-image-options" style="display: flex; gap: 24px; margin: 8px 0;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; color: #ccc;">
+                                <input type="radio" name="wiki-img-type-${itemId}" value="slide" checked style="accent-color: var(--wiki-accent);">
+                                슬라이드형
                             </label>
-                            <label style="display: flex; align-items: center; gap: 4px; font-weight: normal; cursor: pointer;">
-                                <input type="radio" name="wiki-img-type-${itemId}" value="inline">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; color: #ccc;">
+                                <input type="radio" name="wiki-img-type-${itemId}" value="inline" style="accent-color: var(--wiki-accent);">
                                 본문 삽입형
                             </label>
                         </div>
                         
-                        <div id="wiki-img-slide-container-${itemId}" style="display: block;">
+                        <div id="wiki-img-slide-container-${itemId}" style="display: block; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid var(--wiki-border);">
                             <input type="file" id="wiki-img-${itemId}" class="wiki-file-input" accept="image/jpeg, image/png, image/webp">
-                            <small style="color: #888; display: block; margin-top: 4px;">게시글 상단에 슬라이드 형태로 단일 이미지가 추가됩니다.</small>
+                            <small style="color: #777; display: block; margin-top: 8px;">상단 슬라이드 영역에 단일 이미지가 추가됩니다.</small>
                         </div>
                         
-                        <div id="wiki-img-inline-container-${itemId}" style="display: none;">
-                            <button type="button" id="wiki-insert-img-${itemId}" class="wiki-toolbar-btn" title="본문에 이미지 삽입">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                                본문에 이미지 업로드 및 삽입
+                        <div id="wiki-img-inline-container-${itemId}" style="display: none; background: rgba(0,0,0,0.2); padding: 16px; border-radius: 12px; border: 1px solid var(--wiki-border);">
+                            <button type="button" id="wiki-insert-img-${itemId}" class="wiki-toolbar-btn" style="width: 100%; justify-content: center; padding: 12px;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 8px;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                                이미지 업로드 및 삽입
                             </button>
                             <input type="file" id="wiki-inline-img-file-${itemId}" accept="image/jpeg, image/png, image/webp" style="display: none;">
-                            <small style="color: #888; display: block; margin-top: 4px;">업로드 시 본문에 마크다운 형태( ![이미지](${BACKEND_URL}/...) )로 삽입됩니다.</small>
+                            <small style="color: #777; display: block; margin-top: 8px; text-align: center;">업로드 시 본문 커서 위치에 마크다운 태그가 삽입됩니다.</small>
                         </div>
                     </div>
 
@@ -114,16 +168,14 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                         <input type="url" id="wiki-video-${itemId}" class="wiki-input" value="${targetItem.video_url || ''}" placeholder="https://youtube.com/watch?v=...">
                     </div>
 
-                    <hr class="wiki-divider">
-
                     <div class="wiki-form-group">
                         <label>수정 사유 (필수)</label>
-                        <input type="text" id="wiki-reason-${itemId}" class="wiki-input" placeholder="예: 오타 수정, 위치 상세 설명 추가 등" required>
+                        <input type="text" id="wiki-reason-${itemId}" class="wiki-input" style="border-color: rgba(218, 172, 113, 0.3)" placeholder="예: 오타 수정, 위치 상세 설명 추가 등" required>
                     </div>
 
                     <button type="submit" class="wiki-submit-btn">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        <span>저장하기</span>
+                        <span>저장 및 반영하기</span>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
                     </button>
                 </form>
             </div>
@@ -288,6 +340,32 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
         }
     }
 
+    // Category selection logic
+    const catGrid = document.getElementById(`wiki-cat-grid-${itemId}`);
+    const catInput = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-cat-id-${itemId}`));
+    const catSearch = document.getElementById(`wiki-cat-search-${itemId}`);
+
+    if (catGrid && catInput && catSearch) {
+        catGrid.addEventListener("click", (e) => {
+            const item = /** @type {HTMLElement} */ (/** @type {HTMLElement} */ (e.target).closest(".dev-cat-item"));
+            if (!item) return;
+
+            catGrid.querySelectorAll(".dev-cat-item").forEach((el) => el.classList.remove("active"));
+            item.classList.add("active");
+            catInput.value = item.dataset.id || "";
+        });
+
+        catSearch.addEventListener("input", (e) => {
+            const term = /** @type {HTMLInputElement} */ (e.target).value.toLowerCase();
+            catGrid.querySelectorAll(".dev-cat-item").forEach((/** @type {any} */ item) => {
+                const nameText = item.querySelector(".dev-cat-name").textContent.toLowerCase();
+                const catId = item.dataset.id.toLowerCase();
+                const isMatch = nameText.includes(term) || catId.includes(term);
+                item.style.display = isMatch ? "flex" : "none";
+            });
+        });
+    }
+
     const form = document.getElementById(`wiki-form-${itemId}`);
     if (form) {
         form.onsubmit = async (e) => {
@@ -295,6 +373,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
             const titleEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-title-${itemId}`));
             const regionEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-region-${itemId}`));
+            const catIdEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-cat-id-${itemId}`));
             const descEl = /** @type {HTMLTextAreaElement} */ (document.getElementById(`wiki-desc-${itemId}`));
             const imgEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-img-${itemId}`));
             const videoEl = /** @type {HTMLInputElement} */ (document.getElementById(`wiki-video-${itemId}`));
@@ -321,6 +400,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                 formData.append('map_id', state.currentMapKey || 'qinghe');
                 formData.append('title', titleEl.value.trim());
                 formData.append('region_name', regionEl.value.trim());
+                formData.append('type', catIdEl.value.trim());
                 formData.append('description', descEl.value.trim());
                 formData.append('video', videoEl.value.trim());
                 formData.append('edit_reason', reasonEl.value.trim());

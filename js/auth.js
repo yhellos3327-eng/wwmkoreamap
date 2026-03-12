@@ -202,6 +202,7 @@ export const testLogin = async () => {
  */
 export const logout = async () => {
   cleanupRealtimeSync();
+  clearAutoRefresh();
 
   if (isLocalDev()) {
     const { primaryDb } = await import("./storage/db.js");
@@ -292,6 +293,58 @@ export const updateAuthUI = () => {
   }).catch(() => { });
 };
 
+/** @type {number|null} */
+let _refreshTimer = null;
+
+/**
+ * Access token을 리프레시합니다.
+ * 서버가 새 httpOnly 쿠키를 자동으로 설정합니다.
+ * @returns {Promise<boolean>}
+ */
+const refreshAccessToken = async () => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.success === true;
+    }
+    return false;
+  } catch (err) {
+    console.warn("[Auth] Token refresh failed:", err.message);
+    return false;
+  }
+};
+
+/**
+ * 자동 토큰 리프레시 설정 (13분 간격, 15분 만료 전)
+ */
+const setupAutoRefresh = () => {
+  if (_refreshTimer) return; // 이미 설정됨
+  const REFRESH_INTERVAL = 13 * 60 * 1000; // 13분
+  _refreshTimer = setInterval(async () => {
+    const success = await refreshAccessToken();
+    if (!success) {
+      console.warn("[Auth] Token refresh failed — 재로그인 필요");
+      clearAutoRefresh();
+      currentUser = null;
+      updateAuthUI();
+    }
+  }, REFRESH_INTERVAL);
+};
+
+/**
+ * 자동 토큰 리프레시 해제
+ */
+const clearAutoRefresh = () => {
+  if (_refreshTimer) {
+    clearInterval(_refreshTimer);
+    _refreshTimer = null;
+  }
+};
+
 /**
  * 인증 모듈을 초기화합니다.
  * @returns {Promise<void>}
@@ -329,6 +382,7 @@ export async function initAuth() {
   });
 
   if (isLoggedIn()) {
+    setupAutoRefresh();
     await initSync();
     import("./map/community.js").then(({ fetchUserCompletions }) => {
       fetchUserCompletions();
