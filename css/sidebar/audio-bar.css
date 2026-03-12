@@ -2,17 +2,19 @@
 
 .audio-bar {
     flex-shrink: 0;
-    height: 72px;
-    background: rgba(15, 15, 20, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    height: 84px;
+    /* Slightly taller for better spacing */
+    background: rgba(18, 18, 24, 0.8);
+    backdrop-filter: blur(25px) saturate(160%);
+    -webkit-backdrop-filter: blur(25px) saturate(160%);
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 0 0 24px 24px;
     display: flex;
     flex-direction: column;
     position: relative;
     z-index: 100;
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.4);
+    overflow: visible;
 }
 
 /* Video Preview Hover Popover */
@@ -253,10 +255,11 @@
 .audio-bar-content {
     flex: 1;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 16px;
-    gap: 16px;
+    flex-direction: column;
+    /* Stack info and controls for better width management */
+    justify-content: center;
+    padding: 8px 16px;
+    gap: 6px;
     min-width: 0;
 }
 
@@ -270,26 +273,36 @@
 }
 
 .audio-bar-title {
-    font-size: 0.85rem;
-    font-weight: 600;
+    font-size: 0.8rem;
+    font-weight: 700;
     color: var(--text-main);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    margin-bottom: 2px;
+    margin: 0;
+    letter-spacing: -0.01em;
 }
 
 .audio-bar-meta {
     display: flex;
-    align-items: center;
+    align-items: baseline;
+    justify-content: space-between;
     gap: 8px;
+    width: 100%;
 }
 
 .audio-bar-time {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    font-family: 'Roboto Mono', monospace;
-    letter-spacing: -0.5px;
+    font-size: 0.65rem;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
+    letter-spacing: 0;
+    white-space: nowrap;
+    /* Critical Fix */
+    min-width: 75px;
+    /* Ensures enough room for "00:00 / 00:00" */
+    text-align: right;
+    font-weight: 500;
+    opacity: 0.8;
 }
 
 /* Visualizer at the bar info */
@@ -342,8 +355,21 @@
 .audio-bar-controls {
     display: flex;
     align-items: center;
-    gap: 6px;
+    justify-content: space-between;
+    width: 100%;
     flex-shrink: 0;
+}
+
+.audio-control-main {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.audio-control-side {
+    display: flex;
+    align-items: center;
+    gap: 2px;
 }
 
 .audio-btn {
@@ -421,8 +447,18 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    height: 110px;
+    height: 140px;
+    /* Increased height for text */
     width: 36px;
+}
+
+.audio-vol-percent {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--accent);
+    margin-bottom: 5px;
+    font-family: 'JetBrains Mono', monospace;
+    text-shadow: 0 0 5px rgba(218, 172, 113, 0.4);
 }
 
 .audio-vol-group:hover .audio-vol-popover {

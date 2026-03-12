@@ -28,7 +28,13 @@ export const bgmState = {
   duration: 0,
   currentTime: 0,
   muted: false,
+  shuffle: false,
+  repeatMode: 'all', // 'all', 'one', 'none'
 };
+
+// Shuffled indices for shuffle mode
+let _shuffledIndices = [];
+let _shufflePos = 0;
 
 /** @type {Set<Function>} */
 const _listeners = new Set();
@@ -84,6 +90,17 @@ export const initYTPlayer = () => {
         },
       });
     };
+
+    // Autoplay on first interaction (required by many browsers)
+    const startOnInteraction = () => {
+      if (_ready && _player && !bgmState.playing) {
+        _player.playVideo();
+      }
+      document.removeEventListener("click", startOnInteraction);
+      document.removeEventListener("keydown", startOnInteraction);
+    };
+    document.addEventListener("click", startOnInteraction);
+    document.addEventListener("keydown", startOnInteraction);
   });
 };
 
@@ -112,7 +129,28 @@ export const pause = () => {
 
 export const next = () => {
   if (!_ready || !_player) return;
-  bgmState.currentIndex = (bgmState.currentIndex + 1) % PLAYLIST.length;
+
+  if (bgmState.repeatMode === 'one' && bgmState.playing) {
+    _player.seekTo(0, true);
+    _player.playVideo();
+    return;
+  }
+
+  if (bgmState.shuffle) {
+    _shuffledIndices = _shuffledIndices.filter(i => i !== bgmState.currentIndex);
+    if (_shuffledIndices.length === 0) {
+      _shuffledIndices = PLAYLIST.map((_, i) => i).sort(() => Math.random() - 0.5);
+    }
+    bgmState.currentIndex = _shuffledIndices.pop();
+  } else {
+    bgmState.currentIndex = (bgmState.currentIndex + 1) % PLAYLIST.length;
+    // If not repeating all and reached end
+    if (bgmState.repeatMode === 'none' && bgmState.currentIndex === 0) {
+      bgmState.playing = false;
+      _player.pauseVideo();
+      return;
+    }
+  }
   _loadAndPlay(bgmState.currentIndex);
 };
 
@@ -134,6 +172,23 @@ export const setVolume = (vol) => {
   bgmState.volume = Math.max(0, Math.min(100, vol));
   bgmState.muted = bgmState.volume === 0;
   if (_ready && _player) _player.setVolume(bgmState.volume);
+  _notify();
+};
+
+export const toggleShuffle = () => {
+  bgmState.shuffle = !bgmState.shuffle;
+  if (bgmState.shuffle) {
+    _shuffledIndices = PLAYLIST.map((_, i) => i)
+      .filter(i => i !== bgmState.currentIndex)
+      .sort(() => Math.random() - 0.5);
+  }
+  _notify();
+};
+
+export const toggleRepeat = () => {
+  const modes = ['all', 'one', 'none'];
+  const curIdx = modes.indexOf(bgmState.repeatMode);
+  bgmState.repeatMode = modes[(curIdx + 1) % modes.length];
   _notify();
 };
 
@@ -200,8 +255,13 @@ const _handleStateChange = (event) => {
   }
 
   if (st === 0) {
-    // 트랙 끝 → 다음
-    next();
+    // 트랙 끝
+    if (bgmState.repeatMode === 'one') {
+      _player.seekTo(0, true);
+      _player.playVideo();
+    } else {
+      next();
+    }
   }
 
   _notify();

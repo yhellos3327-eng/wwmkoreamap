@@ -8,6 +8,7 @@ import {
   initYTPlayer, isReady, togglePlay, next, prev,
   setVolume, toggleMute, seekTo, onStateChange,
   bgmState, getCurrentTrack, getPlaylist, setTrack,
+  toggleShuffle, toggleRepeat
 } from "./player.js";
 
 // ─── SVG Icons ────────────────────────────────────────────────
@@ -18,6 +19,9 @@ const ICON_NEXT = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points=
 const ICON_VOL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>`;
 const ICON_MUTE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
 const ICON_LIST = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
+const ICON_SHUFFLE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line></svg>`;
+const ICON_REPEAT = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>`;
+const ICON_REPEAT_ONE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path><path d="M11 10h1v4"></path></svg>`;
 
 // ─── DOM References ───────────────────────────────────────────
 /** @type {HTMLElement|null} */
@@ -84,23 +88,27 @@ const _createDOM = (sidebar) => {
     </div>
     <div class="audio-bar-content">
       <div class="audio-bar-info">
-        <span class="audio-bar-title" id="bgm-title">BGM Player</span>
         <div class="audio-bar-meta">
+            <span class="audio-bar-title" id="bgm-title">BGM Player</span>
             <span class="audio-bar-time" id="bgm-time">0:00</span>
-            <div class="audio-bar-visualizer">
-                <span></span><span></span><span></span><span></span>
-            </div>
         </div>
       </div>
       <div class="audio-bar-controls">
-        <button class="audio-btn" id="bgm-prev" title="이전">${ICON_PREV}</button>
-        <button class="audio-btn audio-btn-play" id="bgm-play" title="재생" disabled>${ICON_PLAY}</button>
-        <button class="audio-btn" id="bgm-next" title="다음">${ICON_NEXT}</button>
-        <button class="audio-btn" id="bgm-list-btn" title="재생 목록">${ICON_LIST}</button>
-        <div class="audio-vol-group">
-            <button class="audio-btn audio-btn-vol" id="bgm-vol-btn" title="음량">${ICON_VOL}</button>
-            <div class="audio-vol-popover">
-                <input type="range" class="audio-volume-slider" id="bgm-volume" min="0" max="100" value="${bgmState.volume}">
+        <div class="audio-control-main">
+            <button class="audio-btn" id="bgm-prev" title="이전">${ICON_PREV}</button>
+            <button class="audio-btn audio-btn-play" id="bgm-play" title="재생" disabled>${ICON_PLAY}</button>
+            <button class="audio-btn" id="bgm-next" title="다음">${ICON_NEXT}</button>
+        </div>
+        <div class="audio-control-side">
+            <button class="audio-btn" id="bgm-shuffle" title="순서 섞기">${ICON_SHUFFLE}</button>
+            <button class="audio-btn" id="bgm-repeat" title="반복 설정">${ICON_REPEAT}</button>
+            <button class="audio-btn" id="bgm-list-btn" title="재생 목록">${ICON_LIST}</button>
+            <div class="audio-vol-group">
+                <button class="audio-btn audio-btn-vol" id="bgm-vol-btn" title="음량">${ICON_VOL}</button>
+                <div class="audio-vol-popover">
+                    <span class="audio-vol-percent" id="bgm-vol-percent">${bgmState.volume}%</span>
+                    <input type="range" class="audio-volume-slider" id="bgm-volume" min="0" max="100" value="${bgmState.volume}">
+                </div>
             </div>
         </div>
       </div>
@@ -139,6 +147,8 @@ const _bindEvents = () => {
 
   document.getElementById("bgm-prev")?.addEventListener("click", prev);
   document.getElementById("bgm-next")?.addEventListener("click", next);
+  document.getElementById("bgm-shuffle")?.addEventListener("click", toggleShuffle);
+  document.getElementById("bgm-repeat")?.addEventListener("click", toggleRepeat);
 
   _volBtn?.addEventListener("click", toggleMute);
 
@@ -183,6 +193,26 @@ const _updateUI = (state = null) => {
     _playBtn.title = bgmState.playing ? "일시정지" : "재생";
   }
 
+  // Shuffle & Repeat
+  const shuffleBtn = document.getElementById("bgm-shuffle");
+  const repeatBtn = document.getElementById("bgm-repeat");
+
+  if (shuffleBtn) {
+    shuffleBtn.classList.toggle("active", bgmState.shuffle);
+  }
+  if (repeatBtn) {
+    if (bgmState.repeatMode === 'one') {
+      repeatBtn.innerHTML = ICON_REPEAT_ONE;
+      repeatBtn.classList.add("active");
+    } else if (bgmState.repeatMode === 'all') {
+      repeatBtn.innerHTML = ICON_REPEAT;
+      repeatBtn.classList.add("active");
+    } else {
+      repeatBtn.innerHTML = ICON_REPEAT;
+      repeatBtn.classList.remove("active");
+    }
+  }
+
   // Track title
   const track = getCurrentTrack();
   if (_titleEl && track) {
@@ -209,6 +239,11 @@ const _updateUI = (state = null) => {
   // Volume slider
   if (_volumeSlider && !bgmState.muted) {
     _volumeSlider.value = String(bgmState.volume);
+  }
+
+  const volPercentEl = document.getElementById("bgm-vol-percent");
+  if (volPercentEl) {
+    volPercentEl.textContent = `${bgmState.muted ? 0 : bgmState.volume}%`;
   }
 
   // Visualizer animation
