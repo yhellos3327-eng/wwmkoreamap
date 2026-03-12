@@ -290,24 +290,44 @@ const handleRestore = async (e) => {
 
 /** @type {Promise|null} 중복 호출 방지 guard */
 let _loadingPromise = null;
+/** @type {number} 마지막 로드 시간 */
+let _lastLoadTime = 0;
+const CACHE_DURATION = 30 * 1000; // 30초 캐시
 
 /**
  * 클라우드 백업 목록을 불러옵니다.
+ * @param {boolean} [force=false] - 캐시를 무시하고 강제로 다시 불러올지 여부.
  */
-export const loadCloudBackups = async () => {
+export const loadCloudBackups = async (force = false) => {
   if (_loadingPromise) return _loadingPromise;
 
   const container = document.getElementById("cloud-backup-list");
   if (!container) return;
 
-  container.innerHTML = '<div class="backup-loading">불러오는 중...</div>';
+  // 캐시 확인: 강제 로드가 아니고, 최근 30초 이내에 로드한 적이 있으며, 이미 목록이 있으면 스킵
+  const now = Date.now();
+  const hasContent = container.querySelector('.backup-item');
+  if (!force && (now - _lastLoadTime < CACHE_DURATION) && hasContent) {
+    return;
+  }
+
+  // 처음 로딩하거나 강제 로딩 시에만 "불러오는 중..." 표시 (이미 데이터가 있으면 그냥 조용히 업데이트)
+  if (!hasContent) {
+    container.innerHTML = '<div class="backup-loading">불러오는 중...</div>';
+  }
 
   _loadingPromise = fetchBackupList()
-    .then((backups) => renderBackupList(backups))
+    .then((backups) => {
+      _lastLoadTime = Date.now();
+      renderBackupList(backups);
+    })
     .catch((error) => {
       console.error("Failed to load backups:", error);
-      container.innerHTML =
-        '<div class="backup-error">백업 목록을 불러올 수 없습니다.</div>';
+      // 만약 기존에 데이터가 있었다면 에러 메시지로 덮어쓰지 않고 콘솔에만 기록하거나 토스트 필요
+      if (!hasContent) {
+        container.innerHTML =
+          '<div class="backup-error">백업 목록을 불러올 수 없습니다.</div>';
+      }
     })
     .finally(() => { _loadingPromise = null; });
 
@@ -387,7 +407,7 @@ export const initCloudBackupSection = () => {
             "백업 저장 완료",
             "클라우드에 백업이 성공적으로 저장되었습니다.",
           );
-          loadCloudBackups();
+          loadCloudBackups(true); // 강제 새로고침
         }
       } catch (error) {
         console.error("Backup save failed:", error);
