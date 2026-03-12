@@ -8,11 +8,11 @@
 
 // ─── Playlist ──────────────────────────────────────────────────
 const PLAYLIST = [
-  { id: "3dOYjCo7mCE", title: "연운 낙일 - Wuthering Waves OST" },
-  { id: "SCaEqKMFBn0", title: "Wuthering Waves - Jinzhou BGM" },
-  { id: "xrY5cMbJfCA", title: "Wuthering Waves - Exploration BGM" },
-  { id: "kIGzHQsv9rU", title: "Wuthering Waves - Battle Theme" },
-  { id: "QJqNGBR0nNo", title: "Wuthering Waves - Main Theme" },
+  { id: "T6si35-eMPE", title: "獻給所有離鄉遊子的思鄉曲 (A Song for Those Far from Home)" },
+  { id: "-OA8YIEo7is", title: "桂枝香" },
+  { id: "Fkc_imtLZ3k", title: "凉州歌 (양저우 곡)" },
+  { id: "cGNEc4_g8Po", title: "凉州箫鼓 (양저우 퉁소와 북)" },
+  { id: "U8HUkUvH_2s", title: "옥문관 백두성 곽흔 OST (邊塞詩)" }
 ];
 
 // ─── State ────────────────────────────────────────────────────
@@ -24,7 +24,7 @@ let _progressInterval = null;
 export const bgmState = {
   playing: false,
   currentIndex: 0,
-  volume: 50,
+  volume: 5,
   duration: 0,
   currentTime: 0,
   muted: false,
@@ -43,29 +43,35 @@ export const initYTPlayer = () => {
   return new Promise((resolve) => {
     if (_ready) { resolve(); return; }
 
-    // hidden container
-    const div = document.createElement("div");
-    div.id = "yt-bgm-player";
-    div.style.cssText = "position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;opacity:0";
-    document.body.appendChild(div);
+    // Use provided container or create a default one
+    let target = document.getElementById("yt-bgm-player");
+    if (!target) {
+      target = document.createElement("div");
+      target.id = "yt-bgm-player";
+      target.style.cssText = "position:absolute; width:0; height:0; pointer-events:none; opacity:0; z-index: -1;";
+      document.body.appendChild(target);
+    }
 
     // API script
     const tag = document.createElement("script");
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
 
+    // @ts-ignore
     window.onYouTubeIframeAPIReady = () => {
       _player = new YT.Player("yt-bgm-player", {
-        height: "0",
-        width: "0",
+        height: "100%",
+        width: "100%",
         videoId: PLAYLIST[0].id,
         playerVars: {
           autoplay: 0,
-          controls: 0,
+          controls: 0, // Hiding video UI controls
           disablekb: 1,
           fs: 0,
           modestbranding: 1,
           rel: 0,
+          showinfo: 0,
+          iv_load_policy: 3
         },
         events: {
           onReady: () => {
@@ -160,6 +166,16 @@ export const onStateChange = (cb) => { _listeners.add(cb); };
  * @param {Function} cb
  */
 export const offStateChange = (cb) => { _listeners.delete(cb); };
+
+/**
+ * @param {number} index
+ */
+export const setTrack = (index) => {
+  if (!_ready || !_player) return;
+  if (index < 0 || index >= PLAYLIST.length) return;
+  bgmState.currentIndex = index;
+  _loadAndPlay(index);
+};
 
 // ─── Private ──────────────────────────────────────────────────
 

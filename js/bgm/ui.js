@@ -7,7 +7,7 @@
 import {
   initYTPlayer, isReady, togglePlay, next, prev,
   setVolume, toggleMute, seekTo, onStateChange,
-  bgmState, getCurrentTrack, getPlaylist,
+  bgmState, getCurrentTrack, getPlaylist, setTrack,
 } from "./player.js";
 
 // ─── SVG Icons ────────────────────────────────────────────────
@@ -17,6 +17,7 @@ const ICON_PREV = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points=
 const ICON_NEXT = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="5,4 15,12 5,20"/><rect x="17" y="4" width="2" height="16"/></svg>`;
 const ICON_VOL = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor"/><path d="M15.54 8.46a5 5 0 010 7.07"/><path d="M19.07 4.93a10 10 0 010 14.14"/></svg>`;
 const ICON_MUTE = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11,5 6,9 2,9 2,15 6,15 11,19" fill="currentColor"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
+const ICON_LIST = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>`;
 
 // ─── DOM References ───────────────────────────────────────────
 /** @type {HTMLElement|null} */
@@ -28,6 +29,10 @@ let _progressBar = null;
 let _volumeSlider = null;
 let _volBtn = null;
 let _timeEl = null;
+let _playlistContainer = null;
+let _playlistBtn = null;
+let _playlistPanel = null;
+let _videoPreview = null;
 
 // ─── Public ───────────────────────────────────────────────────
 
@@ -60,20 +65,44 @@ const _createDOM = (sidebar) => {
   _bar.id = "audio-bar";
   _bar.className = "audio-bar";
   _bar.innerHTML = `
+    <!-- Video Preview Hover -->
+    <div id="bgm-video-preview" class="bgm-video-preview">
+        <!-- YT Iframe will be moved here by script -->
+    </div>
+
+    <!-- Playlist Panel -->
+    <div id="bgm-playlist-panel" class="bgm-playlist-panel">
+        <div class="bgm-playlist-header">
+            <span>Playlist</span>
+            <button class="bgm-close-list" id="bgm-close-list">×</button>
+        </div>
+        <div id="bgm-playlist-container" class="bgm-playlist-container"></div>
+    </div>
+
     <div class="audio-bar-progress" id="bgm-progress-bar">
       <div class="audio-bar-progress-fill" id="bgm-progress-fill"></div>
     </div>
     <div class="audio-bar-content">
       <div class="audio-bar-info">
         <span class="audio-bar-title" id="bgm-title">BGM Player</span>
-        <span class="audio-bar-time" id="bgm-time">0:00</span>
+        <div class="audio-bar-meta">
+            <span class="audio-bar-time" id="bgm-time">0:00</span>
+            <div class="audio-bar-visualizer">
+                <span></span><span></span><span></span><span></span>
+            </div>
+        </div>
       </div>
       <div class="audio-bar-controls">
         <button class="audio-btn" id="bgm-prev" title="이전">${ICON_PREV}</button>
         <button class="audio-btn audio-btn-play" id="bgm-play" title="재생" disabled>${ICON_PLAY}</button>
         <button class="audio-btn" id="bgm-next" title="다음">${ICON_NEXT}</button>
-        <button class="audio-btn audio-btn-vol" id="bgm-vol-btn" title="음량">${ICON_VOL}</button>
-        <input type="range" class="audio-volume-slider" id="bgm-volume" min="0" max="100" value="${bgmState.volume}">
+        <button class="audio-btn" id="bgm-list-btn" title="재생 목록">${ICON_LIST}</button>
+        <div class="audio-vol-group">
+            <button class="audio-btn audio-btn-vol" id="bgm-vol-btn" title="음량">${ICON_VOL}</button>
+            <div class="audio-vol-popover">
+                <input type="range" class="audio-volume-slider" id="bgm-volume" min="0" max="100" value="${bgmState.volume}">
+            </div>
+        </div>
       </div>
     </div>
   `;
@@ -86,6 +115,21 @@ const _createDOM = (sidebar) => {
   _volumeSlider = /** @type {HTMLInputElement} */ (document.getElementById("bgm-volume"));
   _volBtn = document.getElementById("bgm-vol-btn");
   _timeEl = document.getElementById("bgm-time");
+  _playlistBtn = document.getElementById("bgm-list-btn");
+  _playlistPanel = document.getElementById("bgm-playlist-panel");
+  _playlistContainer = document.getElementById("bgm-playlist-container");
+  _videoPreview = document.getElementById("bgm-video-preview");
+
+  // Create the YT container INSIDE the preview before initializing
+  if (_videoPreview) {
+    const ytTarget = document.createElement("div");
+    ytTarget.id = "yt-bgm-player";
+    ytTarget.style.cssText = "width:100%; height:100%; pointer-events:none;";
+    _videoPreview.appendChild(ytTarget);
+  }
+
+  // Initial playlist render
+  _renderPlaylist();
 };
 
 // ─── Event Binding ────────────────────────────────────────────
@@ -99,7 +143,7 @@ const _bindEvents = () => {
   _volBtn?.addEventListener("click", toggleMute);
 
   _volumeSlider?.addEventListener("input", (e) => {
-    const val = parseInt(/** @type {HTMLInputElement} */ (e.target).value, 10);
+    const val = parseInt(/** @type {HTMLInputElement} */(e.target).value, 10);
     setVolume(val);
   });
 
@@ -109,11 +153,28 @@ const _bindEvents = () => {
     const ratio = (e.clientX - rect.left) / rect.width;
     seekTo(ratio * bgmState.duration);
   });
+
+  // Playlist toggle
+  _playlistBtn?.addEventListener("click", () => {
+    _playlistPanel?.classList.toggle("active");
+  });
+  document.getElementById("bgm-close-list")?.addEventListener("click", () => {
+    _playlistPanel?.classList.remove("active");
+  });
+
+  // Hover for video
+  _bar?.addEventListener("mouseenter", () => {
+    _videoPreview?.classList.add("visible");
+  });
+  _bar?.addEventListener("mouseleave", () => {
+    _videoPreview?.classList.remove("visible");
+  });
 };
 
 // ─── UI Update ────────────────────────────────────────────────
+let _lastIdx = -1;
 
-const _updateUI = () => {
+const _updateUI = (state = null) => {
   if (!_bar) return;
 
   // Play/Pause icon
@@ -136,18 +197,61 @@ const _updateUI = () => {
 
   // Time
   if (_timeEl) {
-    _timeEl.textContent = _formatTime(bgmState.currentTime);
+    _timeEl.textContent = _formatTime(bgmState.currentTime) + " / " + _formatTime(bgmState.duration);
   }
 
   // Volume icon
   if (_volBtn) {
     _volBtn.innerHTML = bgmState.muted ? ICON_MUTE : ICON_VOL;
+    _volBtn.classList.toggle("muted", bgmState.muted);
   }
 
   // Volume slider
   if (_volumeSlider && !bgmState.muted) {
     _volumeSlider.value = String(bgmState.volume);
   }
+
+  // Visualizer animation
+  const visualizer = _bar.querySelector(".audio-bar-visualizer");
+  if (visualizer) {
+    visualizer.classList.toggle("active", bgmState.playing);
+  }
+
+  // Render Playlist ONLY if track changed
+  if (_lastIdx !== bgmState.currentIndex) {
+    _lastIdx = bgmState.currentIndex;
+    _renderPlaylist();
+  }
+};
+
+const _renderPlaylist = () => {
+  if (!_playlistContainer) return;
+
+  const list = getPlaylist();
+  const html = list.map((item, idx) => {
+    const isActive = bgmState.currentIndex === idx;
+    return `
+            <div class="bgm-list-item ${isActive ? 'active' : ''}" data-index="${idx}">
+                <div class="bgm-list-thumb">
+                    <img src="https://img.youtube.com/vi/${item.id}/default.jpg" alt="thumb">
+                </div>
+                <div class="bgm-list-info">
+                    <div class="bgm-list-title">${item.title}</div>
+                </div>
+                ${isActive ? '<div class="bgm-active-indicator"><span></span><span></span><span></span></div>' : ''}
+            </div>
+        `;
+  }).join("");
+
+  _playlistContainer.innerHTML = html;
+
+  // Item click
+  _playlistContainer.querySelectorAll(".bgm-list-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const idx = parseInt(item.dataset.index, 10);
+      setTrack(idx);
+    });
+  });
 };
 
 /**
