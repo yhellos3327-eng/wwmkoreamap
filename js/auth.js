@@ -86,6 +86,31 @@ export const getAuthHeaders = () => {
   return headers;
 };
 
+/** @type {number|null} */
+let _refreshTimer = null;
+
+/**
+ * Access token을 리프레시합니다.
+ * 서버가 새 httpOnly 쿠키를 자동으로 설정합니다.
+ * @returns {Promise<boolean>}
+ */
+const refreshAccessToken = async () => {
+  try {
+    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
+      method: "POST",
+      credentials: "include",
+    });
+    if (response.ok) {
+      const data = await response.json();
+      return data.success === true;
+    }
+    return false;
+  } catch (err) {
+    console.warn("[Auth] Token refresh failed:", err.message);
+    return false;
+  }
+};
+
 /**
  * 백엔드와 인증 상태를 확인합니다.
  * JWT 토큰은 httpOnly 쿠키에 자동으로 포함됩니다.
@@ -96,10 +121,21 @@ const checkAuthStatus = async () => {
   try {
     const headers = getAuthHeaders();
 
-    const response = await fetch(`${BACKEND_URL}/auth/user`, {
+    let response = await fetch(`${BACKEND_URL}/auth/user`, {
       credentials: "include", // httpOnly 쿠키 전송
       headers
     });
+
+    // access token 만료 시 refresh 시도 후 재확인
+    if (response.status === 401) {
+      const refreshed = await refreshAccessToken();
+      if (refreshed) {
+        response = await fetch(`${BACKEND_URL}/auth/user`, {
+          credentials: "include",
+          headers: getAuthHeaders()
+        });
+      }
+    }
 
     if (response.ok) {
       const data = await response.json();
@@ -291,31 +327,6 @@ export const updateAuthUI = () => {
   import("./settings/backup.js").then((m) => {
     m.refreshCloudBackupVisibility();
   }).catch(() => { });
-};
-
-/** @type {number|null} */
-let _refreshTimer = null;
-
-/**
- * Access token을 리프레시합니다.
- * 서버가 새 httpOnly 쿠키를 자동으로 설정합니다.
- * @returns {Promise<boolean>}
- */
-const refreshAccessToken = async () => {
-  try {
-    const response = await fetch(`${BACKEND_URL}/auth/refresh`, {
-      method: "POST",
-      credentials: "include",
-    });
-    if (response.ok) {
-      const data = await response.json();
-      return data.success === true;
-    }
-    return false;
-  } catch (err) {
-    console.warn("[Auth] Token refresh failed:", err.message);
-    return false;
-  }
 };
 
 /**

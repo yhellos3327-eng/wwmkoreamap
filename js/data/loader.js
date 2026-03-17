@@ -92,17 +92,20 @@ export const loadMapData = async (mapKey, onProgress) => {
         let overriddenCount = 0;
 
         // Build map for O(1) lookup
+        // 각 필드별로 가장 최신 revision 값을 누적 (DESC 순서로 처리하므로 첫 등장 값이 최신)
         const revisionMap = new Map();
         revData.revisions.forEach(rev => {
-          // Use string key for map to ensure consistency (especially for UNIONed numeric IDs)
           const targetId = String(rev.target_marker_id);
-          // ORDER BY created_at DESC ensures the NEWEST revision is processed first.
-          // We only take the newest revision for each target_marker_id.
           if (!revisionMap.has(targetId)) {
-            // For community creation records in my UNION, they have is_creation: 1.
-            // We should prioritize actual edits/deletions (is_creation: 0) if they exist.
-            // But since it's ordered by date DESC, the edit/deletion revision is already newer.
-            revisionMap.set(targetId, rev.revision_data);
+            revisionMap.set(targetId, { ...rev.revision_data });
+          } else {
+            // 이미 있는 필드는 최신값을 유지, 없는 필드만 이전 revision에서 보충
+            const existing = revisionMap.get(targetId);
+            Object.keys(rev.revision_data).forEach(key => {
+              if (!(key in existing)) {
+                existing[key] = rev.revision_data[key];
+              }
+            });
           }
         });
 
@@ -112,6 +115,7 @@ export const loadMapData = async (mapKey, onProgress) => {
           if (revOverride) {
             if (revOverride.title) item.title = revOverride.title;
             // item.name is the koDict English key — do NOT overwrite with Korean title
+            if (revOverride.type) item.category = revOverride.type;
             if (revOverride.description) item.description = revOverride.description;
             if (revOverride.region_name) item.region = revOverride.region_name;
             if (revOverride.screenshot) item.images = [revOverride.screenshot];

@@ -84,9 +84,9 @@ export const completeCurrentStep = () => {
 
   const currentPoint = state.currentRoute.route[state.currentStepIndex];
 
-  import("../ui.js").then(({ toggleCompleted }) => {
+  import("../ui.js").then(async ({ toggleCompleted }) => {
     if (!appState.completedList.some((c) => c.id === currentPoint.id)) {
-      toggleCompleted(currentPoint.id);
+      await toggleCompleted(currentPoint.id);
     }
 
     for (
