@@ -1551,6 +1551,7 @@ const handleMarkerAction = (markerData, leafletMarker) => {
       formData.append('map_id', state.currentMapKey || 'qinghe');
       formData.append('deleted', 'true');
       formData.append('edit_reason', reason.trim());
+      formData.append('status', 'approved');
 
       try {
         const res = await fetch(`${BACKEND_URL}/api/revisions`, {
@@ -1560,10 +1561,11 @@ const handleMarkerAction = (markerData, leafletMarker) => {
         });
         const result = await res.json();
         if (result.success) {
-          addLog(`삭제 제안 제출됨: ${markerData.name || markerData.id}`, "success");
+          addLog(`마커 삭제됨: ${markerData.name || markerData.id}`, "success");
           import("./sync/ui.js").then(({ showSyncToast }) => {
-            showSyncToast("삭제 제안이 제출되었습니다.", "success");
+            showSyncToast("마커가 삭제되었습니다.", "success");
           });
+          setTimeout(() => location.reload(), 500);
         } else {
           alert("제출 실패: " + (result.error || "알 수 없는 오류"));
         }
