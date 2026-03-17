@@ -102,6 +102,7 @@ export const initToggles = () => {
   const adToggleInput = document.getElementById("toggle-ad");
   const webLLMToggleInput = document.getElementById("toggle-web-llm");
   const communityToggleInput = document.getElementById("toggle-community-markers");
+  const bgmPlayerToggleInput = document.getElementById("toggle-bgm-player");
 
   const chromeTranslatorStatus = document.getElementById(
     "chrome-translator-status",
@@ -308,6 +309,20 @@ export const initToggles = () => {
     });
   }
 
+  if (bgmPlayerToggleInput) {
+    /** @type {HTMLInputElement} */ (bgmPlayerToggleInput).checked =
+      state.showBgmPlayer;
+    bgmPlayerToggleInput.addEventListener("change", async (e) => {
+      const isChecked = /** @type {HTMLInputElement} */(e.target).checked;
+      setState("showBgmPlayer", isChecked);
+      updateSettingWithTimestamp("showBgmPlayer", isChecked).catch(
+        (err) => console.warn("BGM 플레이어 설정 업데이트 실패:", err),
+      );
+      const { setBgmPlayerVisible } = await import("../bgm/ui.js");
+      setBgmPlayerVisible(isChecked);
+    });
+  }
+
   return {
     loadValues: async () => {
       if (adToggleInput) {
@@ -344,6 +359,9 @@ export const initToggles = () => {
       if (communityToggleInput)
         /** @type {HTMLInputElement} */ (communityToggleInput).checked =
           state.showCommunityMarkers;
+      if (bgmPlayerToggleInput)
+        /** @type {HTMLInputElement} */ (bgmPlayerToggleInput).checked =
+          state.showBgmPlayer;
 
       updateClusteringToggleState();
     },

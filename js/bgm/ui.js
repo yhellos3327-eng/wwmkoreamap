@@ -10,6 +10,7 @@ import {
   bgmState, getCurrentTrack, getPlaylist, setTrack,
   toggleShuffle, toggleRepeat
 } from "./player.js";
+import { state as appState } from "../state.js";
 
 // ─── SVG Icons ────────────────────────────────────────────────
 const ICON_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>`;
@@ -41,6 +42,15 @@ let _videoPreview = null;
 // ─── Public ───────────────────────────────────────────────────
 
 /**
+ * BGM 플레이어 표시/숨김
+ * @param {boolean} visible
+ */
+export const setBgmPlayerVisible = (visible) => {
+  const bar = document.getElementById("audio-bar");
+  if (bar) bar.style.display = visible ? "" : "none";
+};
+
+/**
  * BGM 플레이어 초기화 — DOM 생성 + YT API 로드
  */
 export const initBgmPlayer = () => {
@@ -49,6 +59,11 @@ export const initBgmPlayer = () => {
 
   _createDOM(sidebar);
   _bindEvents();
+
+  // 설정에 따라 초기 표시 여부 적용
+  if (appState.showBgmPlayer === false) {
+    setBgmPlayerVisible(false);
+  }
 
   // YT API 비동기 로드 (실패해도 크래시 안 함)
   initYTPlayer().then(() => {
