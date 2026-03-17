@@ -172,6 +172,7 @@ const initialState = {
   hideCompleted: false,
   enableClustering: true,
   enableWebLLM: false,
+  showBgmPlayer: true,
   currentGuideStep: 0,
   rawCSV: null,
   parsedCSV: null,
@@ -487,6 +488,7 @@ export const initStateFromVault = async () => {
       if (settings.aiProvider !== undefined) stateUpdates.savedAIProvider = settings.aiProvider;
       if (settings.apiModel !== undefined) stateUpdates.savedApiModel = settings.apiModel;
       if (settings.showCommunityMarkers !== undefined) stateUpdates.showCommunityMarkers = settings.showCommunityMarkers;
+      if (settings.showBgmPlayer !== undefined) stateUpdates.showBgmPlayer = settings.showBgmPlayer;
     }
 
     // Batch update state

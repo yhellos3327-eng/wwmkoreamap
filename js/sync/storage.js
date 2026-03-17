@@ -90,6 +90,7 @@ const getSettingsFromState = (state) => {
     disableRegionClickPan: state.disableRegionClickPan,
     enableWebLLM: state.enableWebLLM ?? false,
     showCommunityMarkers: state.showCommunityMarkers ?? false,
+    showBgmPlayer: state.showBgmPlayer ?? true,
   };
 };
 
