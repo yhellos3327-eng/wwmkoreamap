@@ -409,7 +409,6 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                 formData.append('approve', 'true');
                 formData.append('skip_review', 'true');
                 formData.append('immediate', 'true');
-                formData.append('is_official', String(isOfficial));
                 // @ts-ignore
                 if (window.visitorId) {
                     // @ts-ignore
