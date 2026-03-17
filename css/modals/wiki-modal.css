@@ -511,6 +511,123 @@
     gap: 8px;
 }
 
+/* ─── Vote Badges (추천/신고) ─── */
+
+.wiki-vote-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.wiki-vote-up {
+    background: rgba(74, 222, 128, 0.08);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.2);
+}
+
+.wiki-vote-up:hover {
+    background: rgba(74, 222, 128, 0.18);
+    border-color: rgba(74, 222, 128, 0.4);
+    transform: translateY(-1px);
+}
+
+.wiki-vote-up.voted {
+    background: rgba(74, 222, 128, 0.25);
+    border-color: #4ade80;
+    box-shadow: 0 0 8px rgba(74, 222, 128, 0.2);
+}
+
+.wiki-vote-down {
+    background: rgba(248, 113, 113, 0.08);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.2);
+}
+
+.wiki-vote-down:hover {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(248, 113, 113, 0.4);
+    transform: translateY(-1px);
+}
+
+.wiki-vote-down.voted {
+    background: rgba(248, 113, 113, 0.25);
+    border-color: #f87171;
+    box-shadow: 0 0 8px rgba(248, 113, 113, 0.2);
+}
+
+.wiki-vote-badge .vote-count,
+.wiki-vote-badge .report-count {
+    font-weight: 700;
+}
+
+/* ─── Approval Controls (승인/반려) ─── */
+
+.wiki-approval-controls {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.wiki-history-approve-btn,
+.wiki-history-reject-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.wiki-history-approve-btn {
+    background: rgba(74, 222, 128, 0.1);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.25);
+}
+
+.wiki-history-approve-btn:hover {
+    background: rgba(74, 222, 128, 0.2);
+    border-color: #4ade80;
+    transform: translateY(-1px);
+}
+
+.wiki-history-reject-btn {
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+    border-color: rgba(248, 113, 113, 0.25);
+}
+
+.wiki-history-reject-btn:hover {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+    transform: translateY(-1px);
+}
+
+/* ─── Admin Revert Button ─── */
+
+.wiki-admin-revert-btn {
+    background: rgba(251, 191, 36, 0.1) !important;
+    color: #fbbf24 !important;
+    border-color: rgba(251, 191, 36, 0.25) !important;
+    font-size: 12px;
+    gap: 4px;
+}
+
+.wiki-admin-revert-btn:hover {
+    background: rgba(251, 191, 36, 0.2) !important;
+    border-color: #fbbf24 !important;
+}
+
 /* ─── Empty State ─── */
 
 .wiki-empty {
