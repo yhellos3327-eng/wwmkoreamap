@@ -222,8 +222,7 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
                     formData.append('map_id', state.currentMapKey || 'qinghe');
                     formData.append('deleted', 'true');
                     formData.append('edit_reason', reason.trim());
-                    // Force pending for deletions usually, unless highly trusted
-                    formData.append('status', 'pending');
+                    formData.append('status', 'approved');
 
                     const response = await fetch(`${BACKEND_URL}/api/revisions`, {
                         method: 'POST',
@@ -234,8 +233,9 @@ export const openWikiEditModal = async (itemId, isOfficial) => {
 
                     const data = await response.json();
                     if (data.success) {
-                        alert("삭제 제안이 제출되었습니다. 관리자 검토 후 반영됩니다.");
+                        alert("마커가 삭제되었습니다.");
                         overlay.remove();
+                        setTimeout(() => location.reload(), 500);
                     } else {
                         alert("제출 실패: " + (data.error || "알 수 없는 오류"));
                     }
