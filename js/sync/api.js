@@ -15,12 +15,27 @@ const getHeaders = async () => {
 };
 
 /**
+ * fetchWithAuth 래퍼 (401 시 token refresh 후 재시도)
+ * @param {string} url
+ * @param {RequestInit} options
+ * @returns {Promise<Response>}
+ */
+const authFetch = async (url, options) => {
+  try {
+    const { fetchWithAuth } = await import("../auth.js");
+    return fetchWithAuth(url, options);
+  } catch (e) {
+    return fetch(url, options);
+  }
+};
+
+/**
  * 클라우드에서 사용자 데이터를 가져옵니다.
  * @returns {Promise<{data: any|null, version: number}>} 클라우드 데이터 및 버전.
  */
 export const fetchCloudData = async () => {
   const headers = await getHeaders();
-  const response = await fetch(`${BACKEND_URL}/api/sync/load`, {
+  const response = await authFetch(`${BACKEND_URL}/api/sync/load`, {
     credentials: "include",
     headers
   });
@@ -44,7 +59,7 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
   }
 
   const headers = await getHeaders();
-  const response = await fetch(`${BACKEND_URL}/api/sync/save`, {
+  const response = await authFetch(`${BACKEND_URL}/api/sync/save`, {
     method: "POST",
     headers,
     credentials: "include",
@@ -70,7 +85,7 @@ export const saveCloudData = async (data, expectedVersion = undefined) => {
  */
 export const fetchBackupList = async () => {
   const headers = await getHeaders();
-  const response = await fetch(`${BACKEND_URL}/api/backup/list`, {
+  const response = await authFetch(`${BACKEND_URL}/api/backup/list`, {
     credentials: "include",
     headers
   });
@@ -92,7 +107,7 @@ export const saveCloudBackup = async (label = null, data = null) => {
   }
 
   const headers = await getHeaders();
-  const response = await fetch(`${BACKEND_URL}/api/backup/save`, {
+  const response = await authFetch(`${BACKEND_URL}/api/backup/save`, {
     method: "POST",
     headers,
     credentials: "include",
@@ -109,7 +124,7 @@ export const saveCloudBackup = async (label = null, data = null) => {
  */
 export const restoreFromBackup = async (backupId) => {
   const headers = await getHeaders();
-  const response = await fetch(
+  const response = await authFetch(
     `${BACKEND_URL}/api/backup/restore/${backupId}`,
     {
       method: "POST",

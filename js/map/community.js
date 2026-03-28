@@ -39,7 +39,8 @@ export const fetchCommunityMarkers = async () => {
                     votes: m.votes,
                     user_id: m.userId,
                     region: m.region,
-                    status: m.status // "pending", "approved", "rejected"
+                    status: m.status, // "pending", "approved", "rejected"
+                    profile_image: m.profile_image || null
                 });
 
                 // Populate vote cache immediately so UI renders correct counts

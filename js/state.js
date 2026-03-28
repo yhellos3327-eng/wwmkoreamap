@@ -64,6 +64,7 @@ const log = createLogger("State");
  * @property {boolean} hideCompleted
  * @property {boolean} enableClustering
  * @property {boolean} enableWebLLM
+ * @property {boolean} showBgmPlayer
  * @property {number} currentGuideStep
  * @property {string|null} rawCSV
  * @property {any} parsedCSV

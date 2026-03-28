@@ -121,8 +121,10 @@ export const renderMapDataAndMarkers = async () => {
 
       if (state.showCommunityMarkers) {
         if (item.isBackend) {
-          // Hide both rejected and deleted community markers
-          return item.status !== "rejected" && item.status !== "deleted";
+          // 삭제/거절된 마커 제외, 나머지는 카테고리/지역 필터 적용
+          if (item.status === "rejected" || item.status === "deleted") {
+            return false;
+          }
         }
         // 커뮤니티 모드에서도 일반 마커 필터링 규칙 적용 (기존에는 경계석만 강제 표시)
         // 하지만 유저 요청에 따라 다른 요소들도 모두 켜지게 하기 위해 일반 필터 로직으로 흐르게 함

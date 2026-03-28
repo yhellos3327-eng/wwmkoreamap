@@ -109,8 +109,8 @@ export const createSpriteForItem = (item) => {
 
   let shouldRender = isCatActive && isRegActive;
   if (state.showCommunityMarkers && item.isBackend) {
-    if (item.status === "rejected") return null;
-    shouldRender = true;
+    if (item.status === "rejected" || item.status === "deleted") return null;
+    // shouldRender는 isCatActive && isRegActive 유지 (카테고리/지역 필터 적용)
   }
 
   if (!shouldRender) {
@@ -132,21 +132,74 @@ export const createSpriteForItem = (item) => {
   const sprite = new PIXI.Sprite(texture);
   sprite.anchor.set(0.5, 0.5);
 
-  // 유저 마커 차별화: 우측 상단에 유저 프로필 이미지 추가
+  // 유저 마커 차별화: 아이콘 외곽선 + 반짝이 애니메이션 + 프로필 뱃지 + 하단 라벨
   if (item.isBackend) {
-    let userIconSprite = null;
+    const w = texture.width;
+    const h = texture.height;
 
-    // 기본 SVG 아이콘 사용 (프로필 이미지는 나중에 비동기로 로드)
+    // 하단 "유저" 라벨 (텍스트 먼저 생성 후 박스를 텍스트에 맞춤)
+    const label = new PIXI.Text("유저", {
+      fontFamily: "Arial, sans-serif",
+      fontSize: 18,
+      fontWeight: "bold",
+      fill: 0xFFFFFF,
+      align: "center",
+    });
+    label.anchor.set(0.5, 0);
+    label.position.set(0, h / 2 + 2);
+
+    const labelPadX = 4;
+    const labelPadY = 2;
+    const labelBg = new PIXI.Graphics();
+    labelBg.beginFill(0x00BCD4, 0.95);
+    labelBg.drawRoundedRect(
+      -label.width / 2 - labelPadX,
+      h / 2 + 2 - labelPadY,
+      label.width + labelPadX * 2,
+      label.height + labelPadY * 2,
+      5
+    );
+    labelBg.endFill();
+    sprite.addChild(labelBg);
+    sprite.addChild(label);
+
+    // 우측 상단 프로필 뱃지
+    const badgeRadius = w * 0.22;
+    const badgeX = w / 2 - badgeRadius * 0.1;
+    const badgeY = -h / 2 + badgeRadius * 0.1;
+
+    const badgeBg = new PIXI.Graphics();
+    badgeBg.beginFill(0x00BCD4);
+    badgeBg.drawCircle(badgeX, badgeY, badgeRadius + 2);
+    badgeBg.endFill();
+    badgeBg.lineStyle(1.5, 0xFFFFFF, 0.9);
+    badgeBg.drawCircle(badgeX, badgeY, badgeRadius + 2);
+    sprite.addChild(badgeBg);
+
+    // 기본 유저 SVG 아이콘 (폴백)
     const userIconSvg = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#333" stroke-width="1">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#fff" stroke-width="1">
         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
         <circle cx="12" cy="7" r="4"></circle>
       </svg>
     `;
     const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
-    userIconSprite = new PIXI.Sprite(userIconTexture);
+    const userIconSprite = new PIXI.Sprite(userIconTexture);
+    userIconSprite.width = badgeRadius * 2;
+    userIconSprite.height = badgeRadius * 2;
+    userIconSprite.anchor.set(0.5, 0.5);
+    userIconSprite.position.set(badgeX, badgeY);
 
-    // 프로필 이미지가 있으면 비동기로 로드 후 업데이트
+    // 프로필 이미지 원형 마스크
+    const mask = new PIXI.Graphics();
+    mask.beginFill(0xffffff);
+    mask.drawCircle(badgeX, badgeY, badgeRadius);
+    mask.endFill();
+    sprite.addChild(mask);
+    sprite.addChild(userIconSprite);
+    userIconSprite.mask = mask;
+
+    // 실제 프로필 이미지 비동기 로드
     if (item.profile_image) {
       PIXI.Assets.load(item.profile_image)
         .then((profileTexture) => {
@@ -154,26 +207,8 @@ export const createSpriteForItem = (item) => {
         })
         .catch((e) => {
           console.warn("Failed to load profile image:", item.profile_image, e);
-          // SVG 아이콘 유지
         });
     }
-
-    // 아이콘 크기 및 위치 조정 (마커 크기 대비)
-    userIconSprite.width = texture.width * 0.45;
-    userIconSprite.height = texture.height * 0.45;
-    userIconSprite.anchor.set(0.5, 0.5);
-    userIconSprite.position.set(texture.width * 0.35, -texture.height * 0.35);
-
-    // 배경 원 추가 (가독성 향상)
-    const badgeBg = new PIXI.Graphics();
-    badgeBg.beginFill(0xffffff);
-    badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
-    badgeBg.endFill();
-    badgeBg.lineStyle(2, 0x333333, 1);
-    badgeBg.drawCircle(texture.width * 0.35, -texture.height * 0.35, texture.width * 0.25);
-
-    sprite.addChild(badgeBg);
-    sprite.addChild(userIconSprite);
   }
 
   sprite.alpha = isCompleted ? 0.4 : 1.0;

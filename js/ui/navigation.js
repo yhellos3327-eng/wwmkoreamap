@@ -18,7 +18,7 @@ import { updateSinglePixiMarker } from "../map/pixiOverlay/overlayCore.js";
 import { primaryDb } from "../storage/db.js";
 import { createLogger } from "../utils/logStyles.js";
 import { BACKEND_URL } from "../config.js";
-import { isLoggedIn } from "../auth.js";
+import { isLoggedIn, fetchWithAuth } from "../auth.js";
 
 const log = createLogger("Navigation");
 
@@ -108,12 +108,11 @@ export const toggleCompleted = async (id, skipSync = false) => {
 
   // Backend Sync (Dedicated Table Sync)
   if (isLoggedIn() && !skipSync) {
-    fetch(`${BACKEND_URL}/api/markers/${id}/toggle-complete`, {
+    fetchWithAuth(`${BACKEND_URL}/api/markers/${id}/toggle-complete`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      credentials: "include" // Send cookies
     }).then(async res => {
       if (!res.ok) {
         throw new Error("Backend sync failed");
