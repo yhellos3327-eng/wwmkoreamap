@@ -5,7 +5,7 @@
  */
 
 import {
-  initYTPlayer, isReady, togglePlay, next, prev,
+  initYTPlayer, isReady, togglePlay, pause, next, prev,
   setVolume, toggleMute, seekTo, onStateChange,
   bgmState, getCurrentTrack, getPlaylist, setTrack,
   toggleShuffle, toggleRepeat
@@ -48,6 +48,10 @@ let _videoPreview = null;
 export const setBgmPlayerVisible = (visible) => {
   const bar = document.getElementById("audio-bar");
   if (bar) bar.style.display = visible ? "" : "none";
+
+  if (!visible) {
+    pause();
+  }
 };
 
 /**

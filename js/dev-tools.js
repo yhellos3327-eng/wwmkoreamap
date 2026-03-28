@@ -9,6 +9,7 @@ import { state, setState } from "./state.js";
 import { MAP_CONFIGS } from "./config.js";
 import { t, isPointInPolygon } from "./utils.js";
 import { getRegionPolygonsCache } from "./map/markerFactory.js";
+import { CATEGORY_GROUPS } from "./ui/sidebar/constants.js";
 
 export const devState = {
   isActive: false,
@@ -154,10 +155,17 @@ export const createAddMarkerModal = (lat, lng) => {
   let categories = state.mapData.categories || [];
   const config = MAP_CONFIGS[state.currentMapKey];
 
-  if (categories.length <= 1 || (config && config.type === "image")) {
-    const allCatIds = Object.keys(state.categoryItemTranslations).filter(
-      (id) => id.length > 5 && !isNaN(Number(id)),
-    );
+  // 모든 맵에서 전체 아이콘 카테고리를 마커 생성 시 사용 가능하게 함
+  {
+    const groupCatIds = Object.values(CATEGORY_GROUPS).flatMap((g) => g.ids);
+    const allCatIds = [
+      ...new Set([
+        ...Object.keys(state.categoryItemTranslations).filter(
+          (id) => id.length > 5 && !isNaN(Number(id)),
+        ),
+        ...groupCatIds,
+      ]),
+    ];
 
     if (allCatIds.length > 0) {
       const transCats = allCatIds.map((id) => ({

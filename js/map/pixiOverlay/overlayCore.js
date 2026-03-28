@@ -168,9 +168,8 @@ export const initPixiOverlay = async () => {
               let isRegActive = state.activeRegionNames.has(normalizedRegion);
 
               if (state.showCommunityMarkers && item.isBackend) {
-                if (item.status === "rejected") continue;
-                isCatActive = true;
-                isRegActive = true;
+                if (item.status === "rejected" || item.status === "deleted") continue;
+                // 카테고리/지역 필터 적용 (isCatActive, isRegActive 유지)
               }
 
               if (!isCatActive || !isRegActive) continue;

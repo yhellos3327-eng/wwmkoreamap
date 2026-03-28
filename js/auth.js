@@ -88,6 +88,28 @@ export const getAuthHeaders = () => {
 
 /** @type {number|null} */
 let _refreshTimer = null;
+/** 연속 refresh 실패 횟수 */
+let _refreshFailCount = 0;
+const MAX_REFRESH_FAILS = 3;
+
+/**
+ * 401 시 token refresh 후 자동 재시도하는 fetch 래퍼
+ * @param {string} url
+ * @param {RequestInit} [options]
+ * @returns {Promise<Response>}
+ */
+export const fetchWithAuth = async (url, options = {}) => {
+  const opts = { credentials: "include", ...options };
+  let response = await fetch(url, opts);
+
+  if (response.status === 401) {
+    const refreshed = await refreshAccessToken();
+    if (refreshed) {
+      response = await fetch(url, opts);
+    }
+  }
+  return response;
+};
 
 /**
  * Access token을 리프레시합니다.
@@ -196,6 +218,22 @@ export const loginWithProvider = async (provider) => {
   if (!result || !result.success) {
     console.error("Failed to set return URL", result);
   }
+
+  // [Overlay Mode] 팝업 로그인 처리
+  if (document.body.classList.contains("embed-mode")) {
+    const width = 500;
+    const height = 600;
+    const left = (window.screen.width / 2) - (width / 2);
+    const top = (window.screen.height / 2) - (height / 2);
+
+    window.open(
+      `${BACKEND_URL}/auth/${provider}`,
+      "wwm_login_popup",
+      `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,resizable=yes`
+    );
+    return;
+  }
+
   window.location.href = `${BACKEND_URL}/auth/${provider}`;
 };
 
@@ -331,17 +369,25 @@ export const updateAuthUI = () => {
 
 /**
  * 자동 토큰 리프레시 설정 (13분 간격, 15분 만료 전)
+ * 연속 3회 실패 시에만 로그아웃 처리 (일시적 네트워크 오류 방어)
  */
 const setupAutoRefresh = () => {
   if (_refreshTimer) return; // 이미 설정됨
+  _refreshFailCount = 0;
   const REFRESH_INTERVAL = 13 * 60 * 1000; // 13분
   _refreshTimer = setInterval(async () => {
     const success = await refreshAccessToken();
-    if (!success) {
-      console.warn("[Auth] Token refresh failed — 재로그인 필요");
-      clearAutoRefresh();
-      currentUser = null;
-      updateAuthUI();
+    if (success) {
+      _refreshFailCount = 0; // 성공 시 실패 카운터 초기화
+    } else {
+      _refreshFailCount++;
+      console.warn(`[Auth] Token refresh failed (${_refreshFailCount}/${MAX_REFRESH_FAILS})`);
+      if (_refreshFailCount >= MAX_REFRESH_FAILS) {
+        console.warn("[Auth] Max refresh failures reached — 로그아웃 처리");
+        clearAutoRefresh();
+        currentUser = null;
+        updateAuthUI();
+      }
     }
   }, REFRESH_INTERVAL);
 };
@@ -354,6 +400,7 @@ const clearAutoRefresh = () => {
     clearInterval(_refreshTimer);
     _refreshTimer = null;
   }
+  _refreshFailCount = 0;
 };
 
 /**
@@ -383,6 +430,14 @@ export async function initAuth() {
   if (logoutBtn) {
     logoutBtn.addEventListener("click", logout);
   }
+
+  // [Overlay Mode] 팝업 로그인 메시지 리스너
+  window.addEventListener("message", async (event) => {
+    if (event.data && event.data.type === "wwm-login-success") {
+      console.log("[Auth] Popup login success signal received.");
+      await initAuth(); // 현재 인스턴스의 인증 상태 재초기화
+    }
+  });
 
   updateAuthUI();
 
