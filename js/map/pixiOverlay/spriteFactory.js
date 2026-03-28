@@ -19,6 +19,112 @@ import { fetchVoteCounts } from "../../votes.js";
 const spriteDataMap = new Map();
 const itemIdToSpriteMap = new Map();
 
+/**
+ * 이미지의 알파 채널(형태)을 따라가는 커스텀 애니메이션 외곽선 필터
+ * @class
+ */
+class OutlineFilter extends PIXI.Filter {
+  /**
+   * @param {number} thickness - 기본 외곽선 두께 (px)
+   * @param {number} color - 외곽선 색상 (hex)
+   */
+  constructor(thickness = 2, color = 0xFFD700) {
+    const vertex = `
+      attribute vec2 aVertexPosition;
+      attribute vec2 aTextureCoord;
+      uniform mat3 projectionMatrix;
+      varying vec2 vTextureCoord;
+      void main(void) {
+        gl_Position = vec4((projectionMatrix * vec3(aVertexPosition, 1.0)).xy, 0.0, 1.0);
+        vTextureCoord = aTextureCoord;
+      }
+    `;
+
+    const fragment = `
+      varying vec2 vTextureCoord;
+      uniform sampler2D uSampler;
+      uniform vec4 uOutlineColor;
+      uniform vec2 uThickness;
+      uniform float uTime;
+
+      void main(void) {
+        vec4 ownColor = texture2D(uSampler, vTextureCoord);
+        if (ownColor.a > 0.5) {
+          gl_FragColor = ownColor;
+        } else {
+          // 8방향 정밀 샘플링으로 외곽 보정
+          float totalAlpha = 0.0;
+          for (float i = 0.0; i < 6.28; i += 0.785) {
+            totalAlpha += texture2D(uSampler, vTextureCoord + vec2(cos(i) * uThickness.x, sin(i) * uThickness.y)).a;
+          }
+          
+          // 안티에일리싱 적용 (Sharper Smoothstep)
+          float outlineAlpha = smoothstep(0.0, 0.9, totalAlpha * 0.3);
+
+          if (outlineAlpha > 0.01) {
+            // "빙그르르" 회전하는 황금 광택 효과 구현 (Premium Sharp Sweep)
+            float angle = atan(vTextureCoord.y - 0.5, vTextureCoord.x - 0.5);
+            
+            // 더 날카롭고 빠른 회전 (uTime * 4.2, pow 16.0)
+            float shine = sin(angle + uTime * 4.2);
+            shine = pow(max(0.0, shine), 16.0) * 1.8; 
+            
+            // 고대비 리얼 골드 배합
+            vec4 baseGold = vec4(1.0, 0.84, 0.0, 1.0); // Vivid Gold
+            vec4 darkGold = vec4(0.7, 0.5, 0.1, 1.0);  // Shadow Gold
+            vec4 shineColor = vec4(1.0, 1.0, 0.9, 1.0); // Pearl White Shine
+            
+            // 입체감을 위해 기본 골드에 약간의 쉐도우 믹스 + 강력한 하이라이트
+            vec4 mixedGold = mix(darkGold, baseGold, 0.7 + sin(uTime * 2.0) * 0.1);
+            vec4 finalColor = mix(mixedGold, shineColor, shine);
+            
+            gl_FragColor = finalColor * outlineAlpha;
+          } else {
+            gl_FragColor = vec4(0.0);
+          }
+        }
+      }
+    `;
+
+    const r = ((color >> 16) & 0xFF) / 255;
+    const g = ((color >> 8) & 0xFF) / 255;
+    const b = (color & 0xFF) / 255;
+
+    super(vertex, fragment, {
+      uOutlineColor: [r, g, b, 1.0],
+      uThickness: [0, 0],
+      uTime: 0,
+    });
+
+    this.thickness = thickness;
+    this.startTime = Date.now();
+
+    // 전역 티커에 자동 등록 (애니메이션 구동)
+    PIXI.Ticker.shared.add(this.update, this);
+  }
+
+  update() {
+    this.uniforms.uTime = (Date.now() - this.startTime) / 1000.0;
+  }
+
+  /**
+   * 필터 렌더링 시 두께 단위를 텍스처 좌표계로 변환
+   */
+  apply(filterManager, input, output, clearMode) {
+    this.uniforms.uThickness[0] = this.thickness / input.filterFrame.width;
+    this.uniforms.uThickness[1] = this.thickness / input.filterFrame.height;
+    super.apply(filterManager, input, output, clearMode);
+  }
+
+  /**
+   * 필터 파괴 시 티커에서 제거 (메모리 누수 방지)
+   */
+  destroy() {
+    PIXI.Ticker.shared.remove(this.update, this);
+    super.destroy();
+  }
+}
+
 /** @returns {Map} 스프라이트 데이터 맵. */
 export const getSpriteDataMap = () => spriteDataMap;
 /**
@@ -132,83 +238,12 @@ export const createSpriteForItem = (item) => {
   const sprite = new PIXI.Sprite(texture);
   sprite.anchor.set(0.5, 0.5);
 
-  // 유저 마커 차별화: 아이콘 외곽선 + 반짝이 애니메이션 + 프로필 뱃지 + 하단 라벨
+  // 유저 마커 차별화: 이미지 형태를 따라가는 숨쉬는(Animation) 외곽선 필터 적용
   if (item.isBackend) {
-    const w = texture.width;
-    const h = texture.height;
-
-    // 하단 "유저" 라벨 (텍스트 먼저 생성 후 박스를 텍스트에 맞춤)
-    const label = new PIXI.Text("유저", {
-      fontFamily: "Arial, sans-serif",
-      fontSize: 18,
-      fontWeight: "bold",
-      fill: 0xFFFFFF,
-      align: "center",
-    });
-    label.anchor.set(0.5, 0);
-    label.position.set(0, h / 2 + 2);
-
-    const labelPadX = 4;
-    const labelPadY = 2;
-    const labelBg = new PIXI.Graphics();
-    labelBg.beginFill(0x00BCD4, 0.95);
-    labelBg.drawRoundedRect(
-      -label.width / 2 - labelPadX,
-      h / 2 + 2 - labelPadY,
-      label.width + labelPadX * 2,
-      label.height + labelPadY * 2,
-      5
-    );
-    labelBg.endFill();
-    sprite.addChild(labelBg);
-    sprite.addChild(label);
-
-    // 우측 상단 프로필 뱃지
-    const badgeRadius = w * 0.22;
-    const badgeX = w / 2 - badgeRadius * 0.1;
-    const badgeY = -h / 2 + badgeRadius * 0.1;
-
-    const badgeBg = new PIXI.Graphics();
-    badgeBg.beginFill(0x00BCD4);
-    badgeBg.drawCircle(badgeX, badgeY, badgeRadius + 2);
-    badgeBg.endFill();
-    badgeBg.lineStyle(1.5, 0xFFFFFF, 0.9);
-    badgeBg.drawCircle(badgeX, badgeY, badgeRadius + 2);
-    sprite.addChild(badgeBg);
-
-    // 기본 유저 SVG 아이콘 (폴백)
-    const userIconSvg = `
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" stroke="#fff" stroke-width="1">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-        <circle cx="12" cy="7" r="4"></circle>
-      </svg>
-    `;
-    const userIconTexture = PIXI.Texture.from(`data:image/svg+xml;base64,${btoa(userIconSvg)}`);
-    const userIconSprite = new PIXI.Sprite(userIconTexture);
-    userIconSprite.width = badgeRadius * 2;
-    userIconSprite.height = badgeRadius * 2;
-    userIconSprite.anchor.set(0.5, 0.5);
-    userIconSprite.position.set(badgeX, badgeY);
-
-    // 프로필 이미지 원형 마스크
-    const mask = new PIXI.Graphics();
-    mask.beginFill(0xffffff);
-    mask.drawCircle(badgeX, badgeY, badgeRadius);
-    mask.endFill();
-    sprite.addChild(mask);
-    sprite.addChild(userIconSprite);
-    userIconSprite.mask = mask;
-
-    // 실제 프로필 이미지 비동기 로드
-    if (item.profile_image) {
-      PIXI.Assets.load(item.profile_image)
-        .then((profileTexture) => {
-          userIconSprite.texture = profileTexture;
-        })
-        .catch((e) => {
-          console.warn("Failed to load profile image:", item.profile_image, e);
-        });
-    }
+    // 이미지 형태를 정밀하게 따라가는 인터랙티브 골드 애니메이션 외곽선
+    const outlineFilter = new OutlineFilter(2.2, 0xFFD700);
+    sprite.filters = sprite.filters || [];
+    sprite.filters.push(outlineFilter);
   }
 
   sprite.alpha = isCompleted ? 0.4 : 1.0;
@@ -216,9 +251,8 @@ export const createSpriteForItem = (item) => {
   if (isCompleted) {
     const colorMatrix = new PIXI.ColorMatrixFilter();
     colorMatrix.desaturate();
-    sprite.filters = [colorMatrix];
-  } else {
-    sprite.filters = [];
+    sprite.filters = sprite.filters || [];
+    sprite.filters.push(colorMatrix);
   }
 
   sprite.markerData = {
