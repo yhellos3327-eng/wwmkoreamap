@@ -99,6 +99,7 @@ const MAX_REFRESH_FAILS = 3;
  * @returns {Promise<Response>}
  */
 export const fetchWithAuth = async (url, options = {}) => {
+  /** @type {RequestInit} */
   const opts = { credentials: "include", ...options };
   let response = await fetch(url, opts);
 

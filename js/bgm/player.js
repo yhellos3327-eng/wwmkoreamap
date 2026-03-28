@@ -1,4 +1,5 @@
 // @ts-check
+import { state } from "../state.js";
 
 /**
  * @fileoverview YouTube IFrame API 기반 BGM 플레이어
@@ -16,6 +17,7 @@ const PLAYLIST = [
 ];
 
 // ─── State ────────────────────────────────────────────────────
+// @ts-ignore
 /** @type {YT.Player|null} */
 let _player = null;
 let _ready = false;
@@ -65,6 +67,7 @@ export const initYTPlayer = () => {
 
     // @ts-ignore
     window.onYouTubeIframeAPIReady = () => {
+      // @ts-ignore
       _player = new YT.Player("yt-bgm-player", {
         height: "100%",
         width: "100%",
@@ -93,6 +96,7 @@ export const initYTPlayer = () => {
 
     // Autoplay on first interaction (required by many browsers)
     const startOnInteraction = () => {
+      if (state.showBgmPlayer === false) return; // BGM 플레이어가 비활성화 상태면 자동 재생 안 함
       if (_ready && _player && !bgmState.playing) {
         _player.playVideo();
       }

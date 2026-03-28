@@ -92,6 +92,7 @@ export const createMarkerForItem = (item) => {
     ? "game-marker-icon completed-marker"
     : "game-marker-icon";
   if (isDefault) iconClass += " blue-overlay";
+  if (item.isBackend) iconClass += " community-marker"; // 커뮤니티(유저) 마커 구분을 위해 클래스 추가
   if (state.activeQuestMarkerIds && state.activeQuestMarkerIds.has(String(item.id))) {
     iconClass += " quest-glow-marker";
   }
@@ -145,7 +146,8 @@ export const createMarkerForItem = (item) => {
           const reason = prompt(`[${item.name}] 이 마커의 삭제를 제안하시겠습니까?\n이유를 입력해주세요:`);
           if (reason) {
             const { getAuthToken } = await import("../auth.js");
-            getAuthToken().then(async token => {
+            const token = getAuthToken(); // Promise가 아닌 일반 값을 반환하므로 동기 호출
+            if (token) {
               const formData = new FormData();
               formData.append('target_marker_id', String(item.id));
               formData.append('is_official', String(!item.isBackend));
@@ -159,13 +161,13 @@ export const createMarkerForItem = (item) => {
                   method: 'POST',
                   credentials: 'include',
                   body: formData,
-                  headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                  headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const result = await res.json();
                 if (result.success) alert("삭제 제안이 제출되었습니다.");
                 else alert("실패: " + result.error);
               } catch (err) { alert("서버 오류"); }
-            });
+            }
           }
         }
       });

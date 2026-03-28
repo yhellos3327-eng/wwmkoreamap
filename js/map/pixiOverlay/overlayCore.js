@@ -630,3 +630,16 @@ export const resetPixiOverlay = () => {
 
   logger.log("PixiOverlay", "GPU overlay reset (textures preserved)");
 };
+
+// 애니메이션 필터(OutlineFilter 등)의 실시간 반영을 위한 전역 리드로우 티커 설정
+const animationTicker = () => {
+  if (isPixiOverlayActive()) {
+    redrawPixiOverlay();
+  }
+};
+
+// 모듈 로드 시 전역 티커에 등록 (지도를 움직이지 않아도 애니메이션 재생)
+if (typeof PIXI !== "undefined" && PIXI.Ticker) {
+  PIXI.Ticker.shared.remove(animationTicker);
+  PIXI.Ticker.shared.add(animationTicker);
+}
